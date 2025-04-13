@@ -1,0 +1,40 @@
+/* Definition box styling */
+.definition-box {
+  background-color: #e9f5ec; /* Légère couleur de fond */
+  border-left: 4px solid #2e8b57; /* Bordure verte à gauche */
+  padding: 15px;
+  margin: 20px 0;
+  font-size: 1.1em; /* Taille de police légèrement plus grande */
+  font-style: italic; /* Italique pour le texte */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre légère */
+  border-radius: 8px; /* Coins arrondis */
+  line-height: 1.6; /* Meilleure lisibilité */
+  position: relative; /* Nécessaire pour l'icône */
+}
+
+.definition-box strong {
+  font-style: normal; /* Garde le mot "VÉLOGRIMPE" en normal */
+  font-weight: bold; /* Gras pour le titre */
+  color: #2e8b57; /* Couleur verte pour le mot "VÉLOGRIMPE" */
+}
+
+.tick {
+  position: absolute;
+  top: 0;
+  left: -8px;
+  translate: -100% 0;
+  width: 22px;
+  height: 4px;
+}
+
+.relative {
+  position: relative;
+}
+
+.info {
+  pointer-events: painted;
+}
+
+/* path.leaflet-interactive {
+  transition: stroke-width 0.15s ease-in;
+} */

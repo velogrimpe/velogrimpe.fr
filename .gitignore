@@ -1,0 +1,6 @@
+bdd/**/*.png
+bdd/**/*.jpeg
+bdd/**/*.gpx
+bdd/**/*.geojson
+bdd/**/*.zip
+.DS_Store
