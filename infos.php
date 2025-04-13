@@ -1,7 +1,3 @@
-<?php
-$config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
-$email = $config['email'];
-?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -39,7 +35,7 @@ $email = $config['email'];
       technique.</p>
     <p>Ce projet est réalisé bénévolement, et les informations de ce site ont vocation à rester en libre accès.</p>
     <p>Bon train, bon vélo, bonne grimpe !</p>
-    <a href="mailto:<?= $email ?>">contact@velogrimpe.fr</a>
+    <a href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>
 
     <h2 align="center">LIENS</h2>
 
