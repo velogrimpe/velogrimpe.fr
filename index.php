@@ -42,11 +42,13 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 
 <body>
   <?php include "./components/header.html"; ?>
-  <main class="pb-4 px-8">
+  <main class="pb-4 px-2 md:px-8">
     <div class="definition-box">
       <strong>VÉLOGRIMPE :</strong> <em>activité consistant à combiner train et vélo pour aller grimper en
-        falaise. En plus de privilégier une mobilité douce, le vélogrimpe donne l'occasion de vivre de petites
-        aventures. Synonyme : escaladopédalage.</em>
+        falaise. <span class="hidden md:inline">En plus de privilégier une mobilité douce, le vélogrimpe donne
+          l'occasion de vivre de petites
+          aventures. Synonyme : escaladopédalage.
+        </span></em>
     </div>
 
 
@@ -84,8 +86,9 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
             </form>
             <!-- <h3 class="font-bold text-xl">Je cherche...</h3> -->
             <div id="filtersFormDialogContainer"></div>
-            <form method="dialog" class="flex justify-end mt-4">
+            <form method="dialog" class="flex justify-end mt-4 gap-2">
               <button class="btn btn-sm btn-primary" onclick="">Appliquer et Fermer</button>
+              <button class="btn btn-sm btn-error text-base-100" id="filtersFormResetMobile">Réinitialiser</button>
             </form>
           </div>
           <form method="dialog" class="modal-backdrop">
@@ -991,7 +994,12 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 
   // ============================================ FILTRES ============================================
   const resetButton = document.getElementById("filtersFormReset");
+  const resetButtonMobile = document.getElementById("filtersFormResetMobile");
   resetButton.addEventListener("click", (e) => {
+    document.querySelectorAll(".villeRequired").forEach(e => e.classList.add("opacity-30"));
+    document.querySelectorAll(".villeRequired input").forEach(e => e.disabled = true);
+  });
+  resetButtonMobile.addEventListener("click", (e) => {
     document.querySelectorAll(".villeRequired").forEach(e => e.classList.add("opacity-30"));
     document.querySelectorAll(".villeRequired input").forEach(e => e.disabled = true);
   });
@@ -1043,6 +1051,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       falaises.forEach(falaise => {
         falaise.filteredOut = false;
       });
+      resetButtonMobile.disabled = true;
       resetButton.disabled = true;
     }
     // Case 2: At least one filter is set --> set falaises hors topo hidden and apply filters
@@ -1101,6 +1110,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
         }
       });
       resetButton.disabled = false;
+      resetButtonMobile.disabled = false;
     }
     // const nbInFilter = falaisesDuTopo.filter(f => !f.filteredOut).length;
     // if (nbInFilter === 0) {
@@ -1136,7 +1146,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       resetIcon.classList.remove("text-primary");
     }
   }));
-  document.getElementById("filtersFormReset").addEventListener("click", function (event) {
+  const resetAll = function (event) {
     event.preventDefault();
     document.getElementById("filtersForm").reset();
     // close modal
@@ -1145,12 +1155,16 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       falaise.filteredOut = false;
     });
     resetButton.disabled = true;
+    resetButtonMobile.disabled = true;
     info.update();
     renderFalaises();
-  });
+  }
+  resetButton.addEventListener("click", resetAll);
+  resetButtonMobile.addEventListener("click", resetAll);
   document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("filtersForm").reset();
     resetButton.disabled = true;
+    resetButtonMobile.disabled = true;
     filterHandler();
     villeChangeHandler();
   });
