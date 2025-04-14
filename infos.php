@@ -33,7 +33,9 @@
     <p>Seul au départ, Florent a bénéficié de l'appui de son frère Sylvain pour la mise en place du site web,
       et c'est rapidement <a href="https://github.com/ycouble">Yoann</a> qui a pris en charge tout le développement
       technique.</p>
-    <p>Ce projet est réalisé bénévolement, et les informations de ce site ont vocation à rester en libre accès.</p>
+    <p>Ce projet est réalisé bénévolement, et les informations de ce site ont vocation à rester en libre accès, de même
+      que le code, open-source et mis à disposition <a href="https://github.com/velogrimpe/velogrimpe.fr">sur
+        Github</a>.</p>
     <p>Bon train, bon vélo, bonne grimpe !</p>
     <a href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>
 
