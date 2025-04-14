@@ -548,7 +548,7 @@ $stmt->close();
     </div>
     <!-- VERSION DESKTOP -->
     <div class="hidden
-                md:grid grid-cols-[1.5fr_1fr_2fr_2.5fr_1fr_48px] gap-[1px] 
+                md:grid grid-cols-[1.5fr_1fr_2fr_2fr_60px] gap-[1px] 
                 bg-base-300 shadow-xl rounded-lg overflow-hidden
                 text-center items-center text-sm">
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center"></div>
@@ -561,20 +561,23 @@ $stmt->close();
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
         <img class="h-12" alt="Corde" src="/images/logo_corde.png" />
       </div>
-      <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center font-bold">Zone</div>
+      <!-- <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center font-bold">Zone</div> -->
       <div class="bg-base-100 px-1 py-1 self-stretch flex items-center justify-center font-bold text-xs">
         Temps total (T+V+A)
       </div>
       <?php foreach ($falaises as $falaise_id => $acces): ?>
         <?php $common = $acces[0]; ?>
         <div
-          class="bg-base-100 px-2 py-1 self-stretch font-bold flex items-center justify-center text-base falaise-<?= $common['falaise_id'] ?>-desktop">
+          class="bg-base-100 px-2 py-1 self-stretch font-bold flex flex-col items-center justify-center text-base falaise-<?= $common['falaise_id'] ?>-desktop">
           <div>
             <a href="<?php echo '/falaise.php?falaise_id=' . $acces[0]['falaise_id'] . "&ville_id=" . $ville_id ?>">
               <?php echo $common["falaise_nom"] ?>
             </a>
             <?php if (!empty($common["falaise_fermee"])): ?>
               <div class="text-error text-sm font-normal">Falaise Interdite</div>
+            <?php endif; ?>
+            <?php if (!empty($common["zone_nom"])): ?>
+              <div class="font-normal text-xs">(<?= $common["zone_nom"] ?>)</div>
             <?php endif; ?>
           </div>
         </div>
@@ -643,10 +646,10 @@ $stmt->close();
           </div>
           <div id="<?php echo 'rose-' . $row['falaise_id'] ?>" class="w-[72px]"></div>
         </div>
-        <div
+        <!-- <div
           class="bg-base-100 px-2 py-1 self-stretch flex flex-col justify-center items-center falaise-<?= $common['falaise_id'] ?>-desktop">
           <?php echo $row["zone_nom"] ?>
-        </div>
+        </div> -->
         <div
           class="bg-base-100 py-1 self-stretch flex flex-col items-center justify-center gap-1 font-bold h-full divide-y divide-slate-200 falaise-<?= $common['falaise_id'] ?>-desktop">
           <?php foreach ($acces as $row): ?>
@@ -656,7 +659,7 @@ $stmt->close();
           <?php endforeach; ?>
         </div>
       <?php endforeach; ?>
-      <div id="nomatch" class="bg-base-100 text-center w-full col-span-6 py-4 font-bold hidden">Aucune falaise
+      <div id="nomatch" class="bg-base-100 text-center w-full col-span-5 py-4 font-bold hidden">Aucune falaise
         ne correspond aux filtres.
       </div>
     </div>
