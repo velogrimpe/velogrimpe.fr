@@ -34,7 +34,7 @@ if (!$admin) {
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       <?php if ($admin): ?>
-        document.getElementById('admin').value = $config["admin_token"];
+        document.getElementById('admin').value = "<?= $config["admin_token"] ?>";
       <?php else: ?>
         document.getElementById('admin').value = '0';
       <?php endif; ?>

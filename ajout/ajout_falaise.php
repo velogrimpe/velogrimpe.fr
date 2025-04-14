@@ -56,9 +56,9 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         document.querySelectorAll("textarea").forEach(el => { el.required = false });
         document.querySelectorAll("select").forEach(el => { el.required = false });
         document.getElementById('falaise_public').value = '1';
-        document.getElementById('admin').value = $config["admin_token"];
+        document.getElementById('admin').value = "<?= $config["admin_token"] ?>";
         document.getElementById('nom_prenom').value = "Florent";
-        document.getElementById('email').value = $config['contact_mail'];
+        document.getElementById('email').value = "<?= $config['contact_mail'] ?>";
       <?php else: ?>
         document.getElementById('falaise_public').value = '2';
         document.getElementById('admin').value = '0';
@@ -622,7 +622,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 
 <script>
   const falaises = <?= json_encode($falaises) ?>.map(n => n.toLowerCase().normalize("NFD"));
-  console.log(falaises);
   const verifierExistencefalaise = () => {
     const falaiseNom = document.getElementById("falaise_nom").value;
     if (!falaiseNom) {

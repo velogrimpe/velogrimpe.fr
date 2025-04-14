@@ -56,14 +56,14 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     document.addEventListener('DOMContentLoaded', () => {
       <?php if ($admin): ?>
         document.getElementById('train_public').value = '1';
-        document.getElementById('admin').value = $config["admin_token"];
+        document.getElementById('admin').value = "<?= $config["admin_token"] ?>";
         document.getElementById('nom_prenom').value = "Florent";
-        document.getElementById('email').value = $config["contact_mail"];
+        document.getElementById('email').value = "<?= $config['contact_mail'] ?>";
       <?php else: ?>
         document.getElementById('train_public').value = '2';
         document.getElementById('admin').value = '0';
       <?php endif; ?>
-      document.querySelectorAll(".input-disabled").forEach(e => { console.log(e.name); e.value = "" });
+      document.querySelectorAll(".input-disabled").forEach(e => { e.value = "" });
     });
   </script>
 </head>
@@ -307,7 +307,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   };
   const departCallback = (gareNom) => {
     const gare = gareNom ? Object.values(gares).find(g => g.nom === gareNom) : {};
-    console.log(gare);
     document.getElementById('train_depart_id').value = gare.id;
     document.getElementById('train_depart_uic').value = gare.codeuic;
   };
