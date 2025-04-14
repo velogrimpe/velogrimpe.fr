@@ -206,56 +206,63 @@ $stmt->close();
             <div class="dropdown w-fit">
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
                 id="voiesFilterBtn">Voies 🧗‍♀️</div>
-              <div class="dropdown-content menu gap-1 bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
+              <div class="dropdown-content menu gap-1 bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg"
+                tabindex="1">
                 <div class="flex flex-col gap-2">
                   <div class="flex flex-col gap-3">
                     <div><span class="font-bold">Cotations</span> (ex: 5+ ET 6+)</div>
                     <div class="flex flex-col gap-1">
                       <div class="flex flex-row gap-4">
-                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0">
+                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1">
                           <input type="checkbox" id="filterCot40" value="40"
                             class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                           <span class="label-text">4 et -</span>
                         </label>
                       </div>
                       <div class="flex flex-row gap-4">
-                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0">
+                        <label
+                          class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
                           <input type="checkbox" id="filterCot50"
                             class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                           <span class="label-text">5-</span>
                         </label>
-                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0">
+                        <label
+                          class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
                           <input type="checkbox" id="filterCot59"
                             class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                           <span class="label-text">5+</span>
                         </label>
                       </div>
                       <div class="flex flex-row gap-4">
-                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0">
+                        <label
+                          class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
                           <input type="checkbox" id="filterCot60"
                             class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                           <span class="label-text">6-</span>
                         </label>
-                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0">
+                        <label
+                          class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
                           <input type="checkbox" id="filterCot69"
                             class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                           <span class="label-text">6+</span>
                         </label>
                       </div>
                       <div class="flex flex-row gap-4">
-                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0">
+                        <label
+                          class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
                           <input type="checkbox" id="filterCot70"
                             class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                           <span class="label-text">7-</span>
                         </label>
-                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0">
+                        <label
+                          class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
                           <input type="checkbox" id="filterCot79"
                             class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                           <span class="label-text">7+</span>
                         </label>
                       </div>
                       <div class="flex flex-row gap-4">
-                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0">
+                        <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1">
                           <input type="checkbox" id="filterCot80"
                             class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                           <span class="label-text">8 et +</span>
@@ -269,7 +276,7 @@ $stmt->close();
                 <div class="grid grid-cols-[auto_auto] gap-x-2 gap-y-1 w-full">
                   <div class="flex flex-row gap-2 items-center w-full hidden">
                     <label for=""
-                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 w-full justify-start">
+                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="couenne"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" checked />
                       <span class="label-text">Couenne</span>
@@ -277,7 +284,7 @@ $stmt->close();
                   </div>
                   <div class="flex flex-row gap-2 items-center w-full">
                     <label for=""
-                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 w-full justify-start">
+                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="avecgv"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                       <span class="label-text">Grandes voies</span>
@@ -285,7 +292,7 @@ $stmt->close();
                   </div>
                   <div class="flex flex-row gap-2 items-center w-full hidden">
                     <label for=""
-                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 w-full justify-start">
+                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="bloc"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                       <span class="label-text">Bloc</span>
@@ -293,7 +300,7 @@ $stmt->close();
                   </div>
                   <div class="flex flex-row gap-2 items-center w-full hidden">
                     <label for=""
-                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 w-full justify-start">
+                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="psychobloc"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                       <span class="label-text">Psychobloc</span>
@@ -305,31 +312,35 @@ $stmt->close();
             <div class="dropdown w-fit">
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
                 id="expoFilterBtn">Exposition 🔅</div>
-              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-40 p-2 shadow-lg">
+              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-40 p-2 shadow-lg" tabindex="1">
                 <div class="flex flex-row gap-1 items-center">
                   <div class="max-w-96 flex flex-col gap-1 w-full">
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 w-full justify-start">
+                    <label
+                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="filterExpoN"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                       <span class="label-text">Nord
                         <span class="text-xs text-slate-400">(NO, N, NE)</span>
                       </span>
                     </label>
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 w-full justify-start">
+                    <label
+                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="filterExpoE"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                       <span class="label-text">Est
                         <span class="text-xs text-slate-400">(NE, E, SE)</span>
                       </span>
                     </label>
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 w-full justify-start">
+                    <label
+                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="filterExpoS"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                       <span class="label-text">Sud
                         <span class="text-xs text-slate-400">(SE, S, SO)</span>
                       </span>
                     </label>
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 w-full justify-start">
+                    <label
+                      class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="filterExpoO"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                       <span class="label-text">Ouest
@@ -343,13 +354,13 @@ $stmt->close();
             <div class="dropdown w-fit dropdown-end">
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
                 id="trainFilterBtn">Train 🚞</div>
-              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
-                <div class="flex flex-row gap-2 items-center">
+              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
+                <label class="flex flex-row gap-2 items-center">
                   <div class="font-bold">Durée</div>
                   <div class="text-normal font-bold">&le;</div>
                   <input type="number" id="tempsMaxTrain" step="1" min="0" class="input input-bordered input-sm w-14" />
                   <div>min.</div>
-                </div>
+                </label>
                 <div class="flex flex-row items-center gap-1">
                   <div>Nb. Corresp. Max</div>
                   <div class="flex flex-row gap-2 items-center">
@@ -380,68 +391,70 @@ $stmt->close();
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
                 id="veloFilterBtn">Vélo 🚲
               </div>
-              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-52 p-2 shadow-lg">
+              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-52 p-2 shadow-lg" tabindex="1">
                 <div class="flex flex-row gap-3 items-center">
                   <div>Trajet vélo</div>
                   <div class="flex flex-col gap-1">
-                    <div class="flex flex-row gap-2 flex-wrap items-center">
+                    <label class="flex flex-row gap-2 flex-wrap items-center">
                       <div class="text-normal font-bold">&le;</div>
                       <input type="number" id="tempsMaxVelo" step="1" min="0"
                         class="input input-bordered input-sm w-14" />
                       <div>min</div>
-                    </div>
-                    <div class="flex flex-row gap-2 items-center">
+                    </label>
+                    <label class="flex flex-row gap-2 items-center">
                       <div class="text-normal font-bold">&le;</div>
                       <input type="number" id="distMaxVelo" step="1" min="0"
                         class="input input-bordered input-sm w-14" />
                       <div>km</div>
-                    </div>
-                    <div class="flex flex-row gap-2 items-center">
+                    </label>
+                    <label class="flex flex-row gap-2 items-center">
                       <div class="text-normal font-bold">&le;</div>
                       <input type="number" id="denivMaxVelo" step="1" min="0"
                         class="input input-bordered input-sm w-14" />
                       <div>D+</div>
-                    </div>
+                    </label>
                   </div>
                 </div>
                 <div class="flex flex-row gap-2 items-center">
                   <div class="bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
-                                flex items-center justify-center text-xs text-slate-600 font-bold">OU</div>
-                  <input type="checkbox" id="apieduniquement"
-                    class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))]" />
-                  <div>Accessible à pied</div>
+                flex items-center justify-center text-xs text-slate-600 font-bold">OU</div>
+                  <label class="flex flex-row gap-2 items-center hover:bg-base-300 rounded-lg cursor-pointer p-0 pr-1">
+                    <input type="checkbox" id="apieduniquement"
+                      class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))]" />
+                    <div>Accessible à pied</div>
+                  </label>
                 </div>
               </div>
             </div>
             <div class="dropdown w-fit">
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
                 id="approcheFilterBtn">Marche 🥾</div>
-              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-48 p-2 shadow-lg">
-                <div class="flex flex-row gap-2 items-center">
+              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-48 p-2 shadow-lg" tabindex="1">
+                <label class="flex flex-row gap-2 items-center">
                   <div class="font-bold">Approche</div>
                   <div class="text-normal font-bold">&le;</div>
                   <input type="number" id="tempsMaxMA" step="1" min="0" class="input input-bordered input-sm w-14" />
                   <div>min.</div>
-                </div>
+                </label>
               </div>
             </div>
             <div class="dropdown w-fit dropdown-end">
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
                 id="totalFilterBtn">Total ⏱️</div>
-              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 p-2 shadow-lg">
+              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 p-2 shadow-lg" tabindex="1">
                 <div class="flex flex-col gap-2 items-end">
-                  <div class="flex flex-row gap-1 items-center">
+                  <label class="flex flex-row gap-1 items-center">
                     <div class="">Train+Vélo</div>
                     <div class="text-normal font-bold">&le;</div>
                     <input type="number" id="tempsMaxTV" step="1" min="0" class="input input-bordered input-sm w-14" />
                     <div>min.</div>
-                  </div>
-                  <div class="flex flex-row gap-1 items-center">
+                  </label>
+                  <label class="flex flex-row gap-1 items-center">
                     <div class="">Train+Vélo+Approche</div>
                     <div class="text-normal font-bold">&le;</div>
                     <input type="number" id="tempsMaxTVA" step="1" min="0" class="input input-bordered input-sm w-14" />
                     <div>min.</div>
-                  </div>
+                  </label>
                 </div>
               </div>
             </div>
