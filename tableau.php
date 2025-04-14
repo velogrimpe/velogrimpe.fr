@@ -725,8 +725,6 @@ $stmt->close();
   }
 
   const filterHandler = (event) => {
-    console.log("handler");
-    // event.preventDefault();
     const expoN = document.getElementById("filterExpoN").checked;
     const expoE = document.getElementById("filterExpoE").checked;
     const expoS = document.getElementById("filterExpoS").checked;
@@ -809,7 +807,6 @@ $stmt->close();
     else {
       resetButton.disabled = false;
       falaises.forEach(falaiseItineraires => {
-        console.log(falaiseItineraires);
         const falaise = falaiseItineraires[0]; // Note: Common part
         const estCotationsCompatible = (
           (!cot40 || ("4+".localeCompare(falaise.falaise_cotmin) >= 0))
@@ -824,7 +821,6 @@ $stmt->close();
         const estTrainCompatible = (
           falaiseItineraires.some(it => {
             const duration = calculate_time(it);
-            console.log(duration, it.train_temps);
             return (
               (tempsMaxTrain === "" || parseInt(it.train_temps) <= parseInt(tempsMaxTrain))
               && (nbCorrespMax === 10 || parseInt(it.train_correspmax) <= nbCorrespMax)
@@ -851,7 +847,7 @@ $stmt->close();
               (tempsMaxVelo === "" || duration <= tempsMaxVelo)
               && (denivMaxVelo === "" || parseInt(it.velo_dplus) <= denivMaxVelo)
               && (distMaxVelo === "" || parseFloat(it.velo_km) <= distMaxVelo)
-              && (apieduniquement === false || it.velo_apieduniquement === "1" || it.velo_apiedpossible === "1")
+              && (apieduniquement === false || it.velo_apieduniquement === 1 || it.velo_apiedpossible === 1)
             );
           }
           )
