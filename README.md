@@ -3,8 +3,6 @@
 Ce dépôt git contient le code du site [Velogrimpe.fr](https://velogrimpe.fr).
 Il contient tout le code nécessaire pour faire fonctionner le site sur un hébergement PHP comme l'offre Single Web Hosting de Hostinger (qui déploie un serveur PHP servant les fichiers du site.). Le site ne nécessite pas de phase de build.
 
-Velogrimpe.fr est un site communautaire visant à promouvoir la mobilité douce pour aller en falaise. Les personnes derrière Velogrimpe.fr sont des bénévoles sans intérêts commerciaux liés au site ou à ses données. Afin de péréniser l'existence du site et des idées qui le sous-tendent, et de permettre des réutilisation pour appliquer le principe à d'autres pratiques outdoor, nous avons décidé de publier le code du site. Ce code est mis à disposition publiquement sous [licence](./LICENCE) `CC BY-NC-SA 4.0`, qui impose la citation, la non-commercialisation et le partage avec la même licence (copyleft).
-
 ## Organisation du code
 
 Toutes les pages principales sont à la racine du dépôt:
@@ -64,3 +62,7 @@ Une fois lancé, ce conteneur est synchronisé avec votre dossier local et sert 
 
 5. Sur l'interface de phpmyadmin, créez deux nouvelles bases de données : `velogrimpe` et `sncf` ainsi que deux utilisateurs portant les même noms et ayant accès à ces bases de données.
 6. Demandez nous un export de la base ou au moins du schéma et importez les dans les bases respectives.
+
+## Partage et réutilisation
+
+Velogrimpe.fr est un site communautaire visant à promouvoir la mobilité douce pour aller en falaise. Les personnes derrière Velogrimpe.fr sont des bénévoles sans intérêts commerciaux liés au site ou à ses données. Afin de péréniser l'existence du site et des idées qui le sous-tendent, et de permettre des réutilisation pour appliquer le principe à d'autres pratiques outdoor, nous avons décidé de publier le code du site. Ce code est mis à disposition publiquement sous [licence](./LICENCE) `CC BY-NC-SA 4.0`, qui impose la citation, la non-commercialisation et le partage avec la même licence (copyleft).
