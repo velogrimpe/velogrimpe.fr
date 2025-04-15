@@ -779,7 +779,6 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   // method that we will use to update the control based on feature properties passed
   info.update = function () {
     const mode = selected === null ? undefined : selected.type;
-    this._div.innerHTML = "";
     const nFalaises = falaises.filter(f => (f.type === "falaise")).length;
     const nFalaiseFiltered = falaises.filter(f => (f.type === "falaise") && !f.filteredOut).length;
     const updateTop = () => {
