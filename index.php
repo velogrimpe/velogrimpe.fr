@@ -543,7 +543,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
         e.originalEvent?.stopPropagation();
         teardown();
         selected = falaise;
-        info.update(falaise, mode = "falaise");
+        info.update();
         // use falaise coords and gare coords to set bounds
         const bounds = [
           falaise.falaise_latlng.split(",").map(parseFloat),
@@ -641,7 +641,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       e.target.openTooltip();
       teardown();
       selected = gare;
-      info.update(gare, mode = "gare");
+      info.update();
       // use falaise coords and gare coords to set bounds
       const bounds = [
         gare.gare_latlng.split(",").map(parseFloat),
@@ -777,7 +777,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     return this._div;
   };
   // method that we will use to update the control based on feature properties passed
-  info.update = function (item) {
+  info.update = function () {
     const mode = selected === null ? undefined : selected.type;
     this._div.innerHTML = "";
     const nFalaises = falaises.filter(f => (f.type === "falaise")).length;
@@ -808,18 +808,18 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
         case "falaise":
           this.bot = `<div class="flex flex-col gap-1 max-w-96">`
             + '<div class="flex flex-col md:flex-row justify-between items-center gap-4">'
-            + `<h3 class="text-xl font-bold"><a href="/falaise.php?falaise_id=${item.falaise_id}">${item.falaise_nom}</a></h3>`
+            + `<h3 class="text-xl font-bold"><a href="/falaise.php?falaise_id=${selected.falaise_id}">${selected.falaise_nom}</a></h3>`
             + `<a class="btn btn-primary btn-xs text-base-100! hover:text-base-100!"
-          href="/falaise.php?falaise_id=${item.falaise_id}">Voir la fiche falaise</a>`
+          href="/falaise.php?falaise_id=${selected.falaise_id}">Voir la fiche falaise</a>`
             + `</div>`
             + (
-              item.falaise_fermee
-                ? `<p class="text-wrap text-error">${item.falaise_fermee.replace(/\n/g, "<br>") || ""}</p>`
-                : `<p class="text-wrap">${item.falaise_voletcarto.replace(/\n/g, "<br>") || ""}</p>`
+              selected.falaise_fermee
+                ? `<p class="text-wrap text-error">${selected.falaise_fermee.replace(/\n/g, "<br>") || ""}</p>`
+                : `<p class="text-wrap">${selected.falaise_voletcarto.replace(/\n/g, "<br>") || ""}</p>`
             )
             + `<details><summary><i>Liste des accès</i></summary>`
             + "<ul>"
-            + item.access.map((it, i) => (
+            + selected.access.map((it, i) => (
               `<li class="relative ml-8">` +
               `<div class="absolute top-[6px] -left-2 w-6 h-1 -translate-x-full ${itinerairesColors[i % itinerairesColors.length]}"></div>` +
               `<div><b>${it.gare.gare_nom} (${format_time(calculate_time(it))})</b> : ` +
@@ -830,10 +830,10 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
           break;
         case "gare":
           this.bot = `<div class="flex flex-col gap-1 max-w-96">`
-            + `<h3 class="text-xl font-bold">Gare de ${item.gare_nom}</h3>`
+            + `<h3 class="text-xl font-bold">Gare de ${selected.gare_nom}</h3>`
             + `<details><summary><i>Falaises accessibles depuis la gare</i></summary>`
             + "<ul>"
-            + item.access.map((it, i) => (
+            + selected.access.map((it, i) => (
               `<li class="relative ml-8">`
               + `<div class="absolute top-2 -left-2 w-6 h-1 -translate-x-full ${itinerairesColors[i % itinerairesColors.length]}"></div>`
               + `<div>`
