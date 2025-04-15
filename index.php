@@ -792,7 +792,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     const updateBot = () => {
       switch (mode) {
         case undefined:
-          this.bot += (
+          this.bot = (
             `<div class="flex flex-col gap-1 max-w-96 items-center">`
             + `<div>Cliquez sur une falaise pour voir ses informations</div>`
             + (
