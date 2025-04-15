@@ -769,6 +769,8 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 
   info.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+    this.top = "";
+    this.bot = "";
     L.DomEvent.disableClickPropagation(this._div);
     L.DomEvent.disableScrollPropagation(this._div);
     this.update();
@@ -777,74 +779,77 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   // method that we will use to update the control based on feature properties passed
   info.update = function (item) {
     const mode = selected === null ? undefined : selected.type;
-    const updateTop = () => {
-
-    }
     this._div.innerHTML = "";
     const nFalaises = falaises.filter(f => (f.type === "falaise")).length;
     const nFalaiseFiltered = falaises.filter(f => (f.type === "falaise") && !f.filteredOut).length;
-    switch (mode) {
-      case undefined:
-        if (nFalaises !== nFalaiseFiltered) {
-          this._div.innerHTML += (`<div class="flex gap-1 items-center font-bold text-primary border-b border-base-300 pb-1 mb-1">`
-            + `<svg class="w-4 h-4 fill-current"><use xlink:href="/symbols/icons.svg#ri-filter-line"></use></svg>`
-            + ` ${nFalaiseFiltered} falaises correspondent aux filtres</div>`)
-        }
-        this._div.innerHTML += (
-          `<div class="flex flex-col gap-1 max-w-96 items-center">`
-          + `<div>Cliquez sur une falaise pour voir ses informations</div>`
-          + (
-            isSamsungInternet() ? (
-              '<div>Vous utilisez Samsung Internet : '
-              + 'si vous êtes en mode sombre, désactivez-le ou changez de navigateur '
-              + 'pour un affichage correct de la carte.</div>')
-              : ""
-          )
-          + `</div>`
-        );
-        break;
-      case "falaise":
-        this._div.innerHTML = `<div class="flex flex-col gap-1 max-w-96">`
-          + '<div class="flex flex-col md:flex-row justify-between items-center gap-4">'
-          + `<h3 class="text-xl font-bold"><a href="/falaise.php?falaise_id=${item.falaise_id}">${item.falaise_nom}</a></h3>`
-          + `<a class="btn btn-primary btn-xs text-base-100! hover:text-base-100!"
-        href="/falaise.php?falaise_id=${item.falaise_id}">Voir la fiche falaise</a>`
-          + `</div>`
-          + (
-            item.falaise_fermee
-              ? `<p class="text-wrap text-error">${item.falaise_fermee.replace(/\n/g, "<br>") || ""}</p>`
-              : `<p class="text-wrap">${item.falaise_voletcarto.replace(/\n/g, "<br>") || ""}</p>`
-          )
-          + `<details><summary><i>Liste des accès</i></summary>`
-          + "<ul>"
-          + item.access.map((it, i) => (
-            `<li class="relative ml-8">` +
-            `<div class="absolute top-[6px] -left-2 w-6 h-1 -translate-x-full ${itinerairesColors[i % itinerairesColors.length]}"></div>` +
-            `<div><b>${it.gare.gare_nom} (${format_time(calculate_time(it))})</b> : ` +
-            `${it.velo_km} km, ${it.velo_dplus} D+${it.velo_apieduniquement === "1" ? " (à pied)" : ""}</div>` +
-            `</li>`)).join("")
-          + "</ul></details>"
-          + `</div>`;
-        break;
-      case "gare":
-        this._div.innerHTML = `<div class="flex flex-col gap-1 max-w-96">`
-          + `<h3 class="text-xl font-bold">Gare de ${item.gare_nom}</h3>`
-          + `<details><summary><i>Falaises accessibles depuis la gare</i></summary>`
-          + "<ul>"
-          + item.access.map((it, i) => (
-            `<li class="relative ml-8">`
-            + `<div class="absolute top-2 -left-2 w-6 h-1 -translate-x-full ${itinerairesColors[i % itinerairesColors.length]}"></div>`
-            + `<div>`
-            + `<a class="link" href="/falaise.php?falaise_id=${it.falaise.falaise_id}">${it.falaise.falaise_nom}</a>`
-            + ` : <b>${format_time(calculate_time(it))}</b> ${it.velo_apieduniquement === "1" ? "à pied" : "à vélo"} (${it.velo_km}
-            km, ${it.velo_dplus} D+).`
-            + `</div>`
-            + `</li>`)
-          ).join("")
-          + "</ul></details>"
-          + `</div>`;
-        break;
+    const updateTop = () => {
+      if (nFalaises !== nFalaiseFiltered) {
+        this.top = (`<div class="flex gap-1 items-center font-bold text-primary border-b border-base-300 pb-1 mb-1">`
+          + `<svg class="w-4 h-4 fill-current"><use xlink:href="/symbols/icons.svg#ri-filter-line"></use></svg>`
+          + ` ${nFalaiseFiltered} falaises correspondent aux filtres</div>`)
+      }
+      return content;
     }
+    const updateBot = () => {
+      switch (mode) {
+        case undefined:
+          this.bot += (
+            `<div class="flex flex-col gap-1 max-w-96 items-center">`
+            + `<div>Cliquez sur une falaise pour voir ses informations</div>`
+            + (
+              isSamsungInternet() ? (
+                '<div>Vous utilisez Samsung Internet : '
+                + 'si vous êtes en mode sombre, désactivez-le ou changez de navigateur '
+                + 'pour un affichage correct de la carte.</div>')
+                : ""
+            )
+            + `</div>`
+          );
+          break;
+        case "falaise":
+          this.bot = `<div class="flex flex-col gap-1 max-w-96">`
+            + '<div class="flex flex-col md:flex-row justify-between items-center gap-4">'
+            + `<h3 class="text-xl font-bold"><a href="/falaise.php?falaise_id=${item.falaise_id}">${item.falaise_nom}</a></h3>`
+            + `<a class="btn btn-primary btn-xs text-base-100! hover:text-base-100!"
+          href="/falaise.php?falaise_id=${item.falaise_id}">Voir la fiche falaise</a>`
+            + `</div>`
+            + (
+              item.falaise_fermee
+                ? `<p class="text-wrap text-error">${item.falaise_fermee.replace(/\n/g, "<br>") || ""}</p>`
+                : `<p class="text-wrap">${item.falaise_voletcarto.replace(/\n/g, "<br>") || ""}</p>`
+            )
+            + `<details><summary><i>Liste des accès</i></summary>`
+            + "<ul>"
+            + item.access.map((it, i) => (
+              `<li class="relative ml-8">` +
+              `<div class="absolute top-[6px] -left-2 w-6 h-1 -translate-x-full ${itinerairesColors[i % itinerairesColors.length]}"></div>` +
+              `<div><b>${it.gare.gare_nom} (${format_time(calculate_time(it))})</b> : ` +
+              `${it.velo_km} km, ${it.velo_dplus} D+${it.velo_apieduniquement === "1" ? " (à pied)" : ""}</div>` +
+              `</li>`)).join("")
+            + "</ul></details>"
+            + `</div>`;
+          break;
+        case "gare":
+          this.bot = `<div class="flex flex-col gap-1 max-w-96">`
+            + `<h3 class="text-xl font-bold">Gare de ${item.gare_nom}</h3>`
+            + `<details><summary><i>Falaises accessibles depuis la gare</i></summary>`
+            + "<ul>"
+            + item.access.map((it, i) => (
+              `<li class="relative ml-8">`
+              + `<div class="absolute top-2 -left-2 w-6 h-1 -translate-x-full ${itinerairesColors[i % itinerairesColors.length]}"></div>`
+              + `<div>`
+              + `<a class="link" href="/falaise.php?falaise_id=${it.falaise.falaise_id}">${it.falaise.falaise_nom}</a>`
+              + ` : <b>${format_time(calculate_time(it))}</b> ${it.velo_apieduniquement === "1" ? "à pied" : "à vélo"} (${it.velo_km}
+              km, ${it.velo_dplus} D+).`
+              + `</div>`
+              + `</li>`)
+            ).join("")
+            + "</ul></details>"
+            + `</div>`;
+          break;
+      }
+    }
+    this._div.innerHTML = this.top + this.bot;
     if (window.innerWidth >= 768) {
       // details should be open by default on desktop
       this._div.querySelectorAll("details").forEach((details) => details.open = true);
