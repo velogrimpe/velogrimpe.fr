@@ -849,6 +849,8 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
           break;
       }
     }
+    updateTop();
+    updateBot();
     this._div.innerHTML = this.top + this.bot;
     if (window.innerWidth >= 768) {
       // details should be open by default on desktop
