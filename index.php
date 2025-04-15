@@ -788,7 +788,6 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
           + `<svg class="w-4 h-4 fill-current"><use xlink:href="/symbols/icons.svg#ri-filter-line"></use></svg>`
           + ` ${nFalaiseFiltered} falaises correspondent aux filtres</div>`)
       }
-      return content;
     }
     const updateBot = () => {
       switch (mode) {
