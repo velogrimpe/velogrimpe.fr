@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       header("Location: /contribuer.php");
       exit;
     } else {
-      header("Location: admin/ajout_donnees_admin.html");
+      header("Location: admin/ajout_donnees_admin.php");
       exit;
     }
 

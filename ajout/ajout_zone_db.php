@@ -22,6 +22,6 @@ $stmt->bind_param("s", $zone_nom);
 $stmt->execute();
 $stmt->close();
 
-header("Location: admin/ajout_donnees_admin.html");
+header("Location: admin/ajout_donnees_admin.php");
 exit;
 ?>

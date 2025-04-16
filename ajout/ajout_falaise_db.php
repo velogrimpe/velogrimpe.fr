@@ -189,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       mail($to, $subject, $body, $headers);
       header("Location: /contribuer.php");
     } else {
-      header("Location: admin/ajout_donnees_admin.html");
+      header("Location: admin/ajout_donnees_admin.php");
     }
     exit;
   } else {
