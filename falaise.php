@@ -140,7 +140,7 @@ $stmtV->close();
     @tailwind components;
     @tailwind utilities;
     @layer base {
-      a {
+      .vg-a-primary a {
         @apply text-[#2e8b57] font-bold;
       }
   }
@@ -155,7 +155,7 @@ $stmtV->close();
   <div class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4">
 
     <div class="flex justify-between items-center w-full">
-      <a class="text-primary w-full" href="/">← Retour à la carte</a>
+      <a class="text-primary w-full font-bold" href="/">← Retour à la carte</a>
       <div class="hidden">
         <div class="flex flex-row items-center gap-2">
           <div class="dropdown dropdown-end">
@@ -230,7 +230,7 @@ $stmtV->close();
     <div class="flex flex-col items-center gap-4 w-full md:flex-row md:items-start">
 
       <!-- TABLEAU STATIQUE DESCRIPTION FALAISE -->
-      <div class="flex flex-row gap-1 md:gap-4 w-full items-center md:my-auto">
+      <div class="vg-a-primary flex flex-row gap-1 md:gap-4 w-full items-center md:my-auto">
         <div id="rose-des-vents" class="hidden sm:block"></div>
         <div class='w-full grid grid-cols-[auto_4fr] gap-2 md:gap-x-4'>
           <div class="font-bold ">Voies</div>
@@ -259,7 +259,7 @@ $stmtV->close();
       </div>
 
       <div class="rounded-lg shadow-xl bg-white p-4 w-[240px] font-bold">
-        Météo par <a
+        Météo par <a class="text-primary font-bold"
           href="https://www.meteoblue.com/fr/meteo/semaine/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?utm_source=daily_widget&utm_medium=linkus&utm_content=daily&utm_campaign=Weather%2BWidget"
           target="_blank" rel="noopener">meteoblue
         </a>
@@ -427,7 +427,7 @@ $stmtV->close();
         <div
           class='collapse-title bg-base-200 text-base-content cursor-pointer min-h-0 flex gap-2 items-center justify-between'>
           <div class="text-lg">
-            Accès depuis la gare de <span class="font-bold capitalize">
+            Accès via la gare de <span class="font-bold capitalize">
               <?php echo htmlspecialchars($gare['gare_nom']) ?>
             </span>
             <?php if ($selected_ville_nom && $train_descr): ?>
@@ -556,7 +556,7 @@ $stmtV->close();
                 <br>
                 <?php if ($velo['velo_openrunner']): ?>
                   <!-- Desktop : ouvre juste en dessous -->
-                  <a href='#' class="hidden md:inline"
+                  <a class="font-bold text-primary" href='#' class="hidden md:inline"
                     onclick="document.getElementById('profil_<?= $velo['velo_id'] ?>').classList.toggle('hidden'); return false;">
                     Profil altimétrique
                   </a>
@@ -575,7 +575,7 @@ $stmtV->close();
                 <?php
                 if ($exists):
                   ?>
-                  <a href="<?= htmlspecialchars($gpx_path) ?>" target='_blank'>Trace GPS</a>
+                  <a class="font-bold text-primary" href="<?= htmlspecialchars($gpx_path) ?>" target='_blank'>Trace GPS</a>
                 <?php endif; ?>
 
 
@@ -1109,6 +1109,7 @@ $stmtV->close();
     });
   </script>
 
+  <?php include "./components/footer.html"; ?>
 </body>
 
 </html>

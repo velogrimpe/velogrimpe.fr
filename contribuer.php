@@ -81,6 +81,7 @@ $email = $config['contact_mail'];
       passe sur Github : <a href="https://github.com/velogrimpe/velogrimpe.fr">code source</a></p>
   </div>
 
+  <?php include "./components/footer.html"; ?>
 </body>
 
 </html>

@@ -101,9 +101,10 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   </style>
 </head>
 
-<body class="min-h-screen">
-  <div
-    class="max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]">
+<body class="min-h-screen flex flex-col">
+  <?php include "../components/header.html"; ?>
+  <main
+    class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]">
     <h1 class="text-4xl font-bold text-wrap text-center">
       Ajouter un itinéraire vélo<span class="admin text-red-900"> (version admin)</span>
     </h1>
@@ -303,7 +304,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       <button type="submit" class="btn btn-primary">AJOUTER L'ITINÉRAIRE VÉLO</button>
 
     </form>
-  </div>
+    </ma>
+    <?php include "../components/footer.html"; ?>
 </body>
 <script>
   const gares = <?php echo json_encode($gares); ?>;

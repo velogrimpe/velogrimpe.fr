@@ -119,6 +119,7 @@
       l'enthousiasme donne la motivation de développer ce projet !
     </p>
   </div>
+  <?php include "./components/footer.html"; ?>
 </body>
 
 </html>

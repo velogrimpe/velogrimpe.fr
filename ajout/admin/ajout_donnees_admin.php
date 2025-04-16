@@ -21,8 +21,9 @@ $token = $config["admin_token"];
   <link rel="manifest" href="/site.webmanifest" />
 </head>
 
-<body class="min-h-screen">
-  <div class="max-w-screen-md mx-auto p-10 flex flex-col gap-8">
+<body class="flex flex-col min-h-screen">
+  <?php include "../components/header.html"; ?>
+  <main class="w-full flex-grow max-w-screen-md mx-auto p-10 flex flex-col gap-8">
     <h1 class="text-4xl font-bold text-wrap text-center">
       AJOUTER DES DONNÉES <span class="text-red-900">(ADMIN)</span>
     </h1>
@@ -36,7 +37,8 @@ $token = $config["admin_token"];
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_velo.php?admin=<?= $token ?>">Ajouter un itinéraire vélo
         (gare - falaise)</a>
     </div>
-  </div>
+  </main>
+  <?php include "../components/footer.html"; ?>
 </body>
 
 </html>

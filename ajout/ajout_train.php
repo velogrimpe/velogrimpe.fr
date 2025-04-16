@@ -68,8 +68,9 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   </script>
 </head>
 
-<body class="min-h-screen">
-  <div class="max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
+<body class="min-h-screen flex flex-col">
+  <?php include "../components/header.html"; ?>
+  <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
               prose-a:font-bold prose-a:no-underline hover:prose-a:underline
               prose-li:mt-0 prose-li:mb-0 prose-ul:mt-0 prose-ul:mb-0
               hover:prose-a:text-[oklch(var(--pf)/1)]">
@@ -274,7 +275,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       <button type="submit" class="btn btn-primary">AJOUTER L'ITINÉRAIRE TRAIN</button>
 
     </form>
-  </div>
+  </main>
+  <?php include "../components/footer.html"; ?>
 </body>
 
 <script>

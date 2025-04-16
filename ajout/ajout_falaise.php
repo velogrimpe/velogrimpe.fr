@@ -84,8 +84,9 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
 </head>
 
-<body class="min-h-screen">
-  <div class="max-w-screen-md mx-auto prose p-4
+<body class="min-h-screen flex flex-col">
+  <?php include "../components/header.html"; ?>
+  <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4
               prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
               hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]
               prose-pre:my-0 prose-pre:text-center">
@@ -617,7 +618,8 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 
       <button type="submit" class="btn btn-primary">AJOUTER LA FALAISE</button>
     </form>
-  </div>
+  </main>
+  <?php include "../components/footer.html"; ?>
 </body>
 
 <script>

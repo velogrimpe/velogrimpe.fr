@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Communauté - Vélogrimpe.fr</title>
+  <title>Contact - Vélogrimpe.fr</title>
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
 
@@ -20,22 +20,26 @@
 <body class="min-h-screen flex flex-col">
   <?php include "./components/header.html"; ?>
 
-  <main class="flex-grow w-full max-w-screen-xl mx-auto flex flex-col gap-2 md:gap-4 p-4">
+  <main class="w-full flex-grow max-w-screen-xl mx-auto flex flex-col gap-2 md:gap-4 p-4">
 
     <h1 class="text-4xl font-bold text-wrap text-center ">
-      COMMUNAUTÉ
+      Nous contacter
     </h1>
 
-    <div class="flex flex-col items-center">
-      <img src="/images/signal.svg" alt="Signal" class="w-16 md:w-24 h-16 md:w-24" />
-    </div>
-    <p class="md:text-center text-normal">Il existe un groupe Signal "Vélogrimpe", sur lequel des propositions de
-      sorties sont partagées. <br>
-      Pour le rejoindre, merci de remplir de formulaire ci-dessous, nous vous y ajouterons dès que possible.</p>
-
     <div class="w-full flex flex-col items-center">
-      <form action="/mails/rejoindre_communaute.php" method="post"
-        class="flex flex-col items-center w-96 max-w-full p-4 pt-1 border rounded-lg bg-base-100 border-base-300 shadow-lg">
+      <form action="/mails/contact.php" method="post"
+        class="flex flex-col items-center w-full md:w-2/3 max-w-full p-4 pt-1 border rounded-lg bg-base-100 border-base-300 shadow-lg">
+        <div class="w-full">
+          <div class="label">
+            <span class="label-text">Nom</span>
+          </div>
+          <label class="input input-primary flex items-center gap-2 w-full">
+            <input class="grow" type="text" id="name" name="name" required />
+            <svg class="w-4 h-4 fill-current">
+              <use xlink:href="/symbols/icons.svg#ri-user-line"></use>
+            </svg>
+          </label>
+        </div>
         <div class="w-full">
           <div class="label">
             <span class="label-text">Email</span>
@@ -49,24 +53,12 @@
         </div>
         <div class="w-full">
           <div class="label">
-            <span class="label-text">Numéro de téléphone</span>
-          </div>
-          <label class="input input-primary flex items-center gap-2 w-full">
-            <input class="grow" type="tel" id="phone" name="phone" />
-            <svg class="w-4 h-4 fill-current">
-              <use xlink:href="/symbols/icons.svg#ri-phone-line"></use>
-            </svg>
-          </label>
-        </div>
-        <div class="w-full">
-          <div class="label">
             <span class="label-text">
-              Pourquoi voulez-vous rejoindre le groupe Signal "Vélogrimpe" ?
+              Votre message
             </span>
           </div>
-          <textarea class="textarea textarea-primary w-full leading-[18px]" id="message" name="message" rows="4"
-            minlength="100" required
-            placeholder="Petit texte de présentation, pour éviter l'invasion par les bots ! 100 caractères minimum."></textarea>
+          <textarea class="textarea textarea-primary w-full leading-[18px]" id="message" name="message" rows="10"
+            minlength="30" required placeholder="Votre message, 30 caractères minimum."></textarea>
         </div>
         <div class="mt-2 w-full">
           <button class="btn btn-primary w-full" type="submit">Envoyer</button>

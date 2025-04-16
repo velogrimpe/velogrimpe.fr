@@ -267,6 +267,7 @@
       </i>
     </p>
   </main>
+  <?php include "./components/footer.html"; ?>
 </body>
 
 </html>

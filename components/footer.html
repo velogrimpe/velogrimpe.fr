@@ -1,0 +1,28 @@
+<footer
+  class="font-normal text-xs text-slate-500 flex justify-center pb-2 items-center gap-2"
+>
+  <!-- Open the modal using ID.showModal() method -->
+  <a class="font-normal" href="/">© Velogrimpe.fr</a>
+  -
+  <a class="font-normal" onclick="credits_modal.showModal()">Crédits</a>
+  <dialog id="credits_modal" class="modal">
+    <div class="modal-box">
+      <ul>
+        <li>
+          <a
+            href="https://www.flaticon.com/free-icons/maps-and-location"
+            title="crag icons"
+            class="font-normal"
+          >
+            Icone de falaise créé par Freepik - Flaticon
+          </a>
+        </li>
+      </ul>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  -
+  <a class="font-normal" href="/contact.php">Nous contacter</a>
+</footer>

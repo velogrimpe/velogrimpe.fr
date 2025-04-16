@@ -35,8 +35,9 @@ if (!$admin) {
   </script>
 </head>
 
-<body class="min-h-screen">
-  <div class="max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
+<body class="min-h-screen flex flex-col">
+  <?php include "../components/header.html"; ?>
+  <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
     prose-a:font-bold prose-a:no-underline hover:prose-a:underline
     hover:prose-a:text-[oklch(var(--pf)/1)] prose-pre:my-0
     prose-pre:text-center">
@@ -51,7 +52,9 @@ if (!$admin) {
       </label>
       <button class="btn btn-primary" type="submit">AJOUTER LA ZONE</button>
     </form>
-  </div>
+  </main>
+
+  <?php include "../components/footer.html"; ?>
 </body>
 
 </html>

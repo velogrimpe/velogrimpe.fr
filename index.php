@@ -352,6 +352,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       </div>
     </div>
   </main>
+  <?php include "./components/footer.html"; ?>
 </body>
 <script>
 
