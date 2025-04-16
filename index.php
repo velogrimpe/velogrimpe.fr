@@ -362,7 +362,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   // Paramètres généraux
   const iconSize = 30;
   const defaultMarkerSize = iconSize;
-  const hoverMarkerSize = iconSize * 1.5;
+  const selectedGareSize = iconSize * 1.5;
   const itinerairesColors = ["indianRed", "tomato", "teal", "paleVioletRed", "mediumSlateBlue", "lightSalmon", "fireBrick", "crimson", "purple", "hotPink", "mediumOrchid"]
   const falaiseIcon = (size, closed) =>
     L.icon({
@@ -517,71 +517,100 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   }
 
   function setFalaiseMarker(falaise, map, mode) {
-    if (falaise.displayMode === mode) return;
-    if (falaise.displayMode !== undefined && falaise.marker) {
-      map.removeLayer(falaise.marker);
-    }
-    const marker = L.marker(
-      falaise.falaise_latlng.split(","),
-      {
-        icon: falaiseIcon(defaultMarkerSize, falaise.falaise_fermee),
-        riseOnHover: true,
-        autoPanOnFocus: true,
-      }
-    ).addTo(map);
-    falaise.marker = marker;
-    falaise.displayMode = mode;
-    marker.unbindTooltip();
-    marker.bindTooltip(falaise.falaise_nom, {
-      className: "p-[1px]",
-      direction: "right",
-      offset: [iconSize / 2, -iconSize / 2],
-    });
-    marker.on("click", function (e) {
-      if (selected === null || selected.falaise_id !== falaise.falaise_id) {
-        map.addLayer(marker);
-        e.originalEvent?.stopPropagation();
-        teardown();
-        selected = falaise;
-        info.update();
-        // use falaise coords and gare coords to set bounds
-        const bounds = [
-          falaise.falaise_latlng.split(",").map(parseFloat),
-          ...falaise.access.map(it => it.gare.gare_latlng.split(",").map(parseFloat))
-        ];
-        map.flyToBounds(bounds, { paddingTopLeft: [0, 40], paddingBottomRight: [0, 200], duration: 0.5 });
-
-        //Affichage des itinéraire vélo/à pied
-        setTimeout(() => falaise.access.map((it, i) => {
-          const c = itinerairesColors[i % itinerairesColors.length];
-          const gpx = renderGpx(it, c);
-          itinerairesLines.push(gpx);
-          const station = gares.find(g => g.gare_id === it.gare.gare_id);
-          // Afficher les noms des gares qui donnent accès à cette falaise
-          station.marker?.unbindTooltip();
-          station.marker?.bindTooltip(station.gare_nom, {
-            direction: "right",
-            offset: [iconSize / 2, 0],
-            permanent: true,
-            className: `rounded-md bg-[${c}] border-[${c}] text-white px-[1px] py-0 before:border-r-[${c}]`,
-          });
-        }), 0.76 * 1000);
-      } else {
-        map.flyTo(falaise.falaise_latlng.split(","), 15, { duration: 0.25 });
-        marker.closeTooltip();
-      }
-      marker.unbindTooltip();
+    const initMarker = () => {
+      const marker = L.marker(
+        falaise.falaise_latlng.split(","),
+        {
+          icon: falaiseIcon(defaultMarkerSize, falaise.falaise_fermee),
+          riseOnHover: true,
+          autoPanOnFocus: true,
+        }
+      ).addTo(map);
+      falaise.marker = marker;
       marker.bindTooltip(falaise.falaise_nom, {
         className: "p-[1px]",
-        direction: "top",
-        permanent: true,
-        offset: [0, -iconSize],
+        direction: "right",
+        offset: [iconSize / 2, -iconSize / 2],
       });
-    });
-    if (mode === "hidden") {
-      falaise.displayMode = mode;
-      map.removeLayer(falaise.marker);
+      marker.on("click", function (e) {
+        if (selected === null || selected.falaise_id !== falaise.falaise_id) {
+          map.addLayer(marker);
+          e.originalEvent?.stopPropagation();
+          teardown();
+          selected = falaise;
+          info.update();
+          // use falaise coords and gare coords to set bounds
+          const bounds = [
+            falaise.falaise_latlng.split(",").map(parseFloat),
+            ...falaise.access.map(it => it.gare.gare_latlng.split(",").map(parseFloat))
+          ];
+          map.flyToBounds(bounds, { paddingTopLeft: [0, 40], paddingBottomRight: [0, 200], duration: 0.5 });
+
+          //Affichage des itinéraire vélo/à pied
+          setTimeout(() => falaise.access.map((it, i) => {
+            const c = itinerairesColors[i % itinerairesColors.length];
+            const gpx = renderGpx(it, c);
+            itinerairesLines.push(gpx);
+            const station = gares.find(g => g.gare_id === it.gare.gare_id);
+            // Afficher les noms des gares qui donnent accès à cette falaise
+            station.marker?.unbindTooltip();
+            station.marker?.bindTooltip(station.gare_nom, {
+              direction: "right",
+              offset: [iconSize / 2, 0],
+              permanent: true,
+              className: `rounded-md bg-[${c}] border-[${c}] text-white px-[1px] py-0 before:border-r-[${c}]`,
+            });
+          }), 0.76 * 1000);
+        } else {
+          map.flyTo(falaise.falaise_latlng.split(","), 15, { duration: 0.25 });
+          marker.closeTooltip();
+        }
+        marker.unbindTooltip();
+        marker.bindTooltip(falaise.falaise_nom, {
+          className: "p-[1px]",
+          direction: "top",
+          permanent: true,
+          offset: [0, -iconSize],
+        });
+      });
+    }
+
+    // If mode did not change : do nothing
+    if (falaise.displayMode === mode) {
       return;
+    }
+    falaise.displayMode = mode;
+    // Clear old marker when mode changed
+    if (!falaise.marker) {
+      initMarker();
+    }
+    // Depending on mode: size, opacity, tooltip, onMap (remove layer)
+    const setIconAndTooltip = (size, direction, permanent = false) => {
+      falaise.marker.setIcon(falaiseIcon(size, falaise.falaise_fermee));
+      falaise.marker.unbindTooltip();
+      falaise.marker.bindTooltip(falaise.falaise_nom, {
+        className: "p-[1px]",
+        direction,
+        offset: direction === "right" ? [size / 4, -size / 2] : direction === "top" ? [0, -size] : [size / 2, 0],
+        permanent,
+      });
+    };
+    switch (mode) {
+      case "normal":
+        falaise.marker.setOpacity(1);
+        setIconAndTooltip(defaultMarkerSize, "right");
+        return;
+      case "reduced":
+        falaise.marker.setOpacity(1);
+        setIconAndTooltip(20, "right");
+        return;
+      case "faded":
+        falaise.marker.setOpacity(0.5);
+        setIconAndTooltip(20, "right");
+        return;
+      case "hidden":
+        map.removeLayer(falaise.marker);
+        return;
     }
   }
 
@@ -648,7 +677,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
         ...gare.access.map(it => it.falaise.falaise_latlng.split(",").map(parseFloat))
       ];
       map.flyToBounds(bounds, { maxZoom: 12, paddingTopLeft: [0, 50], paddingBottomRight: [50, 0], duration: 0.5 });
-      e.target.setIcon(trainIcon(hoverMarkerSize));
+      e.target.setIcon(trainIcon(selectedGareSize));
 
       setTimeout(() => gare.access.map((it, i) => {
         const c = itinerairesColors[i % itinerairesColors.length];
@@ -863,33 +892,35 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     const zoom = map.getZoom();
     falaises.map((falaise) => {
       if (!falaise.falaise_latlng) return;
-      if (falaise.filteredOut) {
-        setFalaiseHTMarker(falaise, map, "hidden");
-        return;
-      }
       if (falaise.access.length === 0) {
         falaise.type = "falaise_hors_topo";
-        if (zoom < 11) {
+        if (zoom < 11 || falaise.filteredOut) {
           setFalaiseHTMarker(falaise, map, "hidden");
         } else {
           setFalaiseHTMarker(falaise, map, "normal");
         }
       } else {
         falaise.type = "falaise";
-        if (!falaise.marker || falaise.displayMode === "hidden") {
-          setFalaiseMarker(falaise, map, "normal");
+        if (falaise.filteredOut) {
+          if (falaise === selected) {
+            setFalaiseMarker(falaise, map, "faded");
+          }
+          else {
+            setFalaiseMarker(falaise, map, "hidden");
+          }
+          return;
         }
         if (falaise.falaise_fermee) {
           if (zoom < 11) {
             setFalaiseMarker(falaise, map, "hidden");
           } else {
-            falaise.marker?.setIcon(falaiseIcon(defaultMarkerSize, falaise.falaise_fermee));
+            setFalaiseMarker(falaise, map, "normal");
           }
         } else {
           if (zoom < 9) {
-            falaise.marker?.setIcon(falaiseIcon(20, falaise.falaise_fermee));
+            setFalaiseMarker(falaise, map, "reduced");
           } else {
-            falaise.marker?.setIcon(falaiseIcon(defaultMarkerSize, falaise.falaise_fermee));
+            setFalaiseMarker(falaise, map, "normal");
           }
         }
       }
@@ -954,14 +985,21 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 
   //  --- Ajout des lignes de train ---
   const paintRules = [
+    // {
+    //   dataLayer: "fr",
+    //   symbolizer: new protomapsL.LineSymbolizer({
+    //     color: "#fff",
+    //     width: (z) => (z <= 6 ? 1 : z < 9 ? 1.5 : 2),
+    //   })
+    // },
     {
       dataLayer: "fr",
       symbolizer: new protomapsL.LineSymbolizer({
         color: "#000",
-        width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5)
+        width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5),
+        // dash: [5, 5],
       })
     }
-
   ]
   var layer = protomapsL.leafletLayer({ url: '/bdd/trains/trainlines.pmtiles', paintRules, maxDataZoom: 16, pane: "overlayPane" })
   layer.addTo(map);
