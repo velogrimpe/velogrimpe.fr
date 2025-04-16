@@ -121,6 +121,8 @@ $stmtV->close();
   <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
   <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
     rel='stylesheet' />
+  <!-- Carte : Lignes de train-->
+  <script src="https://unpkg.com/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.js"></script>
   <!-- Styles -->
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -156,7 +158,7 @@ $stmtV->close();
 
     <div class="flex justify-between items-center w-full">
       <a class="text-primary w-full font-bold" href="/">← Retour à la carte</a>
-      <div class="hidden">
+      <div class="">
         <div class="flex flex-row items-center gap-2">
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button"
@@ -814,8 +816,22 @@ $stmtV->close();
       itineraires.map(it => it.gare_latlng.split(",").map(parseFloat))
     ];
     var map = L.map("map", { layers: [landscapeTiles], center, zoom, fullscreenControl: true });
+
     map.fitBounds(bounds, { maxZoom: 15 });
     var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
+
+    //  --- Ajout des lignes de train ---
+    const paintRules = [
+      {
+        dataLayer: "fr",
+        symbolizer: new protomapsL.LineSymbolizer({
+          color: "#000",
+          width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5),
+        })
+      }
+    ]
+    var layer = protomapsL.leafletLayer({ url: '/bdd/trains/trainlines.pmtiles', paintRules, maxDataZoom: 16, pane: "overlayPane" })
+    layer.addTo(map);
 
     function renderGpx(it, c) {
       const lopts = { weight: 5, color: c };

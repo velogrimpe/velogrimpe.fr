@@ -987,19 +987,11 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 
   //  --- Ajout des lignes de train ---
   const paintRules = [
-    // {
-    //   dataLayer: "fr",
-    //   symbolizer: new protomapsL.LineSymbolizer({
-    //     color: "#fff",
-    //     width: (z) => (z <= 6 ? 1 : z < 9 ? 1.5 : 2),
-    //   })
-    // },
     {
       dataLayer: "fr",
       symbolizer: new protomapsL.LineSymbolizer({
         color: "#000",
         width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5),
-        // dash: [5, 5],
       })
     }
   ]
