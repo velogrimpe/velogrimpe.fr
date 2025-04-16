@@ -606,7 +606,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
         return;
       case "faded":
         falaise.marker.setOpacity(0.5);
-        setIconAndTooltip(20, "right");
+        setIconAndTooltip(24, "right");
         return;
       case "hidden":
         map.removeLayer(falaise.marker);
