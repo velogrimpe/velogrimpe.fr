@@ -579,11 +579,12 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     if (falaise.displayMode === mode) {
       return;
     }
-    falaise.displayMode = mode;
     // Clear old marker when mode changed
-    if (!falaise.marker) {
+    if (!falaise.marker || falaise.displayMode === "hidden") {
       initMarker();
     }
+    // Set new mode
+    falaise.displayMode = mode;
     // Depending on mode: size, opacity, tooltip, onMap (remove layer)
     const setIconAndTooltip = (size, direction, permanent = false) => {
       falaise.marker.setIcon(falaiseIcon(size, falaise.falaise_fermee));
