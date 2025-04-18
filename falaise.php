@@ -158,7 +158,7 @@ $stmtV->close();
 
     <div class="flex justify-between items-center w-full">
       <a class="text-primary w-full font-bold" href="/">← Retour à la carte</a>
-      <div class="">
+      <div class="hidden">
         <div class="flex flex-row items-center gap-2">
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button"
