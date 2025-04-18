@@ -158,7 +158,7 @@ $stmtV->close();
 
     <div class="flex justify-between items-center w-full">
       <a class="text-primary w-full font-bold" href="/">← Retour à la carte</a>
-      <div class="hidden">
+      <div class="">
         <div class="flex flex-row items-center gap-2">
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button"
@@ -489,6 +489,20 @@ $stmtV->close();
                     <br>
                     <?= nl2br($corresp_text) ?>
                   <?php endif ?>
+                  <!-- <button class="btn btn-xs btn-outline btn-accent" onclick="gare<?= $gare['gare_id'] ?>.showModal()">
+                    <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
+                      <use xlink:href="/symbols/icons.svg#ri-ticket-line"></use>
+                    </svg>
+                    Acheter un billet
+                  </button>
+                  <dialog id="gare<?= $gare['gare_id'] ?>" class="modal">
+                    <div class="modal-box p-0 max-w-screen-lg w-full bg-transparent"
+                      id="container__booking__gare_<?= $gare['gare_id'] ?>">
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                      <button>close</button>
+                    </form>
+                  </dialog> -->
                 </div>
               </div>
             </td>
@@ -1124,6 +1138,38 @@ $stmtV->close();
       roseFromExpo("rose-mini", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 36, 36);
     });
   </script>
+
+  <!-- <script>
+    <?php foreach ($gares as $gare): ?>
+      document.addEventListener(
+        "IvtsWidgetsExternal.Booking.Ready",
+        ({ detail: bookingWidget }) => {
+          bookingWidget.init("container__booking__gare_<?= $gare['gare_id'] ?>", {
+            titleIndex: 2,
+            // inwardDate: { isDisabled: true },
+            <?php if ($ville_id_get): ?>origin: { defaultValue: "<?= htmlspecialchars($selected_ville_nom) ?>" }, <?php endif; ?>
+                            destination: {
+              defaultValue: "<?= $gare['gare_nom'] ?>",
+              isDisabled: true,
+            },
+            outwardDate: {
+              defaultValue: new Date().toLocaleDateString("fr"),
+            },
+            // outwardTime: {
+            //   defaultValue: new Date().toLocaleTimeString("fr", { hour: "2-digit", minute: "2-digit" }),
+            // },
+            tracking: {
+              wizalyQueryParameters:
+                "wiz_medium=part&wiz_source=velogrimpe&wiz_campaign=fr_conv_widget_contenu_filrouge_tr-multiproduit__mk_202405&wiz_content=fr",
+            },
+          });
+        }
+      );
+    <?php endforeach; ?>
+
+  </script> -->
+
+  <!-- <script async defer src="https://www.sncf-connect.com/widget-external/web-widgets-external.js"></script> -->
 
   <?php include "./components/footer.html"; ?>
 </body>
