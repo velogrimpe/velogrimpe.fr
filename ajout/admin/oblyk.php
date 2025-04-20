@@ -299,27 +299,43 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   // method that we will use to update the control based on feature properties passed
   info.update = function () {
     const updateTop = () => {
-      this.top = ""
-    }
-    const updateBot = () => {
-      const mode = selected === null ? undefined : selected.type;
+
+      const mode = selected === null ? undefined : "falaise";
       switch (mode) {
         case undefined:
-          this.bot = (
-            `<div class="flex flex-col gap-1 max-w-96 items-center">`
+          this.top = (
+            `<div class="flex flex-col gap-1 max-w-96 items-center border-b-1 border-b-base-300 mb-2">`
             + `<div>Cliquez sur une falaise pour voir ses informations</div>`
             + `</div>`
           );
           break;
         case "falaise":
-          this.bot = `<div class="flex flex-col gap-1 max-w-96">`
+          this.top = `<div class="flex flex-col gap-1 max-w-96 border-b-1 border-b-base-300 mb-2">`
             + '<div class="flex flex-col md:flex-row justify-between items-center gap-4">'
-            + `<h3 class="text-xl font-bold"><a href="/falaise.php?falaise_id=${selected.falaise_id}">${selected.falaise_nom}</a></h3>`
-            + `<a class="btn btn-primary btn-xs text-base-100! hover:text-base-100!"
-          href="/falaise.php?falaise_id=${selected.falaise_id}">Voir la fiche falaise</a>`
+            + `<h3 class="text-normal text-primary font-bold">${selected.falaise_nom}</h3>`
             + `</div>`
             + `</div>`;
           break;
+      }
+    }
+    const updateBot = () => {
+      this.bot = "";
+      if (selected && falaisesOblyk.length > 0) {
+        this.bot = `<div>`
+          + `<div>Falaise(s) Oblyk</div>`
+          + `<div>`
+          + `<div class="flex flex-col gap-1">`;
+        falaisesOblyk.forEach(falaise => {
+          const linked = selected.site_ids && selected.site_ids?.includes(falaise.id);
+          this.bot += `<div class="ml-4 flex flex-row gap-4 justify-between items-center">`
+            + `&bull;<a href="https://oblyk.org/crags/${falaise.id}/${falaise.slug}" target="_blank" class="text-sm">${falaise.name}</a>`
+            + (linked
+              ? `<span class="text-sm text-success">Déjà lié</span>`
+              : ``
+            )
+            + `</div>`;
+        });
+        this.bot += `</div></div></div>`;
       }
     }
     updateTop();
