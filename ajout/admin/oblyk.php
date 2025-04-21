@@ -173,49 +173,52 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
           permanent: true,
         }
         );
-        document.getElementById(`linkFalaises_${selected.falaise_id}_${falaise.id}`).addEventListener("click", (e) => {
-          const linkFalaises = () => {
-            const falaiseId = selected.falaise_id;
-            const slug = falaise.slug;
-            const id = falaise.id;
-            const oblykUrl = `https://oblyk.org/crags/${id}/${slug}`
-            const url = `/ajout/link_falaise.php`;
-            fetch(url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": "<?= $token ?>",
-              },
-              body: JSON.stringify({
-                falaise_id: falaiseId,
-                site_url: oblykUrl,
-                site_id: id,
-                site: "oblyk",
-                site_name: falaise.name,
-              }),
-            })
-              .then(response => response.json())
-              .then(data => {
-                if (!data) {
-                  alert("Error linking falaise.");
-                } else {
-                  console.log("Falaise linked successfully:", data);
-                  falaise.button.remove();
-                  falaise.marker.setIcon(oblykIcon(iconSize, "invert"));
-                  selected.site_ids = selected.site_ids ? selected.site_ids + "," + falaise.id : falaise.id;
-                  selected.marker.setIcon(falaiseIcon(iconSize, "sepia"));
-                  info.update();
-                }
+        console.log("Falaise marker:", `linkFalaises_${selected.falaise_id}_${falaise.id}`);
+        if (!isAlreadyLinked) {
+          document.getElementById(`linkFalaises_${selected.falaise_id}_${falaise.id}`).addEventListener("click", (e) => {
+            const linkFalaises = () => {
+              const falaiseId = selected.falaise_id;
+              const slug = falaise.slug;
+              const id = falaise.id;
+              const oblykUrl = `https://oblyk.org/crags/${id}/${slug}`
+              const url = `/ajout/link_falaise.php`;
+              fetch(url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "<?= $token ?>",
+                },
+                body: JSON.stringify({
+                  falaise_id: falaiseId,
+                  site_url: oblykUrl,
+                  site_id: id,
+                  site: "oblyk",
+                  site_name: falaise.name,
+                }),
               })
-              .catch(error => {
-                console.error("Error:", error);
-              });
-          }
-          e.stopPropagation();
-          L.DomEvent.stopPropagation(e);
-          e.preventDefault();
-          linkFalaises();
-        });
+                .then(response => response.json())
+                .then(data => {
+                  if (!data) {
+                    alert("Error linking falaise.");
+                  } else {
+                    console.log("Falaise linked successfully:", data);
+                    falaise.button.remove();
+                    falaise.marker.setIcon(oblykIcon(iconSize, "invert"));
+                    selected.site_ids = selected.site_ids ? selected.site_ids + "," + falaise.id : falaise.id;
+                    selected.marker.setIcon(falaiseIcon(iconSize, "sepia"));
+                    info.update();
+                  }
+                })
+                .catch(error => {
+                  console.error("Error:", error);
+                });
+            }
+            e.stopPropagation();
+            L.DomEvent.stopPropagation(e);
+            e.preventDefault();
+            linkFalaises();
+          });
+        }
       });
   }
   function setFalaiseMarker(falaise, map, mode) {
@@ -328,7 +331,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
         falaisesOblyk.forEach(falaise => {
           const linked = selected.site_ids && selected.site_ids?.includes(falaise.id);
           this.bot += `<div class="ml-4 flex flex-row gap-4 justify-between items-center">`
-            + `&bull;<a href="https://oblyk.org/crags/${falaise.id}/${falaise.slug}" target="_blank" class="text-sm">${falaise.name}</a>`
+            + `<div>&bull; <a href="https://oblyk.org/crags/${falaise.id}/${falaise.slug}" target="_blank" class="text-sm font-normal text-accent!">${falaise.name}</a></div>`
             + (linked
               ? `<span class="text-sm text-success">Déjà lié</span>`
               : ``
