@@ -7,10 +7,12 @@ $falaises = $mysqli->query("SELECT
   f.falaise_id,
   f.falaise_nom,
   f.falaise_latlng,
-  group_concat(fl.site_id SEPARATOR ',') as site_ids
+  group_concat(distinct fl.site_id SEPARATOR ',') as site_ids
   FROM falaises f
   LEFT JOIN falaises_liens fl on fl.falaise_id = f.falaise_id and fl.site = 'oblyk'
+  LEFT JOIN velo v on v.falaise_id = f.falaise_id
   GROUP BY f.falaise_id
+  HAVING count(v.velo_id) >= 1
 ")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 $gares = $mysqli->query("SELECT
