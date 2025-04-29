@@ -306,12 +306,16 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     const gare = gareNom ? Object.values(gares).find(g => g.nom === gareNom) : {};
     document.getElementById('gare_id').value = gare.id;
     document.getElementById('train_arrivee_uic').value = gare.codeuic;
+    verifierExistenceItineraire();
   };
   const departCallback = (gareNom) => {
     const gare = gareNom ? Object.values(gares).find(g => g.nom === gareNom) : {};
     document.getElementById('train_depart_id').value = gare.id;
     document.getElementById('train_depart_uic').value = gare.codeuic;
   };
+  document.getElementById('ville_id').addEventListener('change', () => {
+    verifierExistenceItineraire();
+  });
 
   document.getElementById("fetchTrains").addEventListener('click', () => {
     // Add loader in the button and disable it
