@@ -24,6 +24,10 @@ if (!$authHeader || $authHeader !== $validToken) {
   exit;
 }
 
+// add a pageview
+require_once '../../lib/pv.php';
+sendEvent($_SERVER['REQUEST_URI'], "oblyk");
+
 $oblyk_id = trim($_GET['oblyk_id'] ?? '');
 if (empty($oblyk_id)) {
   die("oblyk_id is required");
