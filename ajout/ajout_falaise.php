@@ -7,10 +7,22 @@ $zones = [];
 while ($zone = $res_z->fetch_assoc()) {
   $zones[] = $zone;
 }
-$result_falaises = $mysqli->query("SELECT falaise_nom FROM falaises ORDER BY falaise_nom");
+$result_falaises = $mysqli->query("SELECT
+  f.falaise_id, falaise_nom, falaise_latlng, count(velo_id) > 0 as in_topo,
+  falaise_nomformate
+  FROM falaises f
+  LEFT JOIN velo v on v.falaise_id = f.falaise_id
+  GROUP BY falaise_id
+  ORDER BY falaise_nom");
 $falaises = [];
 while ($row = $result_falaises->fetch_assoc()) {
-  $falaises[] = $row['falaise_nom'];
+  $falaises[] = [
+    'nom' => $row['falaise_nom'],
+    'id' => $row['falaise_id'],
+    'latlng' => $row['falaise_latlng'],
+    'in_topo' => $row['in_topo'],
+    'nomformate' => $row['falaise_nomformate'],
+  ];
 }
 // Read the admin search parameter
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
@@ -29,6 +41,9 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
   <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
   <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
+  <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+  <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
+    rel='stylesheet' />
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <!-- Pageviews -->
@@ -67,8 +82,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     });
   </script>
   <script>
-    function formatNomFalaise() {
-      const nom = document.getElementById("falaise_nom").value;
+    function formatNomFalaise(_nom) {
+      const nom = _nom ?? document.getElementById("falaise_nom").value;
       const nomFormate = nom
         .toLowerCase() // Convertit en minuscules
         .normalize("NFD") // Sépare les caractères et leurs accents
@@ -79,6 +94,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         .replace(/^-|-$/g, "") // Supprime les tirets en début/fin
         .substring(0, 255); // Limite à 255 caractères
       document.getElementById("falaise_nomformate").value = nomFormate;
+      document.getElementById("falaise_id").value = undefined;
     }
   </script>
 
@@ -107,19 +123,36 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
     <form method="post" action="ajout_falaise_db.php" enctype="multipart/form-data" class="flex flex-col gap-4"
       id="form">
+      <datalist id="falaises">
+        <?php foreach ($falaises as $falaise): ?>
+          <option value="<?= $falaise['nom']; ?>"
+            label="<?= $falaise['nom']; ?> (<?= $falaise['in_topo'] ? "décrite" : "non décrite"; ?>)"></option>
+        <?php endforeach; ?>
+      </datalist>
       <input type="hidden" id="falaise_public" name="falaise_public" value="2" />
       <input type="hidden" id="admin" name="admin" value="0" />
 
       <div class="flex flex-col gap-1">
-        <label class="form-control">
-          <b>Nom de la falaise : </b>
-          <input class="input input-primary input-sm" type="text" id="falaise_nom" name="falaise_nom" required
-            oninput="formatNomFalaise(); verifierExistencefalaise();" />
-        </label>
+        <div class="relative not-prose z-[11000]">
+          <label class="form-control">
+            <b>Nom de la falaise : </b>
+            <input class="input input-primary input-sm" type="text" id="falaise_nom" name="falaise_nom" required
+              autocomplete="off" oninput="formatNomFalaise();" />
+          </label>
+          <ul id="falaise-list" class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
+          </ul>
+        </div>
         <div class="flex flex-row gap-2 items-center admin">
-          <div class="text-sm text-gray-400">Nom formaté:</div>
-          <input tabindex="-1" class="input input-disabled input-xs" type="text" id="falaise_nomformate"
-            name="falaise_nomformate" readonly>
+          <div class="w-1/2 flex flex-row gap-2">
+            <div class="text-sm text-gray-400">Nom formaté:</div>
+            <input tabindex="-1" class="input input-disabled input-xs" type="text" id="falaise_nomformate"
+              name="falaise_nomformate" readonly>
+          </div>
+          <div class="w-1/2 flex flex-row gap-2">
+            <div class="text-sm text-gray-400">ID:</div>
+            <input tabindex="-1" class="input input-disabled input-xs" type="text" id="falaise_id" name="falaise_id"
+              readonly>
+          </div>
         </div>
       </div>
 
@@ -127,8 +160,18 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         <svg class="w-4 h-4 mb-1 fill-current inline-block">
           <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
         </svg>
-        Une falaise avec ce nom existe déjà dans la base de données. Vérifiez
-        que vous ne faites pas de doublon.
+        Une falaise avec ce nom existe déjà dans la base de données. Si vous vous souhaitez modifier les données de la
+        fiche falaise, merci de <a href="mailto:contact@velogrimpe.fr">contacter l'équipe
+          velogrimpe</a>.
+      </div>
+
+      <div id="falaiseEditInfo" class="hidden bg-blue-100 border border-blue-900 text-blue-900 p-2 rounded-lg">
+        <svg class="w-4 h-4 mb-1 fill-current inline-block">
+          <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
+        </svg>
+        Une falaise avec ce nom existe déjà mais n'a aucun accès décrit. Les données connues sont pré-remplies
+        ci-dessous, libre à vous de les modifier / compléter. Attention toutefois aux homonymes, vérifiez sa
+        localisation. En cas d'erreur, recharger la page pour éviter de remplacer la falaise existante.
       </div>
 
       <div class="flex flex-col gap-2">
@@ -155,14 +198,47 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         </i>
       </div>
       <script>
-        const map = L.map('map').setView([45.1234, 3.2355], 5);
-        L.tileLayer(
+
+        const ignTiles = L.tileLayer(
+          "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
+          maxZoom: 19,
+          minZoom: 0,
+          attribution: "IGN-F/Geoportail",
+          crossOrigin: true,
+        })
+        const ignOrthoTiles = L.tileLayer(
+          "https://data.geopf.fr/wmts?&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
+          maxZoom: 18,
+          minZoom: 0,
+          tileSize: 256,
+          attribution: "IGN-F/Geoportail",
+          crossOrigin: true,
+        })
+        const landscapeTiles = L.tileLayer(
+          "https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
+          maxZoom: 19,
+          minZoom: 0,
+          attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
+          crossOrigin: true,
+        })
+        const outdoorsTiles = L.tileLayer(
           "https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
           maxZoom: 19,
           minZoom: 0,
           attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
           crossOrigin: true,
-        }).addTo(map);
+        })
+        var baseMaps = {
+          "Landscape": landscapeTiles,
+          'IGNv2': ignTiles,
+          'Satellite': ignOrthoTiles,
+          'Outdoors': outdoorsTiles,
+        };
+        const map = L.map("map", {
+          layers: [landscapeTiles], center: [45.1234, 3.2355], zoom: 5, fullscreenControl: true, zoomSnap: 0.5
+        });
+        var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
+        L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
 
         var marker = undefined;
         const size = 24;
@@ -621,25 +697,69 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
   </main>
   <?php include "../components/footer.html"; ?>
 </body>
-
 <script>
-  const falaises = <?= json_encode($falaises) ?>.map(n => n.toLowerCase().normalize("NFD"));
-  const verifierExistencefalaise = () => {
-    const falaiseNom = document.getElementById("falaise_nom").value;
-    if (!falaiseNom) {
-      document.getElementById("falaiseExistsAlert").classList.add("hidden");
-      return;
-    }
-    const exists = falaises.includes(falaiseNom.toLowerCase().normalize("NFD").trim());
-    if (exists) {
-      document
-        .getElementById("falaiseExistsAlert")
-        .classList.remove("hidden");
-    } else {
-      document.getElementById("falaiseExistsAlert").classList.add("hidden");
-    }
-  };
+  function fetchAndPrefillData(id) {
+    fetch(`/ajout/fetch_falaise.php?falaise_id=${id}`)
+      .then(response => response.json())
+      .then(falaise => {
+        document.getElementById("falaise_zone").value = falaise.falaise_zone;
+        document.getElementById("falaise_cottxt").value = falaise.falaise_cottxt;
+        document.getElementById("falaise_cotmin").value = falaise.falaise_cotmin;
+        document.getElementById("falaise_cotmax").value = falaise.falaise_cotmax;
+        document.getElementById("falaise_expotxt").value = falaise.falaise_expotxt;
+        document.getElementById("falaise_exposhort1").value = falaise.falaise_exposhort1;
+        document.getElementById("falaise_exposhort2").value = falaise.falaise_exposhort2;
+        document.getElementById("falaise_voies").value = falaise.falaise_voies;
+        document.getElementById("falaise_topo").value = falaise.falaise_topo;
+        document.getElementById("falaise_matxt").value = falaise.falaise_matxt;
+        document.getElementById("falaise_maa").value = falaise.falaise_maa;
+        document.getElementById("falaise_mar").value = falaise.falaise_mar;
+        document.getElementById("falaise_gvtxt").value = falaise.falaise_gvtxt;
+        document.getElementById("falaise_gvnb").value = falaise.falaise_gvnb;
+        document.getElementById("falaise_rq").value = falaise.falaise_rq;
+        document.getElementById("falaise_txt1").value = falaise.falaise_txt1;
+        document.getElementById("falaise_txt2").value = falaise.falaise_txt2;
+        document.getElementById("falaise_leg1").value = falaise.falaise_leg1;
+        document.getElementById("falaise_txt3").value = falaise.falaise_txt3;
+        document.getElementById("falaise_leg2").value = falaise.falaise_leg2;
+        document.getElementById("falaise_txt4").value = falaise.falaise_txt4;
+        document.getElementById("falaise_leg3").value = falaise.falaise_leg3;
+        document.getElementById("falaise_fermee").value = falaise.falaise_fermee;
+        document.getElementById("falaise_voletcarto").value = falaise.falaise_voletcarto;
+        document.getElementById("falaise_bloc").value = falaise.falaise_bloc;
+      });
+  }
 </script>
 <script>window.customElements.define('multi-select', MultiselectWebcomponent);</script>
+<script src="/js/autocomplete.js"></script>
+<script>
+  const falaises = <?= json_encode($falaises) ?>;
+  function falaiseCallback(falaiseNom) {
+    if (!falaiseNom) {
+      document.getElementById("falaiseExistsAlert").classList.add("hidden");
+      document.getElementById("falaiseEditInfo").classList.add("hidden");
+      return;
+    }
+    const existing = falaises.find((f) => f.nom.toLowerCase() === falaiseNom.toLowerCase());
+    if (existing) {
+      document.getElementById("falaise_latlng").value = existing.latlng;
+      updateMarker();
+      document.getElementById("falaise_nomformate").value = existing.nomformate;
+      if (existing.in_topo !== "0") {
+        document.getElementById("falaiseExistsAlert").classList.remove("hidden");
+        document.getElementById("falaiseEditInfo").classList.add("hidden");
+      } else {
+        document.getElementById("falaiseExistsAlert").classList.add("hidden");
+        document.getElementById("falaiseEditInfo").classList.remove("hidden");
+        document.getElementById("falaise_id").value = existing.id;
+        fetchAndPrefillData(existing.id);
+      }
+    } else {
+      document.getElementById("falaiseExistsAlert").classList.add("hidden");
+      document.getElementById("falaiseEditInfo").classList.add("hidden");
+    }
+  }
+  setupAutocomplete("falaise_nom", "falaise-list", "falaises", falaiseCallback, true);
+</script>
 
 </html>

@@ -444,7 +444,6 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     'IGNv2': ignTiles,
     'Satellite': ignOrthoTiles,
     'Outdoors': outdoorsTiles,
-
   };
 
   var itinerairesLines = []
@@ -790,7 +789,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   })
 
   var map = L.map("map", {
-    layers: [landscapeTiles], center, zoom, fullscreenControl: true, zoomSnap: 0.5
+    layers: [landscapeTiles], center, zoom, fullscreenControl: true
   });
   var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
   L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);

@@ -4,6 +4,7 @@ $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Remplissage des champs obligatoires de la table
   $admin = trim($_POST['admin'] ?? '') == $config["admin_token"];
+  $falaise_id = trim($_POST['falaise_id'] ?? null);
   $falaise_nom = trim($_POST['falaise_nom'] ?? '');
   $falaise_nomformate = trim($_POST['falaise_nomformate'] ?? '');
   $falaise_latlng = trim($_POST['falaise_latlng'] ?? '');
@@ -81,18 +82,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   // Préparation de la requête d'insertion
   $stmt = $mysqli->prepare("INSERT INTO falaises (
+    falaise_id,
     falaise_nom, falaise_zone, falaise_nomformate, falaise_public, falaise_latlng, falaise_exposhort1, falaise_exposhort2, 
     falaise_cotmin, falaise_cotmax, falaise_maa, falaise_mar, falaise_topo, falaise_expotxt, falaise_matxt, falaise_cottxt,
     falaise_voletcarto, falaise_voies, falaise_gvtxt, falaise_gvnb, falaise_rq, falaise_fermee, falaise_txt1, falaise_txt2,
     falaise_leg1, falaise_txt3, falaise_txt4, falaise_leg2, falaise_leg3, falaise_contrib)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    VALUES (COALESCE(?, NULL), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+    falaise_nom = VALUES(falaise_nom),
+    falaise_zone = VALUES(falaise_zone),
+    falaise_nomformate = VALUES(falaise_nomformate),
+    falaise_public = VALUES(falaise_public),
+    falaise_latlng = VALUES(falaise_latlng),
+    falaise_exposhort1 = VALUES(falaise_exposhort1),
+    falaise_exposhort2 = VALUES(falaise_exposhort2),
+    falaise_cotmin = VALUES(falaise_cotmin),
+    falaise_cotmax = VALUES(falaise_cotmax),
+    falaise_maa = VALUES(falaise_maa),
+    falaise_mar = VALUES(falaise_mar),
+    falaise_topo = VALUES(falaise_topo),
+    falaise_expotxt = VALUES(falaise_expotxt),
+    falaise_matxt = VALUES(falaise_matxt),
+    falaise_cottxt = VALUES(falaise_cottxt),
+    falaise_voletcarto = VALUES(falaise_voletcarto),
+    falaise_voies = VALUES(falaise_voies),
+    falaise_gvtxt = VALUES(falaise_gvtxt),
+    falaise_gvnb = VALUES(falaise_gvnb),
+    falaise_rq = VALUES(falaise_rq),
+    falaise_fermee = VALUES(falaise_fermee),
+    falaise_txt1 = VALUES(falaise_txt1),
+    falaise_txt2 = VALUES(falaise_txt2),
+    falaise_leg1 = VALUES(falaise_leg1),
+    falaise_txt3 = VALUES(falaise_txt3),
+    falaise_txt4 = VALUES(falaise_txt4),
+    falaise_leg2 = VALUES(falaise_leg2),
+    falaise_leg3 = VALUES(falaise_leg3),
+    falaise_contrib = VALUES(falaise_contrib)
+    ");
 
   if (!$stmt) {
     die("Problème de préparation de la requête : " . $mysqli->error);
   }
 
   $stmt->bind_param(
-    "sisisssssiissssssssssssssssss",
+    "isisisssssiissssssssssssssssss",
+    $falaise_id,
     $falaise_nom,
     $falaise_zone,
     $falaise_nomformate,

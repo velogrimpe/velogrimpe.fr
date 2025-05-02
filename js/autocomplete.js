@@ -8,7 +8,7 @@ function setupAutocomplete(
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
   const datalist = document.getElementById(datalistId);
-  const options = Array.from(datalist.options).map((option) => option.value);
+  const options = Array.from(datalist.options);
   let currentFocus = -1;
 
   input.addEventListener("input", () => {
@@ -18,13 +18,13 @@ function setupAutocomplete(
 
     if (value) {
       const filteredOptions = options.filter((option) =>
-        matchOption(option, value)
+        matchOption(option.value, value)
       );
 
       if (filteredOptions.length > 0 || acceptNewValue) {
         filteredOptions.forEach((option) => {
           const li = document.createElement("li");
-          li.textContent = option;
+          li.textContent = option.label || option.value;
           li.classList.add(
             "p-2",
             "cursor-pointer",
@@ -32,8 +32,8 @@ function setupAutocomplete(
             "hover:text-white"
           );
           li.addEventListener("click", () => {
-            selectCallback(option);
-            input.value = option;
+            selectCallback(option.value);
+            input.value = option.value;
             list.classList.add("hidden");
           });
           list.appendChild(li);
