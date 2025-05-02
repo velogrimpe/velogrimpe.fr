@@ -2,7 +2,8 @@ function setupAutocomplete(
   inputId,
   listId,
   datalistId,
-  selectCallback = () => {}
+  selectCallback = () => {},
+  acceptNewValue = false
 ) {
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
@@ -20,24 +21,45 @@ function setupAutocomplete(
         matchOption(option, value)
       );
 
-      filteredOptions.forEach((option, index) => {
-        const li = document.createElement("li");
-        li.textContent = option;
-        li.classList.add(
-          "p-2",
-          "cursor-pointer",
-          "hover:bg-primary",
-          "hover:text-white"
-        );
-        li.addEventListener("click", (e) => {
-          selectCallback(option);
-          input.value = option;
-          list.classList.add("hidden");
+      if (filteredOptions.length > 0 || acceptNewValue) {
+        filteredOptions.forEach((option) => {
+          const li = document.createElement("li");
+          li.textContent = option;
+          li.classList.add(
+            "p-2",
+            "cursor-pointer",
+            "hover:bg-primary",
+            "hover:text-white"
+          );
+          li.addEventListener("click", () => {
+            selectCallback(option);
+            input.value = option;
+            list.classList.add("hidden");
+          });
+          list.appendChild(li);
         });
-        list.appendChild(li);
-      });
 
-      list.classList.remove("hidden");
+        if (acceptNewValue && !filteredOptions.includes(value)) {
+          const newValueLi = document.createElement("li");
+          newValueLi.textContent = `"${input.value}"`;
+          newValueLi.classList.add(
+            "p-2",
+            "cursor-pointer",
+            "hover:bg-primary",
+            "hover:text-white"
+          );
+          newValueLi.addEventListener("click", () => {
+            selectCallback(input.value);
+            input.value = input.value;
+            list.classList.add("hidden");
+          });
+          list.appendChild(newValueLi);
+        }
+
+        list.classList.remove("hidden");
+      } else {
+        list.classList.add("hidden");
+      }
     } else {
       list.classList.add("hidden");
     }
@@ -67,7 +89,7 @@ function setupAutocomplete(
   });
 
   input.addEventListener("blur", () => {
-    if (!options.includes(input.value)) {
+    if (!options.includes(input.value) && !acceptNewValue) {
       input.value = "";
       setTimeout(() => list.classList.add("hidden"), 200);
     }
