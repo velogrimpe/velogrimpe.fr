@@ -239,6 +239,23 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         });
         var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
         L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
+        <?= json_encode($falaises) ?>.map(f => {
+          const coords = f.latlng.split(',');
+          if (coords.length === 2) {
+            const lat = parseFloat(coords[0]);
+            const lng = parseFloat(coords[1]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              L.marker([lat, lng], {
+                icon: L.icon({
+                  iconUrl: "/images/icone_falaise_carte.png",
+                  iconSize: [18, 18],
+                  iconAnchor: [9, 18],
+                  className: "opacity-50"
+                }),
+              }).addTo(map).bindPopup(f.nom);
+            }
+          }
+        })
 
         var marker = undefined;
         const size = 24;
