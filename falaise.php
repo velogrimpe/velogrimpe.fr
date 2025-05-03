@@ -33,6 +33,21 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmtIt->close();
 
+$stmtOblyk = $mysqli->prepare("
+  SELECT site_url as url, site_name as name
+  FROM falaises_liens
+  WHERE falaise_id = ? AND site = 'oblyk'
+  ORDER BY site_name
+  ");
+$stmtOblyk->bind_param("i", $falaise_id);
+$stmtOblyk->execute();
+$result = $stmtOblyk->get_result();
+$liensOblyk = [];
+while ($row = $result->fetch_assoc()) {
+  $liensOblyk[] = $row;
+}
+$stmtOblyk->close();
+
 if (!$dataF) {
   echo "Falaise introuvable.";
   exit;
@@ -244,7 +259,36 @@ $stmtV->close();
             <div id="rose-mini" class="sm:hidden"></div><?= nl2br($falaise_expotxt) ?>
           </div>
           <div class="font-bold  ">Topo(s)</div>
-          <div class=""><?= nl2br($falaise_topo) ?></div>
+          <div class="">
+            <div><?= nl2br($falaise_topo) ?></div>
+            <?php if (count($liensOblyk) > 1): ?>
+              <div class="dropdown w-fit">
+                <a tabindex="0" role="button"
+                  class="font-normal text-nowrap focus:pointer-events-none flex items-center gap-1"
+                  id="approcheFilterBtn">
+                  Fiches Oblyk
+                  <span class="badge badge-sm badge-primary"><?= count($liensOblyk) ?></span>
+                </a>
+                <div
+                  class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 p-2 shadow-lg w-60 max-h-[250px] flex-nowrap overflow-auto"
+                  tabindex="1">
+                  <?php foreach ($liensOblyk as $lien): ?>
+                    <a target="_blank" href="<?= htmlspecialchars($lien['url']) ?>"
+                      class="text-primary font-bold hover:underline cursor-pointer">
+                      <span><?= htmlspecialchars($lien['name']) ?></span>&nbsp;<svg class="w-3 h-3 fill-current inline">
+                        <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
+                      </svg>
+                    </a>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+            <?php elseif (count($liensOblyk) == 1): ?>
+              <a target="_blank" href="<?= htmlspecialchars($liensOblyk[0]['url']) ?>"
+                class="text-primary font-bold hover:underline cursor-pointer">
+                Fiche Oblyk
+              </a>
+            <?php endif ?>
+          </div>
           <div class="font-bold  ">Approche</div>
           <div class=""><?= nl2br($falaise_matxt) ?></div>
           <?php if (!empty($falaise_gvtxt)): ?>
