@@ -270,7 +270,7 @@ $stmtV->close();
                   <span class="badge badge-sm badge-primary"><?= count($liensOblyk) ?></span>
                 </a>
                 <div
-                  class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 p-2 shadow-lg w-60 max-h-[250px] flex-nowrap overflow-auto"
+                  class="dropdown-content menu bg-base-200 rounded-box z-[2] m-1 p-2 shadow-lg w-60 max-h-[250px] flex-nowrap overflow-auto"
                   tabindex="1">
                   <?php foreach ($liensOblyk as $lien): ?>
                     <a target="_blank" href="<?= htmlspecialchars($lien['url']) ?>"
