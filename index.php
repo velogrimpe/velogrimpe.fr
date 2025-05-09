@@ -637,9 +637,9 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       + `<div class="text-sm font-bold">${falaise.falaise_nom}</div>`
       + `${falaise.falaise_fermee ? `<div class="text-error">${falaise.falaise_fermee.replace(/\n/g, "<br>")}</div>` : ""}`
       + `<div class="flex gap-2 w-full justify-end">`
-      + `  <a href="/ajout/ajout_falaise.php?falaise_id=${falaise.falaise_id}" class="btn btn-xs btn-primary">Renseigner 🧗</a>`
-      + `  <a href="/ajout/ajout_velo.php?falaise_id=${falaise.falaise_id}"class=" hidden btn btn-xs btn-primary">Ajouter accès 🚲</a>`
-      + `</div>`,
+      + `  <a href="/ajout/ajout_falaise.php?falaise_id=${falaise.falaise_id}" class="btn btn-xs btn-primary">Renseigner la falaise</a>`
+      + `  <a href="/ajout/ajout_velo.php?falaise_id=${falaise.falaise_id}"class="btn btn-xs btn-primary">Ajouter accès</a>`
+      + `</div>`
       + `</div>`,
       { offset: [0, -10] }
     );
