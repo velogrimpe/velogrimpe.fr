@@ -8,11 +8,9 @@ while ($zone = $res_z->fetch_assoc()) {
   $zones[] = $zone;
 }
 $result_falaises = $mysqli->query("SELECT
-  f.falaise_id, falaise_nom, falaise_latlng, count(velo_id) > 0 as in_topo,
+  falaise_id, falaise_nom, falaise_latlng, falaise_public = 1 as in_topo,
   falaise_nomformate
   FROM falaises f
-  LEFT JOIN velo v on v.falaise_id = f.falaise_id
-  GROUP BY falaise_id
   ORDER BY falaise_nom");
 $falaises = [];
 while ($row = $result_falaises->fetch_assoc()) {
@@ -56,6 +54,10 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <style>
     .admin {
       <?= !$admin ? 'display: none !important;' : '' ?>
+    }
+
+    .notadmin {
+      <?= $admin ? 'display: none !important;' : '' ?>
     }
 
     :not(span).admin {
@@ -109,7 +111,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     <h1 class="text-4xl font-bold text-wrap text-center">
       Ajouter une falaise<span class='text-red-900 admin'> (version admin)</span>
     </h1>
-    <div class="rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-sm text-base-content">
+    <div class="notadmin rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-sm text-base-content">
       <b>Il s'agit ici d'ajouter une falaise au site web.</b><br>
       Commencez par vérifier qu'elle n'est pas déjà sur le site !<br>
       Vous allez avoir besoin de certaines infos, les plus fiables possibles : il est donc préférable d'avoir un topo
@@ -126,21 +128,30 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       <datalist id="falaises">
         <?php foreach ($falaises as $falaise): ?>
           <option value="<?= $falaise['nom']; ?>"
-            label="<?= $falaise['nom']; ?> (<?= $falaise['in_topo'] ? "décrite" : "non décrite"; ?>)"></option>
+            label="<?= $falaise['nom']; ?> (<?= $falaise['in_topo'] ? "décrite" : "à compléter"; ?>)"></option>
         <?php endforeach; ?>
       </datalist>
-      <input type="hidden" id="falaise_public" name="falaise_public" value="2" />
       <input type="hidden" id="admin" name="admin" value="0" />
 
       <div class="flex flex-col gap-1">
-        <div class="relative not-prose z-[11000]">
-          <label class="form-control">
-            <b>Nom de la falaise : </b>
-            <input class="input input-primary input-sm" type="text" id="falaise_nom" name="falaise_nom" required
-              autocomplete="off" oninput="formatNomFalaise();" />
+        <div class="flex gap-2 items-center">
+          <div class="relative not-prose z-[11000] flex-1">
+            <label class="form-control">
+              <b>Nom de la falaise : </b>
+              <input class="input input-primary input-sm" type="text" id="falaise_nom" name="falaise_nom" required
+                autocomplete="off" oninput="formatNomFalaise();" />
+            </label>
+            <ul id="falaise-list" class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
+            </ul>
+          </div>
+          <label class="admin form-control flex-1">
+            <b>Statut : </b>
+            <select class="select select-primary select-sm" id="falaise_public" name="falaise_public">
+              <option value="1">Validée (1)</option>
+              <option value="2">Contribution (2)</option>
+              <option value="3">Hors Topo (3)</option>
+            </select>
           </label>
-          <ul id="falaise-list" class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-          </ul>
         </div>
         <div class="flex flex-row gap-2 items-center admin">
           <div class="w-1/2 flex flex-row gap-2">
@@ -160,16 +171,26 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         <svg class="w-4 h-4 mb-1 fill-current inline-block">
           <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
         </svg>
-        Une falaise avec ce nom existe déjà dans la base de données. Si vous vous souhaitez modifier les données de la
-        fiche falaise, merci de <a href="mailto:contact@velogrimpe.fr">contacter l'équipe
-          velogrimpe</a>.
+        Une falaise avec ce nom existe déjà (<a id="linkSelectedFalaise" class="inline-flex items-center gap-1"
+          target="_blank">
+          <span>
+            consulter la page de cette
+            falaise
+          </span>
+          <svg class="w-4 h-4 fill-current">
+            <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
+          </svg></a>)
+        dans la base de données et a été vérouillée pour éviter la dégradation du
+        topo. Si vous vous souhaitez modifier les données de la fiche falaise, merci de <a
+          href="mailto:contact@velogrimpe.fr">contacter l'équipe velogrimpe</a> qui pourra vous ouvrir l'accès à la
+        modification.
       </div>
 
       <div id="falaiseEditInfo" class="hidden bg-blue-100 border border-blue-900 text-blue-900 p-2 rounded-lg">
         <svg class="w-4 h-4 mb-1 fill-current inline-block">
           <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
         </svg>
-        Une falaise avec ce nom existe déjà mais n'a aucun accès décrit. Les données connues sont pré-remplies
+        Une falaise avec ce nom existe déjà. Les données connues sont pré-remplies
         ci-dessous, libre à vous de les modifier / compléter. Attention toutefois aux homonymes, vérifiez sa
         localisation. En cas d'erreur, recharger la page pour éviter de remplacer la falaise existante.
       </div>
@@ -252,7 +273,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
                   iconAnchor: [9, 18],
                   className: "opacity-50"
                 }),
-              }).addTo(map).bindPopup(f.nom);
+              }).addTo(map).bindPopup(f.nom, { offset: [0, -9] });
             }
           }
         })
@@ -316,8 +337,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control" for="falaise_voies">
         <b>Voies - Texte descriptif :</b>
-        <textarea class="textarea textarea-primary textarea-sm" id="falaise_voies" name="falaise_voies" rows="2"
-          placeholder="ex : beaucoup de 6 et 7, quelques 5." required></textarea>
+        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voies" name="falaise_voies"
+          rows="2" placeholder="ex : beaucoup de 6 et 7, quelques 5." required></textarea>
         <i class="text-slate-400 text-sm">
           Texte pour décrire les voies : nombre de voies, hauteur maximale, dire ici s'il y a plusieurs secteurs
           espacés ou non...<br>
@@ -328,8 +349,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control" for="falaise_cottxt">
         <b>Cotations - Texte descriptif :</b>
-        <textarea class="textarea textarea-primary textarea-sm" id="falaise_cottxt" name="falaise_cottxt" rows="2"
-          placeholder="ex : Falaise intéressante pour les voies de 5a à 6b, quelques 4." required></textarea>
+        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_cottxt" name="falaise_cottxt"
+          rows="2" placeholder="ex : Falaise intéressante pour les voies de 5a à 6b, quelques 4." required></textarea>
         <i class="text-slate-400 text-sm">
           Ecrivez un court texte décrivant les cotations (ex : "Falaise intéressante pour les voies de 5+ à 7-"). Vous
           pouvez ajouter des détails (ex : "10 voies dans le 5, 20 dans le 6,...").<br>
@@ -385,8 +406,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control" for="falaise_expotxt">
         <b>Exposition - Texte descriptif : </b>
-        <textarea class="textarea textarea-primary textarea-sm" id="falaise_expotxt" name="falaise_expotxt" rows="1"
-          placeholder="ex : surtout S, quelques O." required></textarea>
+        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_expotxt" name="falaise_expotxt"
+          rows="1" placeholder="ex : surtout S, quelques O." required></textarea>
         <i class="text-slate-400 text-sm">
           Ecrivez un court texte décrivant l'exposition. Ex : "falaise orientée Sud à Sud-Est", "la plupart des voies
           orientées Ouest, quelques voies orientées Nord".<br>
@@ -471,8 +492,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <b class="text-gray-400 opacity-70">Grandes voies - Texte descriptif :</b>
           <span class="text-red-600">champ à laisser vide s'il n'y a pas de grandes voies !</span>
         </span>
-        <textarea class="textarea textarea-bordered textarea-sm" id="falaise_gvtxt" name="falaise_gvtxt" rows="2"
-          placeholder="ex : 10 grandes voies, de PD+ à AD+."></textarea>
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_gvtxt" name="falaise_gvtxt"
+          rows="2" placeholder="ex : 10 grandes voies, de PD+ à AD+."></textarea>
         <i class="text-slate-400 text-sm">
           Indiquez s'il y a des grandes voies, et si oui, combien environ, de combien à combien de longueurs, jusqu'à
           quelle hauteur max, éventuellement donner les cotations...
@@ -503,8 +524,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control" for="falaise_matxt">
         <b>Marche d'approche - Texte descriptif :</b>
-        <textarea class="textarea textarea-primary textarea-sm" id="falaise_matxt" name="falaise_matxt" rows="3"
-          placeholder="ex : 10' aller, 15' retour, montée raide." required></textarea>
+        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_matxt" name="falaise_matxt"
+          rows="3" placeholder="ex : 10' aller, 15' retour, montée raide." required></textarea>
         <i class="text-slate-400 text-sm">
           Petit texte décrivant la marche d'approche. Ex : "10' en montée", "10' aller, 7' retour",...
         </i>
@@ -532,7 +553,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control" for="falaise_topo">
         <b>Topo(s) :</b>
-        <textarea class="textarea textarea-primary textarea-sm" id="falaise_topo" name="falaise_topo" rows="2"
+        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_topo" name="falaise_topo" rows="2"
           required></textarea>
         <i class="text-slate-400 text-sm">
           Lister les différents topos présentant la falaise.<br>
@@ -546,7 +567,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control" for="falaise_rq">
         <b class="text-gray-400 opacity-70">Remarque(s) falaise :</b>
-        <textarea class="textarea textarea-primary textarea-sm" id="falaise_rq" name="falaise_rq" rows="2"
+        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_rq" name="falaise_rq" rows="2"
           placeholder="ex : falaise abritée de la pluie."></textarea>
         <i class="text-slate-400 text-sm">A compléter si vous avez des informations additionnelles sur la falaise.</i>
       </label>
@@ -554,9 +575,9 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control" for="falaise_voletcarto">
         <b>Bref descriptif de la falaise :</b>
-        <textarea class="textarea textarea-primary textarea-sm" id="falaise_voletcarto" name="falaise_voletcarto"
-          rows="3" placeholder="ex : falaise Sud avec des voies en dalle dans le 6-7." required
-          maxlength="200"></textarea>
+        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voletcarto"
+          name="falaise_voletcarto" rows="3" placeholder="ex : falaise Sud avec des voies en dalle dans le 6-7."
+          required maxlength="200"></textarea>
         <i class="text-slate-400 text-sm">Texte court et synthétique sur la falaise, qui apparaitra dans le volet qui
           s'ouvre quand on clique sur une
           falaise de la carte.<br>
@@ -575,8 +596,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
         <label class="form-control" for="falaise_fermee">
           <b class="text-gray-400 opacity-70">Si la falaise est fermée / interdite, explication :</b>
-          <textarea class="textarea textarea-bordered textarea-sm" id="falaise_fermee" name="falaise_fermee" rows="2"
-            placeholder="ex : Falaise interdite, en cours de conventionnement."></textarea>
+          <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_fermee" name="falaise_fermee"
+            rows="2" placeholder="ex : Falaise interdite, en cours de conventionnement."></textarea>
           <i class="text-slate-400 text-sm">A compléter si vous avez des informations sur la cause de l'interdiction
             ou les perspectives de réouverture.</i>
         </label>
@@ -587,7 +608,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <span>
             <b class="text-gray-400 opacity-70">Remarques diverses</b>.
             <span class="admin text-xs text-accent">[falaise_txt2]</span></span>
-          <textarea class="textarea textarea-bordered textarea-sm" id="falaise_txt2" name="falaise_txt2"
+          <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt2" name="falaise_txt2"
             rows="3"></textarea>
           <i class="text-slate-400 text-sm">Remarques non incluses dans le tableau descriptif. Typiquement utilisé
             pour décrire les différents secteurs, les modalités de bivouac, camping.</i>
@@ -601,7 +622,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             <b class="text-gray-400 opacity-70">Remarque sur les itinéraires</b> (apparaitra entre le tableau des
             itinéraires et celui de la falaise). <span class="admin text-xs text-accent">[falaise_txt1]</span>
           </span>
-          <textarea class="textarea textarea-bordered textarea-sm" id="falaise_txt1" name="falaise_txt1"
+          <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt1" name="falaise_txt1"
             rows="3"></textarea>
           <i class="text-slate-400 text-sm">Exemple: remarque optionnelle générale sur l’accès falaise, qui
             s’affiche quelle que soit la ville de
@@ -619,6 +640,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img1" name="falaise_img1"
           accept="image/*">
       </label>
+      <img class="hidden w-full h-auto" id="falaise_img1_preview" src="" alt="Aperçu de l'image 1" />
 
       <label class="form-control" for="falaise_leg1">
         <span>
@@ -627,7 +649,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
             [falaise_leg1]
           </span>
         </span>
-        <textarea class="textarea textarea-bordered textarea-sm" id="falaise_leg1" name="falaise_leg1"
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_leg1" name="falaise_leg1"
           rows="2"></textarea>
       </label>
 
@@ -635,7 +657,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         <span>
           <b class="text-gray-400 opacity-70">Texte optionnel 1</b>.
           <span class="admin text-xs text-accent">[falaise_txt3]</span></span>
-        <textarea class="textarea textarea-bordered textarea-sm" id="falaise_txt3" name="falaise_txt3"
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt3" name="falaise_txt3"
           rows="5"></textarea>
       </label>
 
@@ -644,12 +666,13 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img2" name="falaise_img2"
           accept="image/*">
       </label>
+      <img class="hidden w-full h-auto" id="falaise_img2_preview" src="" alt="Aperçu de l'image 2" />
 
       <label class="form-control" for="falaise_leg2">
         <span>
           <b class="text-gray-400 opacity-70">Légende image optionnelle 2</b>.
           <span class="admin text-xs text-accent">[falaise_leg2]</span></span>
-        <textarea class="textarea textarea-bordered textarea-sm" id="falaise_leg2" name="falaise_leg2"
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_leg2" name="falaise_leg2"
           rows="2"></textarea>
       </label>
 
@@ -657,7 +680,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         <span>
           <b class="text-gray-400 opacity-70">Texte optionnel 2</b>.
           <span class="admin text-xs text-accent">[falaise_txt4]</span></span>
-        <textarea class="textarea textarea-bordered textarea-sm" id="falaise_txt4" name="falaise_txt4"
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt4" name="falaise_txt4"
           rows="5"></textarea>
       </label>
 
@@ -666,12 +689,13 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img3" name="falaise_img3"
           accept="image/*">
       </label>
+      <img class="hidden w-full h-auto" id="falaise_img3_preview" src="" alt="Aperçu de l'image 3" />
 
       <label class="form-control" for="falaise_leg3">
         <span>
           <b class="text-gray-400 opacity-70">Légende image optionnelle 3</b>.
           <span class="admin text-xs text-accent">[falaise_leg3]</span></span>
-        <textarea class="textarea textarea-bordered textarea-sm" id="falaise_leg3" name="falaise_leg3"
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_leg3" name="falaise_leg3"
           rows="2"></textarea>
       </label>
 
@@ -706,7 +730,8 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           <b>Message optionnel :</b>
           <i>(si vous voulez commenter votre ajout de données)</i>
         </span>
-        <textarea class="textarea textarea-bordered textarea-sm" id="message" name="message" rows="4"></textarea>
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
+          rows="4"></textarea>
       </label>
 
       <button type="submit" class="btn btn-primary">AJOUTER LA FALAISE</button>
@@ -744,6 +769,12 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_fermee").value = falaise.falaise_fermee;
         document.getElementById("falaise_voletcarto").value = falaise.falaise_voletcarto;
         document.getElementById("falaise_bloc").value = falaise.falaise_bloc;
+        document.getElementById("falaise_img1_preview").src = falaise.falaise_img1;
+        document.getElementById("falaise_img2_preview").src = falaise.falaise_img2;
+        document.getElementById("falaise_img3_preview").src = falaise.falaise_img3;
+        falaise.falaise_img1 && document.getElementById("falaise_img1_preview").classList.remove("hidden");
+        falaise.falaise_img2 && document.getElementById("falaise_img2_preview").classList.remove("hidden");
+        falaise.falaise_img3 && document.getElementById("falaise_img3_preview").classList.remove("hidden");
       });
   }
 </script>
@@ -765,6 +796,10 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
       if (existing.in_topo !== "0") {
         document.getElementById("falaiseExistsAlert").classList.remove("hidden");
         document.getElementById("falaiseEditInfo").classList.add("hidden");
+        document.getElementById("linkSelectedFalaise").href = `/falaise.php?falaise_id=${existing.id}`;
+        <?php if ($admin): ?>
+          fetchAndPrefillData(existing.id);
+        <?php endif ?>
       } else {
         document.getElementById("falaiseExistsAlert").classList.add("hidden");
         document.getElementById("falaiseEditInfo").classList.remove("hidden");

@@ -64,8 +64,8 @@
               Pourquoi voulez-vous rejoindre le groupe Signal "Vélogrimpe" ?
             </span>
           </div>
-          <textarea class="textarea textarea-primary w-full leading-[18px]" id="message" name="message" rows="4"
-            minlength="100" required
+          <textarea class="textarea leading-6 textarea-primary w-full leading-[18px]" id="message" name="message"
+            rows="4" minlength="100" required
             placeholder="Petit texte de présentation, pour éviter l'invasion par les bots ! 100 caractères minimum."></textarea>
         </div>
         <div class="mt-2 w-full">

@@ -207,7 +207,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control" for="velo_descr">
         <b class="text-gray-400 opacity-70">Description de l'itinéraire, remarques :</b>
-        <textarea class="textarea textarea-bordered textarea-sm" id="velo_descr" name="velo_descr" rows="5"
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="velo_descr" name="velo_descr" rows="5"
           cols="100"></textarea>
         <i class="text-gray-400 opacity-70">
           On peut y détailler la surface (goudron ? Piste ?), le trafic (beaucoup de voitures ?), s'il y a des
@@ -217,7 +217,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control admin" for="velo_openrunner">
         <b class="text-gray-400 opactity-70">Lien Openrunner pour affichage profil en iframe :</b>
-        <textarea type="text" class="textarea textarea-bordered textarea-sm" id="velo_openrunner" rows="3"
+        <textarea type="text" class="textarea textarea-bordered textarea-sm leading-6" id="velo_openrunner" rows="3"
           name="velo_openrunner"></textarea>
       </label>
 
@@ -298,7 +298,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <b>Message optionnel :</b>
           <i>(si vous voulez commenter votre ajout de données)</i>
         </span>
-        <textarea class="textarea textarea-bordered textarea-sm" id="message" name="message" rows="4"></textarea>
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
+          rows="4"></textarea>
       </label>
 
       <button type="submit" class="btn btn-primary">AJOUTER L'ITINÉRAIRE VÉLO</button>

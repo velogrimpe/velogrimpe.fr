@@ -228,7 +228,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
       <label class="form-control" for="train_descr">
         <b>Description de l'itinéraire train :</b>
-        <textarea class="textarea textarea-primary textarea-sm" id="train_descr" name="train_descr" rows="5"
+        <textarea class="textarea textarea-primary textarea-sm leading-6" id="train_descr" name="train_descr" rows="5"
           required></textarea>
         <i>Ici, on donne le nombre de trains par jours (dire si la fréquence change selon les jours),
           le nombre de correspondances et les gares de correspondances, les différentes possibilités s'il y en a,
@@ -269,7 +269,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <b>Message optionnel :</b>
           <i>(si vous voulez commenter votre ajout de données)</i>
         </span>
-        <textarea class="textarea textarea-bordered textarea-sm" id="message" name="message" rows="4"></textarea>
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
+          rows="4"></textarea>
       </label>
 
       <button type="submit" class="btn btn-primary">AJOUTER L'ITINÉRAIRE TRAIN</button>
