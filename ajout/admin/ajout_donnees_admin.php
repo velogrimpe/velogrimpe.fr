@@ -8,6 +8,19 @@ $falaises = $mysqli->query("SELECT falaise_id, falaise_nom, falaise_public
                                   ORDER BY falaise_public + mod(falaise_public, 3) * 3 DESC, falaise_nom ASC
                                   ")->fetch_all(MYSQLI_ASSOC);
 
+$falaises_contrib = array_values(array_filter(
+  $falaises,
+  fn($falaise) => $falaise['falaise_public'] === "2"
+));
+$falaises_ht = array_values(array_filter(
+  $falaises,
+  fn($falaise) => $falaise['falaise_public'] === "3"
+));
+$falaises_topo = array_values(array_filter(
+  $falaises,
+  fn($falaise) => $falaise['falaise_public'] === "1"
+));
+
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -53,17 +66,40 @@ $falaises = $mysqli->query("SELECT falaise_id, falaise_nom, falaise_public
       Modifier des données
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <label class="flex flex-col gap-2 items-center bg-base-100 p-4 rounded-lg bg-primary" for="selectFalaise">
-        <b class="text-base-100 text-lg">Modifier une falaise</b>
-        <select id="selectFalaise" name="selectFalaise" class="select select-primary"
+      <label class="flex flex-col gap-2 items-center bg-base-100 p-4 rounded-lg bg-primary" for="selectFalaise1">
+        <b class="text-base-100 text-lg">⚠️ Falaises à vérifier</b>
+        <?php if (count($falaises_contrib) === 0): ?>
+          <p class="text-base-100 text-lg">Aucune falaise à vérifier 💪</p>
+        <?php else: ?>
+          <select id="selectFalaise1" name="selectFalaise1" class="select select-primary"
+            onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
+            <option value="">Sélectionner une falaise</option>
+            <?php foreach ($falaises_contrib as $falaise): ?>
+              <option value="<?= $falaise['falaise_id'] ?>"><?= $falaise['falaise_nom'] ?></option>
+            <?php endforeach; ?>
+          </select>
+        <?php endif; ?>
+      </label>
+
+      <label class="flex flex-col gap-2 items-center bg-base-100 p-4 rounded-lg bg-primary" for="selectFalaise2">
+        <b class="text-base-100 text-lg">❌ Falaises Hors Topo</b>
+        <select id="selectFalaise2" name="selectFalaise2" class="select select-primary"
           onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
           <option value="">Sélectionner une falaise</option>
-          <?php foreach ($falaises as $falaise): ?>
-            <option value="<?= $falaise['falaise_id'] ?>"><?= $falaise['falaise_nom'] ?>
-              <?= $falaise['falaise_public'] === "1" ? '✔︎' : ($falaise['falaise_public'] === "2" ? '✏️' : '⨯') ?>
-            </option>
+          <?php foreach ($falaises_ht as $falaise): ?>
+            <option value="<?= $falaise['falaise_id'] ?>"><?= $falaise['falaise_nom'] ?></option>
           <?php endforeach; ?>
+        </select>
+      </label>
 
+      <label class="flex flex-col gap-2 items-center bg-base-100 p-4 rounded-lg bg-primary" for="selectFalaise3">
+        <b class="text-base-100 text-lg">✅ Falaises du Topo</b>
+        <select id="selectFalaise3" name="selectFalaise3" class="select select-primary"
+          onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
+          <option value="">Sélectionner une falaise</option>
+          <?php foreach ($falaises_topo as $falaise): ?>
+            <option value="<?= $falaise['falaise_id'] ?>"><?= $falaise['falaise_nom'] ?></option>
+          <?php endforeach; ?>
         </select>
       </label>
     </div>
