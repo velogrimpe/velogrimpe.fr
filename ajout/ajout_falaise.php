@@ -107,7 +107,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4
               prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
               hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]
-              prose-pre:my-0 prose-pre:text-center">
+              prose-pre:my-0 prose-pre:text-center prose-img:my-0">
     <h1 class="text-4xl font-bold text-wrap text-center">
       Ajouter une falaise<span class='text-red-900 admin'> (version admin)</span>
     </h1>
@@ -640,7 +640,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img1" name="falaise_img1"
           accept="image/*">
       </label>
-      <img class="hidden w-full h-auto" id="falaise_img1_preview" src="" alt="Aperçu de l'image 1" />
+      <img class="hidden w-full h-auto" id="falaise_img1_preview" src="" alt="Pas d'image 1" />
 
       <label class="form-control" for="falaise_leg1">
         <span>
@@ -666,7 +666,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img2" name="falaise_img2"
           accept="image/*">
       </label>
-      <img class="hidden w-full h-auto" id="falaise_img2_preview" src="" alt="Aperçu de l'image 2" />
+      <img class="hidden w-full h-auto" id="falaise_img2_preview" src="" alt="Pas d'image 2" />
 
       <label class="form-control" for="falaise_leg2">
         <span>
@@ -689,7 +689,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img3" name="falaise_img3"
           accept="image/*">
       </label>
-      <img class="hidden w-full h-auto" id="falaise_img3_preview" src="" alt="Aperçu de l'image 3" />
+      <img class="hidden w-full h-auto" id="falaise_img3_preview" src="" alt="Pas d'image 3" />
 
       <label class="form-control" for="falaise_leg3">
         <span>
@@ -769,12 +769,12 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_fermee").value = falaise.falaise_fermee;
         document.getElementById("falaise_voletcarto").value = falaise.falaise_voletcarto;
         document.getElementById("falaise_bloc").value = falaise.falaise_bloc;
-        document.getElementById("falaise_img1_preview").src = falaise.falaise_img1;
-        document.getElementById("falaise_img2_preview").src = falaise.falaise_img2;
-        document.getElementById("falaise_img3_preview").src = falaise.falaise_img3;
-        falaise.falaise_img1 && document.getElementById("falaise_img1_preview").classList.remove("hidden");
-        falaise.falaise_img2 && document.getElementById("falaise_img2_preview").classList.remove("hidden");
-        falaise.falaise_img3 && document.getElementById("falaise_img3_preview").classList.remove("hidden");
+        document.getElementById("falaise_img1_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img1.png`;
+        document.getElementById("falaise_img2_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img2.png`;
+        document.getElementById("falaise_img3_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img3.png`;
+        document.getElementById("falaise_img1_preview").classList.remove("hidden");
+        document.getElementById("falaise_img2_preview").classList.remove("hidden");
+        document.getElementById("falaise_img3_preview").classList.remove("hidden");
       });
   }
 </script>
