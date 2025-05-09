@@ -7,23 +7,40 @@ $zones = [];
 while ($zone = $res_z->fetch_assoc()) {
   $zones[] = $zone;
 }
-$result_falaises = $mysqli->query("SELECT
+// Read the admin search parameter
+$admin = ($_GET['admin'] ?? false) == $config["admin_token"];
+$falaise_id = $_GET['falaise_id'] ?? null;
+
+if ($falaise_id) {
+  $falaises = [];
+  if (!$admin) {
+    $is_locked_stmt = $mysqli->prepare("SELECT falaise_id FROM falaises WHERE falaise_id = ? AND falaise_public = 1");
+    $is_locked_stmt->bind_param("i", $falaise_id);
+    $is_locked_stmt->execute();
+    $is_locked = $is_locked_stmt->get_result()->num_rows > 0;
+    if ($is_locked) {
+      http_response_code(403);
+      echo "<h1>Cette falaise est verrouillée</h1>";
+      exit;
+    }
+  }
+} else {
+  $result_falaises = $mysqli->query("SELECT
   falaise_id, falaise_nom, falaise_latlng, falaise_public = 1 as in_topo,
   falaise_nomformate
   FROM falaises f
   ORDER BY falaise_nom");
-$falaises = [];
-while ($row = $result_falaises->fetch_assoc()) {
-  $falaises[] = [
-    'nom' => $row['falaise_nom'],
-    'id' => $row['falaise_id'],
-    'latlng' => $row['falaise_latlng'],
-    'in_topo' => $row['in_topo'],
-    'nomformate' => $row['falaise_nomformate'],
-  ];
+  $falaises = [];
+  while ($row = $result_falaises->fetch_assoc()) {
+    $falaises[] = [
+      'nom' => $row['falaise_nom'],
+      'id' => $row['falaise_id'],
+      'latlng' => $row['falaise_latlng'],
+      'in_topo' => $row['in_topo'],
+      'nomformate' => $row['falaise_nomformate'],
+    ];
+  }
 }
-// Read the admin search parameter
-$admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
 ?>
 
@@ -33,7 +50,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ajouter une falaise - Vélogrimpe.fr</title>
+  <title><?= $falaise_id ? "Modifier" : "Ajouter" ?> une falaise - Vélogrimpe.fr</title>
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
 
@@ -109,7 +126,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
               hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]
               prose-pre:my-0 prose-pre:text-center prose-img:my-0">
     <h1 class="text-4xl font-bold text-wrap text-center">
-      Ajouter une falaise<span class='text-red-900 admin'> (version admin)</span>
+      <?= $falaise_id ? "Modifier" : "Ajouter" ?> une falaise<span class='text-red-900 admin'> (version admin)</span>
     </h1>
     <div class="notadmin rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-sm text-base-content">
       <b>Il s'agit ici d'ajouter une falaise au site web.</b><br>
@@ -139,7 +156,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             <label class="form-control">
               <b>Nom de la falaise : </b>
               <input class="input input-primary input-sm" type="text" id="falaise_nom" name="falaise_nom" required
-                autocomplete="off" oninput="formatNomFalaise();" />
+                autocomplete="off" oninput="formatNomFalaise();" <?php if ($falaise_id): ?> disabled <?php endif ?> />
             </label>
             <ul id="falaise-list" class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
             </ul>
@@ -740,7 +757,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
   <?php include "../components/footer.html"; ?>
 </body>
 <script>
-  function fetchAndPrefillData(id) {
+  function fetchAndPrefillData(id, fillAll = false) {
     fetch(`/ajout/fetch_falaise.php?falaise_id=${id}`)
       .then(response => response.json())
       .then(falaise => {
@@ -775,8 +792,18 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_img1_preview").classList.remove("hidden");
         document.getElementById("falaise_img2_preview").classList.remove("hidden");
         document.getElementById("falaise_img3_preview").classList.remove("hidden");
+        if (fillAll) {
+          document.getElementById("falaise_latlng").value = falaise.falaise_latlng;
+          document.getElementById("falaise_nomformate").value = falaise.falaise_nomformate;
+          document.getElementById("falaise_id").value = falaise.falaise_id;
+          document.getElementById("falaise_nom").value = falaise.falaise_nom;
+          updateMarker();
+        }
       });
   }
+  <?php if ($falaise_id): ?>
+    fetchAndPrefillData(<?= $falaise_id ?>, true);
+  <?php endif ?>
 </script>
 <script>window.customElements.define('multi-select', MultiselectWebcomponent);</script>
 <script src="/js/autocomplete.js"></script>
