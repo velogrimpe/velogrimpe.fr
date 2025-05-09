@@ -783,6 +783,9 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 <script>
   const falaises = <?= json_encode($falaises) ?>;
   function falaiseCallback(falaiseNom) {
+    document.getElementById("falaise_img1_preview").classList.add("hidden");
+    document.getElementById("falaise_img2_preview").classList.add("hidden");
+    document.getElementById("falaise_img3_preview").classList.add("hidden");
     if (!falaiseNom) {
       document.getElementById("falaiseExistsAlert").classList.add("hidden");
       document.getElementById("falaiseEditInfo").classList.add("hidden");
