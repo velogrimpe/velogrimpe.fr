@@ -1041,7 +1041,7 @@ $stmtV->close();
         const name = secteur.properties.name;
         secteur.center = reverse(turf.centerOfMass(toGeoJSON(secteur)).geometry.coordinates);
         const weight = secteur.geometry.type === "Polygon" ? 1 : 6;
-        const marker = L.marker(secteur.center, {
+        const marker = name ? L.marker(secteur.center, {
           pane: "tooltipPane",
           icon: L.divIcon({
             iconSize: [0, 0],
@@ -1053,7 +1053,7 @@ $stmtV->close();
               + `</div>`
             ),
           }),
-        }).addTo(map);
+        }).addTo(map) : undefined;
         const layer = L.geoJSON(toGeoJSON(secteur), {
           style: {
             color: "#333",
@@ -1065,8 +1065,10 @@ $stmtV->close();
         const mouseover = (e) => {
           L.DomEvent.stopPropagation(e);
           layer.eachLayer(l => l.setStyle({ color: "darkred", weight: weight + 2 }));
-          document.getElementById(`marker-${name}`).classList.add("bg-red-900", "text-white");
-          document.getElementById(`marker-${name}`).classList.remove("bg-white", "text-black");
+          if (marker) {
+            document.getElementById(`marker-${name}`).classList.add("bg-red-900", "text-white");
+            document.getElementById(`marker-${name}`).classList.remove("bg-white", "text-black");
+          }
           const pk = secteur.properties.parking ? parkings.find(p => p.properties.name === secteur.properties.parking) : undefined;
           if (pk) {
             parkingIndicators.push(
@@ -1081,17 +1083,21 @@ $stmtV->close();
         const mouseout = (e) => {
           removeParkingLinks();
           layer.eachLayer(l => l.setStyle({ color: "black", weight }));
-          document.getElementById(`marker-${name}`).classList.remove("bg-red-900", "text-white");
-          document.getElementById(`marker-${name}`).classList.add("bg-white", "text-black");
+          if (marker) {
+            document.getElementById(`marker-${name}`).classList.remove("bg-red-900", "text-white");
+            document.getElementById(`marker-${name}`).classList.add("bg-white", "text-black");
+          }
         }
         layer.eachLayer(l => {
           l.on("mouseover click", mouseover);
           l.on("mouseout", mouseout);
         });
-        marker.on("click mouseover", mouseover);
-        marker.on("mouseout", mouseout);
+        if (marker) {
+          marker.on("click mouseover", mouseover);
+          marker.on("mouseout", mouseout);
+          secteur.marker = marker;
+        }
         secteur.layer = layer;
-        secteur.marker = marker;
         return secteur;
       })
       parkings?.map(parking => {
