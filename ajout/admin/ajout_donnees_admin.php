@@ -36,6 +36,8 @@ $token = $config["admin_token"];
         train (ville - gare)</a>
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_velo.php?admin=<?= $token ?>">Ajouter un itinéraire vélo
         (gare - falaise)</a>
+      <a class="btn btn-primary btn-lg" href="/ajout/admin/oblyk.php?admin=<?= $token ?>">Ajouter un itinéraire vélo
+        (gare - falaise)</a>
     </div>
   </main>
   <?php include "../../components/footer.html"; ?>
