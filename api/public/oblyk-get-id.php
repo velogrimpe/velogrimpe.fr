@@ -2,16 +2,23 @@
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $oblyk_token = $config["oblyk_token"];
 // Check that Authorization header is and equal to config["admin_token"]
-// Allow only GET requests
-if ($_SERVER['REQUEST_METHOD'] !== 'GET' && $_SERVER['REQUEST_METHOD'] !== 'OPTIONS') {
-  http_response_code(405);
-  echo json_encode(['error' => 'Method Not Allowed']);
-  exit;
-}
+
 // Allow CORS from all origins
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 header('Access-Control-Allow-Headers: authorization, Authorization');
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+  http_response_code(200);
+  exit;
+}
+// Allow only GET requests
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+  http_response_code(405);
+  echo json_encode(['error' => 'Method Not Allowed']);
+  exit;
+}
 
 // Get Authorization header
 $headers = getallheaders();
