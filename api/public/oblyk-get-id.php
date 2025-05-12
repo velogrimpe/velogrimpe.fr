@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET' && $_SERVER['REQUEST_METHOD'] !== 'OPTI
 // Allow CORS from all origins
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Authorization');
+header('Access-Control-Allow-Headers: authorization, Authorization');
 
 // Get Authorization header
 $headers = getallheaders();
