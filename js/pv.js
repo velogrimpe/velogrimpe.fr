@@ -15,6 +15,11 @@ function main() {
     return;
   }
 
+  const referrer = document.referrer;
+  const referrerHostname = referrer ? new URL(referrer).hostname : "_direct";
+  const source =
+    referrerHostname === window.location.hostname ? "_nav" : referrerHostname;
+
   fetch("https://couble.eu/api/event", {
     method: "POST",
     headers: {
@@ -25,6 +30,7 @@ function main() {
       e: "pageviews",
       p: window.location.pathname + window.location.search,
       u: userId,
+      s: source,
     }),
   });
 }
