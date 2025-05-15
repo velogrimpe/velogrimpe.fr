@@ -192,27 +192,23 @@ $stmtV->close();
       <div class="flex flex-row items-center gap-2">
         <div class="dropdown dropdown-end hidden">
           <div tabindex="0" role="button"
-            class="btn btn-xs md:btn-sm btn-circle btn-outline btn-primary focus:pointer-events-none" title="J'y ai été"
+            class="btn btn-sm md:btn-md btn-circle btn-outline btn-primary focus:pointer-events-none" title="J'y ai été"
             id="veloFilterBtn">
-            <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
+            <svg class="w-4 md:w-6 h-4 md:h-6 fill-current">
               <use xlink:href="/symbols/icons.svg#ri-chat-4-line"></use>
             </svg>
           </div>
           <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
             <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-              href="/comment/commentaire_falaise.php?falaise_id=<?= $falaise_id ?>">
-              Raconter ma sortie
-            </a>
-            <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-              href="/comment/commentaire_acces.php?falaise_id=<?= $falaise_id ?>">
-              Commenter l'accès 🚲 / 🚞
+              href="/ajout_commentaire.php?falaise_id=<?= $falaise_id ?>">
+              Raconter ma sortie vélogrimpe
             </a>
           </div>
         </div>
         <div class="dropdown dropdown-end hidden">
-          <div tabindex="0" role="button" class="btn btn-xs md:btn-sm btn-circle btn-outline focus:pointer-events-none"
+          <div tabindex="0" role="button" class="btn btn-sm md:btn-md btn-circle btn-outline focus:pointer-events-none"
             title="Proposer des modifications" id="veloFilterBtn">
-            <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
+            <svg class="w-4 md:w-6 h-4 md:h-6 fill-current">
               <use xlink:href="/symbols/icons.svg#ri-pencil-line"></use>
             </svg>
           </div>
@@ -235,9 +231,9 @@ $stmtV->close();
             </a>
           </div>
         </div>
-        <button class="drawer-button btn btn-primary btn-sm md:btn-sm btn-circle btn-outline"
+        <button class="drawer-button btn btn-primary btn-sm md:btn-md btn-circle btn-outline"
           onclick="meteoModal.showModal()">
-          <svg class="w-4 h-4 fill-current">
+          <svg class="w-4 md:w-6 h-4 md:h-6 fill-current">
             <use xlink:href="/symbols/icons.svg#ri-sun-foggy-fill"></use>
           </svg>
         </button>
