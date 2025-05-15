@@ -21,7 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $falaise_cottxt = trim($_POST['falaise_cottxt'] ?? '');
   $falaise_voletcarto = trim($_POST['falaise_voletcarto'] ?? '');
   $falaise_voies = trim($_POST['falaise_voies'] ?? '');
-  $falaise_bloc = trim($_POST['falaise_bloc'] ?? '');
+  $falaise_bloc = trim($_POST['falaise_bloc'] ?? null);
+  $falaise_nbvoies = trim($_POST['falaise_nbvoies'] ?? null);
   $nom_prenom = trim($_POST['nom_prenom'] ?? '');
   $email = trim($_POST['email'] ?? '');
   $message = trim($_POST['message'] ?? '');
@@ -87,9 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     falaise_nom, falaise_zone, falaise_nomformate, falaise_public, falaise_latlng, falaise_exposhort1, falaise_exposhort2, 
     falaise_cotmin, falaise_cotmax, falaise_maa, falaise_mar, falaise_topo, falaise_expotxt, falaise_matxt, falaise_cottxt,
     falaise_voletcarto, falaise_voies, falaise_gvtxt, falaise_gvnb, falaise_rq, falaise_fermee, falaise_txt1, falaise_txt2,
-    falaise_leg1, falaise_txt3, falaise_txt4, falaise_leg2, falaise_leg3, falaise_contrib, falaise_bloc
+    falaise_leg1, falaise_txt3, falaise_txt4, falaise_leg2, falaise_leg3, falaise_contrib, falaise_bloc, falaise_nbvoies
     )
-    VALUES (COALESCE(?, NULL), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (COALESCE(?, NULL), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
     falaise_nom = VALUES(falaise_nom),
     falaise_zone = VALUES(falaise_zone),
@@ -119,8 +120,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     falaise_txt4 = VALUES(falaise_txt4),
     falaise_leg2 = VALUES(falaise_leg2),
     falaise_leg3 = VALUES(falaise_leg3),
-    falaise_contrib = VALUES(falaise_contrib)
-    falaise_bloc = VALUES(falaise_bloc)
+    falaise_contrib = VALUES(falaise_contrib),
+    falaise_bloc = VALUES(falaise_bloc),
+    falaise_nbvoies = VALUES(falaise_nbvoies)
     ");
 
   if (!$stmt) {
@@ -128,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   $stmt->bind_param(
-    "isisisssssiissssssssssssssssss",
+    "isisisssssiissssssssssssssssssii",
     $falaise_id,
     $falaise_nom,
     $falaise_zone,
@@ -159,7 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $champs['falaise_leg2'],
     $champs['falaise_leg3'],
     $falaise_contrib,
-    $falaise_bloc
+    $falaise_bloc,
+    $falaise_nbvoies
   );
   $res = $stmt->execute();
   // get falaise_id from last insert
