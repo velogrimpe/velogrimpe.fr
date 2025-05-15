@@ -217,7 +217,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($admin == 0) {
       $to = $config['contact_mail'];
       $subject = "Ajout d'une falaise par $nom_prenom: $falaise_nom";
-      $body = "La falaise de $falaise_nom a été ajoutée par $nom_prenom (mail : $email), avec le message additionnel suivant : $message.";
+      $body = "La falaise de $falaise_nom a été ajoutée par $nom_prenom (mail : $email).";
+      if ($message) {
+        $body .= "Message additionnel : $message\n";
+      }
+      $body .= "\n\nDétails de la falaise :\n";
+      $body .= "Nom : $falaise_nom\n";
+      $body .= "Nom formaté : $falaise_nomformate\n";
+      $body .= "Latitude/Longitude : $falaise_latlng\n";
+      $body .= "Exposition courte 1 : $falaise_exposhort1\n";
+      $body .= "Cotations min/max : $falaise_cotmin/$falaise_cotmax\n";
+      $body .= "Zone : $falaise_zone\n";
+      $body .= "Mise à jour de l'admin : " . ($falaise_maa ? 'Oui' : 'Non') . "\n";
+      $body .= "Mise à jour de la carte : " . ($falaise_mar ? 'Oui' : 'Non') . "\n";
+      $body .= "Public : " . ($falaise_public ? 'Oui' : 'Non') . "\n";
+      $body .= "Topo : $falaise_topo\n";
+      $body .= "Exposition texte : $falaise_expotxt\n";
+      $body .= "Mise à jour texte : $falaise_matxt\n";
+      $body .= "Cotation texte : $falaise_cottxt\n";
+      $body .= "Volet carto : $falaise_voletcarto\n";
+      $body .= "Voies : $falaise_voies\n";
+      $body .= "Exposition courte 2 : " . $champs['falaise_exposhort2'] . "\n";
+      $body .= "Texte de la grande voie : " . $champs['falaise_gvtxt'] . "\n";
+      $body .= "Nombre de voies : " . $champs['falaise_gvnb'] . "\n";
+      $body .= "Remarque : " . $champs['falaise_rq'] . "\n";
+      $body .= "Fermée : " . $champs['falaise_fermee'] . "\n";
+      $body .= "Texte 1 : " . $champs['falaise_txt1'] . "\n";
+      $body .= "Texte 2 : " . $champs['falaise_txt2'] . "\n";
+      $body .= "Légende 1 : " . $champs['falaise_leg1'] . "\n";
+      $body .= "Texte 3 : " . $champs['falaise_txt3'] . "\n";
+      $body .= "Texte 4 : " . $champs['falaise_txt4'] . "\n";
+      $body .= "Légende 2 : " . $champs['falaise_leg2'] . "\n";
+      $body .= "Légende 3 : " . $champs['falaise_leg3'] . "\n";
       $headers = "From: noreply@velogrimpe.fr\r\n";
 
       mail($to, $subject, $body, $headers);
