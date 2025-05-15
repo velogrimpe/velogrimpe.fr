@@ -396,7 +396,7 @@ if ($falaise_id) {
               <option value="20">environ 20 voies</option>
               <option value="35">20 à 50 voies</option>
               <option value="50">environ 50 voies</option>
-              <option value="75">entre 50 et 100</option>
+              <option value="75">entre 50 et 100 voies</option>
               <option value="100">environ 100 voies</option>
               <option value="150">entre 100 et 200 voies</option>
               <option value="200">environ 200 voies</option>
@@ -414,15 +414,12 @@ if ($falaise_id) {
       </div>
 
       <label class="form-control" for="falaise_voies">
-        <b>Voies - Texte descriptif :</b>
+        <b>Précisions sur les voies [secteurs - nb exact - hauteur max - ombre/abrité pluie - style de grimpe] :</b>
         <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voies" name="falaise_voies"
-          rows="2" placeholder="ex : beaucoup de 6 et 7, quelques 5." required></textarea>
+          rows="2" placeholder="ex : un secteur principal avec 54 voies et un secteur initiation avec 12 voies.
+          Hauteur max 30 mètres. Pied des voies à l'ombre, beaucoup de voies sur réglettes." required></textarea>
         <i class="text-slate-400 text-sm">
-          Texte pour décrire les voies : nombre de voies, hauteur maximale, dire ici s'il y a plusieurs secteurs
-          espacés ou non...<br>
-          Exemple : "Environ 150 voies, hauteur maximale 35 mètres. Un secteur "grande face", et un secteur
-          "initiation"
-          assez distants".</i>
+          Vous pouvez apporter des précisions sur les voies : présence de différents secteurs, nombre exact de voies, hauteur maximale, pied des voies, abrité de la pluie...</i>
       </label>
 
       <label class="form-control" for="falaise_cottxt">
