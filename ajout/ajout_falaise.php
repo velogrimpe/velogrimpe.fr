@@ -137,7 +137,7 @@ if ($falaise_id) {
       <span class="text-red-700">ce site ne remplace pas un topo</span>.<br>
       Vous pouvez consulter les fiches falaises déjà présentes sur le site pour
       avoir des modèles, comme par exemple celle de <a href="/falaise.php?falaise_id=39">Pont de Barret</a>. <br>
-      <i>Les champs obligatoires sont en noir, les champs optionnels en gris.</i>
+      <span class="text-red-700">Les champs obligatoires sont en noir, les champs optionnels en gris.</span>
     </div>
 
     <form method="post" action="ajout_falaise_db.php" enctype="multipart/form-data" class="flex flex-col gap-4"
@@ -214,7 +214,7 @@ if ($falaise_id) {
 
       <div class="flex flex-col gap-2">
         <label class="form-control" for="falaise_latlng">
-          <b>Coordonnées GPS ("latitude,longitude" - degrés décimaux) :</b>
+          <b>Coordonnées GPS (format : "latitude,longitude" (degrés décimaux)) :</b>
           <input class="input input-primary input-sm" type="text" id="falaise_latlng" name="falaise_latlng"
             placeholder="ex: 45.1234,6.2355" required>
         </label>
@@ -416,7 +416,7 @@ if ($falaise_id) {
       <label class="form-control" for="falaise_cottxt">
         <b class="text-gray-400 opacity-70">Précisions sur les cotations :</b>
         <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_cottxt" name="falaise_cottxt"
-          rows="2" placeholder="ex : Falaise intéressante pour les voies de 5a à 6b, quelques 4."></textarea>
+          rows="2" placeholder="ex : Falaise surtout interessante pour les voies dans le 6-7. On compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7."></textarea>
         <i class="text-slate-400 text-sm">
           Texte optionnel pour préciser les cotations (ex : "Falaise surtout interessante pour les voies dans le 6-7. On compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7").</i>
       </label>
@@ -607,13 +607,12 @@ if ($falaise_id) {
 
 
       <label class="form-control" for="falaise_voletcarto">
-        <b>Bref descriptif de la falaise :</b>
+        <b>Résumé de la fiche falaise :</b>
         <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voletcarto"
-          name="falaise_voletcarto" rows="3" placeholder="ex : falaise Sud avec des voies en dalle dans le 6-7."
+          name="falaise_voletcarto" rows="3" placeholder="ex : Falaise exposée Sud, avec 120 voies de 6a à 7c. Quelques grandes voies en 2 ou 3 longueurs."
           required maxlength="200"></textarea>
-        <i class="text-slate-400 text-sm">Texte court et synthétique sur la falaise, qui apparaitra dans le volet qui
-          s'ouvre quand on clique sur une
-          falaise de la carte.<br>
+        <i class="text-slate-400 text-sm">Résumé court et synthétique sur la falaise, qui apparaitra dans le volet qui
+          s'ouvre quand on clique sur une falaise de la carte.<br>
           Ex : "Falaise exposée Sud, avec 120 voies de 6a à 7c. Quelques grandes voies en 2 ou 3 longueurs."</i>
       </label>
 
