@@ -352,34 +352,9 @@ if ($falaise_id) {
         </select>
       </label>
 
-      <label class="form-control" for="falaise_voies">
-        <b>Voies - Texte descriptif :</b>
-        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voies" name="falaise_voies"
-          rows="2" placeholder="ex : beaucoup de 6 et 7, quelques 5." required></textarea>
-        <i class="text-slate-400 text-sm">
-          Texte pour décrire les voies : nombre de voies, hauteur maximale, dire ici s'il y a plusieurs secteurs
-          espacés ou non...<br>
-          Exemple : "Environ 150 voies, hauteur maximale 35 mètres. Un secteur "grande face", et un secteur
-          "initiation"
-          assez distants".</i>
-      </label>
-
-      <label class="form-control" for="falaise_cottxt">
-        <b>Cotations - Texte descriptif :</b>
-        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_cottxt" name="falaise_cottxt"
-          rows="2" placeholder="ex : Falaise intéressante pour les voies de 5a à 6b, quelques 4." required></textarea>
-        <i class="text-slate-400 text-sm">
-          Ecrivez un court texte décrivant les cotations (ex : "Falaise intéressante pour les voies de 5+ à 7-"). Vous
-          pouvez ajouter des détails (ex : "10 voies dans le 5, 20 dans le 6,...").<br>
-          Dans ce topo, on utilise la notation "6-" pour désigner les voies de 6a à 6b, et "6+" pour les voies de 6b+
-          à
-          6c+.
-        </i>
-      </label>
-
       <div>
         <div class="flex flex-row gap-4">
-          <label class="form-control w-1/2" for="falaise_cotmin">
+          <label class="form-control flex-1" for="falaise_cotmin">
             <b>Cotation minimum :</b>
             <select class="select select-primary select-sm" required name="falaise_cotmin" id="falaise_cotmin">
               <option value="" disabled selected></option>
@@ -396,7 +371,7 @@ if ($falaise_id) {
               <option value="9+">9+</option>
             </select>
           </label>
-          <label class="form-control w-1/2" for="falaise_cotmax">
+          <label class="form-control flex-1" for="falaise_cotmax">
             <b>Cotation maximum : </b>
             <select class="select select-primary select-sm" required name="falaise_cotmax" id="falaise_cotmax">
               <option value="" disabled selected></option>
@@ -413,13 +388,56 @@ if ($falaise_id) {
               <option value="9+">9+</option>
             </select>
           </label>
+          <label class="form-control flex-1" for="falaise_nbvoies">
+            <b>Nombre de voies : </b>
+            <select class="select select-primary select-sm" required name="falaise_nbvoies" id="falaise_nbvoies">
+              <option value="" disabled selected></option>
+              <option value="10">0 à 20 voies</option>
+              <option value="20">environ 20 voies</option>
+              <option value="35">20 à 50 voies</option>
+              <option value="50">environ 50 voies</option>
+              <option value="75">entre 50 et 100</option>
+              <option value="100">environ 100 voies</option>
+              <option value="150">entre 100 et 200 voies</option>
+              <option value="200">environ 200 voies</option>
+              <option value="350">entre 200 et 500 voies</option>
+              <option value="500">environ 500 voies</option>
+              <option value="1000">plus de 500 voies</option>
+            </select>
+          </label>
         </div>
         <i class="text-slate-400 text-sm">
-          Ces deux champs n'apparaitront pas sur la fiche falaise, mais sont utilisés pour les filtres.<br>
+          Ces trois champs sont utilisés pour les filtres.<br>
           Ne pas mettre "8-" comme cotation max s'il n'y a que des voies dans le 6, et une seule voie dans le 8a par
           exemple.
         </i>
       </div>
+
+      <label class="form-control" for="falaise_voies">
+        <b>Voies - Texte descriptif :</b>
+        <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voies" name="falaise_voies"
+          rows="2" placeholder="ex : beaucoup de 6 et 7, quelques 5." required></textarea>
+        <i class="text-slate-400 text-sm">
+          Texte pour décrire les voies : nombre de voies, hauteur maximale, dire ici s'il y a plusieurs secteurs
+          espacés ou non...<br>
+          Exemple : "Environ 150 voies, hauteur maximale 35 mètres. Un secteur "grande face", et un secteur
+          "initiation"
+          assez distants".</i>
+      </label>
+
+      <label class="form-control" for="falaise_cottxt">
+        <b class="text-gray-400 opacity-70">Précisions sur les cotations :</b>
+        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_cottxt" name="falaise_cottxt"
+          rows="2" placeholder="ex : Falaise intéressante pour les voies de 5a à 6b, quelques 4."></textarea>
+        <i class="text-slate-400 text-sm">
+          Ecrivez un court texte décrivant les cotations (ex : "Falaise intéressante pour les voies de 5+ à 7-"). Vous
+          pouvez ajouter des détails (ex : "10 voies dans le 5, 20 dans le 6,...").<br>
+          Dans ce topo, on utilise la notation "6-" pour désigner les voies de 6a à 6b, et "6+" pour les voies de 6b+
+          à
+          6c+.
+        </i>
+      </label>
+
 
       <label class="form-control" for="falaise_expotxt">
         <b>Exposition - Texte descriptif : </b>
@@ -769,6 +787,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_exposhort1").value = falaise.falaise_exposhort1;
         document.getElementById("falaise_exposhort2").value = falaise.falaise_exposhort2;
         document.getElementById("falaise_voies").value = falaise.falaise_voies;
+        document.getElementById("falaise_nbvoies").value = falaise.falaise_nbvoies;
         document.getElementById("falaise_topo").value = falaise.falaise_topo;
         document.getElementById("falaise_matxt").value = falaise.falaise_matxt;
         document.getElementById("falaise_maa").value = falaise.falaise_maa;

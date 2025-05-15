@@ -42,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     'falaise_topo' => $falaise_topo,
     'falaise_expotxt' => $falaise_expotxt,
     'falaise_matxt' => $falaise_matxt,
-    'falaise_cottxt' => $falaise_cottxt,
     'falaise_voletcarto' => $falaise_voletcarto,
     'falaise_voies' => $falaise_voies
   ];
@@ -231,6 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $body .= "\n\nDétails de la falaise :\n";
       $body .= "Nom : $falaise_nom\n";
       $body .= "Topo : $falaise_topo\n";
+      $body .= "Nb Voies : $falaise_nbvoies\n";
       $body .= "Voies : $falaise_voies\n";
       $body .= "Volet carto : $falaise_voletcarto\n";
       $body .= "Expositions : $falaise_exposhort1\n";
