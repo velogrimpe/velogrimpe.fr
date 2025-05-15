@@ -407,8 +407,7 @@ if ($falaise_id) {
           </label>
         </div>
         <i class="text-slate-400 text-sm">
-          Ces trois champs sont utilisés pour les filtres.<br>
-          Ne pas mettre "8-" comme cotation max s'il n'y a que des voies dans le 6, et une seule voie dans le 8a par
+          Rq : ne pas mettre "8-" comme cotation max s'il n'y a que des voies dans le 6, et une seule voie dans le 8a par
           exemple.
         </i>
       </div>
@@ -419,7 +418,13 @@ if ($falaise_id) {
           rows="2" placeholder="ex : un secteur principal avec 54 voies et un secteur initiation avec 12 voies.
           Hauteur max 30 mètres. Pied des voies à l'ombre, beaucoup de voies sur réglettes." required></textarea>
         <i class="text-slate-400 text-sm">
-          Vous pouvez apporter des précisions sur les voies : présence de différents secteurs, nombre exact de voies, hauteur maximale, pied des voies, abrité de la pluie...</i>
+          Exemple d'infos que vous poivez rentrer ici : <br>
+          <ul><li>La présence ou non de différents secteurs espacés.</li>
+            <li>Nombre exact de voies.</li>
+            <li>Hauteur max de la falaise.</li>
+            <li>Pied des voies (confortable, à l'ombre...).</li>
+            <li>Style des voies (dévers, réglettes...)</li>
+            <li>...</li></ul>Vous pouvez apporter des précisions sur les voies : présence de différents secteurs, nombre exact de voies, hauteur maximale, pied des voies, abrité de la pluie...</i>
       </label>
 
       <label class="form-control" for="falaise_cottxt">
