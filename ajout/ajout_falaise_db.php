@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $falaise_cottxt = trim($_POST['falaise_cottxt'] ?? '');
   $falaise_voletcarto = trim($_POST['falaise_voletcarto'] ?? '');
   $falaise_voies = trim($_POST['falaise_voies'] ?? '');
+  $falaise_bloc = trim($_POST['falaise_bloc'] ?? null);
   $nom_prenom = trim($_POST['nom_prenom'] ?? '');
   $email = trim($_POST['email'] ?? '');
   $message = trim($_POST['message'] ?? '');
@@ -86,8 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     falaise_nom, falaise_zone, falaise_nomformate, falaise_public, falaise_latlng, falaise_exposhort1, falaise_exposhort2, 
     falaise_cotmin, falaise_cotmax, falaise_maa, falaise_mar, falaise_topo, falaise_expotxt, falaise_matxt, falaise_cottxt,
     falaise_voletcarto, falaise_voies, falaise_gvtxt, falaise_gvnb, falaise_rq, falaise_fermee, falaise_txt1, falaise_txt2,
-    falaise_leg1, falaise_txt3, falaise_txt4, falaise_leg2, falaise_leg3, falaise_contrib)
-    VALUES (COALESCE(?, NULL), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    falaise_leg1, falaise_txt3, falaise_txt4, falaise_leg2, falaise_leg3, falaise_contrib, falaise_bloc
+    )
+    VALUES (COALESCE(?, NULL), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
     falaise_nom = VALUES(falaise_nom),
     falaise_zone = VALUES(falaise_zone),
@@ -118,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     falaise_leg2 = VALUES(falaise_leg2),
     falaise_leg3 = VALUES(falaise_leg3),
     falaise_contrib = VALUES(falaise_contrib)
+    falaise_bloc = VALUES(falaise_bloc)
     ");
 
   if (!$stmt) {
@@ -155,7 +158,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $champs['falaise_txt4'],
     $champs['falaise_leg2'],
     $champs['falaise_leg3'],
-    $falaise_contrib
+    $falaise_contrib,
+    $falaise_bloc
   );
   $res = $stmt->execute();
   // get falaise_id from last insert
@@ -223,31 +227,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
       $body .= "\n\nDétails de la falaise :\n";
       $body .= "Nom : $falaise_nom\n";
-      $body .= "Latitude/Longitude : $falaise_latlng\n";
-      $body .= "Exposition courte 1 : $falaise_exposhort1\n";
-      $body .= "Cotations min/max : $falaise_cotmin/$falaise_cotmax\n";
-      $body .= "Zone : $falaise_zone\n";
-      $body .= "Mise à jour de l'admin : " . ($falaise_maa ? 'Oui' : 'Non') . "\n";
-      $body .= "Mise à jour de la carte : " . ($falaise_mar ? 'Oui' : 'Non') . "\n";
-      $body .= "Public : " . ($falaise_public ? 'Oui' : 'Non') . "\n";
       $body .= "Topo : $falaise_topo\n";
-      $body .= "Exposition texte : $falaise_expotxt\n";
-      $body .= "Mise à jour texte : $falaise_matxt\n";
-      $body .= "Cotation texte : $falaise_cottxt\n";
-      $body .= "Volet carto : $falaise_voletcarto\n";
       $body .= "Voies : $falaise_voies\n";
-      $body .= "Exposition courte 2 : " . $champs['falaise_exposhort2'] . "\n";
-      $body .= "Texte de la grande voie : " . $champs['falaise_gvtxt'] . "\n";
-      $body .= "Nombre de voies : " . $champs['falaise_gvnb'] . "\n";
+      $body .= "Volet carto : $falaise_voletcarto\n";
+      $body .= "Expositions : $falaise_exposhort1\n";
+      $body .= "Exposition : $falaise_expotxt\n";
+      $body .= "Cotations min/max : $falaise_cotmin/$falaise_cotmax\n";
+      $body .= "Cotations : $falaise_cottxt\n";
+      $body .= "Approche A/R : $falaise_maa/$falaise_mar\n";
+      $body .= "Approche : $falaise_matxt\n";
+      $body .= "Grandes voies : " . $champs['falaise_gvtxt'] . "\n";
+      $body .= "Nombre de GV : " . $champs['falaise_gvnb'] . "\n";
+      $body .= "Bloc: " . $falaise_bloc . "\n";
       $body .= "Remarque : " . $champs['falaise_rq'] . "\n";
-      $body .= "Fermée : " . $champs['falaise_fermee'] . "\n";
-      $body .= "Texte 1 : " . $champs['falaise_txt1'] . "\n";
-      $body .= "Texte 2 : " . $champs['falaise_txt2'] . "\n";
-      $body .= "Légende 1 : " . $champs['falaise_leg1'] . "\n";
-      $body .= "Texte 3 : " . $champs['falaise_txt3'] . "\n";
-      $body .= "Texte 4 : " . $champs['falaise_txt4'] . "\n";
-      $body .= "Légende 2 : " . $champs['falaise_leg2'] . "\n";
-      $body .= "Légende 3 : " . $champs['falaise_leg3'] . "\n";
       $headers = "From: noreply@velogrimpe.fr\r\n";
 
       mail($to, $subject, $body, $headers);
