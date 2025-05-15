@@ -58,6 +58,8 @@ if (!$dataF) {
 $falaise_nom = $dataF['falaise_nom'];
 $falaise_nomformate = $dataF['falaise_nomformate'];
 $falaise_cottxt = $dataF['falaise_cottxt'];
+$falaise_cotmin = $dataF['falaise_cotmin'];
+$falaise_cotmax = $dataF['falaise_cotmax'];
 $falaise_voies = $dataF['falaise_voies'];
 $falaise_expotxt = $dataF['falaise_expotxt'];
 $falaise_exposhort1 = $dataF['falaise_exposhort1'];
@@ -82,6 +84,20 @@ $falaise_contrib_name = preg_replace("(^'|'$)", "", explode(',', $dataF['falaise
 
 $ville_id_get = (int) ($_GET['ville_id'] ?? 0);
 
+$nbvoies_corresp = [
+  10 => "0-20 voies",
+  20 => "~20 voies",
+  35 => "20-50 voies",
+  50 => "~50 voies",
+  75 => "50-100 voies",
+  100 => "~100 voies",
+  150 => "100-200 voies",
+  200 => "~200 voies",
+  350 => "200-500 voies",
+  500 => "~500 voies",
+  1000 => ">= 500 voies",
+];
+$falaise_nbvoies = $nbvoies_corresp[$dataF['falaise_nbvoies']] ?? "inconnue";
 
 $stmtV = $mysqli->prepare("
 SELECT DISTINCT v.ville_id, v.ville_nom
@@ -173,55 +189,81 @@ $stmtV->close();
 
     <div class="flex justify-between items-center w-full">
       <a class="text-primary w-full font-bold" href="/">← Retour à la carte</a>
-      <div class="hidden">
-        <div class="flex flex-row items-center gap-2">
-          <div class="dropdown dropdown-end">
-            <div tabindex="0" role="button"
-              class="btn btn-xs md:btn-sm btn-circle btn-outline btn-primary focus:pointer-events-none"
-              title="J'y ai été" id="veloFilterBtn">
-              <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
-                <use xlink:href="/symbols/icons.svg#ri-chat-4-line"></use>
-              </svg>
-            </div>
-            <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
-              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/comment/commentaire_falaise.php?falaise_id=<?= $falaise_id ?>">
-                Raconter ma sortie
-              </a>
-              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/comment/commentaire_acces.php?falaise_id=<?= $falaise_id ?>">
-                Commenter l'accès 🚲 / 🚞
-              </a>
-            </div>
+      <div class="flex flex-row items-center gap-2">
+        <div class="dropdown dropdown-end hidden">
+          <div tabindex="0" role="button"
+            class="btn btn-xs md:btn-sm btn-circle btn-outline btn-primary focus:pointer-events-none" title="J'y ai été"
+            id="veloFilterBtn">
+            <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
+              <use xlink:href="/symbols/icons.svg#ri-chat-4-line"></use>
+            </svg>
           </div>
-          <div class="dropdown dropdown-end">
-            <div tabindex="0" role="button"
-              class="btn btn-xs md:btn-sm btn-circle btn-outline focus:pointer-events-none"
-              title="Proposer des modifications" id="veloFilterBtn">
-              <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
-                <use xlink:href="/symbols/icons.svg#ri-pencil-line"></use>
-              </svg>
-            </div>
-            <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
-              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/edition/commentaire_falaise.php?falaise_id=<?= $falaise_id ?>">
-                Modifier la fiche falaise
-              </a>
-              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>">
-                Modifier un accès vélo
-              </a>
-              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>">
-                Ajouter un accès vélo
-              </a>
-              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout/ajout_train.php?falaise_id=<?= $falaise_id ?>">
-                Ajouter un accès train
-              </a>
-            </div>
+          <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
+            <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
+              href="/comment/commentaire_falaise.php?falaise_id=<?= $falaise_id ?>">
+              Raconter ma sortie
+            </a>
+            <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
+              href="/comment/commentaire_acces.php?falaise_id=<?= $falaise_id ?>">
+              Commenter l'accès 🚲 / 🚞
+            </a>
           </div>
         </div>
+        <div class="dropdown dropdown-end hidden">
+          <div tabindex="0" role="button" class="btn btn-xs md:btn-sm btn-circle btn-outline focus:pointer-events-none"
+            title="Proposer des modifications" id="veloFilterBtn">
+            <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
+              <use xlink:href="/symbols/icons.svg#ri-pencil-line"></use>
+            </svg>
+          </div>
+          <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
+            <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
+              href="/edition/commentaire_falaise.php?falaise_id=<?= $falaise_id ?>">
+              Modifier la fiche falaise
+            </a>
+            <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
+              href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>">
+              Modifier un accès vélo
+            </a>
+            <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
+              href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>">
+              Ajouter un accès vélo
+            </a>
+            <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
+              href="/ajout/ajout_train.php?falaise_id=<?= $falaise_id ?>">
+              Ajouter un accès train
+            </a>
+          </div>
+        </div>
+        <button class="drawer-button btn btn-primary btn-sm md:btn-sm btn-circle btn-outline"
+          onclick="meteoModal.showModal()">
+          <svg class="w-4 h-4 fill-current">
+            <use xlink:href="/symbols/icons.svg#ri-sun-foggy-fill"></use>
+          </svg>
+        </button>
+        <dialog id="meteoModal" class="modal modal-bottom sm:modal-middle">
+          <div class="modal-box w-fit max-w-xl">
+            <form method="dialog">
+              <button tabindex="-1" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <div class="p-4 w-[240px] font-bold mx-auto">
+              <span class="text-lg font-bold">
+                Météo par <a class="text-primary font-bold"
+                  href="https://www.meteoblue.com/fr/meteo/semaine/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?utm_source=daily_widget&utm_medium=linkus&utm_content=daily&utm_campaign=Weather%2BWidget"
+                  target="_blank" rel="noopener">meteoblue
+                </a>
+              </span>
+              <iframe
+                src="https://www.meteoblue.com/fr/meteo/widget/daily/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?geoloc=fixed&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&precipunit=MILLIMETER&coloured=coloured&pictoicon=1&maxtemperature=1&mintemperature=1&windspeed=1&windgust=0&winddirection=1&uv=0&humidity=0&precipitation=1&precipitationprobability=1&spot=1&pressure=0&layout=light"
+                frameborder="0" scrolling="NO" allowtransparency="true"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+                style="width: 216px; height: 350px"></iframe>
+            </div>
+          </div>
+          <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
       </div>
     </div>
 
@@ -237,84 +279,100 @@ $stmtV->close();
       </div>
     <?php endif; ?>
 
-    <h1 class="text-4xl font-bold mb-4 text-center leading-none">
+    <h1 class="text-4xl font-bold mb-10 text-center leading-none">
       Falaise : <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?>
       <?php if ($ville_id_get): ?>
         <br><span class="text-base font-normal">au départ de
           <?= htmlspecialchars($selected_ville_nom) ?></span>
       <?php endif; ?>
     </h1>
+
     <div class="flex flex-col items-center gap-4 w-full md:flex-row md:items-start">
 
       <!-- TABLEAU STATIQUE DESCRIPTION FALAISE -->
-      <div class="vg-a-primary flex flex-row gap-1 md:gap-4 w-full items-center md:my-auto">
-        <div id="rose-des-vents" class="hidden sm:block"></div>
-        <div class='w-full grid grid-cols-[auto_4fr] gap-2 md:gap-x-4'>
-          <div class="font-bold ">Voies</div>
-          <div class=""><?= nl2br($falaise_voies) ?></div>
-          <div class="font-bold ">Cotations</div>
-          <div class=""><?= nl2br($falaise_cottxt) ?></div>
-          <div class="font-bold self-stretch flex items-center">Exposition</div>
-          <div class=" flex flex-row gap-2 items-center">
-            <div id="rose-mini" class="sm:hidden"></div><?= nl2br($falaise_expotxt) ?>
+      <div class="vg-a-primary flex flex-col gap-4 md:gap-10 w-full items-center md:my-auto max-w-[600px] mx-auto">
+        <div class="flex flex-row gap-2 items-start justify-around w-full">
+          <div class="flex flex-col items-center justify-start gap-2">
+            <img src="/images/count.png" alt="Logo Nb voies" class="h-12 w-12 mx-auto" />
+            <div class="font-bold text-center text-lg"><?= $falaise_nbvoies ?></div>
           </div>
-          <div class="font-bold  ">Topo(s)</div>
-          <div class="">
-            <div><?= nl2br($falaise_topo) ?></div>
-            <?php if (count($liensOblyk) > 1): ?>
-              <div class="dropdown w-fit">
-                <a tabindex="0" role="button"
-                  class="font-normal text-nowrap focus:pointer-events-none flex items-center gap-1"
-                  id="approcheFilterBtn">
-                  Fiches Oblyk
-                  <span class="badge badge-sm badge-primary"><?= count($liensOblyk) ?></span>
-                </a>
-                <div
-                  class="dropdown-content menu bg-base-200 rounded-box z-10 m-1 p-2 shadow-lg w-60 max-h-[250px] flex-nowrap overflow-auto"
-                  tabindex="1">
-                  <?php foreach ($liensOblyk as $lien): ?>
-                    <a target="_blank" href="<?= htmlspecialchars($lien['url']) ?>"
-                      class="text-primary font-bold hover:underline cursor-pointer">
-                      <span><?= htmlspecialchars($lien['name']) ?></span>&nbsp;<svg class="w-3 h-3 fill-current inline">
-                        <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
-                      </svg>
-                    </a>
-                  <?php endforeach; ?>
-                </div>
-              </div>
-            <?php elseif (count($liensOblyk) == 1): ?>
-              <a target="_blank" href="<?= htmlspecialchars($liensOblyk[0]['url']) ?>"
-                class="text-primary font-bold hover:underline cursor-pointer">
-                Fiche Oblyk
-              </a>
-            <?php endif ?>
-          </div>
-          <div class="font-bold  ">Approche</div>
-          <div class=""><?= nl2br($falaise_matxt) ?></div>
-          <?php if (!empty($falaise_gvtxt)): ?>
-            <div class="font-bold  ">Grandes voies</div>
-            <div class="">
-              <?= nl2br($falaise_gvtxt) ?>
+          <div class="flex flex-col items-center justify-start gap-2">
+            <img src="/images/difficulty.png" alt="Logo difficulté" class="h-12 w-12 mx-auto" />
+            <div class="font-bold text-center text-lg">
+              <?= $falaise_cotmin ?> à <?= $falaise_cotmax ?>
             </div>
-          <?php endif; ?>
-          <?php if (!empty($falaise_rq)): ?>
-            <div class="font-bold ">Remarques</div>
-            <div class=""><?= nl2br($falaise_rq) ?></div>
-          <?php endif; ?>
+          </div>
+        </div>
+
+        <div class="flex flex-row gap-2 items-center justify-center mx-auto">
+          <div class='w-full grid grid-cols-[auto_auto] gap-4 md:gap-y-6 items-center'>
+            <img src="/images/climbing.png" alt="Voies" class="h-12 w-12 mx-auto" />
+            <!-- <div class="font-bold ">Voies</div> -->
+            <div class="">
+              <?= nl2br($falaise_voies) ?>
+              <?php if (!empty($falaise_cottxt)): ?>
+                <div><span class="font-bold">Cotations</span>: <?= nl2br($falaise_cottxt) ?></div>
+              <?php endif ?>
+            </div>
+            <img src="/images/topo.png" alt="Topo" class="h-12 w-12 mx-auto" />
+            <!-- <div class="font-bold  ">Topo(s)</div> -->
+            <div class="">
+              <div><?= nl2br($falaise_topo) ?></div>
+              <?php if (count($liensOblyk) > 1): ?>
+                <div class="dropdown w-fit">
+                  <a tabindex="0" role="button"
+                    class="font-normal text-nowrap focus:pointer-events-none flex items-center gap-1"
+                    id="approcheFilterBtn">
+                    Fiches Oblyk
+                    <span class="badge badge-sm badge-primary"><?= count($liensOblyk) ?></span>
+                  </a>
+                  <div
+                    class="dropdown-content menu bg-base-200 rounded-box z-10 m-1 p-2 shadow-lg w-60 max-h-[250px] flex-nowrap overflow-auto"
+                    tabindex="1">
+                    <?php foreach ($liensOblyk as $lien): ?>
+                      <a target="_blank" href="<?= htmlspecialchars($lien['url']) ?>"
+                        class="text-primary font-bold hover:underline cursor-pointer">
+                        <span><?= htmlspecialchars($lien['name']) ?></span>&nbsp;<svg class="w-3 h-3 fill-current inline">
+                          <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
+                        </svg>
+                      </a>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
+              <?php elseif (count($liensOblyk) == 1): ?>
+                <a target="_blank" href="<?= htmlspecialchars($liensOblyk[0]['url']) ?>"
+                  class="text-primary font-bold hover:underline cursor-pointer">
+                  Fiche Oblyk
+                </a>
+              <?php endif ?>
+            </div>
+            <img src="/images/hiking.png" alt="Approche" class="h-12 w-12 mx-auto" />
+            <!-- <div class="font-bold  ">Approche</div> -->
+            <div class=""><?= nl2br($falaise_matxt) ?></div>
+            <?php if (!empty($falaise_gvtxt)): ?>
+              <img src="/images/mountain.png" alt="Grande voies" class="h-12 w-12 mx-auto" />
+              <!-- <div class="font-bold  ">Grandes voies</div> -->
+              <div class="">
+                <?= nl2br($falaise_gvtxt) ?>
+              </div>
+            <?php endif; ?>
+            <?php if (!empty($falaise_rq)): ?>
+              <img src="/images/pencil.png" alt="Remarques" class="h-12 w-12 mx-auto" />
+              <!-- <div class="font-bold ">Remarques</div> -->
+              <div class=""><?= nl2br($falaise_rq) ?></div>
+            <?php endif; ?>
+
+            <!-- <img src="/images/expo.png" alt="Exposition" class="h-12 w-12 mx-auto" /> -->
+            <div id="rose-des-vents"></div>
+            <!-- <div id="rose-mini" class="sm:hidden"></div> -->
+            <!-- <div class="font-bold self-stretch flex items-center">Exposition</div> -->
+            <div class=" flex flex-row gap-2 items-center">
+              <?= nl2br($falaise_expotxt) ?>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="rounded-lg shadow-xl bg-white p-4 w-[240px] font-bold">
-        Météo par <a class="text-primary font-bold"
-          href="https://www.meteoblue.com/fr/meteo/semaine/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?utm_source=daily_widget&utm_medium=linkus&utm_content=daily&utm_campaign=Weather%2BWidget"
-          target="_blank" rel="noopener">meteoblue
-        </a>
-        <iframe
-          src="https://www.meteoblue.com/fr/meteo/widget/daily/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?geoloc=fixed&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&precipunit=MILLIMETER&coloured=coloured&pictoicon=1&maxtemperature=1&mintemperature=1&windspeed=1&windgust=0&winddirection=1&uv=0&humidity=0&precipitation=1&precipitationprobability=1&spot=1&pressure=0&layout=light"
-          frameborder="0" scrolling="NO" allowtransparency="true"
-          sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-          style="width: 216px; height: 350px"></iframe>
-      </div>
     </div>
 
     <!-- Texte optionnel 2 (juste après le tableau descriptif) -->
@@ -1184,8 +1242,8 @@ $stmtV->close();
 
   <script>
     window.addEventListener("DOMContentLoaded", function () {
-      roseFromExpo("rose-des-vents", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 150, 150);
-      roseFromExpo("rose-mini", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 36, 36);
+      roseFromExpo("rose-des-vents", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 60, 60);
+      // roseFromExpo("rose-mini", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 36, 36);
     });
   </script>
 
