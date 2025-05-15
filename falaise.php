@@ -124,7 +124,7 @@ $stmtV->close();
 
 <head>
   <meta charset="UTF-8">
-  <title>FAlaise : <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ
+  <title>Falaise : <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ
       de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Carte -->
