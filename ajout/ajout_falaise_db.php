@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $falaise_cottxt = trim($_POST['falaise_cottxt'] ?? '');
   $falaise_voletcarto = trim($_POST['falaise_voletcarto'] ?? '');
   $falaise_voies = trim($_POST['falaise_voies'] ?? '');
-  $falaise_bloc = trim($_POST['falaise_bloc'] ?? null);
+  $falaise_bloc = trim($_POST['falaise_bloc'] ?? '');
   $nom_prenom = trim($_POST['nom_prenom'] ?? '');
   $email = trim($_POST['email'] ?? '');
   $message = trim($_POST['message'] ?? '');
