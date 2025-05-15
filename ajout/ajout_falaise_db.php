@@ -223,7 +223,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
       $body .= "\n\nDétails de la falaise :\n";
       $body .= "Nom : $falaise_nom\n";
-      $body .= "Nom formaté : $falaise_nomformate\n";
       $body .= "Latitude/Longitude : $falaise_latlng\n";
       $body .= "Exposition courte 1 : $falaise_exposhort1\n";
       $body .= "Cotations min/max : $falaise_cotmin/$falaise_cotmax\n";
