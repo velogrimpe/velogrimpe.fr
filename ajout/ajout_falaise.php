@@ -422,18 +422,18 @@ if ($falaise_id) {
       </label>
 
       <label class="form-control" for="falaise_voies">
-        <b>Précisions sur les voies :</b>
+        <b>Précisions sur la falaise et les voies :</b>
         <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voies" name="falaise_voies"
           rows="2" placeholder="ex : un secteur principal avec 54 voies et un secteur initiation avec 12 voies.
           Hauteur max 30 mètres. Pied des voies à l'ombre, beaucoup de voies sur réglettes." required></textarea>
         <i class="text-slate-400 text-sm">
           Exemple d'infos que vous pouvez rentrer ici : <br>
-          <ul><li>La présence ou non de différents secteurs espacés.</li>
-            <li>Nombre exact de voies.</li>
-            <li>Hauteur max de la falaise.</li>
-            <li>Pied des voies (confortable, à l'ombre...).</li>
-            <li>Style des voies (dévers, réglettes...)</li>
-            <li>...</li></ul></i>
+          - La présence ou non de différents secteurs espacés.<br>
+          - Nombre exact de voies.<br>
+          - Hauteur max de la falaise.<br>
+          - Pied des voies (confortable, à l'ombre...).<br>
+          - Style des voies (dévers, réglettes...).<br>
+          - ...</i>
       </label>
 
       
