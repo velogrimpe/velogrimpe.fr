@@ -185,10 +185,10 @@ $stmtV->close();
 
 <body>
   <?php include "./components/header.html"; ?>
-  <div class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4">
+  <div class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 mb-2 rounded-xl">
 
     <div class="flex justify-between items-center w-full">
-      <a class="text-primary w-full font-bold" href="/">← Retour à la carte</a>
+      <a class="text-primary font-bold" href="/">← Retour à la carte</a>
       <div class="flex flex-row items-center gap-2">
         <div class="dropdown dropdown-end hidden">
           <div tabindex="0" role="button"
@@ -275,8 +275,8 @@ $stmtV->close();
       </div>
     <?php endif; ?>
 
-    <h1 class="text-4xl font-bold mb-10 text-center leading-none">
-      Falaise : <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?>
+    <h1 class="text-[48px] font-bold mb-10 text-center leading-none text-primary">
+      <?= htmlspecialchars($falaise_nom) ?>
       <?php if ($ville_id_get): ?>
         <br><span class="text-base font-normal">au départ de
           <?= htmlspecialchars($selected_ville_nom) ?></span>
@@ -572,7 +572,7 @@ $stmtV->close();
           <tr>
             <td class='justify-center border-t border-r border-b border-1 border-base-300'>
               <div class='flex flex-col md:flex-row gap-4 items-center'>
-                <img src='/images/logo_train.png' alt='Logo Train' class='h-10 w-auto'>
+                <img src='/images/train.png' alt='Logo Train' class='h-10 w-auto'>
                 <div>
                   <?php if ($selected_ville_nom): ?>
                     <b><?= htmlspecialchars($selected_ville_nom) . " → " . htmlspecialchars($gare['gare_nom']) ?></b>
@@ -644,9 +644,9 @@ $stmtV->close();
                 <div class='flex flex-col md:flex-row gap-4 items-center'>
 
                   <?php if (isset($velo['velo_apieduniquement']) && $velo['velo_apieduniquement'] == 1): ?>
-                    <img src='https://www.velogrimpe.fr/images/logo_apied.png' alt='Logo À Pied' class='h-auto w-10'>
+                    <img src='https://www.velogrimpe.fr/images/hiking.png' alt='Logo À Pied' class='h-auto w-10'>
                   <?php else: ?>
-                    <img src='https://www.velogrimpe.fr/images/logo_velo.png' alt='Logo Vélo' class='h-auto w-10'>
+                    <img src='https://www.velogrimpe.fr/images/velo.png' alt='Logo Vélo' class='h-auto w-10'>
                   <?php endif ?>
 
                   <div class='flex flex-col items-start'>
