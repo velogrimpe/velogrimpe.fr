@@ -238,9 +238,9 @@ $stmtV->close();
           </svg>
         </button>
         <dialog id="meteoModal" class="modal modal-bottom sm:modal-middle">
-          <div class="modal-box w-fit max-w-xl">
+          <div class="modal-box md:w-fit max-w-screen-xl">
             <form method="dialog">
-              <button tabindex="-1" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+              <button tabindex="-1" class="btn btn-circle btn-ghost absolute right-2 top-2">✕</button>
             </form>
             <div class="p-4 w-[240px] font-bold mx-auto">
               <span class="text-lg font-bold">
