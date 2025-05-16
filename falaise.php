@@ -359,7 +359,7 @@ $stmtV->close();
               </div>
             <?php endif; ?>
             <?php if (!empty($falaise_rq)): ?>
-              <img src="/images/pencil_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
+              <img src="/images/note_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
               <!-- <div class="font-bold ">Remarques</div> -->
               <div class=""><?= nl2br($falaise_rq) ?></div>
             <?php endif; ?>
