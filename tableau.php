@@ -34,6 +34,20 @@ function calculate_time($distance_km, $elevation_m, $velo_apieduniquement)
   return $time_in_minutes;
 }
 
+$nbvoies_corresp = [
+  10 => "0-20 voies",
+  20 => "~20 voies",
+  35 => "20-50 voies",
+  50 => "~50 voies",
+  75 => "50-100 voies",
+  100 => "~100 voies",
+  150 => "100-200 voies",
+  200 => "~200 voies",
+  350 => "200-500 voies",
+  500 => "~500 voies",
+  1000 => ">= 500 voies",
+];
+
 require_once "./database/velogrimpe.php";
 
 $ville = $mysqli->query("SELECT ville_nom FROM villes WHERE ville_id = $ville_id")->fetch_assoc();
@@ -130,7 +144,6 @@ $stmt->close();
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
-  <link rel="stylesheet" href="/tableau.css" />
   <link rel="manifest" href="/site.webmanifest" />
   <script src="/js/rose-des-vents.js"></script>
   <!-- Pageviews -->
@@ -471,75 +484,75 @@ $stmt->close();
     <!-- VERSION MOBILE -->
     <div class="flex flex-col gap-4 md:hidden">
       <?php foreach ($falaises as $falaise_id => $acces): ?>
-          <?php $common = $acces[0]; ?>
-          <a href="<?php echo '/falaise.php?falaise_id=' . $common['falaise_id'] . "&ville_id=" . $ville_id ?>"
-            class="text-base-content hover:no-underline font-normal" id="falaise-<?= $common['falaise_id'] ?>-mobile">
-            <div class="flex flex-col rounded-lg shadow-xl bg-base-100 p-2 text-sm
+        <?php $common = $acces[0]; ?>
+        <a href="<?php echo '/falaise.php?falaise_id=' . $common['falaise_id'] . "&ville_id=" . $ville_id ?>"
+          class="text-base-content hover:no-underline font-normal" id="falaise-<?= $common['falaise_id'] ?>-mobile">
+          <div class="flex flex-col rounded-lg shadow-xl bg-base-100 p-2 text-sm
                       ">
-              <div class="flex flex-row justify-between gap-1">
-                <h3 class="text-xl font-bold text-primary hover:underline">
-                  <?php echo $common["falaise_nom"] ?>
-                  <?php if (!empty($common["falaise_fermee"])): ?>
-                      <span class="text-error font-normal">Falaise Interdite</span>
-                  <?php endif; ?>
-                </h3>
-                <div class="font-bold text-xl"><?php echo format_time($common["temps_total"]) ?></div>
-              </div>
-              <div class="w-full flex flex-row items-center justify-between gap-2">
-                <div class="flex flex-col items-start justify-start flex-grow">
-                  <div>
-                    <b>Zone</b> : <?php echo $common['zone_nom'] ?>
-                  </div>
-                  <div>
-                    <b title="Cotations (6-: 6a à 6b, 6+: 6b+ à 6c+ etc.)">Cotations</b> : <span>de
-                      <?php echo $common["falaise_cotmin"] ?> à
-                      <?php echo $common["falaise_cotmax"] ?>
-                    </span>
-                  </div>
-                  <?php if ($common["falaise_gvnb"] > 0): ?>
-                      <div class="text-accent"><?php echo $common["falaise_gvnb"] ?> <span title="Grandes Voies"></span></div>
-                  <?php endif; ?>
-                  <div>
-                    <b title="Marche d'approche">Marche d'approche</b> :
-                    <?php if ($common["falaise_maa"] > 0): ?>
-                        <span>
-                          <?php echo format_time($common["falaise_maa"]) ?>
-                        </span>
-                    <?php else: ?>
-                        <span>Aucune</span>
-                    <?php endif; ?>
-                  </div>
-
-
-                </div>
-                <div id="<?php echo 'rose-mobile-' . $common['falaise_id'] ?>" class="w-[72px]"></div>
-              </div>
-              <div class="w-full">
-                <!-- <hr class="w-4/5 border-base-300 border-t-[1px] mx-auto" /> -->
-                <div class="border-base-300"><b>Accès depuis <?php echo $common["ville_nom"] ?> :</b></div>
-                <ul class="list-disc list-inside">
-                  <?php foreach ($acces as $row): ?>
-                      <li>
-                        <?php if ($row["train_temps"] > 0): ?>
-                            Train pour <?php echo $row["train_arrivee"] ?>
-                            (<?php echo format_time($row["train_temps"]) ?>,
-                            <span title='D=Direct / C=Correspondances'>
-                              <?php echo ($row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C")
-                                . ($row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C")
-                                ?></span>)
-                            +
-                        <?php endif; ?>
-                        <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement'])) ?>
-                        <?php echo $row["velo_apieduniquement"] == 1 ? "À pied" : "à vélo" ?>
-                        <?php if (($row["variante_a_pied"] ?? 0) == 1): ?>
-                            <br /><span class='text-primary'>Aussi accessible à pied</span>
-                        <?php endif; ?>
-                      </li>
-                  <?php endforeach; ?>
-                </ul>
-              </div>
+            <div class="flex flex-row justify-between gap-1">
+              <h3 class="text-xl font-bold text-primary hover:underline">
+                <?php echo $common["falaise_nom"] ?>
+                <?php if (!empty($common["falaise_fermee"])): ?>
+                  <span class="text-error font-normal">Falaise Interdite</span>
+                <?php endif; ?>
+              </h3>
+              <div class="font-bold text-xl"><?php echo format_time($common["temps_total"]) ?></div>
             </div>
-          </a>
+            <div class="w-full flex flex-row items-center justify-between gap-2">
+              <div class="flex flex-col items-start justify-start flex-grow">
+                <div>
+                  <b>Zone</b> : <?php echo $common['zone_nom'] ?>
+                </div>
+                <div>
+                  <b title="Cotations (6-: 6a à 6b, 6+: 6b+ à 6c+ etc.)">Cotations</b> : <span>de
+                    <?php echo $common["falaise_cotmin"] ?> à
+                    <?php echo $common["falaise_cotmax"] ?>
+                  </span>
+                </div>
+                <?php if ($common["falaise_gvnb"] > 0): ?>
+                  <div class="text-accent"><?php echo $common["falaise_gvnb"] ?> <span title="Grandes Voies"></span></div>
+                <?php endif; ?>
+                <div>
+                  <b title="Marche d'approche">Marche d'approche</b> :
+                  <?php if ($common["falaise_maa"] > 0): ?>
+                    <span>
+                      <?php echo format_time($common["falaise_maa"]) ?>
+                    </span>
+                  <?php else: ?>
+                    <span>Aucune</span>
+                  <?php endif; ?>
+                </div>
+
+
+              </div>
+              <div id="<?php echo 'rose-mobile-' . $common['falaise_id'] ?>" class="w-[72px]"></div>
+            </div>
+            <div class="w-full">
+              <!-- <hr class="w-4/5 border-base-300 border-t-[1px] mx-auto" /> -->
+              <div class="border-base-300"><b>Accès depuis <?php echo $common["ville_nom"] ?> :</b></div>
+              <ul class="list-disc list-inside">
+                <?php foreach ($acces as $row): ?>
+                  <li>
+                    <?php if ($row["train_temps"] > 0): ?>
+                      Train pour <?php echo $row["train_arrivee"] ?>
+                      (<?php echo format_time($row["train_temps"]) ?>,
+                      <span title='D=Direct / C=Correspondances'>
+                        <?php echo ($row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C")
+                          . ($row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C")
+                          ?></span>)
+                      +
+                    <?php endif; ?>
+                    <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement'])) ?>
+                    <?php echo $row["velo_apieduniquement"] == 1 ? "À pied" : "à vélo" ?>
+                    <?php if (($row["variante_a_pied"] ?? 0) == 1): ?>
+                      <br /><span class='text-primary'>Aussi accessible à pied</span>
+                    <?php endif; ?>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            </div>
+          </div>
+        </a>
       <?php endforeach; ?>
       <div id="nomatch-mobile"
         class="bg-base-100 text-center w-full col-span-6 py-4 font-bold hidden rounded-lg shadow-lg">Aucune falaise
@@ -553,111 +566,114 @@ $stmt->close();
                 text-center items-center text-sm">
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center"></div>
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
-        <img class="h-12" alt="Train" src="/images/train.png" />
+        <img class="h-12" alt="Train" src="/images/train-station_color.png" />
       </div>
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
-        <img class="h-12" alt="Velo" src="/images/velo.png" />
+        <img class="h-12" alt="Velo" src="/images/bicycle_color.png" />
       </div>
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
-        <img class="h-12" alt="Corde" src="/images/climbing.png" />
+        <img class="h-12" alt="Corde" src="/images/rock-climbing_color.png" />
       </div>
       <!-- <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center font-bold">Zone</div> -->
       <div class="bg-base-100 px-1 py-1 self-stretch flex items-center justify-center font-bold text-xs">
         Temps total (T+V+A)
       </div>
       <?php foreach ($falaises as $falaise_id => $acces): ?>
-          <?php $common = $acces[0]; ?>
-          <div
-            class="bg-base-100 px-2 py-1 self-stretch font-bold flex flex-col items-center justify-center text-base falaise-<?= $common['falaise_id'] ?>-desktop">
-            <div>
-              <a href="<?php echo '/falaise.php?falaise_id=' . $acces[0]['falaise_id'] . "&ville_id=" . $ville_id ?>">
-                <?php echo $common["falaise_nom"] ?>
-              </a>
-              <?php if (!empty($common["falaise_fermee"])): ?>
-                  <div class="text-error text-sm font-normal">Falaise Interdite</div>
-              <?php endif; ?>
-              <?php if (!empty($common["zone_nom"])): ?>
-                  <div class="font-normal text-xs">(<?= $common["zone_nom"] ?>)</div>
-              <?php endif; ?>
-            </div>
+        <?php $common = $acces[0]; ?>
+        <div
+          class="bg-base-100 px-2 py-1 self-stretch font-bold flex flex-col items-center justify-center text-base falaise-<?= $common['falaise_id'] ?>-desktop">
+          <div>
+            <a href="<?php echo '/falaise.php?falaise_id=' . $acces[0]['falaise_id'] . "&ville_id=" . $ville_id ?>">
+              <?php echo $common["falaise_nom"] ?>
+            </a>
+            <?php if (!empty($common["falaise_fermee"])): ?>
+              <div class="text-error text-sm font-normal">Falaise Interdite</div>
+            <?php endif; ?>
+            <?php if (!empty($common["zone_nom"])): ?>
+              <div class="font-normal text-xs">(<?= $common["zone_nom"] ?>)</div>
+            <?php endif; ?>
           </div>
-          <div
-            class="bg-base-100 py-1 self-stretch grid grid-rows-<?php echo count($acces) ?> divide-y divide-slate-200 items-center falaise-<?= $common['falaise_id'] ?>-desktop">
-            <?php foreach ($acces as $row): ?>
-                <div class="self-stretch flex flex-col justify-center py-2 px-2">
-                  <div class="text-base font-bold">
-                    <?php
-                    if ($row["train_temps"] > 0) {
-                      echo format_time($row["train_temps"])
-                        . " <span title='D=Direct / C=Correspondances'>("
-                        . ($row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C")
-                        . ($row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C")
-                        . ")</span>";
-                    } else {
-                      echo "Pas de train à prendre";
-                    }
-                    ?>
-                  </div>
-                  <div class="text-nowrap"><?php echo $row["train_arrivee"] ?></div>
-                </div>
-            <?php endforeach; ?>
-          </div>
-          <div
-            class="bg-base-100 py-1 self-stretch grid grid-rows-<?php echo count($acces) ?> divide-y divide-slate-200 items-center falaise-<?= $common['falaise_id'] ?>-desktop">
-            <?php foreach ($acces as $row): ?>
-                <div class="self-stretch flex flex-col justify-center py-2 px-2">
-                  <div class="text-base font-bold">
-                    Aller :
-                    <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement'])) ?>
-                    -
-                    Retour :
-                    <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dmoins'], $row['velo_apieduniquement'])) ?>
-                  </div>
-                  <div><?php echo $row["velo_km"] ?> km, <?php echo $row["velo_dplus"] ?> D+,
-                    <?php echo $row["velo_dmoins"] ?> D-
-                  </div>
-                  <?php if ($row["velo_apieduniquement"] == 1): ?>
-                      <div class="text-primary">À pied uniquement</div>
-                  <?php endif; ?>
-                  <?php if (($row["variante_a_pied"] ?? 0) == 1): ?>
-                      <div class="text-primary">Aussi accessible à pied</div>
-                  <?php endif; ?>
-                </div>
-            <?php endforeach; ?>
-          </div>
-          <div
-            class="bg-base-100 px-2 py-1 self-stretch flex flex-row items-center justify-end gap-2 falaise-<?= $common['falaise_id'] ?>-desktop">
-            <div class="flex flex-col items-center justify-center gap-1 flex-grow">
-              <?php $row = $acces[0]; ?>
-              <div><span title="Marche d'approche">Marche d'approche</span> : <span class="font-bold">
-                  <?php if ($row["falaise_maa"] > 0): ?>
-                      <?php echo format_time($row["falaise_maa"]) ?>
-                  <?php else: ?>
-                      Aucune
-                  <?php endif; ?>
-                </span>
+        </div>
+        <div
+          class="bg-base-100 py-1 self-stretch grid grid-rows-<?php echo count($acces) ?> divide-y divide-slate-200 items-center falaise-<?= $common['falaise_id'] ?>-desktop">
+          <?php foreach ($acces as $row): ?>
+            <div class="self-stretch flex flex-col justify-center py-2 px-2">
+              <div class="text-base font-bold">
+                <?php
+                if ($row["train_temps"] > 0) {
+                  echo format_time($row["train_temps"])
+                    . " <span title='D=Direct / C=Correspondances'>("
+                    . ($row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C")
+                    . ($row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C")
+                    . ")</span>";
+                } else {
+                  echo "Pas de train à prendre";
+                }
+                ?>
               </div>
-              <div><span title="Cotations (6-: 6a à 6b, 6+: 6b+ à 6c+ etc.)">Cotations : </span><span
-                  class="font-bold"><?php echo $row["falaise_cotmin"] ?> à
-                  <?php echo $row["falaise_cotmax"] ?></span></div>
-              <?php if ($row["falaise_gvnb"] > 0): ?>
-                  <div class="text-accent"><?php echo $row["falaise_gvnb"] ?> <span title="Grandes Voies"></span></div>
+              <div class="text-nowrap"><?php echo $row["train_arrivee"] ?></div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+        <div
+          class="bg-base-100 py-1 self-stretch grid grid-rows-<?php echo count($acces) ?> divide-y divide-slate-200 items-center falaise-<?= $common['falaise_id'] ?>-desktop">
+          <?php foreach ($acces as $row): ?>
+            <div class="self-stretch flex flex-col justify-center py-2 px-2">
+              <div class="text-base font-bold">
+                Aller :
+                <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement'])) ?>
+                -
+                Retour :
+                <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dmoins'], $row['velo_apieduniquement'])) ?>
+              </div>
+              <div><?php echo $row["velo_km"] ?> km, <?php echo $row["velo_dplus"] ?> D+,
+                <?php echo $row["velo_dmoins"] ?> D-
+              </div>
+              <?php if ($row["velo_apieduniquement"] == 1): ?>
+                <div class="text-primary">À pied uniquement</div>
+              <?php endif; ?>
+              <?php if (($row["variante_a_pied"] ?? 0) == 1): ?>
+                <div class="text-primary">Aussi accessible à pied</div>
               <?php endif; ?>
             </div>
-            <div id="<?php echo 'rose-' . $row['falaise_id'] ?>" class="w-[72px]"></div>
+          <?php endforeach; ?>
+        </div>
+        <div
+          class="bg-base-100 px-2 py-1 self-stretch flex flex-row items-center justify-end gap-2 falaise-<?= $common['falaise_id'] ?>-desktop">
+          <div class="flex flex-col items-center justify-center gap-1 flex-grow">
+            <?php $row = $acces[0]; ?>
+            <div><span title="Marche d'approche">Marche d'approche</span> : <span class="font-bold">
+                <?php if ($row["falaise_maa"] > 0): ?>
+                  <?= format_time($row["falaise_maa"]) ?>
+                <?php else: ?>
+                  Aucune
+                <?php endif; ?>
+              </span>
+            </div>
+            <div>
+              <span class="font-bold"><?= $nbvoies_corresp[$row["falaise_nbvoies"]] ?? "Voies" ?></span>
+              de
+              <span class="font-bold" title="Cotations (6-: 6a à 6b, 6+: 6b+ à 6c+ etc.)"><?= $row["falaise_cotmin"] ?> à
+                <?= $row["falaise_cotmax"] ?></span>
+            </div>
+            <?php if ($row["falaise_gvnb"] > 0): ?>
+              <div class="text-accent"><?php echo $row["falaise_gvnb"] ?> <span title="Grandes Voies"></span></div>
+            <?php endif; ?>
           </div>
-          <!-- <div
+          <div id="<?php echo 'rose-' . $row['falaise_id'] ?>" class="w-[72px]"></div>
+        </div>
+        <!-- <div
           class="bg-base-100 px-2 py-1 self-stretch flex flex-col justify-center items-center falaise-<?= $common['falaise_id'] ?>-desktop">
           <?php echo $row["zone_nom"] ?>
         </div> -->
-          <div
-            class="bg-base-100 py-1 self-stretch flex flex-col items-center justify-center gap-1 font-bold h-full divide-y divide-slate-200 falaise-<?= $common['falaise_id'] ?>-desktop">
-            <?php foreach ($acces as $row): ?>
-                <div class="flex-grow flex items-center justify-center px-2">
-                  <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement']) + $row["train_temps"] + $row["falaise_maa"]) ?>
-                </div>
-            <?php endforeach; ?>
-          </div>
+        <div
+          class="bg-base-100 py-1 self-stretch flex flex-col items-center justify-center gap-1 font-bold h-full divide-y divide-slate-200 falaise-<?= $common['falaise_id'] ?>-desktop">
+          <?php foreach ($acces as $row): ?>
+            <div class="flex-grow flex items-center justify-center px-2">
+              <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement']) + $row["train_temps"] + $row["falaise_maa"]) ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
       <?php endforeach; ?>
       <div id="nomatch" class="bg-base-100 text-center w-full col-span-5 py-4 font-bold hidden">Aucune falaise
         ne correspond aux filtres.
@@ -670,8 +686,8 @@ $stmt->close();
 <script>
   window.addEventListener("DOMContentLoaded", function () {
     <?php foreach ($falaises as $falaise_id => $acces): ?>
-        roseFromExpo("rose-" + <?php echo $acces[0]['falaise_id'] ?>, "<?php echo $acces[0]["falaise_exposhort1"] ?>", "<?php echo $acces[0]["falaise_exposhort2"] ?>", 72, 72);
-        roseFromExpo("rose-mobile-" + <?php echo $acces[0]['falaise_id'] ?>, "<?php echo $acces[0]["falaise_exposhort1"] ?>", "<?php echo $acces[0]["falaise_exposhort2"] ?>", 72, 72);
+      roseFromExpo("rose-" + <?php echo $acces[0]['falaise_id'] ?>, "<?php echo $acces[0]["falaise_exposhort1"] ?>", "<?php echo $acces[0]["falaise_exposhort2"] ?>", 72, 72);
+      roseFromExpo("rose-mobile-" + <?php echo $acces[0]['falaise_id'] ?>, "<?php echo $acces[0]["falaise_exposhort1"] ?>", "<?php echo $acces[0]["falaise_exposhort2"] ?>", 72, 72);
     <?php endforeach; ?>
   });
 

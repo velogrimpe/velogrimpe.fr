@@ -185,7 +185,7 @@ $stmtV->close();
 
 <body>
   <?php include "./components/header.html"; ?>
-  <div class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 mb-2 rounded-xl">
+  <div class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
 
     <div class="flex justify-between items-center w-full">
       <a class="text-primary font-bold" href="/">← Retour à la carte</a>
@@ -275,13 +275,19 @@ $stmtV->close();
       </div>
     <?php endif; ?>
 
-    <h1 class="text-[48px] font-bold mb-10 text-center leading-none text-primary">
-      <?= htmlspecialchars($falaise_nom) ?>
-      <?php if ($ville_id_get): ?>
-        <br><span class="text-base font-normal">au départ de
-          <?= htmlspecialchars($selected_ville_nom) ?></span>
-      <?php endif; ?>
-    </h1>
+    <div class="inline-flex flex-row items-center mb-10 gap-2">
+      <h1 class="inline-flex flex-col text-[48px] font-bold text-center leading-none text-primary">
+        <span>
+          <img src="/images/icone_falaise_carte.png" alt="Logo falaise" class="h-10 w-10 inline" />
+          <?= htmlspecialchars($falaise_nom) ?>
+        </span>
+        <?php if ($ville_id_get): ?>
+          <br>
+          <span class="text-base font-normal">au départ de
+            <?= htmlspecialchars($selected_ville_nom) ?></span>
+        <?php endif; ?>
+      </h1>
+    </div>
 
     <div class="flex flex-col items-center gap-4 w-full md:flex-row md:items-start">
 
@@ -289,11 +295,11 @@ $stmtV->close();
       <div class="vg-a-primary flex flex-col gap-4 md:gap-10 w-full items-center md:my-auto max-w-[600px] mx-auto">
         <div class="flex flex-row gap-2 items-start justify-around w-full">
           <div class="flex flex-col items-center justify-start gap-2">
-            <img src="/images/count.png" alt="Logo Nb voies" class="h-12 w-12 mx-auto" />
+            <img src="/images/abacus_color.png" alt=" Logo Nb voies" class="h-12 w-12 mx-auto" />
             <div class="font-bold text-center text-lg"><?= $falaise_nbvoies ?></div>
           </div>
           <div class="flex flex-col items-center justify-start gap-2">
-            <img src="/images/difficulty.png" alt="Logo difficulté" class="h-12 w-12 mx-auto" />
+            <img src="/images/speedometer_color.png" alt=" Logo difficulté" class="h-12 w-12 mx-auto" />
             <div class="font-bold text-center text-lg">
               <?= $falaise_cotmin ?> à <?= $falaise_cotmax ?>
             </div>
@@ -302,7 +308,7 @@ $stmtV->close();
 
         <div class="flex flex-row gap-2 items-center justify-center mx-auto">
           <div class='w-full grid grid-cols-[auto_auto] gap-4 md:gap-y-6 items-center'>
-            <img src="/images/climbing.png" alt="Voies" class="h-12 w-12 mx-auto" />
+            <img src="/images/rock-climbing_color.png" alt=" Voies" class="h-12 w-12 mx-auto" />
             <!-- <div class="font-bold ">Voies</div> -->
             <div class="">
               <?= nl2br($falaise_voies) ?>
@@ -310,7 +316,7 @@ $stmtV->close();
                 <div><span class="font-bold">Cotations</span>: <?= nl2br($falaise_cottxt) ?></div>
               <?php endif ?>
             </div>
-            <img src="/images/topo.png" alt="Topo" class="h-12 w-12 mx-auto" />
+            <img src="/images/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
             <!-- <div class="font-bold  ">Topo(s)</div> -->
             <div class="">
               <div><?= nl2br($falaise_topo) ?></div>
@@ -342,18 +348,18 @@ $stmtV->close();
                 </a>
               <?php endif ?>
             </div>
-            <img src="/images/hiking.png" alt="Approche" class="h-12 w-12 mx-auto" />
+            <img src="/images/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
             <!-- <div class="font-bold  ">Approche</div> -->
             <div class=""><?= nl2br($falaise_matxt) ?></div>
             <?php if (!empty($falaise_gvtxt)): ?>
-              <img src="/images/mountain.png" alt="Grande voies" class="h-12 w-12 mx-auto" />
+              <img src="/images/mountain_color.png" alt=" Grande voies" class="h-12 w-12 mx-auto" />
               <!-- <div class="font-bold  ">Grandes voies</div> -->
               <div class="">
                 <?= nl2br($falaise_gvtxt) ?>
               </div>
             <?php endif; ?>
             <?php if (!empty($falaise_rq)): ?>
-              <img src="/images/pencil.png" alt="Remarques" class="h-12 w-12 mx-auto" />
+              <img src="/images/pencil_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
               <!-- <div class="font-bold ">Remarques</div> -->
               <div class=""><?= nl2br($falaise_rq) ?></div>
             <?php endif; ?>
@@ -570,32 +576,32 @@ $stmtV->close();
 
           <!-- // LIGNE 2 TRAIN : -->
           <tr>
-            <td class='justify-center border-t border-r border-b border-1 border-base-300'>
-              <div class='flex flex-col md:flex-row gap-4 items-center'>
-                <img src='/images/train.png' alt='Logo Train' class='h-10 w-auto'>
+            <td class="justify-center border-t border-r border-b border-1 border-base-300">
+              <div class="flex flex-col md:flex-row gap-4 items-center">
+                <img src="/images/train-station_color.png" alt="Logo Train" class="h-10 w-auto">
                 <div>
                   <?php if ($selected_ville_nom): ?>
-                    <b><?= htmlspecialchars($selected_ville_nom) . " → " . htmlspecialchars($gare['gare_nom']) ?></b>
+                    <b><?= htmlspecialchars($selected_ville_nom) . " → " . htmlspecialchars($gare["gare_nom"]) ?></b>
                   <?php else: ?>
-                    Rejoindre la gare de : <b><?= htmlspecialchars($gare['gare_nom']) ?></b>
+                    Rejoindre la gare de : <b><?= htmlspecialchars($gare["gare_nom"]) ?></b>
                   <?php endif; ?>
 
                   <?php if (!empty($formatted_time)): ?>
-                    : <span class='text-lg font-bold'><?= $formatted_time ?></span>
+                    : <span class="text-lg font-bold"><?= $formatted_time ?></span>
                   <?php endif ?>
                   <?php if (!empty($corresp_text)): ?>
                     <br>
                     <?= nl2br($corresp_text) ?>
                   <?php endif ?>
-                  <!-- <button class="btn btn-xs btn-outline btn-accent" onclick="gare<?= $gare['gare_id'] ?>.showModal()">
+                  <!-- <button class="btn btn-xs btn-outline btn-accent" onclick="gare<?= $gare["gare_id"] ?>.showModal()">
                     <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
                       <use xlink:href="/symbols/icons.svg#ri-ticket-line"></use>
                     </svg>
                     Acheter un billet
                   </button>
-                  <dialog id="gare<?= $gare['gare_id'] ?>" class="modal">
+                  <dialog id="gare<?= $gare["gare_id"] ?>" class="modal">
                     <div class="modal-box p-0 max-w-screen-lg w-full bg-transparent"
-                      id="container__booking__gare_<?= $gare['gare_id'] ?>">
+                      id="container__booking__gare_<?= $gare["gare_id"] ?>">
                     </div>
                     <form method="dialog" class="modal-backdrop">
                       <button>close</button>
@@ -644,9 +650,9 @@ $stmtV->close();
                 <div class='flex flex-col md:flex-row gap-4 items-center'>
 
                   <?php if (isset($velo['velo_apieduniquement']) && $velo['velo_apieduniquement'] == 1): ?>
-                    <img src='https://www.velogrimpe.fr/images/hiking.png' alt='Logo À Pied' class='h-auto w-10'>
+                    <img src="/images/hiking_color.png" alt="Logo À Pied" class="h-auto w-10">
                   <?php else: ?>
-                    <img src='https://www.velogrimpe.fr/images/velo.png' alt='Logo Vélo' class='h-auto w-10'>
+                    <img src="/images/bicycle_color.png" alt="Logo Vélo" class="h-auto w-10">
                   <?php endif ?>
 
                   <div class='flex flex-col items-start'>
@@ -1028,6 +1034,9 @@ $stmtV->close();
       if (zoom < 13) {
         if (Object.values(falaiseDetailsLayers).length > 0) {
           Object.values(falaiseDetailsLayers).forEach((arr) => {
+            if (!arr) {
+              return;
+            }
             arr.forEach((el) => {
               if (el.layer) {
                 map.removeLayer(el.layer);
