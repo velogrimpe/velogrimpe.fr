@@ -1,6 +1,6 @@
 <?php
 
-function sendEvent($pageUrl, $userId)
+function sendEvent($pageUrl, $userId, $source)
 {
   $url = "https://couble.eu/api/event";
   $data = [
@@ -8,6 +8,7 @@ function sendEvent($pageUrl, $userId)
     "e" => "pageviews",
     "p" => $pageUrl,
     "u" => $userId,
+    "s" => $source,
   ];
 
   $options = [

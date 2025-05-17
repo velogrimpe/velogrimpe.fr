@@ -37,7 +37,7 @@ if (!$authHeader || $authHeader !== $validToken) {
 
 // add a pageview
 require_once '../../lib/pv.php';
-sendEvent($_SERVER['REQUEST_URI'], "oblyk");
+sendEvent($_SERVER['REQUEST_URI'], "oblyk", "oblyk-api");
 
 $oblyk_id = trim($_GET['oblyk_id'] ?? '');
 if (empty($oblyk_id)) {
