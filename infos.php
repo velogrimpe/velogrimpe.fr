@@ -31,31 +31,34 @@
       donner envie
       de réaliser des sorties vélogrimpe, et de faciliter leur organisation.</p>
     <p>Seul au départ, Florent a bénéficié de l'appui de son frère Sylvain pour la mise en place du site web,
-      et c'est rapidement <a href="https://github.com/ycouble">Yoann</a> qui a pris en charge tout le développement
+      et c'est rapidement <a target="_blank" href="https://github.com/ycouble">Yoann</a> qui a pris en charge tout le
+      développement
       technique.</p>
     <p>Ce projet est réalisé bénévolement, et les informations de ce site ont vocation à rester en libre accès, de même
-      que le code, open-source et mis à disposition <a href="https://github.com/velogrimpe/velogrimpe.fr">sur
+      que le code, open-source et mis à disposition <a target="_blank"
+        href="https://github.com/velogrimpe/velogrimpe.fr">sur
         Github</a>.</p>
     <p>Bon train, bon vélo, bonne grimpe !</p>
-    <a href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>
+    <a target="_blank" href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>
 
     <h2 align="center">LIENS</h2>
 
     <p>
       Pour sa campagne « changer d’approche »,
-      <a href="https://www.mountainwilderness.fr/">Mountain Wilderness</a>
+      <a target="_blank" href="https://www.mountainwilderness.fr/">Mountain Wilderness</a>
       (association indépendante qui agit pour défendre et valoriser la
       spécificité, la beauté et la richesse des espaces montagnards) a lancé
-      <a href="https://www.changerdapproche.org/">un site</a> sur lequel on
+      <a target="_blank" href="https://www.changerdapproche.org/">un site</a> sur lequel on
       trouve tout un tas de ressources pour pratiquer diverses activités
       montagnardes en utilisant des modes de transport alternatifs à la
       voiture individuelle.
     </p>
 
     <p>
-      <a href="https://www.camptocamp.org/">Camptocamp</a> a mis en place un
+      <a target="_blank" href="https://www.camptocamp.org/">Camptocamp</a> a mis en place un
       portail
-      <a href="https://www.camptocamp.org/articles/219827/fr/le-portail-changer-d-approche">changer d'approche</a>.
+      <a target="_blank" href="https://www.camptocamp.org/articles/219827/fr/le-portail-changer-d-approche">changer
+        d'approche</a>.
       Un
       moteur de recherche permet de trouver des idées de sorties sans
       voiture (escalade, alpi, ski,…), et on peut y lire des retours
@@ -63,52 +66,57 @@
     </p>
 
     <p>
-      <a href="https://www.slostr.com/">Slostr</a> : un super site pour découvrir et partager des aventures "slow
+      <a target="_blank" href="https://www.slostr.com/">Slostr</a> : un super site pour découvrir et partager des
+      aventures "slow
       travel" (vélo-grimpe, vélo surf, ...).
       Tout se fait depuis une carte interactive super bien réalisée, il existe une appli du même nom, allez voir !
     </p>
 
 
     <p>
-      <a href="https://ecopointclimbing.com/">Ecopoint climbing</a> : vous
+      <a target="_blank" href="https://ecopointclimbing.com/">Ecopoint climbing</a> : vous
       connaissez le redpoint, qui consiste à enchaîner une voie ? Et bien
       l'ecopoint c'est pareil, mais avec le challenge supplémentaire de ne
       pas utiliser la voiture pour aller grimper ;)
     </p>
 
     <p>
-      <a href="https://naturesansvoiture.wordpress.com/">Nature sans voiture</a>
+      <a target="_blank" href="https://naturesansvoiture.wordpress.com/">Nature sans voiture</a>
       : site web donnant beaucoup d'idées de sorties au départ de Lyon
       (promenades, randos, raquettes, ski,…).
     </p>
 
     <p>
-      <a href="https://www.clubalpinlyon.fr/article/sorties-sans-voiture-trouvez-d-1549.html">Le CAF de Lyon</a>
+      <a target="_blank" href="https://www.clubalpinlyon.fr/article/sorties-sans-voiture-trouvez-d-1549.html">Le CAF de
+        Lyon</a>
       répertorie aussi des idées de sorties sans voiture, avec parfois des
       retours d’expérience. Pour l’escalade en particulier, ils ont créé un
       tableau indiquant plusieurs idées de sorties vélogrimpe.
     </p>
 
     <p>
-      <a href="https://drive.google.com/file/d/1WKxSW0yHQhTRuEIULyr643ASwUbax5DY/view">Un topo des grandes voies
+      <a target="_blank" href="https://drive.google.com/file/d/1WKxSW0yHQhTRuEIULyr643ASwUbax5DY/view">Un topo des
+        grandes voies
         accessibles depuis Grenoble</a> en mobilités douces (de D+ à ED-).
     </p>
 
     <p>
-      <a href="https://lesboucsentrain.com/">Les Boucs en Train</a>, une
+      <a target="_blank" href="https://lesboucsentrain.com/">Les Boucs en Train</a>, une
       communauté de passionnés de montagne, de randos, de nature, d’aventure
       et de découvertes…en favorisant une mobilité douce.
     </p>
 
     <p>
-      <a href="https://www.uncolouunpic.com/">Un col ou un pic</a>, pour un
+      <a target="_blank" href="https://www.uncolouunpic.com/">Un col ou un pic</a>, pour un
       encadrement de sorties vélogrimpe autour de Lyon par un moniteur
       d'escalade, sur un ou plusieurs jours.
     </p>
 
     <p>
-      L'association <a href="http://alpes-la.org/">Alpes-là!</a> qui propose des sorties sans voiture (plutôt pour
-      étudiants) et a écrit un livre : <a href="http://rando-sans-voiture.fr/">50 randonnées sans voiture en Isère</a>.
+      L'association <a target="_blank" href="http://alpes-la.org/">Alpes-là!</a> qui propose des sorties sans voiture
+      (plutôt pour
+      étudiants) et a écrit un livre : <a target="_blank" href="http://rando-sans-voiture.fr/">50 randonnées sans
+        voiture en Isère</a>.
     </p>
 
     <h2 align="center">REMERCIEMENTS</h2>

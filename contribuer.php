@@ -78,7 +78,7 @@ $email = $config['contact_mail'];
     </p>
     <p>- Si vous avez des talents d'artiste et que vous pouvez nous créer un logo, une affiche...ça serait super !</p>
     <p>- Si vous avez envie de contribuer au code de ce site, signaler des erreurs ou suggérer des évolutions, ça se
-      passe sur Github : <a href="https://github.com/velogrimpe/velogrimpe.fr">code source</a></p>
+      passe sur Github : <a href="https://github.com/velogrimpe/velogrimpe.fr" target="_blank">code source</a></p>
   </div>
 
   <?php include "./components/footer.html"; ?>
