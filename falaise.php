@@ -231,35 +231,6 @@ $stmtV->close();
             </a>
           </div>
         </div>
-        <button class="drawer-button btn btn-primary btn-sm md:btn-md btn-circle btn-outline"
-          onclick="meteoModal.showModal()">
-          <svg class="w-4 md:w-6 h-4 md:h-6 fill-current">
-            <use xlink:href="/symbols/icons.svg#ri-sun-foggy-fill"></use>
-          </svg>
-        </button>
-        <dialog id="meteoModal" class="modal modal-bottom sm:modal-middle">
-          <div class="modal-box md:w-fit max-w-screen-xl">
-            <form method="dialog">
-              <button tabindex="-1" class="btn btn-circle btn-ghost absolute right-2 top-2">✕</button>
-            </form>
-            <div class="p-4 w-[240px] font-bold mx-auto">
-              <span class="text-lg font-bold">
-                Météo par <a class="text-primary font-bold"
-                  href="https://www.meteoblue.com/fr/meteo/semaine/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?utm_source=daily_widget&utm_medium=linkus&utm_content=daily&utm_campaign=Weather%2BWidget"
-                  target="_blank" rel="noopener">meteoblue
-                </a>
-              </span>
-              <iframe
-                src="https://www.meteoblue.com/fr/meteo/widget/daily/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?geoloc=fixed&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&precipunit=MILLIMETER&coloured=coloured&pictoicon=1&maxtemperature=1&mintemperature=1&windspeed=1&windgust=0&winddirection=1&uv=0&humidity=0&precipitation=1&precipitationprobability=1&spot=1&pressure=0&layout=light"
-                frameborder="0" scrolling="NO" allowtransparency="true"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-                style="width: 216px; height: 350px"></iframe>
-            </div>
-          </div>
-          <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-          </form>
-        </dialog>
       </div>
     </div>
 
@@ -275,19 +246,53 @@ $stmtV->close();
       </div>
     <?php endif; ?>
 
-    <div class="inline-flex flex-row items-center mb-10 gap-2">
+    <div class="flex flex-col items-center mb-10 gap-4">
       <h1 class="inline-flex flex-col text-[48px] font-bold text-center leading-none text-primary">
-        <span>
-          <img src="/images/icone_falaise_carte.png" alt="Logo falaise" class="h-10 w-10 inline" />
-          <?= htmlspecialchars($falaise_nom) ?>
-        </span>
+        <?= htmlspecialchars($falaise_nom) ?>
         <?php if ($ville_id_get): ?>
           <br>
           <span class="text-base font-normal">au départ de
             <?= htmlspecialchars($selected_ville_nom) ?></span>
         <?php endif; ?>
       </h1>
+
+      <button class="drawer-button btn btn-neutral btn-sm rounded-full btn-outline" onclick="meteoModal.showModal()">
+        Météo
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4 fill-[gold]">
+            <use xlink:href="/symbols/icons.svg#ri-sun-foggy-fill"></use>
+          </svg>
+          <span class="font-normal">/</span>
+          <svg class="w-4 h-4 fill-[LightSlateGray]">
+            <use xlink:href="/symbols/icons.svg#ri-sun-cloudy-fill"></use>
+          </svg>
+        </span>
+      </button>
+      <dialog id="meteoModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box md:w-fit max-w-screen-xl">
+          <form method="dialog">
+            <button tabindex="-1" class="btn btn-circle btn-ghost absolute right-2 top-2">✕</button>
+          </form>
+          <div class="p-4 w-[240px] font-bold mx-auto">
+            <span class="text-lg font-bold">
+              Météo par <a class="text-primary font-bold"
+                href="https://www.meteoblue.com/fr/meteo/semaine/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?utm_source=daily_widget&utm_medium=linkus&utm_content=daily&utm_campaign=Weather%2BWidget"
+                target="_blank" rel="noopener">meteoblue
+              </a>
+            </span>
+            <iframe
+              src="https://www.meteoblue.com/fr/meteo/widget/daily/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?geoloc=fixed&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&precipunit=MILLIMETER&coloured=coloured&pictoicon=1&maxtemperature=1&mintemperature=1&windspeed=1&windgust=0&winddirection=1&uv=0&humidity=0&precipitation=1&precipitationprobability=1&spot=1&pressure=0&layout=light"
+              frameborder="0" scrolling="NO" allowtransparency="true"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+              style="width: 216px; height: 350px"></iframe>
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
     </div>
+
 
     <div class="flex flex-col items-center gap-4 w-full md:flex-row md:items-start">
 
@@ -313,7 +318,7 @@ $stmtV->close();
             <div class="">
               <?= nl2br($falaise_voies) ?>
               <?php if (!empty($falaise_cottxt)): ?>
-                <div><span class="font-bold">Cotations</span>: <?= nl2br($falaise_cottxt) ?></div>
+                <div><span>Cotations</span>: <?= nl2br($falaise_cottxt) ?></div>
               <?php endif ?>
             </div>
             <img src="/images/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
