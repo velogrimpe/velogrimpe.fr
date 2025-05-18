@@ -57,7 +57,7 @@ $stmt = $mysqli->prepare("
     f.*,
     g.gare_nom,
     t.train_depart, t.train_arrivee, t.train_temps, t.train_correspmin, t.train_correspmax, t.train_descr,
-      v.velo_depart, v.velo_arrivee, v.velo_km, v.velo_dplus, v.velo_dmoins, v.velo_descr, v.velo_gps, v.velo_variante, v.velo_apieduniquement, velo_apiedpossible,
+      v.velo_depart, v.velo_arrivee, v.velo_km, v.velo_dplus, v.velo_dmoins, v.velo_descr, v.velo_variante, v.velo_apieduniquement, velo_apiedpossible,
       villes.ville_nom,
       z.zone_nom
   FROM `falaises` f
