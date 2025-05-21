@@ -1,11 +1,11 @@
 <?php
 
-function sendEvent($pageUrl, $userId, $source)
+function sendEvent($pageUrl, $userId, $source, $event = "pageviews")
 {
   $url = "https://couble.eu/api/event";
   $data = [
     "d" => "velogrimpe.fr",
-    "e" => "pageviews",
+    "e" => $event,
     "p" => $pageUrl,
     "u" => $userId,
     "s" => $source,
@@ -22,6 +22,5 @@ function sendEvent($pageUrl, $userId, $source)
   $ch = curl_init();
   curl_setopt_array($ch, $options);
   curl_exec($ch);
-
   curl_close($ch);
 }

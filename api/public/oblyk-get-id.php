@@ -83,6 +83,13 @@ while ($row = $result->fetch_assoc()) {
 }
 // Close the statement
 $stmt->close();
+
+if (empty($falaises)) {
+  sendEvent($_SERVER['REQUEST_URI'], "oblyk", "oblyk-api", "event: oblyk-not-found");
+} else {
+  sendEvent($_SERVER['REQUEST_URI'], "oblyk", "oblyk-api", "event: oblyk-found");
+}
+
 // Return the result as JSON
 echo json_encode($falaises);
 // Close the database connection
