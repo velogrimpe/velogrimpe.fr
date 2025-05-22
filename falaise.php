@@ -1066,7 +1066,7 @@ $stmtV->close();
         dashArray: "5 5",
       };
       const approcheHighlightedStyle = {
-        color: "cyan",
+        color: "DodgerBlue",
         weight: 6,
         dashArray: "10",
       };
