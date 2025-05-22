@@ -1060,13 +1060,19 @@ $stmtV->close();
       if (!falaiseDetails || Object.values(falaiseDetailsLayers).length > 0) {
         return;
       }
+      const approcheBaseStyle = {
+        color: "blue",
+        weight: 2,
+        dashArray: "5 5",
+      };
+      const approcheHighlightedStyle = {
+        color: "cyan",
+        weight: 6,
+        dashArray: "10",
+      };
       const approches = falaiseDetails.approches?.map(approche => {
         const layer = L.geoJSON(toGeoJSON(approche), {
-          style: {
-            color: "blue",
-            weight: 2,
-            dashArray: "5 5",
-          },
+          style: approcheBaseStyle,
         }).addTo(map);
         approche.layer = layer;
         return approche;
@@ -1139,21 +1145,33 @@ $stmtV->close();
             document.getElementById(`marker-${name}`).classList.remove("bg-white", "text-black");
           }
           const parkingList = secteur.properties.parking.split(",").map(p => p.trim()) || [];
-          parkingList.map(parking => {
-            const pk = parking ? parkings.find(p => p.properties.name === parking) : undefined;
-            if (pk) {
-              parkingIndicators.push(
-                L.polyline([reverse(pk.geometry.coordinates), secteur.center], {
-                  color: "black",
-                  weight: 1,
-                  dashArray: "5",
-                }).addTo(map)
-              );
+          const approcheList = secteur.properties.approche.split(",").map(p => p.trim()) || [];
+          approcheList.map(approche => {
+            const ap = approche ? approches.find(a => a.properties.name === approche) : undefined;
+            if (ap) {
+              ap.layer.setStyle(approcheHighlightedStyle);
             }
           })
+          if (approcheList.length === 0) {
+            parkingList.map(parking => {
+              const pk = parking ? parkings.find(p => p.properties.name === parking) : undefined;
+              if (pk) {
+                parkingIndicators.push(
+                  L.polyline([reverse(pk.geometry.coordinates), secteur.center], {
+                    color: "black",
+                    weight: 1,
+                    dashArray: "5",
+                  }).addTo(map)
+                );
+              }
+            })
+          }
         }
         const mouseout = (e) => {
           removeParkingLinks();
+          approches.map(approche => {
+            approche.layer.setStyle(approcheBaseStyle);
+          })
           layer.eachLayer(l => l.setStyle({ color: "black", weight }));
           if (marker) {
             document.getElementById(`marker-${name}`).classList.remove("bg-red-900", "text-white");
