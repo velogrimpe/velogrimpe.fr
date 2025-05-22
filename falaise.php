@@ -1138,16 +1138,19 @@ $stmtV->close();
             document.getElementById(`marker-${name}`).classList.add("bg-red-900", "text-white");
             document.getElementById(`marker-${name}`).classList.remove("bg-white", "text-black");
           }
-          const pk = secteur.properties.parking ? parkings.find(p => p.properties.name === secteur.properties.parking) : undefined;
-          if (pk) {
-            parkingIndicators.push(
-              L.polyline([reverse(pk.geometry.coordinates), secteur.center], {
-                color: "black",
-                weight: 1,
-                dashArray: "5",
-              }).addTo(map)
-            );
-          }
+          const parkingList = secteur.properties.parking.split(",").map(p => p.trim()) || [];
+          parkingList.map(parking => {
+            const pk = parking ? parkings.find(p => p.properties.name === parking) : undefined;
+            if (pk) {
+              parkingIndicators.push(
+                L.polyline([reverse(pk.geometry.coordinates), secteur.center], {
+                  color: "black",
+                  weight: 1,
+                  dashArray: "5",
+                }).addTo(map)
+              );
+            }
+          })
         }
         const mouseout = (e) => {
           removeParkingLinks();
