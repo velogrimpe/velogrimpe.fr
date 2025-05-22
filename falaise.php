@@ -1107,6 +1107,7 @@ $stmtV->close();
       })
       const secteurs = falaiseDetails.secteurs?.map(secteur => {
         const name = secteur.properties.name;
+        if (!name || !secteur.geometry) return;
         secteur.center = reverse(turf.centerOfMass(toGeoJSON(secteur)).geometry.coordinates);
         const weight = secteur.geometry.type === "Polygon" ? 1 : 6;
         const marker = name ? L.marker(secteur.center, {
@@ -1188,7 +1189,7 @@ $stmtV->close();
         approches,
         accesVelos,
         parkings,
-        secteurs,
+        secteurs: secteurs.filter(Boolean),
       };
     }
 
