@@ -1295,8 +1295,9 @@ $stmtV->close();
     }
     map.on("click", () => { removeParkingLinks(); resetParkingMarkers(); });
     map.on("zoomend", () => {
+      const hasSecteurs = falaiseDetails.secteurs && falaiseDetails.secteurs.length > 0;
       toggleNames(map.getZoom() > zoomSwitch);
-      toggleFalaiseIcon(map.getZoom() <= zoomSwitch);
+      if (hasSecteurs) { toggleFalaiseIcon(map.getZoom() <= zoomSwitch); }
     });
     fetch("./bdd/barres/" + falaise.falaise_id + "_" + falaise.falaise_nomformate + ".geojson")
       .then(response => response.json())
