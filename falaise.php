@@ -1066,10 +1066,10 @@ $stmtV->close();
         dashArray: "5 5",
       };
       const approcheHighlightedStyle = {
-        color: "DodgerBlue",
         weight: 6,
         dashArray: "10",
       };
+      const approcheColors = ["DodgerBlue", "DarkBlue", "SteelBlue", "royalblue"]
       const approches = falaiseDetails.approches?.map(approche => {
         const layer = L.geoJSON(toGeoJSON(approche), {
           style: approcheBaseStyle,
@@ -1146,10 +1146,11 @@ $stmtV->close();
           }
           const parkingList = secteur.properties.parking.split(",").map(p => p.trim()) || [];
           const approcheList = secteur.properties.approche.split(",").map(p => p.trim()) || [];
-          approcheList.map(approche => {
+          approcheList.map((approche, i) => {
             const ap = approche ? approches.find(a => a.properties.name === approche) : undefined;
             if (ap) {
-              ap.layer.setStyle(approcheHighlightedStyle);
+              ap.layer.setStyle({ ...approcheHighlightedStyle, color: approcheColors[i % approcheColors.length] });
+
             }
           })
           if (approcheList.length === 0) {
