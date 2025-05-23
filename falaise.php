@@ -952,6 +952,7 @@ $stmtV->close();
 
     const center = falaise.falaise_latlng.split(",").map(parseFloat);
     const zoom = 13;
+    const zoomSwitch = 14;
     const bounds = [
       falaise.falaise_latlng.split(",").map(parseFloat),
       itineraires.map(it => it.gare_latlng.split(",").map(parseFloat))
@@ -1007,7 +1008,7 @@ $stmtV->close();
         );
     }
 
-    const marker = L.marker(
+    const falaiseMarker = L.marker(
       falaise.falaise_latlng.split(","),
       {
         icon: icon(defaultMarkerSize),
@@ -1015,7 +1016,7 @@ $stmtV->close();
         autoPanOnFocus: true,
       }
     ).addTo(map);
-    marker.on("click", () => {
+    falaiseMarker.on("click", () => {
       map.flyTo(falaise.falaise_latlng.split(","), 15, { duration: 0.25 });
     });
     itineraires.map((it, i) => {
@@ -1274,7 +1275,29 @@ $stmtV->close();
         }
       })
     }
+    const toggleNames = (shown) => {
+      falaiseDetails.secteurs?.map(secteur => {
+        if (secteur.marker) {
+          if (shown) {
+            document.getElementById(`marker-${secteur.properties.name.replace(/"/g, "")}`).classList.remove("hidden");
+          } else {
+            document.getElementById(`marker-${secteur.properties.name.replace(/"/g, "")}`).classList.add("hidden");
+          }
+        }
+      })
+    }
+    const toggleFalaiseIcon = (shown) => {
+      if (shown) {
+        falaiseMarker.setOpacity(1);
+      } else {
+        falaiseMarker.setOpacity(0);
+      }
+    }
     map.on("click", () => { removeParkingLinks(); resetParkingMarkers(); });
+    map.on("zoomend", () => {
+      toggleNames(map.getZoom() > zoomSwitch);
+      toggleFalaiseIcon(map.getZoom() <= zoomSwitch);
+    });
     fetch("./bdd/barres/" + falaise.falaise_id + "_" + falaise.falaise_nomformate + ".geojson")
       .then(response => response.json())
       .then(data => {
