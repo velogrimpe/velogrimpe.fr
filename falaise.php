@@ -762,13 +762,13 @@ $stmtV->close();
 
 
 
-    <div class="flex flex-col items-center gap-2 w-full">
+    <div class="flex flex-col items-center gap-2 w-full mb-4">
       <div id="map" class="h-[600px] w-full bg-black rounded-lg"></div>
     </div>
 
     <!-- Image optionnelle 1 -->
     <?php if (urlExists("https://www.velogrimpe.fr/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img1.png")): ?>
-      <div class="flex flex-col items-center gap-2">
+      <div class="flex flex-col items-center gap-1">
         <?php
         echo '<img src="https://www.velogrimpe.fr/bdd/images_falaises/' . htmlspecialchars($falaise_id) . '_' . htmlspecialchars($falaise_nomformate) . '_img1.png" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">';
         if (!empty($falaise_leg1)) {
@@ -797,7 +797,7 @@ $stmtV->close();
 
     <!-- Image optionnelle 2 -->
     <?php if (urlExists("https://www.velogrimpe.fr/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img2.png")): ?>
-      <div class="flex flex-col items-center gap-2">
+      <div class="flex flex-col items-center gap-1">
         <?php
         echo '<img src="https://www.velogrimpe.fr/bdd/images_falaises/' . htmlspecialchars($falaise_id) . '_' . htmlspecialchars($falaise_nomformate) . '_img2.png" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">';
         if (!empty($falaise_leg2)) {
@@ -818,12 +818,14 @@ $stmtV->close();
 
     <!-- Image optionnelle 3 -->
     <?php if (urlExists("https://www.velogrimpe.fr/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img3.png")): ?>
-      <?php
-      echo '<img src="https://www.velogrimpe.fr/bdd/images_falaises/' . htmlspecialchars($falaise_id) . '_' . htmlspecialchars($falaise_nomformate) . '_img3.png" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">';
-      if (!empty($falaise_leg3)) {
-        echo '<div class="text-base-content">' . nl2br($falaise_leg3) . '</div>';
-      }
-      ?>
+      <div class="flex flex-col items-center gap-1">
+        <?php
+        echo '<img src="https://www.velogrimpe.fr/bdd/images_falaises/' . htmlspecialchars($falaise_id) . '_' . htmlspecialchars($falaise_nomformate) . '_img3.png" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">';
+        if (!empty($falaise_leg3)) {
+          echo '<div class="text-base-content">' . nl2br($falaise_leg3) . '</div>';
+        }
+        ?>
+      </div>
     <?php endif; ?>
 
     <div class="text-center text-slate-600 text-sm italic opacity-60">
