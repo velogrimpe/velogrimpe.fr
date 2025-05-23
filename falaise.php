@@ -927,6 +927,22 @@ $stmtV->close();
       return [lat, lng, ...rest]
     }
     const toGeoJSON = (feature) => ({ type: "FeatureCollection", features: [feature] });
+    const parkingIcon = (size, pname) => L.divIcon({
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+      className: "bg-none flex flex-row justify-center items-start",
+      html: (
+        `<div class="text-white bg-blue-600 text-[${size / 2 + 1}px] rounded-full aspect-square w-[${size}px] h-[${size}px] flex justify-center items-center font-bold border border-white">${pname}</div>`
+      ),
+    })
+    const isInvalidSecteur = (secteur) => {
+      return (
+        !secteur.geometry
+        || !["Polygon", "LineString"].includes(secteur.geometry.type)
+        || secteur.geometry.coordinates.length === 0
+        || secteur.geometry.coordinates[0].length === 0
+      );
+    }
   </script>
   <script>
     const falaise = <?php echo json_encode($dataF); ?>;
@@ -1066,6 +1082,7 @@ $stmtV->close();
         dashArray: "5 5",
       };
       const approcheHighlightedStyle = {
+        color: "DodgerBlue",
         weight: 6,
         dashArray: "10",
       };
@@ -1092,14 +1109,7 @@ $stmtV->close();
         const layer = L.marker(
           reverse(parking.geometry.coordinates),
           {
-            icon: L.divIcon({
-              iconSize: [18, 18],
-              iconAnchor: [9, 9],
-              className: "bg-none flex flex-row justify-center items-start",
-              html: (
-                `<div class="text-white bg-blue-600 text-[10px] rounded-full aspect-square w-[18px] h-[18px] flex justify-center items-center font-bold border border-white">${pname}</div>`
-              ),
-            }),
+            icon: parkingIcon(18, pname),
           }).addTo(map);
         if (parking.properties.name.length > 2) {
           layer.bindTooltip(parking.properties.name, {
@@ -1113,7 +1123,7 @@ $stmtV->close();
       })
       const secteurs = falaiseDetails.secteurs?.map(secteur => {
         const name = secteur.properties.name;
-        if (!name || !secteur.geometry) return;
+        if (isInvalidSecteur(secteur)) return;
         secteur.center = reverse(turf.centerOfMass(toGeoJSON(secteur)).geometry.coordinates);
         const weight = secteur.geometry.type === "Polygon" ? 1 : 6;
         const marker = name ? L.marker(secteur.center, {
@@ -1123,7 +1133,7 @@ $stmtV->close();
             iconAnchor: [0, 0],
             className: "relative",
             html: (
-              `<div id="marker-${name}" class="absolute top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">`
+              `<div id="marker-${name.replace(/"/g, "")}" class="absolute top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">`
               + name
               + `</div>`
             ),
@@ -1141,22 +1151,23 @@ $stmtV->close();
           L.DomEvent.stopPropagation(e);
           layer.eachLayer(l => l.setStyle({ color: "darkred", weight: weight + 2 }));
           if (marker) {
-            document.getElementById(`marker-${name}`).classList.add("bg-red-900", "text-white");
-            document.getElementById(`marker-${name}`).classList.remove("bg-white", "text-black");
+            document.getElementById(`marker-${name.replace(/"/g, "")}`).classList.add("bg-red-900", "text-white");
+            document.getElementById(`marker-${name.replace(/"/g, "")}`).classList.remove("bg-white", "text-black");
           }
-          const parkingList = secteur.properties.parking.split(",").map(p => p.trim()) || [];
-          const approcheList = secteur.properties.approche.split(",").map(p => p.trim()) || [];
+          const parkingList = secteur.properties.parking?.split(",").map(p => p.trim()) || [];
+          const approcheList = secteur.properties.approche?.split(",").map(p => p.trim()) || [];
           approcheList.map((approche, i) => {
             const ap = approche ? approches.find(a => a.properties.name === approche) : undefined;
             if (ap) {
-              ap.layer.setStyle({ ...approcheHighlightedStyle, color: approcheColors[i % approcheColors.length] });
-
+              ap.layer.setStyle(approcheHighlightedStyle);
             }
           })
-          if (approcheList.length === 0) {
-            parkingList.map(parking => {
-              const pk = parking ? parkings.find(p => p.properties.name === parking) : undefined;
-              if (pk) {
+          parkingList.map(parking => {
+            const pk = parking ? parkings.find(p => p.properties.name === parking) : undefined;
+            if (pk) {
+              map.removeLayer(pk.layer);
+              pk.layer = L.marker(reverse(pk.geometry.coordinates), { icon: parkingIcon(24, parking) }).addTo(map);
+              if (approcheList.length === 0) {
                 parkingIndicators.push(
                   L.polyline([reverse(pk.geometry.coordinates), secteur.center], {
                     color: "black",
@@ -1165,18 +1176,19 @@ $stmtV->close();
                   }).addTo(map)
                 );
               }
-            })
-          }
+            }
+          })
         }
         const mouseout = (e) => {
           removeParkingLinks();
+          resetParkingMarkers();
           approches.map(approche => {
             approche.layer.setStyle(approcheBaseStyle);
           })
           layer.eachLayer(l => l.setStyle({ color: "black", weight }));
           if (marker) {
-            document.getElementById(`marker-${name}`).classList.remove("bg-red-900", "text-white");
-            document.getElementById(`marker-${name}`).classList.add("bg-white", "text-black");
+            document.getElementById(`marker-${name.replace(/"/g, "")}`).classList.remove("bg-red-900", "text-white");
+            document.getElementById(`marker-${name.replace(/"/g, "")}`).classList.add("bg-white", "text-black");
           }
         }
         layer.eachLayer(l => {
@@ -1252,7 +1264,15 @@ $stmtV->close();
       parkingIndicators.forEach(layer => map.removeLayer(layer));
       parkingIndicators = [];
     }
-    map.on("click", () => removeParkingLinks());
+    const resetParkingMarkers = () => {
+      falaiseDetails.parkings?.map(parking => {
+        if (parking.layer) {
+          map.removeLayer(parking.layer);
+          parking.layer = L.marker(reverse(parking.geometry.coordinates), { icon: parkingIcon(18, parking.properties.name) }).addTo(map);
+        }
+      })
+    }
+    map.on("click", () => { removeParkingLinks(); resetParkingMarkers(); });
     fetch("./bdd/barres/" + falaise.falaise_id + "_" + falaise.falaise_nomformate + ".geojson")
       .then(response => response.json())
       .then(data => {
