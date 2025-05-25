@@ -60,6 +60,7 @@ $falaises_topo = array_values(array_filter(
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_velo.php?admin=<?= $token ?>">Ajouter un itinéraire vélo
         (gare - falaise)</a>
       <a class="btn btn-primary btn-lg" href="/ajout/admin/oblyk.php?admin=<?= $token ?>">Créer les liens Oblyk</a>
+      <a class="btn btn-primary btn-lg" href="/ajout/admin/tableau_trains.php?admin=<?= $token ?>">Récap. Trains</a>
     </div>
 
     <h2 class="text-4xl font-bold text-wrap text-center">
