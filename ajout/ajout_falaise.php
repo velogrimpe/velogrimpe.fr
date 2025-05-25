@@ -155,8 +155,9 @@ if ($falaise_id) {
           <div class="relative not-prose z-[11000] flex-1">
             <label class="form-control">
               <b>Nom de la falaise : </b>
-              <input class="input input-primary input-sm" type="text" id="falaise_nom" name="falaise_nom" required
-                autocomplete="off" oninput="formatNomFalaise();" <?php if ($falaise_id): ?> disabled <?php endif ?> />
+              <input class="input input-primary input-sm <?php if ($falaise_id): ?> input-disabled <?php endif ?>"
+                type="text" id="falaise_nom" name="falaise_nom" required autocomplete="off"
+                oninput="formatNomFalaise();" <?php if ($falaise_id): ?> readonly <?php endif ?> />
             </label>
             <ul id="falaise-list" class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
             </ul>
@@ -408,17 +409,21 @@ if ($falaise_id) {
         </div>
         <i class="text-slate-400 text-sm">
           Remarques :<br>
-          - Dans ce topo, on utilise la notation "6-" pour désigner les voies de 6a à 6b, et "6+" pour les voies de 6b+ à 6c+.<br>
-          - Ne pas mettre "8-" comme cotation max s'il n'y a que des voies dans le 6, et une seule voie dans le 8a par exemple.
+          - Dans ce topo, on utilise la notation "6-" pour désigner les voies de 6a à 6b, et "6+" pour les voies de 6b+
+          à 6c+.<br>
+          - Ne pas mettre "8-" comme cotation max s'il n'y a que des voies dans le 6, et une seule voie dans le 8a par
+          exemple.
         </i>
       </div>
 
       <label class="form-control" for="falaise_cottxt">
         <b class="text-gray-400 opacity-70">Précisions sur les cotations :</b>
         <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_cottxt" name="falaise_cottxt"
-          rows="2" placeholder="ex : Falaise surtout interessante pour les voies dans le 6-7. On compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7."></textarea>
+          rows="2"
+          placeholder="ex : Falaise surtout interessante pour les voies dans le 6-7. On compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7."></textarea>
         <i class="text-slate-400 text-sm">
-          Texte optionnel pour préciser les cotations (ex : "Falaise surtout interessante pour les voies dans le 6-7. On compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7").</i>
+          Texte optionnel pour préciser les cotations (ex : "Falaise surtout interessante pour les voies dans le 6-7. On
+          compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7").</i>
       </label>
 
       <label class="form-control" for="falaise_voies">
@@ -436,7 +441,7 @@ if ($falaise_id) {
           - ...</i>
       </label>
 
-      
+
 
       <div>
 
@@ -609,7 +614,8 @@ if ($falaise_id) {
       <label class="form-control" for="falaise_voletcarto">
         <b>Résumé de la fiche falaise :</b>
         <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voletcarto"
-          name="falaise_voletcarto" rows="3" placeholder="ex : Falaise exposée Sud, avec 120 voies de 6a à 7c. Quelques grandes voies en 2 ou 3 longueurs."
+          name="falaise_voletcarto" rows="3"
+          placeholder="ex : Falaise exposée Sud, avec 120 voies de 6a à 7c. Quelques grandes voies en 2 ou 3 longueurs."
           required maxlength="200"></textarea>
         <i class="text-slate-400 text-sm">Résumé court et synthétique sur la falaise, qui apparaitra dans le volet qui
           s'ouvre quand on clique sur une falaise de la carte.<br>
