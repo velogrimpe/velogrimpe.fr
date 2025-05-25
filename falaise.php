@@ -681,7 +681,7 @@ $stmtV->close();
                 <br>
                 <?php if ($velo['velo_openrunner']): ?>
                   <!-- Desktop : ouvre juste en dessous -->
-                  <a class="font-bold text-primary" href='#' class="hidden md:inline"
+                  <a class="font-bold text-primary hidden md:inline" href='#'
                     onclick="document.getElementById('profil_<?= $velo['velo_id'] ?>').classList.toggle('hidden'); return false;">
                     Profil altimétrique
                   </a>
