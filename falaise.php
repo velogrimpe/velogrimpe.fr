@@ -95,7 +95,7 @@ $nbvoies_corresp = [
   200 => "~200 voies",
   350 => "200-500 voies",
   500 => "~500 voies",
-  1000 => ">= 500 voies",
+  1000 => "&ge; 500 voies",
 ];
 $falaise_nbvoies = $nbvoies_corresp[$dataF['falaise_nbvoies']] ?? "inconnue";
 

@@ -45,7 +45,7 @@ $nbvoies_corresp = [
   200 => "~200 voies",
   350 => "200-500 voies",
   500 => "~500 voies",
-  1000 => ">= 500 voies",
+  1000 => "&ge; 500 voies",
 ];
 
 require_once "./database/velogrimpe.php";
