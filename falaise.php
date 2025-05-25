@@ -185,7 +185,7 @@ $stmtV->close();
 
 <body>
   <?php include "./components/header.html"; ?>
-  <div class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
+  <main class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
 
     <div class="flex justify-between items-center w-full">
       <a class="text-primary font-bold" href="/">← Retour à la carte</a>
@@ -832,7 +832,7 @@ $stmtV->close();
       Falaise ajoutée par <?= $falaise_contrib_name ?>
     </div>
 
-  </div>
+  </main>
 
   <script>
     // Paramètres généraux
