@@ -100,11 +100,11 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                               </a>
                               <button class="btn btn-error btn-sm text-base-100 py-1 h-fit"
                                 onclick="excludeTrain(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, this)">
-                                Supprimer itinéraire train
+                                Gare d'accès non pertinente depuis cette ville
                               </button>
                               <button class="btn btn-error btn-sm text-base-100 py-1 h-fit"
                                 onclick="excludeFalaise(<?= $ville['ville_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
-                                Couple ville / falaise sans intérêt
+                                Falaise non pertinente depuis cette ville
                               </button>
                             </div>
                           </div>
