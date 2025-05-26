@@ -1226,7 +1226,7 @@ $stmtV->close();
         approches,
         accesVelos,
         parkings,
-        secteurs: secteurs.filter(Boolean),
+        secteurs: secteurs?.filter(Boolean),
       };
     }
 
