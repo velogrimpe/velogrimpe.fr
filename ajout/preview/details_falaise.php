@@ -337,6 +337,7 @@ $stmtF->close();
     if ((type === "secteur" || type === undefined) && shape === "Line") {
       layer.setText("-", textPathOptions)
     }
+    createAndBindPopup(layer);
   })
 
 
