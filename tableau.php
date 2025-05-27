@@ -136,25 +136,25 @@ $stmt->close();
 
 <head>
   <meta charset="UTF-8" />
-  <title>Escalade au départ de <?php echo $ville['ville_nom'] ?> - Vélogrimpe.fr</title>
+  <title>Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://velogrimpe.fr/tableau.php?ville_id=<?= $ville_id ?>" />
   <meta name="description"
-    content="Sorties escalade au départ de <?= $ville_id ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
+    content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
   <meta name="og:locale" content="fr_FR">
-  <meta name="og:title" content="Escalade au départ de <?php echo $ville['ville_nom'] ?> - Vélogrimpe.fr">
+  <meta name="og:title" content="Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr">
   <meta name="og:type" content="website">
   <meta name="og:site_name" content="Velogrimpe.fr">
   <meta name="og:url" content="https://velogrimpe.fr/tableau.php?ville_id=<?= $ville_id ?>">
   <meta name="og:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
   <meta name="og:description"
-    content="Sorties escalade au départ de <?= $ville_id ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
+    content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
   <meta name="twitter:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
-  <meta name="twitter:title" content="Escalade au départ de <?php echo $ville['ville_nom'] ?> - Vélogrimpe.fr">
+  <meta name="twitter:title" content="Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr">
   <meta name="twitter:description"
-    content="Sorties escalade au départ de <?= $ville_id ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
+    content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
