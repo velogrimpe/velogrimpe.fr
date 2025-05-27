@@ -20,6 +20,25 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   <meta charset="UTF-8" />
   <title>Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Meta tags for SEO and Social Networks -->
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://velogrimpe.fr/" />
+  <meta name="description"
+    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+  <meta name="og:locale" content="fr_FR">
+  <meta name="og:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train">
+  <meta name="og:type" content="website">
+  <meta name="og:site_name" content="Velogrimpe.fr">
+  <meta name="og:url" content="https://velogrimpe.fr/">
+  <meta name="og:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta name="og:description"
+    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta name="twitter:title"
+    content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
+  <meta name="twitter:description"
+    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+
   <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
   <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js" defer></script>
