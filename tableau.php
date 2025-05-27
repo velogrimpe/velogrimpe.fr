@@ -143,13 +143,13 @@ $stmt->close();
   <link rel="canonical" href="https://velogrimpe.fr/tableau.php?ville_id=<?= $ville_id ?>" />
   <meta name="description"
     content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
-  <meta name="og:locale" content="fr_FR">
-  <meta name="og:title" content="Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr">
-  <meta name="og:type" content="website">
-  <meta name="og:site_name" content="Velogrimpe.fr">
-  <meta name="og:url" content="https://velogrimpe.fr/tableau.php?ville_id=<?= $ville_id ?>">
-  <meta name="og:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
-  <meta name="og:description"
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Velogrimpe.fr">
+  <meta property="og:url" content="https://velogrimpe.fr/tableau.php?ville_id=<?= $ville_id ?>">
+  <meta property="og:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta property="og:description"
     content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
   <meta name="twitter:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
   <meta name="twitter:title" content="Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr">

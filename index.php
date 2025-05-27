@@ -25,13 +25,13 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   <link rel="canonical" href="https://velogrimpe.fr/" />
   <meta name="description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
-  <meta name="og:locale" content="fr_FR">
-  <meta name="og:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train">
-  <meta name="og:type" content="website">
-  <meta name="og:site_name" content="Velogrimpe.fr">
-  <meta name="og:url" content="https://velogrimpe.fr/">
-  <meta name="og:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
-  <meta name="og:description"
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Velogrimpe.fr">
+  <meta property="og:url" content="https://velogrimpe.fr/">
+  <meta property="og:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta property="og:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
   <meta name="twitter:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
   <meta name="twitter:title"
