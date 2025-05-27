@@ -46,6 +46,8 @@ $stmtF->close();
     rel='stylesheet' />
   <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
   <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+  <script src="/js/vendor/leaflet-textpath.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -77,6 +79,10 @@ $stmtF->close();
 
     .vg-draw-ext-falaise {
       background-image: url('/images/pm_link.png');
+    }
+
+    .vg-draw-velo {
+      background-image: url('/images/pm_bicycle.png');
     }
   </style>
 </head>
@@ -186,6 +192,12 @@ $stmtF->close();
     weight: 2,
     dashArray: "5 5",
   };
+  const veloStyle = {
+    color: "indianRed",
+    weight: 3,
+  };
+  const textPathOptions = { repeat: true, offset: 8, below: false };
+
   const parkingIcon = (size) => L.divIcon({
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
@@ -200,24 +212,6 @@ $stmtF->close();
   });
   var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
   L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
-  // enable global Edit Mode
-  // const pmOptions = {
-  //   position: 'topleft',
-  //   drawMarker: true,
-  //   drawPolyline: true,
-  //   drawPolygon: true,
-  //   drawCircle: false,
-  //   drawRectangle: false,
-  //   cutPolygon: false,
-  //   editMode: true,
-  //   dragMode: true,
-  //   removalMode: true,
-  // }
-  // map.pm.enableGlobalEditMode(pmOptions);
-  // map.pm.enableDraw("Polygon", {
-  //   snappable: true,
-  //   snapDistance: 20,
-  // });
   map.pm.addControls({
     position: 'topright',
     drawCircle: false,
@@ -231,6 +225,63 @@ $stmtF->close();
     rotateMode: false,
   });
   map.pm.Toolbar.createCustomControl({
+    name: "Accès vélo",
+    block: "draw",
+    title: "Ajouter un accès vélo",
+    className: "vg-icon vg-draw-velo",
+    toggle: false,
+    onClick: () => {
+      map.pm.enableDraw("Line", {
+        snappable: true,
+        snapDistance: 20,
+        pathOptions: veloStyle,
+        templineStyle: veloStyle,
+        hintlineStyle: veloStyle,
+        type: "approche",
+      });
+    },
+  });
+  map.pm.Toolbar.createCustomControl({
+    name: "Approche",
+    block: "draw",
+    title: "Ajouter un itinéraire d'approche",
+    className: "vg-icon vg-draw-approche",
+    toggle: false,
+    onClick: () => {
+      map.pm.enableDraw("Line", {
+        snappable: true,
+        snapDistance: 20,
+        pathOptions: approcheStyle,
+        templineStyle: approcheStyle,
+        hintlineStyle: approcheStyle,
+        type: "approche",
+      });
+    },
+  });
+  const markerIcon = parkingIcon(18);
+  map.pm.Toolbar.createCustomControl({
+    name: "Parking",
+    block: "draw",
+    title: "Ajouter un parking",
+    className: "vg-icon vg-draw-parking",
+    actions: ["cancel", {
+      text: "Nouveau parking",
+      name: "marker",
+      onClick: () => {
+        map.pm.enableDraw("Marker", {
+          snappable: true,
+          snapDistance: 20,
+          continueDrawing: false,
+          markerStyle: {
+            draggable: true,
+            icon: markerIcon,
+          },
+          type: "parking",
+        });
+      },
+    }],
+  });
+  map.pm.Toolbar.createCustomControl({
     name: "Secteur",
     block: "draw",
     title: "Ajouter un secteur",
@@ -239,6 +290,7 @@ $stmtF->close();
       "cancel",
       {
         text: "Secteur Linéaire",
+        title: "Secteur linéaire : Le vide est à droite dans le sens du tracé",
         name: "line",
         onClick: () => {
           map.pm.enableDraw("Line", {
@@ -267,46 +319,6 @@ $stmtF->close();
       },
     ],
   });
-  const markerIcon = parkingIcon(18);
-  map.pm.Toolbar.createCustomControl({
-    name: "Parking",
-    block: "draw",
-    title: "Ajouter un parking",
-    className: "vg-icon vg-draw-parking",
-    actions: ["cancel", {
-      text: "Nouveau parking",
-      name: "marker",
-      onClick: () => {
-        map.pm.enableDraw("Marker", {
-          snappable: true,
-          snapDistance: 20,
-          continueDrawing: false,
-          markerStyle: {
-            draggable: true,
-            icon: markerIcon,
-          },
-          type: "parking",
-        });
-      },
-    }],
-  });
-  map.pm.Toolbar.createCustomControl({
-    name: "Approche",
-    block: "draw",
-    title: "Ajouter un itinéraire d'approche",
-    className: "vg-icon vg-draw-approche",
-    toggle: false,
-    onClick: () => {
-      map.pm.enableDraw("Line", {
-        snappable: true,
-        snapDistance: 20,
-        pathOptions: approcheStyle,
-        templineStyle: approcheStyle,
-        hintlineStyle: approcheStyle,
-        type: "approche",
-      });
-    },
-  });
 
   // PANNEAU D'INFORMATION SUR LA FALAISE/GARE SELECTIONNEE
   const falaiseObject = new Falaise(falaise, map);
@@ -320,34 +332,109 @@ $stmtF->close();
   map.on("pm:create", e => {
     const { layer, shape } = e;
     // console.log("Création de la forme :", shape, layer);
-    console.log("Type", shape, layer.pm.options.type)
-    layer.properties = { type: layer.pm.options.type };
+    const type = layer.pm.options.type;
+    layer.properties = { type };
+    if ((type === "secteur" || type === undefined) && shape === "Line") {
+      layer.setText("-", textPathOptions)
+    }
   })
 
 
+  // Save function in global scope for simplicity
+  const updateLayer = function (id) {
+    console.log("Updating layer with ID:", id);
+    const layer = layersMap[id];
+    document.querySelectorAll(`.input-${id}`).forEach(input => {
+      const propertyName = input.name;
+      if (propertyName && layer) {
+        layer.properties[propertyName] = input.value;
+      }
+    });
+    layer.closePopup();
+    createAndBindPopup(layer);
+  };
+
+  const invertLine = function (id) {
+    const layer = layersMap[id];
+    const coords = layer.getLatLngs();
+    if (coords.length > 1) {
+      coords.reverse();
+      layer.setLatLngs(coords);
+    }
+  }
+
+  const deleteFeature = (id) => {
+    if (confirm("Êtes-vous sur de vouloir supprimer cet élément ?")) {
+      const layer = layersMap[id];
+      map.removeLayer(layer);
+    }
+  }
+  createAndBindPopup = (layer) => {
+    const id = layer._leaflet_id;
+    let popupHtml = "";
+    const field = (name, placeholder) => {
+      return `<label for="${name}" class="w-full flex gap-2 items-center">${placeholder}: <input type="text" name="${name}" class="input-${id} input input-xs input-primary flex-1" value="${layer.properties[name] || ''}" placeholder="${placeholder}"></label>`
+    }
+    popupHtml += `<div class="w-[300px] flex flex-col gap-1 justify-stretch mx-auto">`;
+    popupHtml += field("name", "Nom");
+    popupHtml += field("description", "Description");
+    if (layer.properties.type === "secteur" || layer.properties.type === undefined) {
+      popupHtml += field("parking", "Parkings");
+      popupHtml += field("approche", "Approches");
+    } else if (layer.properties.type === "approche") {
+      popupHtml += field("parking", "Parkings");
+    } else if (layer.properties.type === "parking") {
+      popupHtml += field("itineraire_acces", "Accès vélo");
+    } else if (layer.properties.type === "acces_velo") {
+    }
+    popupHtml += `<div class="flex flex-row gap-1 justify-between">`;
+    popupHtml += `<button class="flex-1 btn btn-xs btn-error text-base-100" onclick="deleteFeature(${id})">Suppr.</button>`;
+    if ((layer.properties.type === "secteur" || layer.properties.type === undefined) && layer instanceof L.Polyline) {
+      popupHtml += `<button class="flex-1 btn btn-xs btn-secondary" onclick="invertLine(${id})">Inverser</button>`;
+    }
+    popupHtml += `<button class="flex-1 btn btn-xs btn-primary" onclick="updateLayer(${id})">Save</button>`
+    popupHtml += `</div>`;
+    popupHtml += `</div>`;
+    layer.bindTooltip(JSON.stringify(layer.properties));
+    layer.bindPopup(popupHtml, {
+      className: "w-[350px]",
+      minWidth: 300,
+      maxWidth: 350,
+    });
+  }
+
+  const layersMap = {};
+  let features = {};
   fetch(`/api/private/falaise_details.php?falaise_id=${falaise.falaise_id}`).then(response => {
     if (!response.ok) {
       throw new Error("Erreur lors de la récupération des détails de la falaise");
     }
     return response.json();
   }).then(data => {
-    // console.log("Données de falaise :", data);
     if (data.features && data.features.length > 0) {
       data.features.forEach(feature => {
         let layer;
-        if ((feature.properties.type === "secteur" || feature.properties.type === undefined) && feature.geometry.type === "Polygon") {
-          layer = L.polygon(feature.geometry.coordinates[0], barresStyles("Polygon"));
-        } else if ((feature.properties.type === "secteur" || feature.properties.type === undefined) && feature.geometry.type === "LineString") {
-          layer = L.polyline(feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), barresStyles("Line"));
+        if (feature.properties.type === "secteur" || feature.properties.type === undefined) {
+          if (feature.geometry.type === "Polygon") {
+            layer = L.polygon(feature.geometry.coordinates.map(rings => {
+              return rings.map(coord => [coord[1], coord[0]]);
+            }), barresStyles("Polygon"));
+          } else if (feature.geometry.type === "LineString") {
+            layer = L.polyline(feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), barresStyles("Line"));
+            layer.setText("-", textPathOptions)
+          }
         } else if (feature.properties.type === "approche") {
           layer = L.polyline(feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), approcheStyle);
-        } else if (feature.geometry.type === "Point") {
+        } else if (feature.properties.type === "acces_velo") {
+          layer = L.polyline(feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), veloStyle);
+        } else if (feature.properties.type === "parking") {
           layer = L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], { icon: markerIcon });
         }
         if (layer) {
           layer.properties = feature.properties;
           layer.addTo(map);
-          layer.bindPopup(`<div><strong>${feature.properties.name || "Unnamed"}</strong>${JSON.stringify(feature.properties)}</div>`);
+          layersMap[layer._leaflet_id] = layer;
+          createAndBindPopup(layer);
         }
       });
     }
