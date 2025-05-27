@@ -1110,7 +1110,6 @@ $stmtV->close();
         weight: 6,
         dashArray: "10",
       };
-      const approcheColors = ["DodgerBlue", "DarkBlue", "SteelBlue", "royalblue"]
       const approches = falaiseDetails.approches?.map(approche => {
         const layer = L.geoJSON(toGeoJSON(approche), {
           style: approcheBaseStyle,
