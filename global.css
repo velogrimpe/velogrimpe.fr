@@ -118,12 +118,12 @@ a:hover {
 }
 
 /* Links styling */
-#map a:not(.link):not(.btn) {
+#map a:not(.link):not(.btn):not(.leaflet-pm-action) {
   margin-top: unset;
   text-decoration: unset;
   color: unset;
 }
-#map a:not(.link):not(.btn):hover {
+#map a:not(.link):not(.btn):not(.leaflet-pm-action):hover {
   color: unset;
   text-decoration: unset;
 }
