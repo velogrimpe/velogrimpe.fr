@@ -89,9 +89,16 @@ $stmtF->close();
 
 <body>
   <?php include "../../components/header.html"; ?>
-  <main class="py-4 px-2 md:px-8">
+  <main class="py-4 px-2 md:px-8 flex flex-col gap-4">
+    <div class="flex gap-2 justify-end items-center">
+      <a class="btn btn-sm" href="/falaise.php?falaise_id=<?php echo $falaise['falaise_id']; ?>">Voir la
+        falaise</a>
+      <button class="btn btn-sm" onclick="alert('Pas encore implémenté')">Télécharger le
+        GeoJSON</button>
+      <button class="btn btn-primary btn-sm" onclick="alert('Pas encore implémenté')">Enregistrer</button>
+    </div>
     <div class="flex flex-col gap-1">
-      <div id="map" class="w-full h-[calc(100dvh-120px)]"></div>
+      <div id="map" class="w-full h-[calc(100vh-180px)]"></div>
     </div>
   </main>
   <?php include "../../components/footer.html"; ?>
@@ -170,8 +177,7 @@ $stmtF->close();
     }
 
     getPopupContent() {
-      return `<strong>${this.falaise.falaise_nom}</strong><br>
-              <a href="/falaise.php?falaise_id=${this.falaise.falaise_id}">Voir la falaise</a>`;
+      return `<strong>${this.falaise.falaise_nom}</strong>`;
     }
   }
 </script>
@@ -223,6 +229,7 @@ $stmtF->close();
     drawCircleMarker: false,
     cutPolygon: false,
     rotateMode: false,
+    dragMode: false,
   });
   map.pm.Toolbar.createCustomControl({
     name: "Accès vélo",
