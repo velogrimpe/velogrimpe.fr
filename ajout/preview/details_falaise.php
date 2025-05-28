@@ -31,6 +31,20 @@ $resF = $stmtF->get_result();
 $falaise = $resF->fetch_assoc();
 $stmtF->close();
 
+$stmtIt = $mysqli->prepare("
+  SELECT *
+  FROM velo
+  LEFT JOIN gares ON velo.gare_id = gares.gare_id
+  WHERE velo.falaise_id = ?");
+$stmtIt->bind_param("i", $falaise_id);
+$stmtIt->execute();
+$result = $stmtIt->get_result();
+$velos = [];
+while ($row = $result->fetch_assoc()) {
+  $velos[] = $row;
+}
+$stmtIt->close();
+
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -46,6 +60,7 @@ $stmtF->close();
     rel='stylesheet' />
   <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
   <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js"></script>
   <!-- <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script> -->
   <script src="/js/vendor/leaflet-textpath.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
@@ -104,16 +119,6 @@ $stmtF->close();
   <?php include "../../components/footer.html"; ?>
 </body>
 <script>
-  // Paramètres généraux
-  const iconSize = 24;
-  const falaiseIcon = (size, className) =>
-    L.icon({
-      iconUrl: "/images/icone_falaise_carte.png",
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size],
-      className,
-    });
-  const iconFalaise = falaiseIcon(iconSize);
 
   const ignTiles = L.tileLayer(
     "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
@@ -151,41 +156,17 @@ $stmtF->close();
     'Outdoors': outdoorsTiles,
   };
 
-  var selected = null;
-  const teardown = () => {
-    selected = null;
-  };
-
-</script>
-<script>
-  class Falaise {
-    constructor(falaise, map, className = "faded") {
-      this.falaise = falaise;
-      this.map = map;
-      this.className = className;
-      this.marker = L.marker(
-        falaise.falaise_latlng.split(",").map(parseFloat),
-        { icon: iconFalaise, pmIgnore: true }
-      ).addTo(map);
-      this.marker.bindPopup(this.getPopupContent());
-      this.marker.on("click", () => {
-        if (selected) {
-          teardown();
-        }
-        selected = this;
-      });
-    }
-
-    getPopupContent() {
-      return `<strong>${this.falaise.falaise_nom}</strong>`;
-    }
-  }
 </script>
 
-<script>
+<script type="module">
+  import Falaise from "/js/components/map/falaise.js";
+  import Velo from "/js/components/map/velo.js";
+  import AccesVelo from "/js/components/map/acces-velo.js";
+
   const zoom = 15;
   // Récupération des données
   const falaise = <?php echo json_encode($falaise); ?>;
+  const velos = <?php echo json_encode($velos); ?>;
   const center = falaise.falaise_latlng.split(",").map(parseFloat);
 
   const barresStyles = (type) => ({
@@ -197,10 +178,6 @@ $stmtF->close();
     color: "blue",
     weight: 2,
     dashArray: "5 5",
-  };
-  const veloStyle = {
-    color: "indianRed",
-    weight: 3,
   };
   const textPathOptions = { repeat: true, offset: 8, below: false };
 
@@ -217,6 +194,8 @@ $stmtF->close();
     layers: [landscapeTiles], center, zoom, fullscreenControl: true, zoomSnap: 0.5
   });
   var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
+  const falaiseObject = new Falaise(map, falaise);
+  const veloObjects = velos.map((velo, index) => new Velo(map, velo, { index }));
   L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
   map.pm.addControls({
     position: 'topright',
@@ -241,10 +220,10 @@ $stmtF->close();
       map.pm.enableDraw("Line", {
         snappable: true,
         snapDistance: 20,
-        pathOptions: veloStyle,
-        templineStyle: veloStyle,
-        hintlineStyle: veloStyle,
-        type: "approche",
+        pathOptions: AccesVelo.style,
+        templineStyle: AccesVelo.style,
+        hintlineStyle: AccesVelo.style,
+        type: "acces_velo",
       });
     },
   });
@@ -327,14 +306,6 @@ $stmtF->close();
     ],
   });
 
-  // PANNEAU D'INFORMATION SUR LA FALAISE/GARE SELECTIONNEE
-  const falaiseObject = new Falaise(falaise, map);
-
-  map.on("click", function (e) {
-    if (selected) {
-      teardown();
-    }
-  });
 
   map.on("pm:create", e => {
     const { layer, shape } = e;
@@ -343,13 +314,15 @@ $stmtF->close();
     layer.properties = { type };
     if ((type === "secteur" || type === undefined) && shape === "Line") {
       layer.setText("-", textPathOptions)
+    } else if (type === "acces_velo") {
+      AccesVelo.fromLayer(map, layer);
     }
     createAndBindPopup(layer);
   })
 
 
   // Save function in global scope for simplicity
-  const updateLayer = function (id) {
+  window.updateLayer = function (id) {
     console.log("Updating layer with ID:", id);
     const layer = layersMap[id];
     document.querySelectorAll(`.input-${id}`).forEach(input => {
@@ -362,7 +335,7 @@ $stmtF->close();
     createAndBindPopup(layer);
   };
 
-  const invertLine = function (id) {
+  window.invertLine = function (id) {
     const layer = layersMap[id];
     const coords = layer.getLatLngs();
     if (coords.length > 1) {
@@ -371,13 +344,13 @@ $stmtF->close();
     }
   }
 
-  const deleteFeature = (id) => {
+  window.deleteFeature = (id) => {
     if (confirm("Êtes-vous sur de vouloir supprimer cet élément ?")) {
       const layer = layersMap[id];
       map.removeLayer(layer);
     }
   }
-  createAndBindPopup = (layer) => {
+  window.createAndBindPopup = (layer) => {
     const id = layer._leaflet_id;
     let popupHtml = "";
     const field = (name, placeholder) => {
@@ -434,7 +407,7 @@ $stmtF->close();
         } else if (feature.properties.type === "approche") {
           layer = L.polyline(feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), approcheStyle);
         } else if (feature.properties.type === "acces_velo") {
-          layer = L.polyline(feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), veloStyle);
+          new AccesVelo(map, feature);
         } else if (feature.properties.type === "parking") {
           layer = L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], { icon: markerIcon });
         }
