@@ -8,9 +8,10 @@ export default class AccesVelo extends Element {
   static highlightStyle = { ...this.style, weight: 5 };
 
   constructor(map, accesVeloFeature, options = {}) {
+    const visibility = options.visibility || { from: 11 };
     const layer = buildAccesVeloLayer(accesVeloFeature, options);
     layer.properties = accesVeloFeature.properties;
-    super(map, layer, "acces_velo", { ...options });
+    super(map, layer, "acces_velo", { ...options, visibility });
   }
 
   static fromLayer(map, layer) {
@@ -28,8 +29,5 @@ const buildAccesVeloLayer = (accesVelo, options = {}) => {
     accesVelo.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
     AccesVelo.style
   );
-  line.on("mouseover", () => {
-    line.setStyle(AccesVelo.highlightStyle);
-  });
   return line;
 };

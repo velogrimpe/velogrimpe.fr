@@ -13,16 +13,19 @@ export default class Element {
     this.layer = layer;
     const { popupContent, popupOptions } = options;
     if (popupContent) {
-      marker.bindPopup(popupContent, popupOptions);
+      layer.bindPopup(popupContent, popupOptions);
     }
     const { tooltipContent, tooltipOptions } = options;
     if (tooltipContent) {
-      marker.bindTooltip(tooltipContent, tooltipOptions);
+      layer.bindTooltip(tooltipContent, tooltipOptions);
     }
     this.layer.type = type;
     if (this.isVisible) {
       this.layer.addTo(map);
     }
+    map.on("zoomend", () => {
+      this.handleZoomChange();
+    });
   }
 
   handleZoomChange() {
@@ -37,15 +40,23 @@ export default class Element {
     }
   }
 
-  highlight() {
-    if (this.highlightStyle) {
-      this.layer.setStyle(this.highlightStyle);
+  highlight(event) {
+    event.originalEvent.target.ownerSVGElement.appendChild(
+      event.originalEvent.target
+    );
+    if (this.constructor.highlightStyle) {
+      this.layer.setStyle(this.constructor.highlightStyle);
     }
   }
 
   unhighlight() {
-    if (this.highlightStyle) {
-      this.layer.setStyle(this.style);
+    if (this.constructor.highlightStyle) {
+      this.layer.setStyle(this.constructor.style);
     }
+  }
+
+  setupHighlight() {
+    this.layer.on("mouseover focus", (e) => this.highlight(e));
+    this.layer.on("mouseout blur", () => this.unhighlight());
   }
 }

@@ -61,7 +61,7 @@ $stmtIt->close();
   <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
   <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
   <script src="/js/vendor/leaflet-textpath.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -162,24 +162,15 @@ $stmtIt->close();
   import Falaise from "/js/components/map/falaise.js";
   import Velo from "/js/components/map/velo.js";
   import AccesVelo from "/js/components/map/acces-velo.js";
+  import Secteur from "/js/components/map/secteur.js";
+  import Approche from "/js/components/map/approche.js";
+  import Parking from "/js/components/map/parking.js";
 
   const zoom = 15;
   // Récupération des données
   const falaise = <?php echo json_encode($falaise); ?>;
   const velos = <?php echo json_encode($velos); ?>;
   const center = falaise.falaise_latlng.split(",").map(parseFloat);
-
-  const barresStyles = (type) => ({
-    color: "#333",
-    weight: type === "Polygon" ? 1 : 6,
-    className: "cursor-grab",
-  });
-  const approcheStyle = {
-    color: "blue",
-    weight: 2,
-    dashArray: "5 5",
-  };
-  const textPathOptions = { repeat: true, offset: 8, below: false };
 
   const parkingIcon = (size) => L.divIcon({
     iconSize: [size, size],
@@ -237,9 +228,9 @@ $stmtIt->close();
       map.pm.enableDraw("Line", {
         snappable: true,
         snapDistance: 20,
-        pathOptions: approcheStyle,
-        templineStyle: approcheStyle,
-        hintlineStyle: approcheStyle,
+        pathOptions: Approche.style,
+        templineStyle: Approche.style,
+        hintlineStyle: Approche.style,
         type: "approche",
       });
     },
@@ -282,9 +273,9 @@ $stmtIt->close();
           map.pm.enableDraw("Line", {
             snappable: true,
             snapDistance: 20,
-            pathOptions: barresStyles("Line"),
-            templineStyle: barresStyles("Line"),
-            hintlineStyle: barresStyles("Line"),
+            pathOptions: Secteur.style,
+            templineStyle: Secteur.style,
+            hintlineStyle: Secteur.style,
             type: "secteur",
           });
         },
@@ -296,9 +287,9 @@ $stmtIt->close();
           map.pm.enableDraw("Polygon", {
             snappable: true,
             snapDistance: 20,
-            pathOptions: barresStyles("Polygon"),
-            templineStyle: barresStyles("Polygon"),
-            hintlineStyle: barresStyles("Polygon"),
+            pathOptions: Secteur.polygonStyle,
+            templineStyle: Secteur.polygonStyle,
+            hintlineStyle: Secteur.polygonStyle,
             type: "secteur",
           });
         },
@@ -312,8 +303,12 @@ $stmtIt->close();
     // console.log("Création de la forme :", shape, layer);
     const type = layer.pm.options.type;
     layer.properties = { type };
-    if ((type === "secteur" || type === undefined) && shape === "Line") {
-      layer.setText("-", textPathOptions)
+    if ((type === "secteur" || type === undefined)) {
+      Secteur.fromLayer(map, layer);
+    } else if (type === "approche") {
+      Approche.fromLayer(map, layer);
+    } else if (type === "parking") {
+      Parking.fromLayer(map, layer);
     } else if (type === "acces_velo") {
       AccesVelo.fromLayer(map, layer);
     }
@@ -396,20 +391,14 @@ $stmtIt->close();
       data.features.forEach(feature => {
         let layer;
         if (feature.properties.type === "secteur" || feature.properties.type === undefined) {
-          if (feature.geometry.type === "Polygon") {
-            layer = L.polygon(feature.geometry.coordinates.map(rings => {
-              return rings.map(coord => [coord[1], coord[0]]);
-            }), barresStyles("Polygon"));
-          } else if (feature.geometry.type === "LineString") {
-            layer = L.polyline(feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), barresStyles("Line"));
-            layer.setText("-", textPathOptions)
-          }
+          if (Secteur.isInvalidSecteur(feature)) return;
+          new Secteur(map, feature);
         } else if (feature.properties.type === "approche") {
-          layer = L.polyline(feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), approcheStyle);
+          new Approche(map, feature);
         } else if (feature.properties.type === "acces_velo") {
           new AccesVelo(map, feature);
         } else if (feature.properties.type === "parking") {
-          layer = L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], { icon: markerIcon });
+          new Parking(map, feature);
         }
         if (layer) {
           layer.properties = feature.properties;
