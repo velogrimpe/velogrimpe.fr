@@ -18,6 +18,9 @@ export default class Approche extends Element {
     layer.properties = approcheFeature.properties;
     super(map, layer, "approche", { ...options, visibility });
     this.setupHighlight();
+    this.secteurs = [];
+    this.parkings = [];
+    this.accessVelos = [];
   }
 
   static fromLayer(map, layer) {

@@ -14,6 +14,10 @@ export default class Secteur extends Element {
         visibility: labelVisibility,
       });
     }
+    this.setupHighlight();
+    this.approches = [];
+    this.parkings = [];
+    this.accessVelos = [];
   }
 
   static style = {
@@ -34,19 +38,32 @@ export default class Secteur extends Element {
   };
 
   getStyle = () => {
-    const isPolygon = typeof this.layer === L.polygon;
+    const isPolygon = this.layer instanceof L.Polygon;
     if (isPolygon) {
       return Secteur.polygonStyle;
     }
     return Secteur.style;
   };
   getHighlightStyle = () => {
-    const isPolygon = typeof this.layer === L.polygon;
+    const isPolygon = this.layer instanceof L.Polygon;
     if (isPolygon) {
       return Secteur.polygonHighlightStyle;
     }
     return Secteur.highlightStyle;
   };
+
+  highlight(e) {
+    this.layer.setStyle(this.getHighlightStyle());
+  }
+  unhighlight() {
+    this.layer.setStyle(this.getStyle());
+  }
+
+  cleanUp() {
+    if (this.label) {
+      this.label.cleanUp();
+    }
+  }
 
   static fromLayer(map, layer) {
     map.removeLayer(layer);

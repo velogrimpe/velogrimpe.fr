@@ -41,9 +41,11 @@ export default class Element {
   }
 
   highlight(event) {
-    event.originalEvent.target.ownerSVGElement.appendChild(
-      event.originalEvent.target
-    );
+    if (event.originalEvent.target.ownerSVGElement) {
+      event.originalEvent.target.ownerSVGElement.appendChild(
+        event.originalEvent.target
+      );
+    }
     if (this.constructor.highlightStyle) {
       this.layer.setStyle(this.constructor.highlightStyle);
     }
@@ -59,4 +61,6 @@ export default class Element {
     this.layer.on("mouseover focus", (e) => this.highlight(e));
     this.layer.on("mouseout blur", () => this.unhighlight());
   }
+
+  cleanUp() {}
 }

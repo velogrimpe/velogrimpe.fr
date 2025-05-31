@@ -8,6 +8,20 @@ export default class SecteurLabel extends Element {
     super(map, layer, "secteur-label", {
       ...options,
     });
+    this.secteur = secteur;
+    this.setupHighlight();
+  }
+  highlight(e) {
+    this.secteur.highlight(e);
+  }
+  unhighlight() {
+    this.secteur.unhighlight();
+  }
+
+  cleanUp() {
+    if (this.isVisible) {
+      this.map.removeLayer(this.layer);
+    }
   }
 }
 

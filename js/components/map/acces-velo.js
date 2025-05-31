@@ -12,6 +12,10 @@ export default class AccesVelo extends Element {
     const layer = buildAccesVeloLayer(accesVeloFeature, options);
     layer.properties = accesVeloFeature.properties;
     super(map, layer, "acces_velo", { ...options, visibility });
+    this.setupHighlight();
+    this.approches = [];
+    this.parkings = [];
+    this.accessVelos = [];
   }
 
   static fromLayer(map, layer) {

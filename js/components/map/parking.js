@@ -4,7 +4,12 @@ export default class Parking extends Element {
   constructor(map, parkingFeature, options = {}) {
     const visibility = options.visibility || { from: 12 };
     const layer = buildParkingMarker(parkingFeature, options);
+    layer.properties = parkingFeature.properties;
     super(map, layer, "parking", { ...options, visibility });
+    this.setupHighlight();
+    this.approches = [];
+    this.secteurs = [];
+    this.accesVelos = [];
   }
 
   static fromLayer(map, layer) {
@@ -14,6 +19,13 @@ export default class Parking extends Element {
       properties: layer.properties || {},
     };
     return new Parking(map, parkingFeature);
+  }
+
+  highlight() {
+    this.layer.setIcon(parkingIcon(iconSize * 1.2));
+  }
+  unhighlight() {
+    this.layer.setIcon(iconParking);
   }
 }
 

@@ -319,7 +319,8 @@ $stmtIt->close();
   // Save function in global scope for simplicity
   window.updateLayer = function (id) {
     console.log("Updating layer with ID:", id);
-    const layer = layersMap[id];
+    const feature = featureMap[id];
+    const layer = feature.layer;
     document.querySelectorAll(`.input-${id}`).forEach(input => {
       const propertyName = input.name;
       if (propertyName && layer) {
@@ -331,7 +332,8 @@ $stmtIt->close();
   };
 
   window.invertLine = function (id) {
-    const layer = layersMap[id];
+    const feature = featureMap[id];
+    const layer = feature.layer;
     const coords = layer.getLatLngs();
     if (coords.length > 1) {
       coords.reverse();
@@ -341,37 +343,41 @@ $stmtIt->close();
 
   window.deleteFeature = (id) => {
     if (confirm("Êtes-vous sur de vouloir supprimer cet élément ?")) {
-      const layer = layersMap[id];
+      const feature = featureMap[id];
+      const layer = feature.layer;
       map.removeLayer(layer);
+      feature.cleanUp();
+      delete featureMap[id];
     }
   }
-  window.createAndBindPopup = (layer) => {
-    const id = layer._leaflet_id;
+  window.createAndBindPopup = (layer, _targetLayer) => {
+    const targetLayer = _targetLayer || layer;
+    const id = targetLayer._leaflet_id;
     let popupHtml = "";
     const field = (name, placeholder) => {
-      return `<label for="${name}" class="w-full flex gap-2 items-center">${placeholder}: <input type="text" name="${name}" class="input-${id} input input-xs input-primary flex-1" value="${layer.properties[name] || ''}" placeholder="${placeholder}"></label>`
+      return `<label for="${name}" class="w-full flex gap-2 items-center">${placeholder}: <input type="text" name="${name}" class="input-${id} input input-xs input-primary flex-1" value="${targetLayer.properties[name] || ''}" placeholder="${placeholder}"></label>`
     }
     popupHtml += `<div class="w-[300px] flex flex-col gap-1 justify-stretch mx-auto">`;
     popupHtml += field("name", "Nom");
     popupHtml += field("description", "Description");
-    if (layer.properties.type === "secteur" || layer.properties.type === undefined) {
+    if (targetLayer.properties.type === "secteur" || targetLayer.properties.type === undefined) {
       popupHtml += field("parking", "Parkings");
       popupHtml += field("approche", "Approches");
-    } else if (layer.properties.type === "approche") {
+    } else if (targetLayer.properties.type === "approche") {
       popupHtml += field("parking", "Parkings");
-    } else if (layer.properties.type === "parking") {
+    } else if (targetLayer.properties.type === "parking") {
       popupHtml += field("itineraire_acces", "Accès vélo");
-    } else if (layer.properties.type === "acces_velo") {
+    } else if (targetLayer.properties.type === "acces_velo") {
     }
     popupHtml += `<div class="flex flex-row gap-1 justify-between">`;
     popupHtml += `<button class="flex-1 btn btn-xs btn-error text-base-100" onclick="deleteFeature(${id})">Suppr.</button>`;
-    if ((layer.properties.type === "secteur" || layer.properties.type === undefined) && layer instanceof L.Polyline) {
+    if ((targetLayer.properties.type === "secteur" || targetLayer.properties.type === undefined) && targetLayer instanceof L.Polyline) {
       popupHtml += `<button class="flex-1 btn btn-xs btn-secondary" onclick="invertLine(${id})">Inverser</button>`;
     }
     popupHtml += `<button class="flex-1 btn btn-xs btn-primary" onclick="updateLayer(${id})">Save</button>`
     popupHtml += `</div>`;
     popupHtml += `</div>`;
-    layer.bindTooltip(JSON.stringify(layer.properties));
+    layer.bindTooltip(JSON.stringify(targetLayer.properties));
     layer.bindPopup(popupHtml, {
       className: "w-[350px]",
       minWidth: 300,
@@ -379,7 +385,12 @@ $stmtIt->close();
     });
   }
 
-  const layersMap = {};
+  window.updateAssociations = () => {
+    Object.values(featureMap).forEach(layer => {
+    })
+  }
+
+  const featureMap = {};
   let features = {};
   fetch(`/api/private/falaise_details.php?falaise_id=${falaise.falaise_id}`).then(response => {
     if (!response.ok) {
@@ -389,24 +400,26 @@ $stmtIt->close();
   }).then(data => {
     if (data.features && data.features.length > 0) {
       data.features.forEach(feature => {
-        let layer;
+        let obj;
         if (feature.properties.type === "secteur" || feature.properties.type === undefined) {
           if (Secteur.isInvalidSecteur(feature)) return;
-          new Secteur(map, feature);
+          obj = new Secteur(map, feature);
         } else if (feature.properties.type === "approche") {
-          new Approche(map, feature);
+          obj = new Approche(map, feature);
         } else if (feature.properties.type === "acces_velo") {
-          new AccesVelo(map, feature);
+          obj = new AccesVelo(map, feature);
         } else if (feature.properties.type === "parking") {
-          new Parking(map, feature);
+          obj = new Parking(map, feature);
         }
-        if (layer) {
-          layer.properties = feature.properties;
-          layer.addTo(map);
-          layersMap[layer._leaflet_id] = layer;
-          createAndBindPopup(layer);
+        if (obj) {
+          featureMap[obj.layer._leaflet_id] = obj;
+          createAndBindPopup(obj.layer);
+          if (obj instanceof Secteur) {
+            createAndBindPopup(obj.label.layer, obj.layer);
+          }
         }
       });
+      updateAssociations();
     }
   }).catch(error => {
     console.error("Erreur lors du chargement des données de falaise :", error);
