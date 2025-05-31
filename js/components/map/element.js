@@ -40,8 +40,12 @@ export default class Element {
     }
   }
 
-  highlight(event) {
-    if (event.originalEvent.target.ownerSVGElement) {
+  highlight(event, propagate = true) {
+    if (
+      event &&
+      event.originalEvent &&
+      event.originalEvent.target.ownerSVGElement
+    ) {
       event.originalEvent.target.ownerSVGElement.appendChild(
         event.originalEvent.target
       );
@@ -49,11 +53,25 @@ export default class Element {
     if (this.constructor.highlightStyle) {
       this.layer.setStyle(this.constructor.highlightStyle);
     }
+    if (this.getDependencies && propagate) {
+      this.getDependencies().forEach((dep) => {
+        dep.forEach((d) => {
+          d.highlight(event, false);
+        });
+      });
+    }
   }
 
-  unhighlight() {
+  unhighlight(propagate = true) {
     if (this.constructor.highlightStyle) {
       this.layer.setStyle(this.constructor.style);
+    }
+    if (this.getDependencies && propagate) {
+      this.getDependencies().forEach((dep) => {
+        dep.forEach((d) => {
+          d.unhighlight(false);
+        });
+      });
     }
   }
 

@@ -31,7 +31,6 @@ const buildSecteurLabelLayer = (secteurFeature, options = {}) => {
   );
   return L.marker(center, {
     pmignore: true,
-    pane: "tooltipPane",
     icon: L.divIcon({
       iconSize: [0, 0],
       iconAnchor: [0, 0],
@@ -40,7 +39,7 @@ const buildSecteurLabelLayer = (secteurFeature, options = {}) => {
         `<div id="marker-${secteurFeature.properties.name.replace(
           /"/g,
           ""
-        )}" class="absolute top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">` +
+        )}" class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">` +
         secteurFeature.properties.name +
         `</div>`,
     }),

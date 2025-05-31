@@ -273,9 +273,9 @@ $stmtIt->close();
           map.pm.enableDraw("Line", {
             snappable: true,
             snapDistance: 20,
-            pathOptions: Secteur.style,
-            templineStyle: Secteur.style,
-            hintlineStyle: Secteur.style,
+            pathOptions: Secteur.lineStyle,
+            templineStyle: Secteur.lineStyle,
+            hintlineStyle: Secteur.lineStyle,
             type: "secteur",
           });
         },
@@ -329,6 +329,7 @@ $stmtIt->close();
     });
     layer.closePopup();
     createAndBindPopup(layer);
+    updateAssociations();
   };
 
   window.invertLine = function (id) {
@@ -386,7 +387,9 @@ $stmtIt->close();
   }
 
   window.updateAssociations = () => {
-    Object.values(featureMap).forEach(layer => {
+    const features = Object.values(featureMap);
+    features.forEach(feature => {
+      feature.updateAssociations(features);
     })
   }
 

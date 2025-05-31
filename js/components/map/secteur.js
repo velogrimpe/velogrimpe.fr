@@ -1,7 +1,21 @@
+import { parseList } from "/js/components/utils/lists.js";
 import Element from "/js/components/map/element.js";
 import SecteurLabel from "/js/components/map/secteur-label.js";
 
 export default class Secteur extends Element {
+  /**
+   * Creates an instance of Secteur.
+   * @param {Object} map - The map instance where the object will be added.
+   * @param {Object} secteurFeature - The GeoJSON feature representing the object.
+   * @param {Object} [secteurFeature.geometry] - The geometry of the object.
+   * @param {Array} [secteurFeature.geometry.coordinates] - The coordinates of the object.
+   * @param {Object} [secteurFeature.properties] - The properties of the object.
+   * @param {string} [secteurFeature.properties.name] - The name of the object.
+   * @param {string} [accesVeloFeature.properties.description] - The description of the object.
+   * @param {Object} [secteurFeature.properties.parking] - The parking associated with the object.
+   * @param {Object} [secteurFeature.properties.approche] - The approach associated with the object.
+   * @param {Object} [options={}] - Optional parameters for the object.
+   */
   constructor(map, secteurFeature, options = {}) {
     const visibility = options.visibility || { from: 12 };
     const labelVisibility = options.labelVisibility || { from: 14 };
@@ -20,11 +34,11 @@ export default class Secteur extends Element {
     this.accessVelos = [];
   }
 
-  static style = {
+  static lineStyle = {
     color: "#333",
     weight: 6,
   };
-  static highlightStyle = {
+  static lineHighlightStyle = {
     color: "darkred",
     weight: 8,
   };
@@ -42,27 +56,56 @@ export default class Secteur extends Element {
     if (isPolygon) {
       return Secteur.polygonStyle;
     }
-    return Secteur.style;
+    return Secteur.lineStyle;
   };
   getHighlightStyle = () => {
     const isPolygon = this.layer instanceof L.Polygon;
     if (isPolygon) {
       return Secteur.polygonHighlightStyle;
     }
-    return Secteur.highlightStyle;
+    return Secteur.lineHighlightStyle;
   };
 
-  highlight(e) {
+  highlight(e, propagate) {
     this.layer.setStyle(this.getHighlightStyle());
+    super.highlight(e, propagate);
   }
-  unhighlight() {
+  unhighlight(propagate) {
     this.layer.setStyle(this.getStyle());
+    super.unhighlight(propagate);
   }
 
   cleanUp() {
     if (this.label) {
       this.label.cleanUp();
     }
+  }
+
+  getDependencies() {
+    return [this.approches, this.parkings, this.accessVelos];
+  }
+
+  updateAssociations(features) {
+    const parkings = parseList(this.layer.properties.parking);
+    const approches = parseList(this.layer.properties.approche);
+    this.parkings = features.filter(
+      (feature) =>
+        feature.type === "parking" &&
+        parkings.includes(feature.layer.properties.name)
+    );
+    const accessVelos = this.parkings.flatMap((pk) =>
+      parseList(pk.layer.properties.itineraire_acces)
+    );
+    this.accessVelos = features.filter(
+      (feature) =>
+        feature.type === "acces_velo" &&
+        accessVelos.includes(feature.layer.properties.name)
+    );
+    this.approches = features.filter(
+      (feature) =>
+        feature.type === "approche" &&
+        approches.includes(feature.layer.properties.name)
+    );
   }
 
   static fromLayer(map, layer) {
@@ -101,7 +144,7 @@ const buildSecteurLayer = (secteurFeature, options = {}) => {
   ) {
     layer = L.polyline(
       secteurFeature.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
-      Secteur.style
+      Secteur.lineStyle
     );
     layer.setText("-", textPathOptions);
   }
