@@ -48,7 +48,7 @@ export default class Parking extends Element {
   }
 
   getDependencies() {
-    return [this.secteurs, this.approches, this.accessVelos];
+    return [this.secteurs, this.approches, this.accesVelos];
   }
 
   updateAssociations(features) {
@@ -58,11 +58,11 @@ export default class Parking extends Element {
         feature.type === "secteur" &&
         parseList(feature.layer.properties.parking).includes(name)
     );
-    const accessVelos = parseList(this.layer.properties.itineraire_acces);
-    this.accessVelos = features.filter(
+    const accesVelos = parseList(this.layer.properties.itineraire_acces);
+    this.accesVelos = features.filter(
       (feature) =>
         feature.type === "acces_velo" &&
-        accessVelos.includes(feature.layer.properties.name)
+        accesVelos.includes(feature.layer.properties.name)
     );
     this.approches = features.filter(
       (feature) =>
@@ -86,7 +86,7 @@ const parkingIcon = (size, name) => {
     className: "bg-none flex flex-row justify-center items-start",
     html: `<div class="text-white bg-blue-600 text-[${
       size / 2 + 1
-    }px] rounded-full aspect-square w-[${size}px] h-[${size}px] flex justify-center items-center font-bold border border-white">${
+    }px] rounded-full aspect-square w-[${size}px] h-[${size}px] flex justify-center items-center font-bold border border-white uppercase">${
       pname || "P"
     }</div>`,
   });

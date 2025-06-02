@@ -27,7 +27,7 @@ export default class AccesVelo extends Element {
     this.setupHighlight();
     this.approches = [];
     this.parkings = [];
-    this.accessVelos = [];
+    this.secteurs = [];
   }
 
   static fromLayer(map, layer) {

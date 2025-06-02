@@ -23,7 +23,7 @@ export default class Approche extends Element {
    * @param {string} [approcheFeature.properties.name] - The name of the object.
    * @param {string} [accesVeloFeature.properties.description] - The description of the object.
    * @param {Object} [approcheFeature.properties.parking] - The parking associated with the object.
-   * @param {Object} [approcheFeature.properties.accessVelos] - The bicycle access associated with the object.
+   * @param {Object} [approcheFeature.properties.itineraire_acces] - The bicycle access associated with the object.
    * @param {Object} [approcheFeature.properties.approche] - the object associated with the feature.
    * @param {Object} [approcheFeature.properties.secteur] - The sector associated with the object.
    * @param {Object} [options={}] - Optional parameters for the object.
@@ -36,7 +36,7 @@ export default class Approche extends Element {
     this.setupHighlight();
     this.secteurs = [];
     this.parkings = [];
-    this.accessVelos = [];
+    this.accesVelos = [];
   }
 
   static fromLayer(map, layer) {
@@ -49,7 +49,7 @@ export default class Approche extends Element {
   }
 
   getDependencies() {
-    return [this.secteurs, this.parkings, this.accessVelos];
+    return [this.secteurs, this.parkings, this.accesVelos];
   }
 
   updateAssociations(features) {
@@ -65,13 +65,13 @@ export default class Approche extends Element {
         feature.type === "parking" &&
         parkings.includes(feature.layer.properties.name)
     );
-    const accessVelos = this.parkings.flatMap((pk) =>
-      parseList(pk.layer.properties.accessVelo)
+    const accesVelos = this.parkings.flatMap((pk) =>
+      parseList(pk.layer.properties.itineraire_acces)
     );
-    this.accessVelos = features.filter(
+    this.accesVelos = features.filter(
       (feature) =>
         feature.type === "acces_velo" &&
-        accessVelos.includes(feature.layer.properties.name)
+        accesVelos.includes(feature.layer.properties.name)
     );
   }
 }

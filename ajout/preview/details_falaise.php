@@ -11,6 +11,7 @@ require_once "../../database/velogrimpe.php";
 $stmtF = $mysqli->prepare("SELECT
   f.falaise_id,
   f.falaise_nom,
+  f.falaise_nomformate,
   f.falaise_latlng,
   v.velo_id,
   v.gare_id,
@@ -108,9 +109,8 @@ $stmtIt->close();
     <div class="flex gap-2 justify-end items-center">
       <a class="btn btn-sm" href="/falaise.php?falaise_id=<?php echo $falaise['falaise_id']; ?>">Voir la
         falaise</a>
-      <button class="btn btn-sm" onclick="alert('Pas encore implémenté')">Télécharger le
-        GeoJSON</button>
-      <button class="btn btn-primary btn-sm" onclick="alert('Pas encore implémenté')">Enregistrer</button>
+      <button class="btn btn-sm" id="downloadGeoJSON">Télécharger le GeoJSON</button>
+      <button class="btn btn-primary btn-sm" id="saveGeoJSON">Enregistrer</button>
     </div>
     <div class="flex flex-col gap-1">
       <div id="map" class="w-full h-[calc(100vh-180px)]"></div>
@@ -200,6 +200,7 @@ $stmtIt->close();
     cutPolygon: false,
     rotateMode: false,
     dragMode: false,
+    removalMode: false,
   });
   map.pm.Toolbar.createCustomControl({
     name: "Accès vélo",
@@ -303,16 +304,19 @@ $stmtIt->close();
     // console.log("Création de la forme :", shape, layer);
     const type = layer.pm.options.type;
     layer.properties = { type };
+    let obj;
     if ((type === "secteur" || type === undefined)) {
-      Secteur.fromLayer(map, layer);
+      obj = Secteur.fromLayer(map, layer);
     } else if (type === "approche") {
-      Approche.fromLayer(map, layer);
+      obj = Approche.fromLayer(map, layer);
     } else if (type === "parking") {
-      Parking.fromLayer(map, layer);
+      obj = Parking.fromLayer(map, layer);
     } else if (type === "acces_velo") {
-      AccesVelo.fromLayer(map, layer);
+      obj = AccesVelo.fromLayer(map, layer);
     }
-    createAndBindPopup(layer);
+    createAndBindPopup(obj.layer);
+    obj.layer.openPopup();
+    featureMap[obj.layer._leaflet_id] = obj;
   })
 
 
@@ -330,6 +334,8 @@ $stmtIt->close();
     layer.closePopup();
     createAndBindPopup(layer);
     updateAssociations();
+    feature.highlight();
+    feature.unhighlight();
   };
 
   window.invertLine = function (id) {
@@ -355,19 +361,20 @@ $stmtIt->close();
     const targetLayer = _targetLayer || layer;
     const id = targetLayer._leaflet_id;
     let popupHtml = "";
-    const field = (name, placeholder) => {
-      return `<label for="${name}" class="w-full flex gap-2 items-center">${placeholder}: <input type="text" name="${name}" class="input-${id} input input-xs input-primary flex-1" value="${targetLayer.properties[name] || ''}" placeholder="${placeholder}"></label>`
+    const field = (name, label, placeholder) => {
+      return `<label for="${name}" class="w-full flex gap-2 items-center"><span class="flex-1 text-right">${label}: </span><input type="text" name="${name}" ${name === "name" ? "autofocus" : ""} class="input-${id} input input-xs input-primary w-48" value="${targetLayer.properties[name] || ''}" placeholder="${placeholder}"></label>`
     }
     popupHtml += `<div class="w-[300px] flex flex-col gap-1 justify-stretch mx-auto">`;
-    popupHtml += field("name", "Nom");
-    popupHtml += field("description", "Description");
+    popupHtml += field("name", "Nom", "Nom");
+    popupHtml += field("description", "Description", "optionnel");
     if (targetLayer.properties.type === "secteur" || targetLayer.properties.type === undefined) {
-      popupHtml += field("parking", "Parkings");
-      popupHtml += field("approche", "Approches");
+      popupHtml += field("parking", "Parkings", "p1, p2, ...");
+      popupHtml += field("approche", "Approches", "a1, a2, ...");
+      popupHtml += field("gv", "Grandes Voies", "0 = non, 1 = uniq. GV, 2 = mixte");
     } else if (targetLayer.properties.type === "approche") {
-      popupHtml += field("parking", "Parkings");
+      popupHtml += field("parking", "Parkings", "p1, p2, ...");
     } else if (targetLayer.properties.type === "parking") {
-      popupHtml += field("itineraire_acces", "Accès vélo");
+      popupHtml += field("itineraire_acces", "Accès vélo", "v1, ...");
     } else if (targetLayer.properties.type === "acces_velo") {
     }
     popupHtml += `<div class="flex flex-row gap-1 justify-between">`;
@@ -394,7 +401,6 @@ $stmtIt->close();
   }
 
   const featureMap = {};
-  let features = {};
   fetch(`/api/private/falaise_details.php?falaise_id=${falaise.falaise_id}`).then(response => {
     if (!response.ok) {
       throw new Error("Erreur lors de la récupération des détails de la falaise");
@@ -427,6 +433,48 @@ $stmtIt->close();
   }).catch(error => {
     console.error("Erreur lors du chargement des données de falaise :", error);
   });
+
+  const toGeoJSON = () => ({
+    type: "FeatureCollection",
+    features: Object.values(featureMap).map(feature => ({ ...feature.layer.toGeoJSON(), properties: feature.layer.properties })),
+  })
+
+  document.getElementById("downloadGeoJSON").addEventListener("click", () => {
+    const geojson = toGeoJSON();
+    const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${falaise.falaise_id}_${falaise.falaise_nomformate}.geojson`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById("saveGeoJSON").addEventListener("click", () => {
+    alert("Cette fonctionnalité n'est pas encore implémentée. Vous pouvez télécharger le GeoJSON pour l'enregistrer localement.");
+    // if (confirm("Êtes-vous sûr de vouloir enregistrer les données ? Cela écrasera les données existantes.")) {
+    //   const geojson = toGeoJSON();
+    //   fetch(`/api/admin/falaise_details.php?falaise_id=${falaise.falaise_id}`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(geojson),
+    //   }).then(response => {
+    //     if (!response.ok) {
+    //       throw new Error("Erreur lors de l'enregistrement des données");
+    //     }
+    //     return response.json();
+    //   }).then(data => {
+    //     alert("Données enregistrées avec succès !");
+    //   }).catch(error => {
+    //     console.error("Erreur lors de l'enregistrement des données :", error);
+    //     alert("Erreur lors de l'enregistrement des données : " + error.message);
+    //   });
+    // }
+  });
+
 </script>
 
 
