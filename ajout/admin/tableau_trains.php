@@ -57,34 +57,38 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
 <body class="h-full">
   <?php include "../../components/header.html"; ?>
   <main class="py-4 px-2 md:px-8">
-    <div class="overflow-auto max-h-[90vh] bg-base-100 rounded-md">
-      <table class="table table-pin-rows table-pin-cols table-zebra min-w-max" data-sort-col="id"
-        data-sort-order="desc">
+    <div class="overflow-auto max-h-[calc(100vh-130px)] bg-base-100 rounded-md">
+      <table class="table table-pin-rows table-pin-cols min-w-max" data-sort-col="id" data-sort-order="desc">
         <!-- head -->
         <thead>
-          <tr class="bg-base-200 text-center">
-            <th class="w-48 bg-base-200 text-lg">Falaises
+          <tr class="border-top border-[black] bg-base-200 text-center">
+            <th class="border-left border-[1px] border-[black] w-48 bg-base-200 text-lg">Falaises
               <button class="btn btn-ghost btn-sm px-0" title="Changer l'ordre de tri" onclick="toggleSortOrder()">
                 <svg class="inline w-4 h-4 fill-current">
                   <use xlink:href="/symbols/icons.svg#ri-sort-desc"></use>
                 </svg>
               </button>
             </th>
-            <td class="w-48 text-lg">Gares</td>
+            <td class="border-left border-[1px] border-[black] w-48 text-lg">Gares</td>
             <?php foreach ($villes as $ville): ?>
-              <td class="w-48 text-lg"><?= $ville['ville_nom'] ?></td>
+              <td class="border-left border-[1px] border-[black] w-48 text-lg"><?= $ville['ville_nom'] ?></td>
             <?php endforeach; ?>
-            <th class="w-0 p-0"></th>
+            <th class="border-left border-[1px] border-[black] w-0 p-0"></th>
           </tr>
         </thead>
         <tbody>
           <!-- row 1 -->
           <?php foreach ($falaises as $falaise_nom => $gares): ?>
-            <tr class="text-center relative" data-id="<?= $gares[0]['falaise_id'] ?>" data-nom="<?= $falaise_nom ?>">
-              <th class="w-48 z-10000"><?= $falaise_nom ?><br>(<?= $gares[0]['falaise_id'] ?>)</th>
-              <td class="w-48"><?= join("<br />", array_map(fn($gare) => $gare["gare_nom"], $gares)) ?></td>
+            <tr class="border-top border-[black] text-center relative" data-id="<?= $gares[0]['falaise_id'] ?>"
+              data-nom="<?= $falaise_nom ?>">
+              <th class="border-left border-[1px] border-[black] w-48 z-10000">
+                <?= $falaise_nom ?><br>(<?= $gares[0]['falaise_id'] ?>)
+              </th>
+              <td class="border-left border-[1px] border-[black] w-48">
+                <?= join("<br />", array_map(fn($gare) => $gare["gare_nom"], $gares)) ?>
+              </td>
               <?php foreach ($villes as $ville): ?>
-                <td class="w-48">
+                <td class="border-left border-[1px] border-[black] w-48">
                   <div class="flex flex-row items-stretch justify-start gap-2">
                     <?php if (in_array($ville['ville_id'], explode(',', $gares[0]['excluded_falaise_ville_ids']))): ?>
                       <div class="flex justify-center w-full">
@@ -144,7 +148,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                   </div>
                 </td>
               <?php endforeach; ?>
-              <th class="w-0 p-0"></th>
+              <th class="border-left border-[1px] border-[black] w-0 p-0"></th>
             </tr>
           <?php endforeach; ?>
         </tbody>
