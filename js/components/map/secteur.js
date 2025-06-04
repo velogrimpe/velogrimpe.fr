@@ -127,7 +127,17 @@ export default class Secteur extends Element {
   };
 }
 
-const textPathOptions = { repeat: true, offset: 8, below: false };
+const textPathText = "-";
+const textPathOptions = {
+  repeat: true,
+  offset: 8,
+  below: false,
+  attributes: {
+    "font-size": "11px",
+    "font-weight": "bold",
+    fill: "black",
+  },
+};
 
 const buildSecteurLayer = (secteurFeature, options = {}) => {
   let layer;
@@ -146,7 +156,7 @@ const buildSecteurLayer = (secteurFeature, options = {}) => {
       secteurFeature.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
       Secteur.lineStyle
     );
-    layer.setText("-", textPathOptions);
+    layer.setText(textPathText, textPathOptions);
   }
   return layer;
 };
