@@ -23,7 +23,7 @@ DISTINCT
   LEFT JOIN exclusions_villes_gares_falaises evgf on evgf.falaise_id = f.falaise_id and evgf.gare_id = g.gare_id
   WHERE velo.velo_id IS NOT NULL
   GROUP BY f.falaise_id, g.gare_id
-  ORDER BY f.falaise_nom, g.gare_nom;
+  ORDER BY f.falaise_id DESC, g.gare_nom ASC;
 ")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 
@@ -58,11 +58,18 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
   <?php include "../../components/header.html"; ?>
   <main class="py-4 px-2 md:px-8">
     <div class="overflow-auto max-h-[90vh] bg-base-100 rounded-md">
-      <table class="table table-pin-rows table-pin-cols table-zebra min-w-max">
+      <table class="table table-pin-rows table-pin-cols table-zebra min-w-max" data-sort-col="id"
+        data-sort-order="desc">
         <!-- head -->
         <thead>
           <tr class="bg-base-200 text-center">
-            <th class="w-48 text-lg">Falaises</th>
+            <th class="w-48 bg-base-200 text-lg">Falaises
+              <button class="btn btn-ghost btn-sm px-0" title="Changer l'ordre de tri" onclick="toggleSortOrder()">
+                <svg class="inline w-4 h-4 fill-current">
+                  <use xlink:href="/symbols/icons.svg#ri-sort-desc"></use>
+                </svg>
+              </button>
+            </th>
             <td class="w-48 text-lg">Gares</td>
             <?php foreach ($villes as $ville): ?>
               <td class="w-48 text-lg"><?= $ville['ville_nom'] ?></td>
@@ -73,8 +80,8 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
         <tbody>
           <!-- row 1 -->
           <?php foreach ($falaises as $falaise_nom => $gares): ?>
-            <tr class="text-center relative">
-              <th class="w-48 z-10"><?= $falaise_nom ?></th>
+            <tr class="text-center relative" data-id="<?= $gares[0]['falaise_id'] ?>" data-nom="<?= $falaise_nom ?>">
+              <th class="w-48 z-10000"><?= $falaise_nom ?><br>(<?= $gares[0]['falaise_id'] ?>)</th>
               <td class="w-48"><?= join("<br />", array_map(fn($gare) => $gare["gare_nom"], $gares)) ?></td>
               <?php foreach ($villes as $ville): ?>
                 <td class="w-48">
@@ -87,7 +94,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                       </div>
                     <?php else: ?>
                       <div>
-                        <button class="btn btn-error btn-outline btn-sm h-full px-1 py-4 rounded-none"
+                        <button class="btn btn-ghost text-error btn-sm h-full px-0"
                           title="Toujours exclure ce couple Falaise - Ville"
                           onclick="excludeVilleFalaise(<?= $ville['ville_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
                           <!-- onclick="excludeTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)"> -->
@@ -106,15 +113,16 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                             ): ?>
                               -
                             <?php else: ?>
-                              <span
-                                class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left"><?= $gare["gare_nom"] ?></span>
                               <?php if (in_array($ville['ville_id'], explode(',', $gare['ville_ids']))): ?>
-                                <span class="text-base-100" title="Triplet Gare - Ville - Falaise exclu"><svg
-                                    class="inline w-4 h-4 fill-current bg-primary rounded-full opacity-30">
-                                    <use xlink:href="/symbols/icons.svg#ri-check-line"></use>
-                                  </svg></span>
+                                <span class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left">
+                                  <?= $gare["gare_nom"] ?>
+                                </span>
                               <?php else: ?>
-                                <button class="btn btn-error btn-outline text-base-100 btn-xs px-2 py-0"
+                                <span class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left text-error">
+                                  <?= $gare["gare_nom"] ?>
+                                </span>
+                                <button
+                                  class="badge badge-error badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
                                   title="Exclure ce triplet Gare - Ville - Falaise"
                                   onclick="excludeTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
                                   -
@@ -122,38 +130,14 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                               <?php endif; ?>
                               <?php if (in_array($ville['ville_id'], explode(',', $gare['ville_ids']))): ?>
                               <?php else: ?>
-                                <button class="btn btn-error btn-outline text-base-100 btn-xs px-2 py-0"
+                                <button
+                                  class="badge badge-error badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
                                   title="Toujours exclure ce couple Gare - Ville"
                                   onclick="excludeVilleGare(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, this)">
                                   --
                                 </button>
                               <?php endif; ?>
                             <?php endif; ?>
-                            <!-- <?php if (in_array($ville['ville_id'], explode(',', $gare['ville_ids']))): ?>
-                              <span><?= $gare["gare_nom"] ?></span>
-                            <?php else: ?>
-                              <?php if (in_array($ville['ville_id'], explode(',', $gare['excluded_gare_ville_ids']))): ?>
-                                <span>-</span>
-                              <?php else: ?>
-                                <div class="dropdown dropdown-end">
-                                  <span class="text-error cursor-pointer" tabindex="1"><?= $gare["gare_nom"] ?></span>
-                                  <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
-                                    <a class="btn btn-primary btn-sm py-1 h-fit"
-                                      href="/ajout_train.php?gare_id=<?= $gare["gare_id"] ?>&ville_id=<?= $ville["ville_id"] ?>&admin=<?= $token ?>">
-                                      Créer itinéraire train
-                                    </a>
-                                    <button class="btn btn-error btn-sm text-base-100 py-1 h-fit"
-                                      onclick="excludeTrain(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, this)">
-                                      Gare d'accès non pertinente depuis cette ville
-                                    </button>
-                                    <button class="btn btn-error btn-sm text-base-100 py-1 h-fit"
-                                      onclick="excludeFalaise(<?= $ville['ville_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
-                                      Falaise non pertinente depuis cette ville
-                                    </button>
-                                  </div>
-                                </div>
-                              <?php endif; ?>
-                            <?php endif; ?> -->
                           </div>
                         <?php endforeach; ?>
                       </div>
@@ -228,6 +212,42 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
         }
       })
       .catch(error => console.error("Erreur:", error));
+  }
+
+  function toggleSortOrder() {
+    const table = document.querySelector('table');
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+    let isAsc = (table.dataset.sortOrder || 'desc') === 'asc';
+    let isId = (table.dataset.sortCol || 'id') === 'id';
+    console.log("isAsc", isAsc, "isId", isId);
+    // cylcle trhough the sort orders : Id desc => id asc -> name asc -> name desc
+    if (isId && !isAsc) {
+      table.dataset.sortOrder = 'asc';
+    } else if (isId && isAsc) {
+      table.dataset.sortCol = 'name';
+      table.dataset.sortOrder = 'asc';
+    } else if (table.dataset.sortCol === 'name' && isAsc) {
+      table.dataset.sortOrder = 'desc';
+    } else {
+      table.dataset.sortCol = 'id';
+      table.dataset.sortOrder = 'desc';
+    }
+    isAsc = (table.dataset.sortOrder || 'desc') === 'asc';
+    isId = (table.dataset.sortCol || 'id') === 'id';
+
+    rows.sort((a, b) => {
+      if (isId) {
+        const aId = parseInt(a.dataset.id, 10);
+        const bId = parseInt(b.dataset.id, 10);
+        return isAsc ? aId - bId : bId - aId;
+      }
+      const aName = a.dataset.nom.toLowerCase();
+      const bName = b.dataset.nom.toLowerCase();
+      return isAsc ? aName.localeCompare(bName) : bName.localeCompare(aName);
+    });
+
+    rows.forEach(row => table.querySelector('tbody').appendChild(row));
+
   }
 </script>
 
