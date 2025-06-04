@@ -94,8 +94,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                       </div>
                     <?php else: ?>
                       <div>
-                        <button class="btn btn-ghost text-error btn-sm h-full px-0"
-                          title="Toujours exclure ce couple Falaise - Ville"
+                        <button class="btn btn-ghost text-error btn-sm h-full px-0" title="Exclure ce couple Falaise - Ville"
                           onclick="excludeVilleFalaise(<?= $ville['ville_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
                           <!-- onclick="excludeTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)"> -->
                           <span><svg class="inline w-3 h-3 fill-current">
