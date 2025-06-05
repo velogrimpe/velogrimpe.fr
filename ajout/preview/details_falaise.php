@@ -165,6 +165,7 @@ $stmtIt->close();
   import Secteur from "/js/components/map/secteur.js";
   import Approche from "/js/components/map/approche.js";
   import Parking from "/js/components/map/parking.js";
+  import { getValhallaRoute } from "/js/services/valhalla.js";
 
   const zoom = 15;
   // Récupération des données
@@ -219,22 +220,76 @@ $stmtIt->close();
       });
     },
   });
+
+  let currentRoute = []
+  let currentRoutingPoints = []
   map.pm.Toolbar.createCustomControl({
-    name: "Approche",
+    name: "Approche auto",
     block: "draw",
     title: "Ajouter un itinéraire d'approche",
     className: "vg-icon vg-draw-approche",
-    toggle: false,
-    onClick: () => {
-      map.pm.enableDraw("Line", {
-        snappable: true,
-        snapDistance: 20,
-        pathOptions: Approche.style,
-        templineStyle: Approche.style,
-        hintlineStyle: Approche.style,
-        type: "approche",
+    // toggle: false,
+    actions: [
+      "cancel",
+      {
+        text: "Point à Point",
+        title: "Point à point : Ligne droite d'un point à l'autre",
+        name: "line",
+        onClick: () => {
+          map.pm.enableDraw("Line", {
+            snappable: true,
+            snapDistance: 20,
+            pathOptions: Approche.style,
+            templineStyle: { ...Approche.style, type: "approche" },
+            hintlineStyle: Approche.style,
+            type: "approche",
+          });
+        }
+      },
+      {
+        text: "Semi-auto (beta)",
+        title: "Points de passages : Routage d'un point à l'autre",
+        name: "line-auto",
+        onClick: () => {
+          map.pm.enableDraw("Line", {
+            snappable: true,
+            snapDistance: 20,
+            pathOptions: Approche.style,
+            templineStyle: { ...Approche.style, type: "approche-auto" },
+            hintlineStyle: Approche.style,
+            type: "approche",
+          });
+        }
+      },
+    ]
+  });
+  map.on("pm:drawstart", ({ shape, workingLayer }) => {
+    currentRoute = [];
+    currentRoutingPoints = [];
+    if (workingLayer.options.type === "approche-auto") {
+      workingLayer.on("pm:vertexadded", (e) => {
+        // if clicked on existing routing point stop tracing
+        console.log(e);
+        if (currentRoutingPoints.includes([e.latlng.lat, e.latlng.lng])) {
+          map.pm.disableDraw('Line');
+        }
+
+        if (currentRoutingPoints.length > 0) {
+          const lastPoint = currentRoutingPoints.slice(-1)[0]
+          getValhallaRoute([
+            { lat: lastPoint[0], lon: lastPoint[1] },
+            { lat: e.latlng.lat, lon: e.latlng.lng }
+          ]).then((segment) => {
+            if (segment && segment.length > 0) {
+              currentRoute = [...currentRoute, ...segment];
+              workingLayer.setLatLngs(currentRoute);
+            }
+          })
+        }
+        currentRoutingPoints.push([e.latlng.lat, e.latlng.lng]);
+        console.log(currentRoutingPoints);
       });
-    },
+    }
   });
   const markerIcon = parkingIcon(18);
   map.pm.Toolbar.createCustomControl({
