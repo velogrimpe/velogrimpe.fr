@@ -14,11 +14,11 @@
  *
  * @throws {Error} Logs an error to the console if the routing request fails.
  */
-export async function getValhallaRoute(locations) {
+export async function getValhallaRoute(locations, costing = "pedestrian") {
   const url = "https://valhalla1.openstreetmap.de/route";
   const body = {
     locations,
-    costing: "pedestrian", // or 'auto', 'bicycle', etc.
+    costing, //: "pedestrian", // or 'auto', 'bicycle', etc.
     directions_options: { units: "kilometers" },
   };
 
