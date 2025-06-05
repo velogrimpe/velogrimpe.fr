@@ -19,6 +19,16 @@ export async function getValhallaRoute(locations, costing = "pedestrian") {
   const body = {
     locations,
     costing, //: "pedestrian", // or 'auto', 'bicycle', etc.
+    costing_options: {
+      pedestrian: {
+        // speed: 1.4, // Average walking speed in km/h
+        max_hiking_difficulty: 6,
+      },
+      // bicycle: {
+      //   speed: 5.56, // Average cycling speed in km/h
+      // }
+    },
+    units: "kilometers",
     directions_options: { units: "kilometers" },
   };
 

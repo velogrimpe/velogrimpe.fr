@@ -8,6 +8,11 @@ if (empty($falaise_id)) {
 
 require_once "../../database/velogrimpe.php";
 
+$falaises = $mysqli->query("SELECT falaise_id, falaise_nom
+                                  FROM falaises
+                                  ORDER BY falaise_id DESC
+                                  ")->fetch_all(MYSQLI_ASSOC);
+
 $stmtF = $mysqli->prepare("SELECT
   f.falaise_id,
   f.falaise_nom,
@@ -107,6 +112,14 @@ $stmtIt->close();
   <?php include "../../components/header.html"; ?>
   <main class="py-4 px-2 md:px-8 flex flex-col gap-4">
     <div class="flex gap-2 justify-end items-center">
+      <select id="selectFalaise1" name="selectFalaise1" class="select select-primary select-sm"
+        onchange="window.location.href = '/ajout/preview/details_falaise.php?falaise_id=' + this.value">
+        <?php foreach ($falaises as $f): ?>
+          <option value="<?= $f['falaise_id'] ?>" <?= $falaise_id == $f["falaise_id"] ? "selected" : "" ?>>
+            <?= $f['falaise_nom'] ?> - <?= $f['falaise_id'] ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
       <a class="btn btn-sm" href="/falaise.php?falaise_id=<?php echo $falaise['falaise_id']; ?>">Voir la
         falaise</a>
       <button class="btn btn-sm" id="downloadGeoJSON">Télécharger le GeoJSON</button>
