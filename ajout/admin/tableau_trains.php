@@ -124,6 +124,10 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                                 <span class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left text-error">
                                   <?= $gare["gare_nom"] ?>
                                 </span>
+                                <a class="badge badge-primary badge-outline badge-xs h-5 w-5 rounded-full text-sm shrink-0"
+                                  href="/ajout_train.php?gare_id=<?= $gare["gare_id"] ?>&ville_id=<?= $ville["ville_id"] ?>&admin=<?= $token ?>">
+                                  +
+                                </a>
                                 <button
                                   class="badge badge-error badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
                                   title="Exclure ce triplet Gare - Ville - Falaise"
