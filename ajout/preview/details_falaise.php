@@ -122,6 +122,13 @@ $stmtIt->close();
       </select>
       <a class="btn btn-sm" href="/falaise.php?falaise_id=<?php echo $falaise['falaise_id']; ?>">Voir la
         falaise</a>
+      <input type="file" hidden accept=".geojson" id="uploadGeoJSONInput"
+        class="file-input file-input-sm file-input-bordered w-24" />
+      <button class="btn btn-sm" id="uploadGeoJSONButton">
+        <svg class="w-5 h-5 fill-current">
+          <use xlink:href="/symbols/icons.svg#ri-file-upload-line"></use>
+        </svg> Import
+      </button>
       <button class="btn btn-sm" id="downloadGeoJSON">Télécharger le GeoJSON</button>
       <button class="btn btn-primary btn-sm" id="saveGeoJSON">Enregistrer</button>
     </div>
@@ -468,13 +475,7 @@ $stmtIt->close();
     })
   }
 
-  const featureMap = {};
-  fetch(`/api/private/falaise_details.php?falaise_id=${falaise.falaise_id}`).then(response => {
-    if (!response.ok) {
-      throw new Error("Erreur lors de la récupération des détails de la falaise");
-    }
-    return response.json();
-  }).then(data => {
+  window.importData = (data) => {
     if (data.features && data.features.length > 0) {
       data.features.forEach(feature => {
         let obj;
@@ -498,8 +499,52 @@ $stmtIt->close();
       });
       updateAssociations();
     }
-  }).catch(error => {
-    console.error("Erreur lors du chargement des données de falaise :", error);
+  }
+
+  const featureMap = {};
+  fetch(`/api/private/falaise_details.php?falaise_id=${falaise.falaise_id}`).then(response => {
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération des détails de la falaise");
+    }
+    return response.json();
+  })
+    .then(data => importData(data))
+    .catch(error => {
+      console.error("Erreur lors du chargement des données de falaise :", error);
+    });
+
+  const uploadInput = document.getElementById('uploadGeoJSONInput');
+  document.getElementById('uploadGeoJSONButton').addEventListener('click', () => {
+    uploadInput.click();
+  });
+  uploadInput.addEventListener('change', function (event) {
+    console.log("Fichier sélectionné :", event.target.files);
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      try {
+        const geojson = JSON.parse(e.target.result);
+        if (!geojson.type || !geojson.features) {
+          throw new Error("This doesn't look like a valid GeoJSON file.");
+        }
+        Object.keys(featureMap).forEach(key => {
+          const feature = featureMap[key];
+          map.removeLayer(feature.layer);
+          feature.cleanUp();
+          delete featureMap[key];
+        });
+        importData(geojson);
+
+        // You can call a displayGeoJSON(geojson) here if you're using Leaflet
+      } catch (err) {
+        alert("Erreur lors du chargement du fichier GeoJSON : " + err.message);
+      }
+    };
+    reader.readAsText(file);
+
   });
 
   const toGeoJSON = () => ({
