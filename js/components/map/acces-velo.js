@@ -72,9 +72,17 @@ export default class AccesVelo extends Element {
 }
 
 const buildAccesVeloLayer = (accesVelo, options = {}) => {
-  const line = L.polyline(
-    accesVelo.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
-    AccesVelo.style
-  );
-  return line;
+  if (accesVelo.geometry.type === "LineString") {
+    return L.polyline(
+      accesVelo.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
+      AccesVelo.style
+    );
+  } else if (accesVelo.geometry.type === "MultiLineString") {
+    return L.polyline(
+      accesVelo.geometry.coordinates.map((line) =>
+        line.map((coord) => [coord[1], coord[0]])
+      ),
+      AccesVelo.style
+    );
+  }
 };

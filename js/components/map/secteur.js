@@ -120,7 +120,9 @@ export default class Secteur extends Element {
   static isInvalidSecteur = (secteur) => {
     return (
       !secteur.geometry ||
-      !["Polygon", "LineString"].includes(secteur.geometry.type) ||
+      !["Polygon", "LineString", "MultiLineString"].includes(
+        secteur.geometry.type
+      ) ||
       secteur.geometry.coordinates.length === 0 ||
       secteur.geometry.coordinates[0].length === 0
     );
@@ -148,12 +150,17 @@ const buildSecteurLayer = (secteurFeature, options = {}) => {
       }),
       Secteur.polygonStyle
     );
-  } else if (
-    secteurFeature.geometry.type === "LineString" ||
-    secteurFeature.geometry.type === "MultiLineString"
-  ) {
+  } else if (secteurFeature.geometry.type === "LineString") {
     layer = L.polyline(
       secteurFeature.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
+      Secteur.lineStyle
+    );
+    layer.setText(textPathText, textPathOptions);
+  } else if (secteurFeature.geometry.type === "MultiLineString") {
+    layer = L.polyline(
+      secteurFeature.geometry.coordinates.map((line) =>
+        line.map((coord) => [coord[1], coord[0]])
+      ),
       Secteur.lineStyle
     );
     layer.setText(textPathText, textPathOptions);

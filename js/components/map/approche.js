@@ -77,8 +77,17 @@ export default class Approche extends Element {
 }
 
 const buildApprocheLayer = (approche, options = {}) => {
-  return L.polyline(
-    approche.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
-    Approche.style
-  );
+  if (approche.geometry.type === "LineString") {
+    return L.polyline(
+      approche.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
+      Approche.style
+    );
+  } else if (approche.geometry.type === "MultiLineString") {
+    return L.polyline(
+      approche.geometry.coordinates.map((line) =>
+        line.map((coord) => [coord[1], coord[0]])
+      ),
+      Approche.style
+    );
+  }
 };
