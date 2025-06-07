@@ -132,8 +132,15 @@ $stmtIt->close();
       <button class="btn btn-sm" id="downloadGeoJSON">Télécharger le GeoJSON</button>
       <button class="btn btn-primary btn-sm" id="saveGeoJSON">Enregistrer</button>
     </div>
-    <div class="flex flex-col gap-1">
+    <div class="flex relative flex-col gap-1">
       <div id="map" class="w-full h-[calc(100vh-180px)]"></div>
+      <div class="absolute bottom-3 left-3 z-[10000] flex gap-1">
+        <input class="input input-sm input-bordered rounded-none" type="text" id="falaise_latlng" name="falaise_latlng"
+          placeholder="ex: 45.1234,6.2355" required>
+        <button class="btn btn-sm btn-primary px-1" id="setFalaiseLatLng"><svg class="w-5 h-5 fill-current">
+            <use xlink:href="/symbols/icons.svg#ri-arrow-right-line"></use>
+          </svg></button>
+      </div>
     </div>
   </main>
   <?php include "../../components/footer.html"; ?>
@@ -612,6 +619,28 @@ $stmtIt->close();
     //     alert("Erreur lors de l'enregistrement des données : " + error.message);
     //   });
     // }
+  });
+
+  document.getElementById("setFalaiseLatLng").addEventListener("click", () => {
+    const latlngInput = document.getElementById("falaise_latlng").value;
+    if (!latlngInput) {
+      return;
+    }
+    const [lat, lng] = latlngInput.split(",").map(parseFloat);
+    if (isNaN(lat) || isNaN(lng)) {
+      alert("Latitude et longitude invalides.");
+      return;
+    }
+    map.setView([lat, lng], 17);
+    const marker = L.circle([lat, lng], {
+      icon: L.divIcon({
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      }),
+    }).addTo(map);
+    map.on("click", () => {
+      map.removeLayer(marker);
+    });
   });
 
 </script>
