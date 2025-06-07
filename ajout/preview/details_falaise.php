@@ -221,6 +221,7 @@ $stmtIt->close();
     cutPolygon: false,
     rotateMode: false,
     dragMode: false,
+    editMode: false,
     removalMode: false,
   });
   map.pm.Toolbar.createCustomControl({
@@ -289,7 +290,6 @@ $stmtIt->close();
     if (workingLayer.options.type === "approche-auto") {
       workingLayer.on("pm:vertexadded", (e) => {
         // if clicked on existing routing point stop tracing
-        console.log(e);
         if (currentRoutingPoints.includes([e.latlng.lat, e.latlng.lng])) {
           map.pm.disableDraw('Line');
         }
@@ -307,7 +307,6 @@ $stmtIt->close();
           })
         }
         currentRoutingPoints.push([e.latlng.lat, e.latlng.lng]);
-        console.log(currentRoutingPoints);
       });
     }
   });
@@ -376,7 +375,6 @@ $stmtIt->close();
 
   map.on("pm:create", e => {
     const { layer, shape } = e;
-    // console.log("Création de la forme :", shape, layer);
     const type = layer.pm.options.type;
     layer.properties = { type };
     let obj;
@@ -390,14 +388,39 @@ $stmtIt->close();
       obj = AccesVelo.fromLayer(map, layer);
     }
     createAndBindPopup(obj.layer);
+    if (obj instanceof Secteur) {
+      createAndBindPopup(obj.label.layer, obj.layer);
+    }
     obj.layer.openPopup();
     featureMap[obj.layer._leaflet_id] = obj;
   })
 
+  window.editLayer = function (id) {
+    map.eachLayer((layer) => {
+      if (layer.pm && layer.pm.enabled()) {
+        layer.pm.disable();
+      }
+    });
+    const feature = featureMap[id];
+    const layer = feature.layer;
+    if (layer.pm) {
+      layer.pm.enable();
+    }
+    layer.closePopup();
+    feature.label?.layer?.closePopup();
+  };
+  // On click on the map if a layer is pm.enabled, disable it
+  map.on("click", (e) => {
+    map.eachLayer((layer) => {
+      if (layer.pm && layer.pm.enabled()) {
+        layer.pm.disable();
+      }
+    });
+  });
+
 
   // Save function in global scope for simplicity
   window.updateLayer = function (id) {
-    console.log("Updating layer with ID:", id);
     const feature = featureMap[id];
     const layer = feature.layer;
     document.querySelectorAll(`.input-${id}`).forEach(input => {
@@ -408,6 +431,9 @@ $stmtIt->close();
     });
     layer.closePopup();
     createAndBindPopup(layer);
+    if (feature instanceof Secteur) {
+      createAndBindPopup(feature.label.layer, layer);
+    }
     updateAssociations();
     feature.highlight();
     feature.unhighlight();
@@ -454,10 +480,11 @@ $stmtIt->close();
     }
     popupHtml += `<div class="flex flex-row gap-1 justify-between">`;
     popupHtml += `<button class="flex-1 btn btn-xs btn-error text-base-100" onclick="deleteFeature(${id})">Suppr.</button>`;
+    popupHtml += `<button class="flex-1 btn btn-xs btn-accent" onclick="editLayer(${id})">${targetLayer.pm.enabled() ? "OK" : "Modif."}</button>`
     if ((targetLayer.properties.type === "secteur" || targetLayer.properties.type === undefined) && targetLayer instanceof L.Polyline) {
       popupHtml += `<button class="flex-1 btn btn-xs btn-secondary" onclick="invertLine(${id})">Inverser</button>`;
     }
-    popupHtml += `<button class="flex-1 btn btn-xs btn-primary" onclick="updateLayer(${id})">Save</button>`
+    popupHtml += `<button class="flex-1 btn btn-xs btn-primary" onclick="updateLayer(${id})">Enreg.</button>`
     popupHtml += `</div>`;
     popupHtml += `</div>`;
     layer.bindTooltip(JSON.stringify(targetLayer.properties));
@@ -518,7 +545,6 @@ $stmtIt->close();
     uploadInput.click();
   });
   uploadInput.addEventListener('change', function (event) {
-    console.log("Fichier sélectionné :", event.target.files);
     const file = event.target.files[0];
     if (!file) return;
 
