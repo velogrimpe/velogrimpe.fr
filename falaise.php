@@ -173,6 +173,11 @@ $stmtV->close();
   <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
   <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
     rel='stylesheet' />
+  <!-- Carte : locate -->
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.js"
+    charset="utf-8"></script>
   <!-- Carte : Lignes de train-->
   <script src="https://unpkg.com/protomaps-leaflet@5.0.1/dist/protomaps-leaflet.js"></script>
   <!-- Styles -->
@@ -979,6 +984,7 @@ $stmtV->close();
       itineraires.map(it => it.gare_latlng.split(",").map(parseFloat))
     ];
     var map = L.map("map", { layers: [landscapeTiles], center, zoom, fullscreenControl: true });
+    L.control.locate().addTo(map);
 
     map.fitBounds(bounds, { maxZoom: 15 });
     var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
