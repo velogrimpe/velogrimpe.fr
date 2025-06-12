@@ -22,6 +22,7 @@ export default class Secteur extends Element {
     const layer = buildSecteurLayer(secteurFeature, options);
     layer.properties = secteurFeature.properties;
     super(map, layer, "secteur", { ...options, visibility });
+    this.options = options;
     if (secteurFeature.properties.name) {
       this.label = new SecteurLabel(map, secteurFeature, this, {
         ...options,
@@ -83,6 +84,16 @@ export default class Secteur extends Element {
 
   getDependencies() {
     return [this.approches, this.parkings, this.accesVelos];
+  }
+
+  updateLabel() {
+    if (this.label) {
+      this.label.updateLabel();
+    } else {
+      this.label = new SecteurLabel(this.map, this.feature, this, {
+        ...this.options,
+      });
+    }
   }
 
   updateAssociations(features) {

@@ -141,7 +141,19 @@ $stmtIt->close();
             <use xlink:href="/symbols/icons.svg#ri-arrow-right-line"></use>
           </svg></button>
       </div>
-    </div>
+      <dialog id="tableau_modal" class="modal modal-bottom">
+        <div class="modal-box w-screen max-w-full h-full">
+          <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+          </form>
+          <h3 class="font-bold text-xl">Tableau récapitulatif</h3>
+          <p class="text-error text-sm">
+            N'oubliez pas de sauvegarder le GeoJSON après avoir modifié les données dans le tableau.
+          </p>
+          <div id="tableauRecap" class="flex flex-col gap-1">
+          </div>
+        </div>
+      </dialog>
   </main>
   <?php include "../../components/footer.html"; ?>
 </body>
@@ -213,6 +225,42 @@ $stmtIt->close();
     layers: [landscapeTiles], center, zoom, fullscreenControl: true, zoomSnap: 0.5
   });
   var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
+
+  /* Add the following button in a control on the right
+
+      <div class="absolute top-36 right-3 z-[10000] flex gap-1">
+        <button class="btn btn-sm px-1" onclick="tableau_modal.showModal()">
+          <svg class="w-5 h-5 fill-current">
+            <use xlink:href="/symbols/icons.svg#ri-table-line"></use>
+          </svg>
+        </button>
+      </div>
+  */
+  const TableControl = L.Control.extend({
+    onAdd: function (map) {
+      const div = L.DomUtil.create('div');
+      div.innerHTML = `
+        <div class="leaflet-control-zoom leaflet-bar">
+          <a onclick="showTableau()" class="p-1" title="Tableau récapitulatif des éléments">
+            <svg class="w-5 h-5 fill-current">
+              <use xlink:href="/symbols/icons.svg#ri-table-line"></use>
+            </svg>
+          </a>
+        </div>
+    `;
+      return div;
+    },
+
+    onRemove: function (map) {
+      // Nothing to clean up
+    }
+  });
+
+  // Add to the map
+  const tableControl = new TableControl({ position: 'topright' });
+  map.addControl(tableControl);
+
+
   const falaiseObject = new Falaise(map, falaise);
   const veloObjects = velos.map((velo, index) => new Velo(map, velo, { index }));
   L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
@@ -430,12 +478,19 @@ $stmtIt->close();
   window.updateLayer = function (id) {
     const feature = featureMap[id];
     const layer = feature.layer;
+    let needsLabelUpdate = false;
     document.querySelectorAll(`.input-${id}`).forEach(input => {
       const propertyName = input.name;
       if (propertyName && layer) {
+        if (propertyName === "name" && layer.properties.name !== input.value && feature.type === "secteur") {
+          needsLabelUpdate = true;
+        }
         layer.properties[propertyName] = input.value;
       }
     });
+    if (needsLabelUpdate && feature instanceof Secteur) {
+      feature.updateLabel();
+    }
     layer.closePopup();
     createAndBindPopup(layer);
     if (feature instanceof Secteur) {
@@ -470,7 +525,17 @@ $stmtIt->close();
     const id = targetLayer._leaflet_id;
     let popupHtml = "";
     const field = (name, label, placeholder) => {
-      return `<label for="${name}" class="w-full flex gap-2 items-center"><span class="flex-1 text-right">${label}: </span><input type="text" name="${name}" ${name === "name" ? "autofocus" : ""} class="input-${id} input input-xs input-primary w-48" value="${targetLayer.properties[name] || ''}" placeholder="${placeholder}"></label>`
+      return `
+        <label for="${name}" class="w-full flex gap-2 items-center">
+          <span class="flex-1 text-right">${label}: </span>
+          <input
+            type="text"
+            name="${name}"
+            ${name === "name" ? "autofocus" : ""}
+            class="input-${id} input input-xs input-primary w-48" value="${targetLayer.properties[name] || ''}"
+            placeholder="${placeholder}"
+          />
+        </label>`
     }
     popupHtml += `<div class="w-[300px] flex flex-col gap-1 justify-stretch mx-auto">`;
     popupHtml += field("name", "Nom", "Nom");
@@ -643,6 +708,155 @@ $stmtIt->close();
     });
   });
 
+  window.showTableau = () => {
+    const tableauModal = document.getElementById("tableau_modal");
+    tableauModal.showModal();
+    const tableauRecap = document.getElementById("tableauRecap");
+    tableauRecap.innerHTML = "";
+    const features = Object.values(featureMap);
+    if (features.length === 0) {
+      tableauRecap.innerHTML = "<p>Aucun élément à afficher.</p>";
+      return;
+    }
+    features.sort((a, b) => {
+      const typeA = a.layer.properties.type || "secteur";
+      const typeB = b.layer.properties.type || "secteur";
+      return typeB.localeCompare(typeA);
+    });
+    let lastType = null;
+    features.forEach(feature => {
+      console.log("Name", feature.layer.properties.name);
+      const field = (key, label) => {
+        return `
+            <input
+              type="text"
+              name="${key}"
+              class="input-${feature.layer._leaflet_id} input input-xs input-bordered"
+              value="${(feature.layer.properties[key] || '').replace(/"/g, "&quot;")}"
+            />
+          `
+      }
+      if (lastType !== (feature.layer.properties.type || "secteur")) {
+        if (lastType) {
+          tableauRecap.innerHTML += `<hr class="my-2">`;
+        }
+        lastType = feature.layer.properties.type || "secteur";
+        tableauRecap.innerHTML += `<h4 class="text-lg font-bold capitalize">${lastType || "Secteur"}</h4>`;
+        switch (feature.layer.properties.type) {
+          case "secteur":
+          case undefined:
+            tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_48px] items-center gap-2">
+              <div class="text-sm">Nom</div>
+              <div class="text-sm">Description</div>
+              <div class="text-sm">Parkings</div>
+              <div class="text-sm">Approches</div>
+              <div class="text-sm">GV</div>
+              <div class="text-sm">Type</div>
+              <div></div>
+            </div>
+            `;
+            break;
+          case "approche":
+            tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_48px] items-center gap-2">
+              <div class="text-sm">Nom</div>
+              <div class="text-sm">Description</div>
+              <div class="text-sm">Parkings</div>
+              <div class="text-sm">Type</div>
+              <div></div>
+            </div>
+            `;
+            break;
+          case "parking":
+            tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_48px] items-center gap-2">
+              <div class="text-sm">Nom</div>
+              <div class="text-sm">Description</div>
+              <div class="text-sm">Accès Vélo</div>
+              <div class="text-sm">Type</div>
+              <div></div>
+            </div>
+            `;
+            break;
+          case "acces_velo":
+            tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_48px] items-center gap-2">
+              <div class="text-sm">Nom</div>
+              <div class="text-sm">Description</div>
+              <div class="text-sm">Type</div>
+              <div></div>
+            </div>
+            `;
+            break;
+        }
+      }
+      switch (feature.layer.properties.type) {
+        case "secteur":
+        case undefined:
+          tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_48px] items-center gap-2">
+              ${field("name", "Nom")}
+              ${field("description", "Description")}
+              ${field("parking", "Parkings")}
+              ${field("approche", "Approches")}
+              ${field("gv", "GV")}
+              ${field("type", "Type")}
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+                <svg class="w-5 h-5 fill-current">
+                  <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
+                </svg>
+              </button>
+            </div>
+            `;
+          break;
+        case "approche":
+          tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_48px] items-center gap-2">
+              ${field("name", "Nom")}
+              ${field("description", "Description")}
+              ${field("parking", "Parkings")}
+              ${field("type", "Type")}
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+                <svg class="w-5 h-5 fill-current">
+                  <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
+                </svg>
+              </button>
+            </div>
+            `;
+          break;
+        case "parking":
+          tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_48px] items-center gap-2">
+              ${field("name", "Nom")}
+              ${field("description", "Description")}
+              ${field("itineraire_acces", "Accès Vélo")}
+              ${field("type", "Type")}
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+                <svg class="w-5 h-5 fill-current">
+                  <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
+                </svg>
+              </button>
+            </div>
+            `;
+          break;
+        case "acces_velo":
+          tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_48px] items-center gap-2">
+              ${field("name", "Nom")}
+              ${field("description", "Description")}
+              ${field("type", "Type")}
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+                <svg class="w-5 h-5 fill-current">
+                  <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
+                </svg>
+              </button>
+            </div>
+            `;
+          break;
+      }
+    });
+  }
 </script>
 
 

@@ -17,6 +17,10 @@ export default class SecteurLabel extends Element {
   unhighlight() {
     this.secteur.unhighlight();
   }
+  updateLabel() {
+    const name = this.secteur.layer.properties.name;
+    this.layer.setIcon(buildIcon(name));
+  }
 
   cleanUp() {
     if (this.isVisible) {
@@ -29,19 +33,21 @@ const buildSecteurLabelLayer = (secteurFeature, options = {}) => {
   const center = reverse(
     turf.centerOfMass(toGeoJSON(secteurFeature)).geometry.coordinates
   );
+  const name = secteurFeature.properties.name;
   return L.marker(center, {
     pmignore: true,
-    icon: L.divIcon({
-      iconSize: [0, 0],
-      iconAnchor: [0, 0],
-      className: "relative",
-      html:
-        `<div id="marker-${secteurFeature.properties.name.replace(
-          /"/g,
-          ""
-        )}" class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">` +
-        secteurFeature.properties.name +
-        `</div>`,
-    }),
+    icon: buildIcon(name),
   });
 };
+
+const buildIcon = (name) =>
+  L.divIcon({
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+    className: "relative",
+    html: `<div
+            id="marker-${name.replace(/"/g, "")}"
+            class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">
+              ${name}
+            </div>`,
+  });
