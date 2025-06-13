@@ -113,7 +113,7 @@ $stmtIt->close();
   <main class="py-4 px-2 md:px-8 flex flex-col gap-4">
     <div class="flex gap-2 justify-end items-center">
       <select id="selectFalaise1" name="selectFalaise1" class="select select-primary select-sm"
-        onchange="window.location.href = '/ajout/preview/details_falaise.php?falaise_id=' + this.value">
+        onchange="window.location.href = '/ajout/contrib/details_falaise.php?falaise_id=' + this.value">
         <?php foreach ($falaises as $f): ?>
           <option value="<?= $f['falaise_id'] ?>" <?= $falaise_id == $f["falaise_id"] ? "selected" : "" ?>>
             <?= $f['falaise_nom'] ?> - <?= $f['falaise_id'] ?>
@@ -667,27 +667,26 @@ $stmtIt->close();
     URL.revokeObjectURL(url);
   });
   document.getElementById("saveGeoJSON").addEventListener("click", () => {
-    alert("Cette fonctionnalité n'est pas encore implémentée. Vous pouvez télécharger le GeoJSON pour l'enregistrer localement.");
-    // if (confirm("Êtes-vous sûr de vouloir enregistrer les données ? Cela écrasera les données existantes.")) {
-    //   const geojson = toGeoJSON();
-    //   fetch(`/api/admin/falaise_details.php?falaise_id=${falaise.falaise_id}`, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(geojson),
-    //   }).then(response => {
-    //     if (!response.ok) {
-    //       throw new Error("Erreur lors de l'enregistrement des données");
-    //     }
-    //     return response.json();
-    //   }).then(data => {
-    //     alert("Données enregistrées avec succès !");
-    //   }).catch(error => {
-    //     console.error("Erreur lors de l'enregistrement des données :", error);
-    //     alert("Erreur lors de l'enregistrement des données : " + error.message);
-    //   });
-    // }
+    // alert("Cette fonctionnalité n'est pas encore implémentée. Vous pouvez télécharger le GeoJSON pour l'enregistrer localement.");
+    if (confirm("Êtes-vous sûr de vouloir enregistrer les données ? Cela écrasera les données existantes.")) {
+      const geojson = toGeoJSON();
+      fetch(`/api/admin/falaise_details.php?falaise_id=${falaise.falaise_id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(geojson),
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error("Erreur lors de l'enregistrement des données");
+        }
+        return response.json();
+      }).then(data => {
+        alert("Données enregistrées avec succès !");
+      }).catch(error => {
+        alert("Erreur lors de l'enregistrement des données : " + error.message);
+      });
+    }
   });
 
   document.getElementById("setFalaiseLatLng").addEventListener("click", () => {
