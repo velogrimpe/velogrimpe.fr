@@ -729,7 +729,6 @@ $stmtIt->close();
     });
     let lastType = null;
     features.forEach(feature => {
-      console.log("Name", feature.layer.properties.name);
       const field = (key, label) => {
         return `
             <input

@@ -140,13 +140,13 @@ export default class Secteur extends Element {
   };
 }
 
-const textPathText = "-";
+const textPathText = "- ";
 const textPathOptions = {
   repeat: true,
-  offset: 8,
+  offset: 10,
   below: false,
   attributes: {
-    "font-size": "11px",
+    "font-size": "14px",
     "font-weight": "bold",
     fill: "black",
   },
