@@ -506,7 +506,11 @@ $stmtIt->close();
     const layer = feature.layer;
     const coords = layer.getLatLngs();
     if (coords.length > 1) {
-      coords.reverse();
+      if (coords[0] instanceof L.LatLng) {
+        coords.reverse();
+      } else if (coords[0] instanceof Array) {
+        coords.forEach((c) => c.reverse());
+      }
       layer.setLatLngs(coords);
     }
   }
