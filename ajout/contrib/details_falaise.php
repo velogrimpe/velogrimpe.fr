@@ -1,5 +1,8 @@
 <?php
 
+$config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
+$token = $config["contrib_token"];
+
 $falaise_id = $_GET['falaise_id'] ?? null;
 if (empty($falaise_id)) {
   echo 'Pas de falaise renseignée.';
@@ -130,7 +133,9 @@ $stmtIt->close();
         </svg> Import
       </button>
       <button class="btn btn-sm" id="downloadGeoJSON">Télécharger le GeoJSON</button>
-      <button class="btn btn-primary btn-sm" id="saveGeoJSON">Enregistrer</button>
+      <div class="tooltip tooltip-left" data-tip="Cmd/Ctrl + S">
+        <button class="btn btn-primary btn-sm" id="saveGeoJSON">Enregistrer</button>
+      </div>
     </div>
     <div class="flex relative flex-col gap-1">
       <div id="map" class="w-full h-[calc(100vh-180px)]"></div>
@@ -666,14 +671,16 @@ $stmtIt->close();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   });
-  document.getElementById("saveGeoJSON").addEventListener("click", () => {
-    // alert("Cette fonctionnalité n'est pas encore implémentée. Vous pouvez télécharger le GeoJSON pour l'enregistrer localement.");
+  const saveBtn = document.getElementById("saveGeoJSON");
+  const saveFn = () => {
     if (confirm("Êtes-vous sûr de vouloir enregistrer les données ? Cela écrasera les données existantes.")) {
+      saveBtn.classList.add("btn-disabled");
       const geojson = toGeoJSON();
-      fetch(`/api/admin/falaise_details.php?falaise_id=${falaise.falaise_id}`, {
+      fetch(`/api/private/falaise_details.php?falaise_id=${falaise.falaise_id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer <?= $token ?>`,
         },
         body: JSON.stringify(geojson),
       }).then(response => {
@@ -682,10 +689,24 @@ $stmtIt->close();
         }
         return response.json();
       }).then(data => {
-        alert("Données enregistrées avec succès !");
+        saveBtn.classList.remove("btn-disabled");
+        saveBtn.classList.add("btn-accent");
+        const content = saveBtn.textContent;
+        saveBtn.textContent = "Enregistré !";
+        setTimeout(() => {
+          saveBtn.classList.remove("btn-accent");
+          saveBtn.textContent = content;
+        }, 2000);
       }).catch(error => {
         alert("Erreur lors de l'enregistrement des données : " + error.message);
       });
+    }
+  }
+  saveBtn.addEventListener("click", saveFn);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "s" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      saveFn();
     }
   });
 

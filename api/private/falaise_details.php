@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   exit;
 }
 // Allow only GET requests
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+if ($_SERVER['REQUEST_METHOD'] !== 'GET' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
   http_response_code(405);
   echo json_encode(['error' => 'Method Not Allowed']);
   exit;
@@ -55,21 +55,51 @@ if (!$falaise) {
   echo json_encode(['error' => 'Falaise not found']);
   exit;
 }
+// Close the statement
+$stmt->close();
+// Close the database connection
+$mysqli->close();
 
 // Check existance of falaise details geojson file and load it if exists
 $geojson_file = $_SERVER['DOCUMENT_ROOT'] . "/bdd/barres/" . $falaise["falaise_id"] . "_" . $falaise["falaise_nomformate"] . ".geojson";
-if (file_exists($geojson_file)) {
-  $geojson_content = file_get_contents($geojson_file);
-  $geojson = json_decode($geojson_content, true);
-} else {
-  $geojson = ["type" => "FeatureCollection", "features" => []];
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+  if (file_exists($geojson_file)) {
+    $geojson_content = file_get_contents($geojson_file);
+    $geojson = json_decode($geojson_content, true);
+  } else {
+    $geojson = ["type" => "FeatureCollection", "features" => []];
+  }
+
+  // Return the result as JSON
+  echo json_encode($geojson);
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+  // Get Authorization header
+  $headers = getallheaders();
+  $authHeader = $headers['authorization'] ?? $headers['Authorization'] ?? null;
+
+  $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
+  if ($authHeader !== "Bearer " . $config['contrib_token']) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Forbidden']);
+    exit;
+  }
+  // Handle POST request to update falaise details
+  $data = json_decode(file_get_contents('php://input'), true);
+
+  if (json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid JSON']);
+    exit;
+  }
+
+  // Save the updated geojson content
+  if (file_put_contents($geojson_file, json_encode($data, JSON_PRETTY_PRINT))) {
+    echo json_encode(['success' => 'Falaise details updated successfully']);
+  } else {
+    http_response_code(500);
+    echo json_encode(['error' => 'Failed to save falaise details']);
+  }
 }
-
-
-// Close the statement
-$stmt->close();
-
-// Return the result as JSON
-echo json_encode($geojson);
-// Close the database connection
-$mysqli->close();
