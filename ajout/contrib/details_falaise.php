@@ -498,7 +498,7 @@ $stmtIt->close();
     }
     layer.closePopup();
     createAndBindPopup(layer);
-    if (feature instanceof Secteur) {
+    if (feature instanceof Secteur && feature.label) {
       createAndBindPopup(feature.label.layer, layer);
     }
     updateAssociations();

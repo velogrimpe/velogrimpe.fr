@@ -19,6 +19,9 @@ export default class SecteurLabel extends Element {
   }
   updateLabel() {
     const name = this.secteur.layer.properties.name;
+    if (!name) {
+      return;
+    }
     this.layer.setIcon(buildIcon(name));
   }
 

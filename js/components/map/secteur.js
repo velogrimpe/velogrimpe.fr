@@ -90,7 +90,15 @@ export default class Secteur extends Element {
     if (this.label) {
       this.label.updateLabel();
     } else {
-      this.label = new SecteurLabel(this.map, this.feature, this, {
+      const feature = { ...this.layer.toGeoJSON(), ...this.layer.properties };
+      if (!feature.properties.name) {
+        if (this.label) {
+          this.label.cleanUp();
+        }
+        this.label = undefined;
+        return;
+      }
+      this.label = new SecteurLabel(this.map, feature, this, {
         ...this.options,
       });
     }
