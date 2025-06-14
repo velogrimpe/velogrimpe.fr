@@ -493,8 +493,8 @@ $stmtIt->close();
         layer.properties[propertyName] = input.value;
       }
     });
-    if (needsLabelUpdate && feature instanceof Secteur) {
-      feature.updateLabel();
+    if (needsLabelUpdate) {
+      feature?.updateLabel();
     }
     layer.closePopup();
     createAndBindPopup(layer);
