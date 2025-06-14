@@ -448,7 +448,7 @@ $stmtIt->close();
       obj = AccesVelo.fromLayer(map, layer);
     }
     createAndBindPopup(obj.layer);
-    if (obj instanceof Secteur) {
+    if (obj instanceof Secteur && obj.label) {
       createAndBindPopup(obj.label.layer, obj.layer);
     }
     obj.layer.openPopup();
