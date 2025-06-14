@@ -209,6 +209,7 @@ $stmtIt->close();
   import Secteur from "/js/components/map/secteur.js";
   import Approche from "/js/components/map/approche.js";
   import Parking from "/js/components/map/parking.js";
+  import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
   import { getValhallaRoute } from "/js/services/valhalla.js";
 
   const zoom = 15;
@@ -293,7 +294,7 @@ $stmtIt->close();
     onClick: () => {
       map.pm.enableDraw("Line", {
         snappable: true,
-        snapDistance: 20,
+        snapDistance: 10,
         pathOptions: AccesVelo.style,
         templineStyle: AccesVelo.style,
         hintlineStyle: AccesVelo.style,
@@ -319,7 +320,7 @@ $stmtIt->close();
         onClick: () => {
           map.pm.enableDraw("Line", {
             snappable: true,
-            snapDistance: 20,
+            snapDistance: 10,
             pathOptions: Approche.style,
             templineStyle: { ...Approche.style, type: "approche" },
             hintlineStyle: Approche.style,
@@ -334,7 +335,7 @@ $stmtIt->close();
         onClick: () => {
           map.pm.enableDraw("Line", {
             snappable: true,
-            snapDistance: 20,
+            snapDistance: 10,
             pathOptions: Approche.style,
             templineStyle: { ...Approche.style, type: "approche-auto" },
             hintlineStyle: Approche.style,
@@ -382,7 +383,7 @@ $stmtIt->close();
       onClick: () => {
         map.pm.enableDraw("Marker", {
           snappable: true,
-          snapDistance: 20,
+          snapDistance: 10,
           continueDrawing: false,
           markerStyle: {
             draggable: true,
@@ -407,7 +408,7 @@ $stmtIt->close();
         onClick: () => {
           map.pm.enableDraw("Line", {
             snappable: true,
-            snapDistance: 20,
+            snapDistance: 10,
             pathOptions: Secteur.lineStyle,
             templineStyle: Secteur.lineStyle,
             hintlineStyle: Secteur.lineStyle,
@@ -421,11 +422,34 @@ $stmtIt->close();
         onClick: () => {
           map.pm.enableDraw("Polygon", {
             snappable: true,
-            snapDistance: 20,
+            snapDistance: 10,
             pathOptions: Secteur.polygonStyle,
             templineStyle: Secteur.polygonStyle,
             hintlineStyle: Secteur.polygonStyle,
             type: "secteur",
+          });
+        },
+      },
+    ],
+  });
+  map.pm.Toolbar.createCustomControl({
+    name: "Falaise Voisine",
+    block: "draw",
+    title: "Ajouter un lien vers une falaise voisine",
+    className: "vg-icon vg-draw-ext-falaise",
+    actions: [
+      "cancel",
+      {
+        text: "Nouveau lien",
+        name: "polygon",
+        onClick: () => {
+          map.pm.enableDraw("Polygon", {
+            snappable: true,
+            snapDistance: 10,
+            pathOptions: FalaiseVoisine.style,
+            templineStyle: FalaiseVoisine.style,
+            hintlineStyle: FalaiseVoisine.style,
+            type: "falaise_voisine",
           });
         },
       },
@@ -446,9 +470,11 @@ $stmtIt->close();
       obj = Parking.fromLayer(map, layer);
     } else if (type === "acces_velo") {
       obj = AccesVelo.fromLayer(map, layer);
+    } else if (type === "falaise_voisine") {
+      obj = FalaiseVoisine.fromLayer(map, layer);
     }
     createAndBindPopup(obj.layer);
-    if (obj instanceof Secteur && obj.label) {
+    if (obj.label) {
       createAndBindPopup(obj.label.layer, obj.layer);
     }
     obj.layer.openPopup();
@@ -487,7 +513,7 @@ $stmtIt->close();
     document.querySelectorAll(`.input-${id}`).forEach(input => {
       const propertyName = input.name;
       if (propertyName && layer) {
-        if (propertyName === "name" && layer.properties.name !== input.value && feature.type === "secteur") {
+        if (propertyName === "name" && layer.properties.name !== input.value && ["secteur", "falaise_voisine"].includes(feature.type)) {
           needsLabelUpdate = true;
         }
         layer.properties[propertyName] = input.value;
@@ -558,6 +584,8 @@ $stmtIt->close();
     } else if (targetLayer.properties.type === "parking") {
       popupHtml += field("itineraire_acces", "Accès vélo", "v1, ...");
     } else if (targetLayer.properties.type === "acces_velo") {
+    } else if (targetLayer.properties.type === "falaise_voisine") {
+      popupHtml += field("falaise_id", "ID Falaise", "247");
     }
     popupHtml += `<div class="flex flex-row gap-1 justify-between">`;
     popupHtml += `<button class="flex-1 btn btn-xs btn-error text-base-100" onclick="deleteFeature(${id})">Suppr.</button>`;
@@ -596,11 +624,13 @@ $stmtIt->close();
           obj = new AccesVelo(map, feature);
         } else if (feature.properties.type === "parking") {
           obj = new Parking(map, feature);
+        } else if (feature.properties.type === "falaise_voisine") {
+          obj = new FalaiseVoisine(map, feature);
         }
         if (obj) {
           featureMap[obj.layer._leaflet_id] = obj;
           createAndBindPopup(obj.layer);
-          if (obj instanceof Secteur && obj.label) {
+          if (obj.label) {
             createAndBindPopup(obj.label.layer, obj.layer);
           }
         }
@@ -812,6 +842,17 @@ $stmtIt->close();
             </div>
             `;
             break;
+          case "falaise_voisine":
+            tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_48px] items-center gap-2">
+              <div class="text-sm">Nom</div>
+              <div class="text-sm">Description</div>
+              <div class="text-sm">ID Falaise</div>
+              <div class="text-sm">Type</div>
+              <div></div>
+            </div>
+            `;
+            break;
         }
       }
       switch (feature.layer.properties.type) {
@@ -868,6 +909,21 @@ $stmtIt->close();
             <div class="grid grid-cols-[1fr_1fr_1fr_48px] items-center gap-2">
               ${field("name", "Nom")}
               ${field("description", "Description")}
+              ${field("type", "Type")}
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+                <svg class="w-5 h-5 fill-current">
+                  <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
+                </svg>
+              </button>
+            </div>
+            `;
+          break;
+        case "falaise_voisine":
+          tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_48px] items-center gap-2">
+              ${field("name", "Nom")}
+              ${field("description", "Description")}
+              ${field("falaise_id", "ID Falaise")}
               ${field("type", "Type")}
               <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
                 <svg class="w-5 h-5 fill-current">
