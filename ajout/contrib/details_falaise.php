@@ -600,7 +600,7 @@ $stmtIt->close();
         if (obj) {
           featureMap[obj.layer._leaflet_id] = obj;
           createAndBindPopup(obj.layer);
-          if (obj instanceof Secteur) {
+          if (obj instanceof Secteur && obj.label) {
             createAndBindPopup(obj.label.layer, obj.layer);
           }
         }
