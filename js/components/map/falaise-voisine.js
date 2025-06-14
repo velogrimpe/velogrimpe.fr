@@ -87,13 +87,13 @@ export default class FalaiseVoisine extends Element {
   }
 }
 
-const textPathText = "- ";
+const textPathText = ". ";
 const textPathOptions = {
   repeat: true,
-  offset: 10,
+  offset: 4,
   below: false,
   attributes: {
-    "font-size": "14px",
+    "font-size": "10px",
     "font-weight": "bold",
     fill: "#2e8b57",
   },
