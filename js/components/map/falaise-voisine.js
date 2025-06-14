@@ -87,7 +87,7 @@ export default class FalaiseVoisine extends Element {
   }
 }
 
-const textPathText = ". ";
+const textPathText = ". . . . ";
 const textPathOptions = {
   repeat: true,
   offset: 4,
