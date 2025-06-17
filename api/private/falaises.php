@@ -6,7 +6,8 @@
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 
 $headers = getallheaders();
-$http_origin = $headers['Origin'] || $headers['origin'] || '';
+$http_origin = $headers['Origin'] ?? $headers['origin'] ?? null;
+
 $allowed_http_origins = [
   "https://velogrimpe.fr",
   "https://www.velogrimpe.fr",
