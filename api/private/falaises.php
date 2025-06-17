@@ -4,8 +4,9 @@
 // Allow CORS from all origins
 // header('Access-Control-Allow-Origin: https://velogrimpe.fr, https://www.velogrimpe.fr, https://couble.eu, http://localhost:3100');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
-$request_headers = apache_request_headers();
-$http_origin = $request_headers['Origin'] || $request_headers['origin'];
+
+$headers = getallheaders();
+$http_origin = $headers['Origin'] || $headers['origin'] || '';
 $allowed_http_origins = [
   "https://velogrimpe.fr",
   "https://www.velogrimpe.fr",
