@@ -224,6 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $to = $config['contact_mail'];
       $subject = "Ajout d'une falaise par $nom_prenom: $falaise_nom";
       $body = "La falaise de $falaise_nom a été ajoutée par $nom_prenom (mail : $email).";
+      $body .= "<a href='https://velogrimpe.fr/falaise.php?id=$falaise_id'>Voir la falaise</a>\n\n";
       if ($message) {
         $body .= "Message additionnel : $message\n";
       }
