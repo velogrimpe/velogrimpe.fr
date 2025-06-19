@@ -26,8 +26,19 @@
       COMMUNAUTÉ
     </h1>
 
+    <div>
+      <a href="https://instagram.com/velogrimpe" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/250px-Instagram_icon.png"
+          alt="Instagram Vélogrimpe" class="w-16 md:w-24 h-16 md:h-24 mx-auto mb-2" />
+      </a>
+    </div>
+    <p class="md:text-center text-normal">Depuis peu nous avons créé une page Instagram <a
+        href="https://instagram.com/velogrimpe" target="_blank">@velogrimpe</a>, venez nous y
+      suivre !</p>
+
+
     <div class="flex flex-col items-center">
-      <img src="/images/signal.svg" alt="Signal" class="w-16 md:w-24 h-16 md:w-24" />
+      <img src="/images/signal.svg" alt="Signal" class="w-16 md:w-24 h-16 md:h-24" />
     </div>
     <p class="md:text-center text-normal">Il existe un groupe Signal "Vélogrimpe", sur lequel des propositions de
       sorties sont partagées. <br>
