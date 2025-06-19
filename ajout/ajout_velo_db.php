@@ -98,6 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $to = $config["contact_mail"];
       $subject = "Ajout d'un itinéraire vélo par $nom_prenom : $velo_depart - $velo_arrivee";
       $body = "L'itinéraire de $velo_depart à $velo_arrivee a été ajouté par $nom_prenom (mail : $email), avec le message additionnel suivant : $message.";
+      $body .= "<a href='https://velogrimpe.fr/falaise.php?id=$falaise_id'>Voir la falaise</a>\n\n";
       $headers = "From: noreply@velogrimpe.fr\r\n";
 
       mail($to, $subject, $body, $headers);
