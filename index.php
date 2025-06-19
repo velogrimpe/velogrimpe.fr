@@ -280,7 +280,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                       <div class="text-normal font-bold">&le;</div>
                       <input type="number" id="tempsMaxTrain" step="1" min="0"
                         class="input input-primary input-xs w-10" />
-                      <div>min.</div>
+                      <div>minutes</div>
                     </div>
                     <div class="flex flex-row items-center gap-1 ml-2 villeRequired opacity-30">
                       <div>Nb. Corresp.</div>
@@ -317,7 +317,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                             <div class="text-normal font-bold">&le;</div>
                             <input type="number" id="tempsMaxVelo" step="1" min="0"
                               class="input input-primary input-xs w-10" />
-                            <div>min</div>
+                            <div>minutes</div>
                           </div>
                           <div class="flex flex-row gap-2 items-center">
                             <div class="text-normal font-bold">&le;</div>
@@ -344,7 +344,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                       <div class="font-bold">&bull; Approche (A)</div>
                       <div class="text-normal font-bold">&le;</div>
                       <input type="number" id="tempsMaxMA" step="1" min="0" class="input input-primary input-xs w-10" />
-                      <div>min.</div>
+                      <div>minutes</div>
                     </div>
                   </div>
                   <div
@@ -356,14 +356,14 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                         <div class="text-normal font-bold">&le;</div>
                         <input type="number" id="tempsMaxTV" step="1" min="0"
                           class="input input-primary input-xs w-10" />
-                        <div>min.</div>
+                        <div>minutes</div>
                       </div>
                       <div class="flex flex-row gap-1 items-center">
                         <div class="">T+V+A</div>
                         <div class="text-normal font-bold">&le;</div>
                         <input type="number" id="tempsMaxTVA" step="1" min="0"
                           class="input input-primary input-xs w-10" />
-                        <div>min.</div>
+                        <div>minutes</div>
                       </div>
                     </div>
                   </div>

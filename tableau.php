@@ -390,7 +390,7 @@ $stmt->close();
                   <div class="font-bold">Durée</div>
                   <div class="text-normal font-bold">&le;</div>
                   <input type="number" id="tempsMaxTrain" step="1" min="0" class="input input-bordered input-sm w-14" />
-                  <div>min.</div>
+                  <div>minutes</div>
                 </label>
                 <div class="flex flex-row items-center gap-1">
                   <div>Nb. Corresp. Max</div>
@@ -430,7 +430,7 @@ $stmt->close();
                       <div class="text-normal font-bold">&le;</div>
                       <input type="number" id="tempsMaxVelo" step="1" min="0"
                         class="input input-bordered input-sm w-14" />
-                      <div>min</div>
+                      <div>minutes</div>
                     </label>
                     <label class="flex flex-row gap-2 items-center">
                       <div class="text-normal font-bold">&le;</div>
@@ -465,7 +465,7 @@ $stmt->close();
                   <div class="font-bold">Approche</div>
                   <div class="text-normal font-bold">&le;</div>
                   <input type="number" id="tempsMaxMA" step="1" min="0" class="input input-bordered input-sm w-14" />
-                  <div>min.</div>
+                  <div>minutes</div>
                 </label>
               </div>
             </div>
@@ -478,13 +478,13 @@ $stmt->close();
                     <div class="">Train+Vélo</div>
                     <div class="text-normal font-bold">&le;</div>
                     <input type="number" id="tempsMaxTV" step="1" min="0" class="input input-bordered input-sm w-14" />
-                    <div>min.</div>
+                    <div>minutes</div>
                   </label>
                   <label class="flex flex-row gap-1 items-center">
                     <div class="">Train+Vélo+Approche</div>
                     <div class="text-normal font-bold">&le;</div>
                     <input type="number" id="tempsMaxTVA" step="1" min="0" class="input input-bordered input-sm w-14" />
-                    <div>min.</div>
+                    <div>minutes</div>
                   </label>
                 </div>
               </div>
