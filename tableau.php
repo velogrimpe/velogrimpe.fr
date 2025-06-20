@@ -303,6 +303,8 @@ $stmt->close();
                     </div>
                   </div>
                 </div>
+                <div class="font-bold">Nombre de voies</div>
+
                 <div class="font-bold">Types de voies</div>
                 <div class="grid grid-cols-[auto_auto] gap-x-2 gap-y-1 w-full">
                   <div class="flex flex-row gap-2 items-center w-full hidden">
@@ -422,7 +424,7 @@ $stmt->close();
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
                 id="veloFilterBtn">Vélo 🚲
               </div>
-              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-52 p-2 shadow-lg" tabindex="1">
+              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
                 <div class="flex flex-row gap-3 items-center">
                   <div>Trajet vélo</div>
                   <div class="flex flex-col gap-1">
@@ -460,7 +462,7 @@ $stmt->close();
             <div class="dropdown w-fit">
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
                 id="approcheFilterBtn">Marche 🥾</div>
-              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-48 p-2 shadow-lg" tabindex="1">
+              <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-56 p-2 shadow-lg" tabindex="1">
                 <label class="flex flex-row gap-2 items-center">
                   <div class="font-bold">Approche</div>
                   <div class="text-normal font-bold">&le;</div>
