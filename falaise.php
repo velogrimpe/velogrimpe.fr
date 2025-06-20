@@ -180,6 +180,8 @@ $stmtV->close();
     charset="utf-8"></script>
   <!-- Carte : Lignes de train-->
   <script src="https://unpkg.com/protomaps-leaflet@5.0.1/dist/protomaps-leaflet.js"></script>
+  <!-- Carte : Pour les détails falaise-->
+  <script src="/js/vendor/leaflet-textpath.js"></script>
   <!-- Styles -->
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -861,32 +863,12 @@ $stmtV->close();
   </main>
 
   <script>
-    // Paramètres généraux
-    const iconSize = 30;
-    const defaultMarkerSize = iconSize;
-    const hoverMarkerSize = iconSize * 1.5;
-    // const itinerairesColors = ["indianRed", "tomato", "salmon", "lightSalmon", "fireBrick", "darkorange"]
-    const itinerairesColors = ["indianRed", "tomato", "teal", "paleVioletRed", "mediumSlateBlue", "lightSalmon", "fireBrick", "crimson", "purple", "hotPink", "mediumOrchid"]
-    const icon = (size) =>
-      L.icon({
-        iconUrl: "http://www.velogrimpe.fr/images/icone_falaise_carte.png",
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size],
-      });
-    const trainIcon = (size = 24) => {
-      return L.icon({
-        iconUrl: "http://www.velogrimpe.fr/images/icone_train_carte.png",
-        className: "train-icon" + (size === 24 ? " bgwhite" : " bgblue"),
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2],
-      });
-    };
+
     const ignTiles = L.tileLayer(
       "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
       maxZoom: 19,
       minZoom: 0,
       attribution: "IGN-F/Geoportail",
-      name: "IGNv2",
       crossOrigin: true,
     })
     const ignOrthoTiles = L.tileLayer(
@@ -895,7 +877,6 @@ $stmtV->close();
       minZoom: 0,
       tileSize: 256,
       attribution: "IGN-F/Geoportail",
-      name: "IGNv2",
       crossOrigin: true,
     })
     const landscapeTiles = L.tileLayer(
@@ -903,7 +884,6 @@ $stmtV->close();
       maxZoom: 19,
       minZoom: 0,
       attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
-      name: "IGNv2",
       crossOrigin: true,
     })
     const outdoorsTiles = L.tileLayer(
@@ -911,7 +891,6 @@ $stmtV->close();
       maxZoom: 19,
       minZoom: 0,
       attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
-      name: "IGNv2",
       crossOrigin: true,
     })
     var baseMaps = {
@@ -920,65 +899,23 @@ $stmtV->close();
       'Satellite': ignOrthoTiles,
       'Outdoors': outdoorsTiles,
     };
-
-    const gpx_path = (it) => {
-      return (
-        it.velo_id + "_" + it.velo_depart + "_" + it.velo_arrivee + "_" + (it.velo_varianteformate || "") + ".gpx"
-      )
-    }
-    function format_time(minutes) {
-      if (minutes === null) {
-        return "";
-      }
-      const hours = Math.floor(minutes / 60);
-      const remaining_minutes = minutes % 60;
-
-      if (hours > 0) {
-        return `${hours}h${remaining_minutes.toString().padStart(2, "0")}`;
-      } else {
-        return `${remaining_minutes}&apos;`;
-      }
-    }
-    const calculate_time = (it) => {
-      const { velo_km, velo_dplus, velo_apieduniquement } = it;
-      let time_in_hours;
-      if (velo_apieduniquement == "1") {
-        time_in_hours = parseFloat(velo_km) / 4 + parseInt(velo_dplus) / 500;
-      } else {
-        time_in_hours = parseFloat(velo_km) / 20 + parseInt(velo_dplus) / 500;
-      }
-      const time_in_minutes = Math.round(time_in_hours * 60);
-      return time_in_minutes;
-    }
-    const reverse = (lnglat) => {
-      const [lng, lat, ...rest] = lnglat;
-      return [lat, lng, ...rest]
-    }
-    const toGeoJSON = (feature) => ({ type: "FeatureCollection", features: [feature] });
-    const parkingIcon = (size, pname) => L.divIcon({
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size / 2],
-      className: "bg-none flex flex-row justify-center items-start",
-      html: (
-        `<div class="text-white bg-blue-600 text-[${size / 2 + 1}px] rounded-full aspect-square w-[${size}px] h-[${size}px] flex justify-center items-center font-bold border border-white">${pname}</div>`
-      ),
-    })
-    const isInvalidSecteur = (secteur) => {
-      return (
-        !secteur.geometry
-        || !["Polygon", "LineString"].includes(secteur.geometry.type)
-        || secteur.geometry.coordinates.length === 0
-        || secteur.geometry.coordinates[0].length === 0
-      );
-    }
   </script>
-  <script>
+  <script type="module">
+
+    import Falaise from "/js/components/map/falaise.js";
+    import Velo from "/js/components/map/velo.js";
+    import AccesVelo from "/js/components/map/acces-velo.js";
+    import Secteur from "/js/components/map/secteur.js";
+    import Approche from "/js/components/map/approche.js";
+    import Parking from "/js/components/map/parking.js";
+    import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
+    import Gare from "/js/components/map/gare.js";
+
     const falaise = <?php echo json_encode($dataF); ?>;
     const itineraires = <?php echo json_encode($itineraires); ?>;
 
     const center = falaise.falaise_latlng.split(",").map(parseFloat);
     const zoom = 13;
-    const zoomSwitch = 14;
     const bounds = [
       falaise.falaise_latlng.split(",").map(parseFloat),
       itineraires.map(it => it.gare_latlng.split(",").map(parseFloat))
@@ -999,390 +936,72 @@ $stmtV->close();
         })
       }
     ]
-    var layer = protomapsL.leafletLayer({ url: '/bdd/trains/trainlines.pmtiles', paintRules, maxDataZoom: 16, pane: "overlayPane" })
-    layer.addTo(map);
+    var trainLayer = protomapsL.leafletLayer({ url: '/bdd/trains/trainlines.pmtiles', paintRules, maxDataZoom: 16, pane: "overlayPane" })
+    trainLayer.addTo(map);
 
-    function renderGpx(it, c) {
-      const lopts = { weight: 5, color: c };
-      const options = {
-        async: true,
-        markers: {
-          startIcon: null,
-          endIcon: null,
-        },
-        polyline_options: lopts,
-      };
-      return new L.GPX("./bdd/gpx/" + gpx_path(it), options)
-        .addTo(map)
-        .on('loaded', e => {
-          e.target.bindTooltip(format_time(calculate_time(it)),
-            {
-              className: `p-[1px] bg-[${c}] text-white border-[${c}] font-bold`,
-              permanent: true,
-              direction: "center",
-            });
-          e.target.on('mouseover', e => {
-            e.originalEvent.target.ownerSVGElement.appendChild(e.originalEvent.target);
-            e.target.eachLayer((l) => l.setStyle({ weight: 10, color: c }))
-          });
-          e.target.on('mouseout', e => {
-            e.target.eachLayer((l) => l.setStyle(lopts))
-          });
-          e.target.on('click', e => {
-            L.DomEvent.stopPropagation(e);
-          });
-        }
-        );
+    // --- Ajout de la falaise et itinéraires vélos ---
+    const falaiseObject = new Falaise(map, falaise);
+    const veloObjects = itineraires.map((velo, index) => new Velo(map, velo, { index }));
+    const gareObjects = (
+      itineraires
+        .map(it => ({ gare_nom: it.gare_nom, gare_latlng: it.gare_latlng }))
+        .reduce((acc, gare) => {
+          if (acc.find(g => g.gare_nom === gare.gare_nom)) {
+            return acc;
+          }
+          return [...acc, gare];
+        }, [])
+        .map((it, index) => new Gare(map, it))
+    );
+
+    const featureMap = {};
+
+    const updateAssociations = () => {
+      const features = Object.values(featureMap);
+      console.log("Updating associations for features:", features);
+      features.forEach(feature => {
+        feature.updateAssociations(features);
+      })
     }
-
-    const falaiseMarker = L.marker(
-      falaise.falaise_latlng.split(","),
-      {
-        icon: icon(defaultMarkerSize),
-        riseOnHover: true,
-        autoPanOnFocus: true,
+    fetch(`/api/private/falaise_details.php?falaise_id=${falaise.falaise_id}`).then(response => {
+      if (!response.ok) {
+        throw new Error("Erreur lors de la récupération des détails de la falaise");
       }
-    ).addTo(map);
-    falaiseMarker.on("click", () => {
-      map.flyTo(falaise.falaise_latlng.split(","), 15, { duration: 0.25 });
-    });
-    itineraires.map((it, i) => {
-      const c = itinerairesColors[i % itinerairesColors.length];
-      const options = {
-        async: true,
-        markers: {
-          startIcon: null,
-          endIcon: null,
-        },
-        polyline_options: {
-          weight: 5,
-          color: c,
-        },
-      };
-      const gpx = renderGpx(it, c);
-      const gareMarker = L.marker(
-        it.gare_latlng.split(","),
-        {
-          icon: trainIcon(),
-          riseOnHover: true,
-          autoPanOnFocus: true,
+      return response.json();
+    })
+      .then((data) => {
+        let id = 0;
+        if (data.features && data.features.length > 0) {
+          data.features.forEach(feature => {
+            let obj;
+            if (feature.properties.type === "secteur" || feature.properties.type === undefined) {
+              if (Secteur.isInvalidSecteur(feature)) return;
+              obj = new Secteur(map, feature);
+            } else if (feature.properties.type === "approche") {
+              obj = new Approche(map, feature);
+            } else if (feature.properties.type === "acces_velo") {
+              obj = new AccesVelo(map, feature);
+            } else if (feature.properties.type === "parking") {
+              obj = new Parking(map, feature);
+            } else if (feature.properties.type === "falaise_voisine") {
+              obj = new FalaiseVoisine(map, feature);
+            }
+            obj._element_id = id++;
+            if (obj) {
+              console.log(obj._element_id, "added to featureMap");
+              featureMap[obj._element_id] = obj;
+            }
+          });
+          updateAssociations();
+          map.flyTo(falaise.falaise_latlng.split(","), 14, { duration: 0.25 });
+
         }
-      ).addTo(map);
-      gareMarker.bindTooltip(it.gare_nom, {
-        direction: "right",
-        permanent: true,
-        offset: [iconSize / 2, 0],
-        className: `rounded-md bg-[${c}] border-[${c}] text-white px-[1px] py-0 before:border-r-[${c}]`,
+      })
+      .catch(error => {
+        console.error("Erreur lors du chargement des données de falaise :", error);
       });
-    });
-
-    let falaiseDetails = {};
-    let falaiseDetailsLayers = {};
-    let falaiseDetailsIndicator = undefined;
-    let parkingIndicators = [];
-    const renderFalaiseDetails = () => {
-      const zoom = map.getZoom();
-      if (zoom < 13) {
-        if (Object.values(falaiseDetailsLayers).length > 0) {
-          Object.values(falaiseDetailsLayers).forEach((arr) => {
-            if (!arr) {
-              return;
-            }
-            arr.forEach((el) => {
-              if (el.layer) {
-                map.removeLayer(el.layer);
-                el.layer = undefined;
-              }
-              if (el.marker) {
-                map.removeLayer(el.marker);
-                el.marker = undefined;
-              }
-            });
-          });
-          falaiseDetailsLayers = {};
-        }
-        return;
-      }
-      if (!falaiseDetails || Object.values(falaiseDetailsLayers).length > 0) {
-        return;
-      }
-      const approcheBaseStyle = {
-        color: "blue",
-        weight: 2,
-        dashArray: "5 5",
-      };
-      const approcheHighlightedStyle = {
-        color: "DodgerBlue",
-        weight: 6,
-        dashArray: "10",
-      };
-      const approches = falaiseDetails.approches?.map(approche => {
-        const layer = L.geoJSON(toGeoJSON(approche), {
-          style: approcheBaseStyle,
-        }).addTo(map);
-        approche.layer = layer;
-        return approche;
-      })
-      const accesVelos = falaiseDetails.accesVelos?.map(accesVelo => {
-        const layer = L.geoJSON(toGeoJSON(accesVelo), {
-          style: {
-            color: itinerairesColors[0],
-            weight: 3,
-          }
-        }).addTo(map);
-        accesVelo.layer = layer;
-        return accesVelo;
-      })
-      const parkings = falaiseDetails.parkings?.map(parking => {
-        const pname = parking.properties.name.length > 2 ? parking.properties.name.substring(0, 1) : parking.properties.name;
-        const layer = L.marker(
-          reverse(parking.geometry.coordinates),
-          {
-            icon: parkingIcon(18, pname),
-          }).addTo(map);
-        if (parking.properties.name.length > 2) {
-          layer.bindTooltip(parking.properties.name, {
-            direction: "right",
-            offset: [iconSize / 2, 0],
-            className: `rounded-md bg-blue-600 border-blue-600 text-white px-[1px] py-0 before:border-r-blue-600`,
-          });
-        }
-        parking.layer = layer;
-        return parking;
-      })
-      const secteurs = falaiseDetails.secteurs?.map(secteur => {
-        const name = secteur.properties.name;
-        if (isInvalidSecteur(secteur)) return;
-        secteur.center = reverse(turf.centerOfMass(toGeoJSON(secteur)).geometry.coordinates);
-        const weight = secteur.geometry.type === "Polygon" ? 1 : 6;
-        const marker = name ? L.marker(secteur.center, {
-          pane: "tooltipPane",
-          icon: L.divIcon({
-            iconSize: [0, 0],
-            iconAnchor: [0, 0],
-            className: "relative",
-            html: (
-              `<div id="marker-${name.replace(/"/g, "")}" class="absolute top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">`
-              + name
-              + `</div>`
-            ),
-          }),
-        }).addTo(map) : undefined;
-        const layer = L.geoJSON(toGeoJSON(secteur), {
-          style: {
-            color: "#333",
-            weight,
-            className: "cursor-grab",
-          }
-        }
-        ).addTo(map);
-        const mouseover = (e) => {
-          L.DomEvent.stopPropagation(e);
-          layer.eachLayer(l => l.setStyle({ color: "darkred", weight: weight + 2 }));
-          if (marker) {
-            document.getElementById(`marker-${name.replace(/"/g, "")}`).classList.add("bg-red-900", "text-white");
-            document.getElementById(`marker-${name.replace(/"/g, "")}`).classList.remove("bg-white", "text-black");
-          }
-          const parkingList = secteur.properties.parking?.split(",").map(p => p.trim()) || [];
-          const approcheList = secteur.properties.approche?.split(",").map(p => p.trim()) || [];
-          approcheList.map((approche, i) => {
-            const ap = approche ? approches.find(a => a.properties.name === approche) : undefined;
-            if (ap) {
-              ap.layer.setStyle(approcheHighlightedStyle);
-            }
-          })
-          parkingList.map(parking => {
-            const pk = parking ? parkings.find(p => p.properties.name === parking) : undefined;
-            if (pk) {
-              map.removeLayer(pk.layer);
-              pk.layer = L.marker(reverse(pk.geometry.coordinates), { icon: parkingIcon(24, parking) }).addTo(map);
-              if (approcheList.length === 0) {
-                parkingIndicators.push(
-                  L.polyline([reverse(pk.geometry.coordinates), secteur.center], {
-                    color: "black",
-                    weight: 1,
-                    dashArray: "5",
-                  }).addTo(map)
-                );
-              }
-            }
-          })
-        }
-        const mouseout = (e) => {
-          removeParkingLinks();
-          resetParkingMarkers();
-          approches.map(approche => {
-            approche.layer.setStyle(approcheBaseStyle);
-          })
-          layer.eachLayer(l => l.setStyle({ color: "black", weight }));
-          if (marker) {
-            document.getElementById(`marker-${name.replace(/"/g, "")}`).classList.remove("bg-red-900", "text-white");
-            document.getElementById(`marker-${name.replace(/"/g, "")}`).classList.add("bg-white", "text-black");
-          }
-        }
-        layer.eachLayer(l => {
-          l.on("mouseover click", mouseover);
-          l.on("mouseout", mouseout);
-        });
-        if (marker) {
-          marker.on("click mouseover", mouseover);
-          marker.on("mouseout", mouseout);
-          secteur.marker = marker;
-        }
-        secteur.layer = layer;
-        return secteur;
-      })
-      parkings?.map(parking => {
-        parking.layer.on("click", function (e) {
-          removeParkingLinks();
-          secteurs.map(secteur => {
-            if (secteur.properties.parking === parking.properties.name) {
-              parkingIndicators.push(
-                L.polyline([reverse(parking.geometry.coordinates), secteur.center], {
-                  color: "black",
-                  weight: 1,
-                  dashArray: "5",
-                }).addTo(map)
-              );
-            }
-          });
-        });
-      })
-      falaiseDetailsLayers = {
-        approches,
-        accesVelos,
-        parkings,
-        secteurs: secteurs?.filter(Boolean),
-      };
-    }
-
-    function renderFalaiseDetailsIndicator() {
-      const zoom = map.getZoom();
-      if (zoom >= 13) {
-        if (falaiseDetailsIndicator) {
-          map.removeLayer(falaiseDetailsIndicator);
-          falaiseDetailsIndicator = undefined;
-        }
-        return;
-      }
-      if (!falaiseDetails) {
-        return;
-      }
-      if (!falaiseDetailsIndicator && falaiseDetails.secteurs && falaiseDetails.secteurs.length > 0) {
-        falaiseDetailsIndicator = L.marker(falaise.falaise_latlng.split(","), {
-          pane: "tooltipPane",
-          icon: L.divIcon({
-            iconSize: [200, 200],
-            iconAnchor: [100, 0],
-            className: "bg-none flex flex-row justify-center items-start",
-            html: (
-              `<div class="text-black text-center bg-white text-xs rounded-full px-2 max-w-48 w-fit opacity-70">`
-              + `Cliquez ou zoomez pour voir les secteurs de la falaise`
-              + `</div>`
-            ),
-          }),
-        }).addTo(map);
-        falaiseDetailsIndicator.on("click", function (e) {
-          marker.fire('click');
-        });
-      }
-    }
-    map.on("zoomend", () => { renderFalaiseDetails(); renderFalaiseDetailsIndicator(); });
-
-    const removeParkingLinks = () => {
-      parkingIndicators.forEach(layer => map.removeLayer(layer));
-      parkingIndicators = [];
-    }
-    const resetParkingMarkers = () => {
-      falaiseDetails.parkings?.map(parking => {
-        if (parking.layer) {
-          map.removeLayer(parking.layer);
-          parking.layer = L.marker(reverse(parking.geometry.coordinates), { icon: parkingIcon(18, parking.properties.name) }).addTo(map);
-        }
-      })
-    }
-    const toggleNames = (shown) => {
-      falaiseDetails.secteurs?.map(secteur => {
-        if (secteur.marker) {
-          if (shown) {
-            document.getElementById(`marker-${secteur.properties.name.replace(/"/g, "")}`).classList.remove("hidden");
-          } else {
-            document.getElementById(`marker-${secteur.properties.name.replace(/"/g, "")}`).classList.add("hidden");
-          }
-        }
-      })
-    }
-    const toggleFalaiseIcon = (shown) => {
-      if (shown) {
-        falaiseMarker.setOpacity(1);
-      } else {
-        falaiseMarker.setOpacity(0);
-      }
-    }
-    map.on("click", () => { removeParkingLinks(); resetParkingMarkers(); });
-    map.on("zoomend", () => {
-      const hasSecteurs = falaiseDetails.secteurs && falaiseDetails.secteurs.length > 0;
-      toggleNames(map.getZoom() > zoomSwitch);
-      if (hasSecteurs) { toggleFalaiseIcon(map.getZoom() <= zoomSwitch); }
-    });
-    fetch("./bdd/barres/" + falaise.falaise_id + "_" + falaise.falaise_nomformate + ".geojson")
-      .then(response => response.json())
-      .then(data => {
-        const accesVelos = data.features.filter(f => f.properties.type === "acces_velo");
-        const secteurs = data.features.filter(f => f.properties.type === "secteur" || f.properties.type === undefined);
-        const parkings = data.features.filter(f => f.properties.type === "parking");
-        const approches = data.features.filter(f => f.properties.type === "approche");
-        falaiseDetails = {
-          accesVelos,
-          secteurs,
-          parkings,
-          approches,
-        };
-        map.flyTo(falaise.falaise_latlng.split(","), 14, { duration: 0.25 });
-      })
-      .catch(() => { });
-
 
   </script>
-
-  <script>
-    window.addEventListener("DOMContentLoaded", function () {
-      roseFromExpo("rose-des-vents", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 60, 60);
-      // roseFromExpo("rose-mini", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 36, 36);
-    });
-  </script>
-
-  <!-- <script>
-    <?php foreach ($gares as $gare): ?>
-      document.addEventListener(
-        "IvtsWidgetsExternal.Booking.Ready",
-        ({ detail: bookingWidget }) => {
-          bookingWidget.init("container__booking__gare_<?= $gare['gare_id'] ?>", {
-            titleIndex: 2,
-            // inwardDate: { isDisabled: true },
-            <?php if ($ville_id_get): ?>origin: { defaultValue: "<?= htmlspecialchars($selected_ville_nom) ?>" }, <?php endif; ?>
-                            destination: {
-              defaultValue: "<?= $gare['gare_nom'] ?>",
-              isDisabled: true,
-            },
-            outwardDate: {
-              defaultValue: new Date().toLocaleDateString("fr"),
-            },
-            // outwardTime: {
-            //   defaultValue: new Date().toLocaleTimeString("fr", { hour: "2-digit", minute: "2-digit" }),
-            // },
-            tracking: {
-              wizalyQueryParameters:
-                "wiz_medium=part&wiz_source=velogrimpe&wiz_campaign=fr_conv_widget_contenu_filrouge_tr-multiproduit__mk_202405&wiz_content=fr",
-            },
-          });
-        }
-      );
-    <?php endforeach; ?>
-
-  </script> -->
-
-  <!-- <script async defer src="https://www.sncf-connect.com/widget-external/web-widgets-external.js"></script> -->
 
   <?php include "./components/footer.html"; ?>
 </body>

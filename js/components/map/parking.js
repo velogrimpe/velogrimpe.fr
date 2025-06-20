@@ -33,16 +33,38 @@ export default class Parking extends Element {
     };
     return new Parking(map, parkingFeature);
   }
+  static iconSize = 18;
+  static parkingIcon(size, name) {
+    const pname = name
+      ? name.length > 2
+        ? name.substring(0, 1)
+        : name
+      : undefined;
+    return L.divIcon({
+      pmignore: true,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+      className: "bg-none flex flex-row justify-center items-start",
+      html: `<div class="text-white bg-blue-600 text-[${
+        size / 2 + 1
+      }px] rounded-full aspect-square w-[${size}px] h-[${size}px] flex justify-center items-center font-bold border border-white uppercase">${
+        pname || "P"
+      }</div>`,
+    });
+  }
 
   highlight(event, propagate) {
     this.layer.setIcon(
-      parkingIcon(iconSize * 1.2, this.layer.properties.name || "P")
+      Parking.parkingIcon(
+        Parking.iconSize * 1.2,
+        this.layer.properties.name || "P"
+      )
     );
     super.highlight(event, propagate);
   }
   unhighlight(propagate) {
     this.layer.setIcon(
-      parkingIcon(iconSize, this.layer.properties.name || "P")
+      Parking.parkingIcon(Parking.iconSize, this.layer.properties.name || "P")
     );
     super.unhighlight(propagate);
   }
@@ -72,26 +94,7 @@ export default class Parking extends Element {
   }
 }
 
-const iconSize = 18;
-const parkingIcon = (size, name) => {
-  const pname = name
-    ? name.length > 2
-      ? name.substring(0, 1)
-      : name
-    : undefined;
-  return L.divIcon({
-    pmignore: true,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    className: "bg-none flex flex-row justify-center items-start",
-    html: `<div class="text-white bg-blue-600 text-[${
-      size / 2 + 1
-    }px] rounded-full aspect-square w-[${size}px] h-[${size}px] flex justify-center items-center font-bold border border-white uppercase">${
-      pname || "P"
-    }</div>`,
-  });
-};
-const iconParking = parkingIcon(iconSize);
+const iconParking = Parking.parkingIcon(Parking.iconSize);
 const buildParkingMarker = (parkingFeature, options = {}) => {
   const marker = L.marker(
     [
@@ -100,7 +103,7 @@ const buildParkingMarker = (parkingFeature, options = {}) => {
     ],
     {
       icon: parkingFeature.properties.name
-        ? parkingIcon(iconSize, parkingFeature.properties.name)
+        ? Parking.parkingIcon(Parking.iconSize, parkingFeature.properties.name)
         : iconParking,
     }
   );

@@ -16,7 +16,7 @@ export default class FalaiseVoisine extends Element {
    */
   constructor(map, zoneFeature, options = {}) {
     const visibility = options.visibility || { from: 13 };
-    const labelVisibility = options.labelVisibility || { from: 14 };
+    const labelVisibility = options.labelVisibility || { from: 13 };
     const layer = buildLayer(zoneFeature, options);
     layer.properties = zoneFeature.properties;
     super(map, layer, "falaise_voisine", { ...options, visibility });
@@ -32,10 +32,12 @@ export default class FalaiseVoisine extends Element {
 
   static style = {
     color: "#2e8b57",
+    dashArray: "5, 5",
     weight: 1,
   };
   static highlightStyle = {
     color: "darkgreen",
+    dashArray: "5, 5",
     weight: 2,
   };
 
@@ -87,17 +89,17 @@ export default class FalaiseVoisine extends Element {
   }
 }
 
-const textPathText = ". . . . ";
-const textPathOptions = {
-  repeat: true,
-  offset: 4,
-  below: false,
-  attributes: {
-    "font-size": "10px",
-    "font-weight": "bold",
-    fill: "#2e8b57",
-  },
-};
+// const textPathText = ". ";
+// const textPathOptions = {
+//   repeat: true,
+//   offset: 4,
+//   below: false,
+//   attributes: {
+//     "font-size": "10px",
+//     "font-weight": "bold",
+//     fill: "#2e8b57",
+//   },
+// };
 
 const buildLayer = (zoneFeature, options = {}) => {
   let layer;
@@ -110,6 +112,6 @@ const buildLayer = (zoneFeature, options = {}) => {
     }),
     FalaiseVoisine.style
   );
-  layer.setText(textPathText, textPathOptions);
+  // layer = layer.setText(textPathText, textPathOptions);
   return layer;
 };

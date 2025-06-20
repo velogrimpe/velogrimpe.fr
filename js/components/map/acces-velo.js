@@ -20,7 +20,7 @@ export default class AccesVelo extends Element {
    * @param {Object} [options={}] - Optional parameters for the object.
    */
   constructor(map, accesVeloFeature, options = {}) {
-    const visibility = options.visibility || { from: 11 };
+    const visibility = options.visibility || { from: 12 };
     const layer = buildAccesVeloLayer(accesVeloFeature, options);
     layer.properties = accesVeloFeature.properties;
     super(map, layer, "acces_velo", { ...options, visibility });
