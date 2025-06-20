@@ -306,7 +306,7 @@ $stmt->close();
                 <div class="font-bold">Nombre de voies</div>
                 <div>
                   <label for="" class="label cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                    <select id="nbVoies" class="select border-base-300 select-xs focus:outline-base-300">
+                    <select id="nbVoies" class="select border-base-300 select-sm focus:outline-base-300">
                       <option value="0" selected>Pas de minimum</option>
                       <option value="20">Plus de 20</option>
                       <option value="50">Plus de 50</option>
