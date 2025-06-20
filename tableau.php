@@ -304,7 +304,18 @@ $stmt->close();
                   </div>
                 </div>
                 <div class="font-bold">Nombre de voies</div>
-
+                <div>
+                  <label for="" class="label cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
+                    <select id="nbVoies" class="select border-base-300 select-xs focus:outline-base-300">
+                      <option value="0" selected>Pas de minimum</option>
+                      <option value="20">Plus de 20</option>
+                      <option value="50">Plus de 50</option>
+                      <option value="100">Plus de 100</option>
+                      <option value="200">Plus de 200</option>
+                    </select>
+                    <!-- <span class="label-text">Couenne</span> -->
+                  </label>
+                </div>
                 <div class="font-bold">Types de voies</div>
                 <div class="grid grid-cols-[auto_auto] gap-x-2 gap-y-1 w-full">
                   <div class="flex flex-row gap-2 items-center w-full hidden">
@@ -801,6 +812,7 @@ $stmt->close();
     const tempsMaxMA = document.getElementById("tempsMaxMA").value;
     const tempsMaxTV = document.getElementById("tempsMaxTV").value;
     const tempsMaxTVA = document.getElementById("tempsMaxTVA").value;
+    const nbVoies = document.getElementById("nbVoies").value;
 
     const expoFiltered = [expoN, expoE, expoS, expoO].some(e => e);
     const cotFiltered = [cot40, cot50, cot59, cot60, cot69, cot70, cot79, cot80].some(e => e);
@@ -810,7 +822,7 @@ $stmt->close();
     } else {
       expoFilterBtn.classList.remove("btn-primary");
     }
-    if (cotFiltered || avecgv) {
+    if (cotFiltered || avecgv || nbVoies !== "0") {
       voiesFilterBtn.classList.add("btn-primary");
     } else {
       voiesFilterBtn.classList.remove("btn-primary");
@@ -841,6 +853,7 @@ $stmt->close();
       !expoFiltered
       && !cotFiltered
       && !avecgv
+      && nbVoies === "0"
       && !apieduniquement
       && tempsMaxVelo === ""
       && denivMaxVelo === ""
@@ -870,6 +883,7 @@ $stmt->close();
           && (!cot79 || ("7+".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("7+") >= 0))
           && (!cot80 || (falaise.falaise_cotmax.localeCompare("8-") >= 0))
         );
+        const estNbVoiesCompatible = (parseInt(falaise.falaise_nbvoies) >= parseInt(nbVoies)) || nbVoies === "0";
         const estTrainCompatible = (
           falaiseItineraires.some(it => {
             const duration = calculate_time(it);
@@ -890,6 +904,7 @@ $stmt->close();
             || (expoO && (falaise.falaise_exposhort1.match(/('O|'NO'|'SO')/) || falaise.falaise_exposhort2.match(/('O|'NO'|'SO')/)))
           ))
           && (!cotFiltered || estCotationsCompatible)
+          && estNbVoiesCompatible
           && (tempsMaxMA === "" || parseInt(falaise.falaise_maa || 0) <= parseInt(tempsMaxMA))
           && (avecgv === false || !!falaise.falaise_gvnb)
           && estTrainCompatible
@@ -916,6 +931,7 @@ $stmt->close();
     updateInfo();
   }
   document.querySelectorAll("#filtersForm input").forEach(i => i.addEventListener("change", filterHandler));
+  document.querySelectorAll("#filtersForm select").forEach(i => i.addEventListener("change", filterHandler));
   document.querySelectorAll("input[type=radio][name=nbCorrespMax]").forEach(i => i.addEventListener("change", (e) => {
     const resetIcon = document.getElementById("nbCorrespMax10Reset");
     const defaultCheckbox = document.getElementById("nbCorrespMax10");
