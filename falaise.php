@@ -346,7 +346,9 @@ $stmtV->close();
             <div class="">
               <?= nl2br($falaise_voies) ?>
               <?php if (!empty($falaise_cottxt)): ?>
-                <div><span>Cotations</span>: <?= nl2br($falaise_cottxt) ?></div>
+                <div><span>Cotations</span> :
+                  <?= nl2br(mb_strtolower(substr($falaise_cottxt, 0, 1))) . nl2br(substr($falaise_cottxt, 1)) ?>
+                </div>
               <?php endif ?>
             </div>
             <img src="/images/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
@@ -958,7 +960,6 @@ $stmtV->close();
 
     const updateAssociations = () => {
       const features = Object.values(featureMap);
-      console.log("Updating associations for features:", features);
       features.forEach(feature => {
         feature.updateAssociations(features);
       })
@@ -988,7 +989,6 @@ $stmtV->close();
             }
             obj._element_id = id++;
             if (obj) {
-              console.log(obj._element_id, "added to featureMap");
               featureMap[obj._element_id] = obj;
             }
           });
