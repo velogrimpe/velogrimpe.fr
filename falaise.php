@@ -385,7 +385,8 @@ $stmtV->close();
             </div>
             <img src="/images/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
             <!-- <div class="font-bold  ">Approche</div> -->
-            <div class=""><?= nl2br($falaise_matxt) ?></div>
+            <div class="">Approche
+              : <?= nl2br(mb_strtolower(substr($falaise_matxt, 0, 1))) . nl2br(substr($falaise_matxt, 1)) ?></div>
             <?php if (!empty($falaise_gvtxt)): ?>
               <img src="/images/mountain_color.png" alt=" Grande voies" class="h-12 w-12 mx-auto" />
               <!-- <div class="font-bold  ">Grandes voies</div> -->
