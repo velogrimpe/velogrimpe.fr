@@ -212,36 +212,18 @@ $stmtIt->close();
   import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
   import { getValhallaRoute } from "/js/services/valhalla.js";
 
+  let id = 0; // Unique ID for each feature
   const zoom = 15;
   // Récupération des données
   const falaise = <?php echo json_encode($falaise); ?>;
   const velos = <?php echo json_encode($velos); ?>;
   const center = falaise.falaise_latlng.split(",").map(parseFloat);
 
-  const parkingIcon = (size) => L.divIcon({
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    className: "bg-none flex flex-row justify-center items-start",
-    html: (
-      `<div class="text-white bg-blue-600 text-[${size / 2 + 1}px] rounded-full aspect-square w-[${size}px] h-[${size}px] flex justify-center items-center font-bold border border-white">P</div>`
-    ),
-  })
-
   var map = L.map("map", {
     layers: [landscapeTiles], center, zoom, fullscreenControl: true, zoomSnap: 0.5
   });
   var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
 
-  /* Add the following button in a control on the right
-
-      <div class="absolute top-36 right-3 z-[10000] flex gap-1">
-        <button class="btn btn-sm px-1" onclick="tableau_modal.showModal()">
-          <svg class="w-5 h-5 fill-current">
-            <use xlink:href="/symbols/icons.svg#ri-table-line"></use>
-          </svg>
-        </button>
-      </div>
-  */
   const TableControl = L.Control.extend({
     onAdd: function (map) {
       const div = L.DomUtil.create('div');
@@ -257,9 +239,7 @@ $stmtIt->close();
       return div;
     },
 
-    onRemove: function (map) {
-      // Nothing to clean up
-    }
+    onRemove: function (map) { }
   });
 
   // Add to the map
@@ -371,7 +351,6 @@ $stmtIt->close();
       });
     }
   });
-  const markerIcon = parkingIcon(18);
   map.pm.Toolbar.createCustomControl({
     name: "Parking",
     block: "draw",
@@ -387,7 +366,7 @@ $stmtIt->close();
           continueDrawing: false,
           markerStyle: {
             draggable: true,
-            icon: markerIcon,
+            icon: Parking.parkingIcon(Parking.iconSize),
           },
           type: "parking",
         });
@@ -473,12 +452,13 @@ $stmtIt->close();
     } else if (type === "falaise_voisine") {
       obj = FalaiseVoisine.fromLayer(map, layer);
     }
-    createAndBindPopup(obj.layer);
+    obj._element_id = layer._leaflet_id || `feature_${id++}`;
+    createAndBindPopup(obj.layer, obj._element_id);
     if (obj.label) {
-      createAndBindPopup(obj.label.layer, obj.layer);
+      createAndBindPopup(obj.label.layer, obj._element_id, obj.layer);
     }
     obj.layer.openPopup();
-    featureMap[obj.layer._leaflet_id] = obj;
+    featureMap[obj._element_id] = obj;
   })
 
   window.editLayer = function (id) {
@@ -523,9 +503,9 @@ $stmtIt->close();
       feature?.updateLabel();
     }
     layer.closePopup();
-    createAndBindPopup(layer);
+    createAndBindPopup(layer, feature._element_id);
     if (feature instanceof Secteur && feature.label) {
-      createAndBindPopup(feature.label.layer, layer);
+      createAndBindPopup(feature.label.layer, feature._element_id, layer);
     }
     updateAssociations();
     feature.highlight();
@@ -555,9 +535,8 @@ $stmtIt->close();
       delete featureMap[id];
     }
   }
-  window.createAndBindPopup = (layer, _targetLayer) => {
+  window.createAndBindPopup = (layer, id, _targetLayer) => {
     const targetLayer = _targetLayer || layer;
-    const id = targetLayer._leaflet_id;
     let popupHtml = "";
     const field = (name, label, placeholder) => {
       return `
@@ -627,11 +606,12 @@ $stmtIt->close();
         } else if (feature.properties.type === "falaise_voisine") {
           obj = new FalaiseVoisine(map, feature);
         }
+        obj._element_id = id++;
         if (obj) {
-          featureMap[obj.layer._leaflet_id] = obj;
-          createAndBindPopup(obj.layer);
+          featureMap[obj._element_id] = obj;
+          createAndBindPopup(obj.layer, obj._element_id);
           if (obj.label) {
-            createAndBindPopup(obj.label.layer, obj.layer);
+            createAndBindPopup(obj.label.layer, obj._element_id, obj.layer);
           }
         }
       });
@@ -784,7 +764,7 @@ $stmtIt->close();
             <input
               type="text"
               name="${key}"
-              class="input-${feature.layer._leaflet_id} input input-xs input-bordered"
+              class="input-${feature._element_id} input input-xs input-bordered"
               value="${(feature.layer.properties[key] || '').replace(/"/g, "&quot;")}"
             />
           `
@@ -866,7 +846,7 @@ $stmtIt->close();
               ${field("approche", "Approches")}
               ${field("gv", "GV")}
               ${field("type", "Type")}
-              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature._element_id})">
                 <svg class="w-5 h-5 fill-current">
                   <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
                 </svg>
@@ -881,7 +861,7 @@ $stmtIt->close();
               ${field("description", "Description")}
               ${field("parking", "Parkings")}
               ${field("type", "Type")}
-              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature._element_id})">
                 <svg class="w-5 h-5 fill-current">
                   <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
                 </svg>
@@ -896,7 +876,7 @@ $stmtIt->close();
               ${field("description", "Description")}
               ${field("itineraire_acces", "Accès Vélo")}
               ${field("type", "Type")}
-              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature._element_id})">
                 <svg class="w-5 h-5 fill-current">
                   <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
                 </svg>
@@ -910,7 +890,7 @@ $stmtIt->close();
               ${field("name", "Nom")}
               ${field("description", "Description")}
               ${field("type", "Type")}
-              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature._element_id})">
                 <svg class="w-5 h-5 fill-current">
                   <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
                 </svg>
@@ -925,7 +905,7 @@ $stmtIt->close();
               ${field("description", "Description")}
               ${field("falaise_id", "ID Falaise")}
               ${field("type", "Type")}
-              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature.layer._leaflet_id})">
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature._element_id})">
                 <svg class="w-5 h-5 fill-current">
                   <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
                 </svg>
