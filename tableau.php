@@ -318,11 +318,11 @@ $stmt->close();
                 </div>
                 <div class="font-bold">Types de voies</div>
                 <div class="grid grid-cols-[auto_auto] gap-x-2 gap-y-1 w-full">
-                  <div class="flex flex-row gap-2 items-center w-full hidden">
+                  <div class="flex flex-row gap-2 items-center w-full">
                     <label for=""
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="couenne"
-                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" checked />
+                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
                       <span class="label-text">Couenne</span>
                     </label>
                   </div>
@@ -334,7 +334,7 @@ $stmt->close();
                       <span class="label-text">Grandes voies</span>
                     </label>
                   </div>
-                  <div class="flex flex-row gap-2 items-center w-full hidden">
+                  <div class="flex flex-row gap-2 items-center w-full">
                     <label for=""
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="bloc"
@@ -342,7 +342,7 @@ $stmt->close();
                       <span class="label-text">Bloc</span>
                     </label>
                   </div>
-                  <div class="flex flex-row gap-2 items-center w-full hidden">
+                  <div class="flex flex-row gap-2 items-center w-full">
                     <label for=""
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="psychobloc"
@@ -800,7 +800,10 @@ $stmt->close();
     const cot70 = document.getElementById("filterCot70").checked;
     const cot79 = document.getElementById("filterCot79").checked;
     const cot80 = document.getElementById("filterCot80").checked;
+    const couenne = document.getElementById("couenne").checked;
     const avecgv = document.getElementById("avecgv").checked;
+    const bloc = document.getElementById("bloc").checked;
+    const psychobloc = document.getElementById("psychobloc").checked;
     const apieduniquement = document.getElementById("apieduniquement").checked;
     const tempsMaxVelo = document.getElementById("tempsMaxVelo").value;
     const distMaxVelo = document.getElementById("distMaxVelo").value;
@@ -816,13 +819,14 @@ $stmt->close();
 
     const expoFiltered = [expoN, expoE, expoS, expoO].some(e => e);
     const cotFiltered = [cot40, cot50, cot59, cot60, cot69, cot70, cot79, cot80].some(e => e);
+    const typeVoiesFiltered = couenne || avecgv || bloc || psychobloc;
     // Indicators
     if (expoFiltered) {
       expoFilterBtn.classList.add("btn-primary");
     } else {
       expoFilterBtn.classList.remove("btn-primary");
     }
-    if (cotFiltered || avecgv || nbVoies !== "0") {
+    if (cotFiltered || typeVoiesFiltered || nbVoies !== "0") {
       voiesFilterBtn.classList.add("btn-primary");
     } else {
       voiesFilterBtn.classList.remove("btn-primary");
@@ -852,7 +856,7 @@ $stmt->close();
     if (
       !expoFiltered
       && !cotFiltered
-      && !avecgv
+      && !typeVoiesFiltered
       && nbVoies === "0"
       && !apieduniquement
       && tempsMaxVelo === ""
@@ -884,6 +888,13 @@ $stmt->close();
           && (!cot80 || (falaise.falaise_cotmax.localeCompare("8-") >= 0))
         );
         const estNbVoiesCompatible = (parseInt(falaise.falaise_nbvoies) >= parseInt(nbVoies)) || nbVoies === "0";
+        const estTypeVoiesCompatible = (
+          (couenne && !!!parseInt(falaise.falaise_bloc))
+          || (avecgv && !!falaise.falaise_gvnb)
+          || (bloc && parseInt(falaise.falaise_bloc) === 1)
+          || (psychobloc && parseInt(falaise.falaise_bloc) === 2)
+        );
+        console.log("falaise", falaise.falaise_nom, falaise.falaise_bloc, falaise.falaise_gvnb);
         const estTrainCompatible = (
           falaiseItineraires.some(it => {
             const duration = calculate_time(it);
@@ -906,7 +917,7 @@ $stmt->close();
           && (!cotFiltered || estCotationsCompatible)
           && estNbVoiesCompatible
           && (tempsMaxMA === "" || parseInt(falaise.falaise_maa || 0) <= parseInt(tempsMaxMA))
-          && (avecgv === false || !!falaise.falaise_gvnb)
+          && (!typeVoiesFiltered || estTypeVoiesCompatible)
           && estTrainCompatible
           && falaiseItineraires.some(it => {
             const duration = calculate_time(it);
