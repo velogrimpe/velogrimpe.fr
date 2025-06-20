@@ -541,7 +541,12 @@ $stmt->close();
                   </span>
                 </div>
                 <?php if ($common["falaise_gvnb"] > 0): ?>
-                  <div class="text-accent"><?php echo $common["falaise_gvnb"] ?> <span title="Grandes Voies"></span></div>
+                  <div class="text-accent"><?php echo $common["falaise_gvnb"] ?></div>
+                <?php endif; ?>
+                <?php if ($row["falaise_bloc"] === 1): ?>
+                  <div class="text-accent">Secteur de bloc</div>
+                <?php elseif ($row["falaise_bloc"] === 2): ?>
+                  <div class="text-accent">Psychobloc 🌊</div>
                 <?php endif; ?>
                 <div>
                   <b title="Marche d'approche">Marche d'approche</b> :
@@ -695,8 +700,13 @@ $stmt->close();
               <span class="font-bold" title="Cotations (6-: 6a à 6b, 6+: 6b+ à 6c+ etc.)"><?= $row["falaise_cotmin"] ?> à
                 <?= $row["falaise_cotmax"] ?></span>
             </div>
-            <?php if ($row["falaise_gvnb"] > 0): ?>
-              <div class="text-accent"><?php echo $row["falaise_gvnb"] ?> <span title="Grandes Voies"></span></div>
+            <?php if ($row["falaise_gvnb"]): ?>
+              <div class="text-accent"><?php echo $row["falaise_gvnb"] ?></div>
+            <?php endif; ?>
+            <?php if ($row["falaise_bloc"] === 1): ?>
+              <div class="text-accent">Secteur de bloc</div>
+            <?php elseif ($row["falaise_bloc"] === 2): ?>
+              <div class="text-accent">Psychobloc 🌊</div>
             <?php endif; ?>
           </div>
           <div id="<?php echo 'rose-' . $row['falaise_id'] ?>" class="w-[72px]"></div>
