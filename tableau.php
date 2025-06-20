@@ -592,10 +592,13 @@ $stmt->close();
     </div>
     <!-- VERSION DESKTOP -->
     <div class="hidden
-                md:grid grid-cols-[1.5fr_1fr_2fr_2fr_60px] gap-[1px] 
+                md:grid grid-cols-[1.5fr_60px_1fr_2fr_2fr] gap-[1px] 
                 bg-base-300 shadow-xl rounded-lg overflow-hidden
                 text-center items-center text-sm">
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center"></div>
+      <div class="bg-base-100 px-1 py-1 self-stretch flex items-center justify-center font-bold text-xs">
+        Temps total (T+V+A)
+      </div>
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
         <img class="h-12" alt="Train" src="/images/train-station_color.png" />
       </div>
@@ -606,9 +609,6 @@ $stmt->close();
         <img class="h-12" alt="Corde" src="/images/rock-climbing_color.png" />
       </div>
       <!-- <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center font-bold">Zone</div> -->
-      <div class="bg-base-100 px-1 py-1 self-stretch flex items-center justify-center font-bold text-xs">
-        Temps total (T+V+A)
-      </div>
       <?php foreach ($falaises as $falaise_id => $acces): ?>
         <?php $common = $acces[0]; ?>
         <div
@@ -624,6 +624,14 @@ $stmt->close();
               <div class="font-normal text-xs">(<?= $common["zone_nom"] ?>)</div>
             <?php endif; ?>
           </div>
+        </div>
+        <div
+          class="font-bold bg-base-100 py-1 self-stretch grid grid-rows-<?php echo count($acces) ?> divide-y divide-slate-200 items-center falaise-<?= $common['falaise_id'] ?>-desktop">
+          <?php foreach ($acces as $row): ?>
+            <div class="self-stretch flex flex-col justify-center py-2 px-2">
+              <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement']) + $row["train_temps"] + $row["falaise_maa"]) ?>
+            </div>
+          <?php endforeach; ?>
         </div>
         <div
           class="bg-base-100 py-1 self-stretch grid grid-rows-<?php echo count($acces) ?> divide-y divide-slate-200 items-center falaise-<?= $common['falaise_id'] ?>-desktop">
@@ -697,14 +705,7 @@ $stmt->close();
           class="bg-base-100 px-2 py-1 self-stretch flex flex-col justify-center items-center falaise-<?= $common['falaise_id'] ?>-desktop">
           <?php echo $row["zone_nom"] ?>
         </div> -->
-        <div
-          class="bg-base-100 py-1 self-stretch flex flex-col items-center justify-center gap-1 font-bold h-full divide-y divide-slate-200 falaise-<?= $common['falaise_id'] ?>-desktop">
-          <?php foreach ($acces as $row): ?>
-            <div class="flex-grow flex items-center justify-center px-2">
-              <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement']) + $row["train_temps"] + $row["falaise_maa"]) ?>
-            </div>
-          <?php endforeach; ?>
-        </div>
+
       <?php endforeach; ?>
       <div id="nomatch" class="bg-base-100 text-center w-full col-span-5 py-4 font-bold hidden">Aucune falaise
         ne correspond aux filtres.
@@ -894,7 +895,6 @@ $stmt->close();
           || (bloc && parseInt(falaise.falaise_bloc) === 1)
           || (psychobloc && parseInt(falaise.falaise_bloc) === 2)
         );
-        console.log("falaise", falaise.falaise_nom, falaise.falaise_bloc, falaise.falaise_gvnb);
         const estTrainCompatible = (
           falaiseItineraires.some(it => {
             const duration = calculate_time(it);
