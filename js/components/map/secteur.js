@@ -69,10 +69,17 @@ export default class Secteur extends Element {
 
   highlight(e, propagate) {
     this.layer.setStyle(this.getHighlightStyle());
+    this.label?.highlight(e, false);
+    this.layer.setText(textPathText, {
+      ...textPathOptions,
+      attributes: { ...textPathOptions.attributes, fill: "darkred" },
+    });
     super.highlight(e, propagate);
   }
   unhighlight(propagate) {
     this.layer.setStyle(this.getStyle());
+    this.label?.unhighlight(false);
+    this.layer.setText(textPathText, textPathOptions);
     super.unhighlight(propagate);
   }
 

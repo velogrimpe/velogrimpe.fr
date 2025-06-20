@@ -11,11 +11,22 @@ export default class SecteurLabel extends Element {
     this.secteur = secteur;
     this.setupHighlight();
   }
-  highlight(e) {
-    this.secteur.highlight(e);
+  static highlightStyle = {
+    color: "darkred",
+    weight: 2,
+    opacity: 1,
+  };
+  highlight(e, propagate = true) {
+    this.layer.setIcon(buildIcon(this.secteur.layer.properties.name, true));
+    if (propagate) {
+      this.secteur.highlight(e);
+    }
   }
-  unhighlight() {
-    this.secteur.unhighlight();
+  unhighlight(propagate = true) {
+    this.layer.setIcon(buildIcon(this.secteur.layer.properties.name));
+    if (propagate) {
+      this.secteur.unhighlight();
+    }
   }
   updateLabel() {
     const name = this.secteur.layer.properties.name;
@@ -43,14 +54,18 @@ const buildSecteurLabelLayer = (secteurFeature, options = {}) => {
   });
 };
 
-const buildIcon = (name) =>
+const buildIcon = (name, highlighted = false) =>
   L.divIcon({
     iconSize: [0, 0],
     iconAnchor: [0, 0],
     className: "relative",
     html: `<div
-            id="marker-${name.replace(/"/g, "")}"
-            class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">
+            class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 ${
+              highlighted ? "text-white" : "text-black"
+            }
+            ${
+              highlighted ? "bg-[darkred]" : "bg-white"
+            } text-xs p-[1px] leading-none rounded-md opacity-80">
               ${name}
             </div>`,
   });
