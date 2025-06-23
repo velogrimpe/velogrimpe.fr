@@ -1003,7 +1003,12 @@ $stmtV->close();
       });
 
   </script>
-
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      roseFromExpo("rose-des-vents", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 60, 60);
+      // roseFromExpo("rose-mini", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 36, 36);
+    });
+  </script>
   <?php include "./components/footer.html"; ?>
 </body>
 
