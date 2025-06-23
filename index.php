@@ -389,9 +389,15 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   const defaultMarkerSize = iconSize;
   const selectedGareSize = iconSize * 1.5;
   const itinerairesColors = ["indianRed", "tomato", "teal", "paleVioletRed", "mediumSlateBlue", "lightSalmon", "fireBrick", "crimson", "purple", "hotPink", "mediumOrchid"]
-  const falaiseIcon = (size, closed) =>
+  const falaiseIcon = (size, closed, bloc) =>
     L.icon({
-      iconUrl: closed ? "/images/icone_falaisefermee_carte.png" : "/images/icone_falaise_carte.png",
+      iconUrl: closed
+        ? "/images/icone_falaisefermee_carte.png"
+        : bloc === "1"
+          ? "/images/icone_falaise_carte_bloc.png"
+          : bloc === "2"
+            ? "/images/icone_falaise_carte_psychobloc.png"
+            : "/images/icone_falaise_carte.png",
       iconSize: [size, size],
       iconAnchor: [size / 2, size],
     });
@@ -545,7 +551,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       const marker = L.marker(
         falaise.falaise_latlng.split(","),
         {
-          icon: falaiseIcon(defaultMarkerSize, falaise.falaise_fermee),
+          icon: falaiseIcon(defaultMarkerSize, falaise.falaise_fermee, falaise.falaise_bloc),
           riseOnHover: true,
           autoPanOnFocus: true,
         }
@@ -611,7 +617,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     falaise.displayMode = mode;
     // Depending on mode: size, opacity, tooltip, onMap (remove layer)
     const setIconAndTooltip = (size, direction, permanent = false) => {
-      falaise.marker.setIcon(falaiseIcon(size, falaise.falaise_fermee));
+      falaise.marker.setIcon(falaiseIcon(size, falaise.falaise_fermee, falaise.falaise_bloc));
       falaise.marker.unbindTooltip();
       falaise.marker.bindTooltip(falaise.falaise_nom, {
         className: "p-[1px]",
@@ -647,7 +653,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     const marker = L.marker(
       falaise.falaise_latlng.split(","),
       {
-        icon: falaiseIcon(20, falaise.falaise_fermee),
+        icon: falaiseIcon(20, falaise.falaise_fermee, falaise.falaise_bloc),
         opacity: 0.75,
         riseOnHover: true,
         autoPanOnFocus: true,

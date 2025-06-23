@@ -8,9 +8,16 @@ export default class Falaise extends Element {
   }
 
   static iconSize = 24;
-  static falaiseIcon(size, className) {
+  static falaiseIcon(size, closed, bloc, className) {
+    console.log("bloc:", bloc, typeof bloc, "closed:", closed);
     return L.icon({
-      iconUrl: "/images/icone_falaise_carte.png",
+      iconUrl: closed
+        ? "/images/icone_falaisefermee_carte.png"
+        : bloc === 1
+        ? "/images/icone_falaise_carte_bloc.png"
+        : bloc === 2
+        ? "/images/icone_falaise_carte_psychobloc.png"
+        : "/images/icone_falaise_carte.png",
       iconSize: [size, size],
       iconAnchor: [size / 2, size],
       className,
@@ -18,10 +25,14 @@ export default class Falaise extends Element {
   }
 }
 
-const iconFalaise = Falaise.falaiseIcon(Falaise.iconSize);
 const buildFalaiseMarker = (falaise, options = {}) => {
   const marker = L.marker(falaise.falaise_latlng.split(",").map(parseFloat), {
-    icon: iconFalaise,
+    icon: Falaise.falaiseIcon(
+      Falaise.iconSize,
+      falaise.falaise_fermee === "1",
+      falaise.falaise_bloc,
+      options.className || "falaise-icon"
+    ),
     pmIgnore: true,
   });
   return marker;

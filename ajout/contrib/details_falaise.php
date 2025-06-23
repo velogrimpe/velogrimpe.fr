@@ -21,6 +21,7 @@ $stmtF = $mysqli->prepare("SELECT
   f.falaise_nom,
   f.falaise_nomformate,
   f.falaise_latlng,
+  f.falaise_bloc,
   v.velo_id,
   v.gare_id,
   v.velo_depart,
