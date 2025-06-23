@@ -2,3 +2,6 @@ User-agent: *
 Disallow: /ajout/
 
 Sitemap: https://velogrimpe.fr/sitemap.php
+
+User-agent: meta-externalagent
+Disallow: /
