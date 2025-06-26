@@ -79,8 +79,19 @@ export default class Element {
   }
 
   setupHighlight() {
-    this.layer.on("mouseover focus", (e) => this.highlight(e, true));
-    this.layer.on("mouseout blur", () => this.unhighlight(true));
+    this.layer.on("mouseover focus click", (e) => {
+      L.DomEvent.stopPropagation(e);
+      console.log("highlighting", e.type);
+      this.highlight(e, true);
+    });
+    this.layer.on("mouseout", () => {
+      console.log("mouseout");
+      this.unhighlight(true);
+    });
+    this.map.on("click", () => {
+      console.log("map click");
+      this.unhighlight(true);
+    });
   }
 
   cleanUp() {}
