@@ -44,7 +44,10 @@ export default class Element {
     if (
       event &&
       event.originalEvent &&
-      event.originalEvent.target.ownerSVGElement
+      event.originalEvent.target.ownerSVGElement &&
+      // NOTE: check if target is the last child of the SVG element to avoid infinite loop on mouseover
+      event.originalEvent.target.ownerSVGElement.lastChild !==
+        event.originalEvent.target
     ) {
       event.originalEvent.target.ownerSVGElement.appendChild(
         event.originalEvent.target
@@ -76,8 +79,8 @@ export default class Element {
   }
 
   setupHighlight() {
-    this.layer.on("mouseover focus", (e) => this.highlight(e));
-    this.layer.on("mouseout blur", () => this.unhighlight());
+    this.layer.on("mouseover", (e) => this.highlight(e, true));
+    this.layer.on("mouseout", () => this.unhighlight(true));
   }
 
   cleanUp() {}
