@@ -19,13 +19,13 @@ export default class SecteurLabel extends Element {
   highlight(e, propagate = true) {
     this.layer.setIcon(buildIcon(this.secteur.layer.properties.name, true));
     if (propagate) {
-      this.secteur.highlight(e, true);
+      this.secteur.highlight(e);
     }
   }
   unhighlight(propagate = true) {
     this.layer.setIcon(buildIcon(this.secteur.layer.properties.name));
     if (propagate) {
-      this.secteur.unhighlight(true);
+      this.secteur.unhighlight();
     }
   }
   updateLabel() {
