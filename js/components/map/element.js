@@ -41,6 +41,7 @@ export default class Element {
   }
 
   highlight(event, propagate = true) {
+    console.log("H1 : highlight - propagate", propagate);
     if (
       event &&
       event.originalEvent &&
@@ -49,6 +50,7 @@ export default class Element {
       event.originalEvent.target.ownerSVGElement.lastChild !==
         event.originalEvent.target
     ) {
+      console.log("H2 : unhighlight - set svg to last child");
       event.originalEvent.target.ownerSVGElement.appendChild(
         event.originalEvent.target
       );
@@ -66,6 +68,7 @@ export default class Element {
   }
 
   unhighlight(propagate = true) {
+    console.log("U1 : unhighlight - propagate", propagate);
     if (this.constructor.highlightStyle) {
       this.layer.setStyle(this.constructor.style);
     }
@@ -81,15 +84,15 @@ export default class Element {
   setupHighlight() {
     this.layer.on("mouseover focus click", (e) => {
       L.DomEvent.stopPropagation(e);
-      console.log("highlighting", e.type);
+      console.log("H0 : mouseover focus click", e.type);
       this.highlight(e, true);
     });
     this.layer.on("mouseout", () => {
-      console.log("mouseout");
+      console.log("U0 : mouseout");
       this.unhighlight(true);
     });
     this.map.on("click", () => {
-      console.log("map click");
+      console.log("U0 : map click");
       this.unhighlight(true);
     });
   }
