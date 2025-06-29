@@ -17,14 +17,24 @@ export default class SecteurLabel extends Element {
     opacity: 1,
   };
   highlight(e, propagate = true) {
-    console.log("H1 : highlight secteur label - propagate", propagate);
+    console.log(
+      "H1 : highlight secteur label [" +
+        this.layer.properties.name +
+        "] - propagate",
+      propagate
+    );
     this.layer.setIcon(buildIcon(this.secteur.layer.properties.name, true));
     if (propagate) {
       this.secteur.highlight(e);
     }
   }
   unhighlight(propagate = true) {
-    console.log("U1 : unhighlight secteur label - propagate", propagate);
+    console.log(
+      "U1 : unhighlight secteur label [" +
+        this.layer.properties.name +
+        "] - propagate",
+      propagate
+    );
     this.layer.setIcon(buildIcon(this.secteur.layer.properties.name));
     if (propagate) {
       this.secteur.unhighlight();
