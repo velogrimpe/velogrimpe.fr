@@ -3,13 +3,15 @@ import Element from "/js/components/map/element.js";
 
 export default class SecteurLabel extends Element {
   constructor(map, secteurFeature, secteur, options = {}) {
-    const layer = buildSecteurLabelLayer(secteurFeature, options);
+    const id = Math.random().toString(36).substring(2, 15);
+    const layer = buildSecteurLabelLayer(secteurFeature, id, options);
     layer.properties = secteurFeature.properties;
     super(map, layer, "secteur-label", {
       ...options,
     });
     this.secteur = secteur;
     this.setupHighlight();
+    this.id = id;
   }
   static highlightStyle = {
     color: "darkred",
@@ -23,9 +25,12 @@ export default class SecteurLabel extends Element {
         "] - propagate",
       propagate
     );
-    this.layer.setIcon(buildIcon(this.secteur.layer.properties.name, true));
+    document
+      .getElementById(this.id)
+      .classList.add("bg-[darkred]", "text-white");
+    document.getElementById(this.id).classList.remove("bg-white", "text-black");
     if (propagate) {
-      this.secteur.highlight(e);
+      this.secteur.highlight(e, propagate, false);
     }
   }
   unhighlight(propagate = true) {
@@ -35,9 +40,12 @@ export default class SecteurLabel extends Element {
         "] - propagate",
       propagate
     );
-    this.layer.setIcon(buildIcon(this.secteur.layer.properties.name));
+    document
+      .getElementById(this.id)
+      .classList.remove("bg-[darkred]", "text-white");
+    document.getElementById(this.id).classList.add("bg-white", "text-black");
     if (propagate) {
-      this.secteur.unhighlight();
+      this.secteur.unhighlight(propagate, false);
     }
   }
   updateLabel() {
@@ -45,7 +53,7 @@ export default class SecteurLabel extends Element {
     if (!name) {
       return;
     }
-    this.layer.setIcon(buildIcon(name));
+    this.layer.setIcon(buildIcon(name, this.id));
   }
 
   cleanUp() {
@@ -55,29 +63,26 @@ export default class SecteurLabel extends Element {
   }
 }
 
-const buildSecteurLabelLayer = (secteurFeature, options = {}) => {
+const buildSecteurLabelLayer = (secteurFeature, id, options = {}) => {
   const center = reverse(
     turf.centerOfMass(toGeoJSON(secteurFeature)).geometry.coordinates
   );
   const name = secteurFeature.properties.name;
   return L.marker(center, {
     pmignore: true,
-    icon: buildIcon(name),
+    icon: buildIcon(name, id),
   });
 };
 
-const buildIcon = (name, highlighted = false) =>
+const buildIcon = (name, id) =>
   L.divIcon({
     iconSize: [0, 0],
     iconAnchor: [0, 0],
     className: "relative",
     html: `<div
-            class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 ${
-              highlighted ? "text-white" : "text-black"
-            }
-            ${
-              highlighted ? "bg-[darkred]" : "bg-white"
-            } text-xs p-[1px] leading-none rounded-md opacity-80">
+            id="${id}"
+            class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2
+                    text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">
               ${name}
             </div>`,
   });
