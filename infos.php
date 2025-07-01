@@ -81,6 +81,12 @@
     </p>
 
     <p>
+      <a target="_blank" href="https://www.hometosummit.fr/">Home to Summit</a> : Une carte interactive permettant de
+      voir les topos d'escalade (grande voies), d'alpinisme et de ski de randonnée de Camp2Camp accessibles en vélo +
+      train. Initialement centré sur Grenoble, le projet s'étend petit à petit au quart Sud-Est de la France.
+    </p>
+
+    <p>
       <a target="_blank" href="https://naturesansvoiture.wordpress.com/">Nature sans voiture</a>
       : site web donnant beaucoup d'idées de sorties au départ de Lyon
       (promenades, randos, raquettes, ski,…).
