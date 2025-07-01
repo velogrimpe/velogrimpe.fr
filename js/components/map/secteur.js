@@ -68,10 +68,6 @@ export default class Secteur extends Element {
   };
 
   highlight(e, propagate, propagateToLabel = true) {
-    console.log(
-      "H1 : highlight secteur [" + this.layer.properties.name + "] - propagate",
-      propagate
-    );
     this.layer.setStyle(this.getHighlightStyle());
     if (propagateToLabel) {
       this.label?.highlight(e, false);
@@ -79,12 +75,6 @@ export default class Secteur extends Element {
     super.highlight(e, propagate);
   }
   unhighlight(propagate, propagateToLabel = true) {
-    console.log(
-      "U1 : unhighlight secteur [" +
-        this.layer.properties.name +
-        "] - propagate",
-      propagate
-    );
     this.layer.setStyle(this.getStyle());
     if (propagateToLabel) {
       this.label?.unhighlight(false);

@@ -19,12 +19,6 @@ export default class SecteurLabel extends Element {
     opacity: 1,
   };
   highlight(e, propagate = true) {
-    console.log(
-      "H1 : highlight secteur label [" +
-        this.layer.properties.name +
-        "] - propagate",
-      propagate
-    );
     document
       .getElementById(this.id)
       .classList.add("bg-[darkred]", "text-white");
@@ -34,12 +28,6 @@ export default class SecteurLabel extends Element {
     }
   }
   unhighlight(propagate = true) {
-    console.log(
-      "U1 : unhighlight secteur label [" +
-        this.layer.properties.name +
-        "] - propagate",
-      propagate
-    );
     document
       .getElementById(this.id)
       .classList.remove("bg-[darkred]", "text-white");
