@@ -87,9 +87,11 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 
     <div class="flex flex-col gap-1">
       <div class="flex flex-row gap-4">
-        <div class="hidden md:flex w-[17rem] bg-base-100 rounded-lg p-4 shadow-lg text-sm flex-col gap-6">
+        <div
+          class="hidden md:flex w-[17rem] bg-base-100 rounded-lg p-4 shadow-lg text-sm flex-col gap-6 h-[calc(100dvh-160px)] overflow-y-auto">
           <div class="flex flex-col gap-2">
             <div id="searchFormPanelContainer">
+              <div class="text-lg font-bold">Recherche</div>
               <div id="searchForm" class="relative">
                 <label class="input input-primary input-sm flex items-center gap-2 w-full">
                   <input tabindex="0" type="search" id="search" class="w-full" placeholder="falaise/gare"
@@ -170,6 +172,21 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                       </div>
                     </div>
                     <div class="flex flex-col gap-2">
+                      <div>&bull; Nombre de voies</div>
+                      <div>
+                        <label for="" class="label cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
+                          <select id="nbVoies" class="select select-xs select-primary focus:outline-base-300">
+                            <option value="0" selected>Pas de minimum</option>
+                            <option value="20">Plus de 20</option>
+                            <option value="50">Plus de 50</option>
+                            <option value="100">Plus de 100</option>
+                            <option value="200">Plus de 200</option>
+                          </select>
+                          <!-- <span class="label-text">Couenne</span> -->
+                        </label>
+                      </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
                       <div>&bull; Je veux des cotations dans le
                         <br />
                         <span class="italic text-base-300 text-sm">(5- = de 5a à 5b, 5+ = de 5b+ à 5c+)</span>
@@ -221,9 +238,40 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                         </div>
                       </div>
                     </div>
-                    <div class="flex flex-row gap-4 items-center">
-                      <div>&bull; Avec grandes voies</div>
-                      <input type="checkbox" id="avecgv" class="checkbox checkbox-primary" />
+                    <div class="flex flex-col gap-2">
+                      <div>&bull; Pour faire :</div>
+                      <!-- <input type="checkbox" id="avecgv" class="checkbox checkbox-primary" /> -->
+                      <div class="flex flex-row gap-1 items-center ml-4">
+                        <div class="h-16 md:h-20 flex items-center w-3">
+                          <div class="h-full bg-base-300 rounded-full w-1 relative">
+                            <div class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 left-1/2
+                                        bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
+                                        flex items-center justify-center text-xs text-slate-600 font-bold">OU</div>
+                          </div>
+                        </div>
+                        <div class="max-w-96 grid grid-cols-[auto_auto] md:grid-cols-[auto] gap-x-2 gap-y-2 md:gap-y-1">
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                            <input type="checkbox" id="couenne" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">Couenne
+                            </span>
+                          </label>
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                            <input type="checkbox" id="bloc" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">Bloc
+                            </span>
+                          </label>
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                            <input type="checkbox" id="avecgv" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">Grande Voie
+                            </span>
+                          </label>
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                            <input type="checkbox" id="psychobloc" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">Psychobloc
+                            </span>
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -231,14 +279,15 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                 <div class="flex flex-col gap-2">
                   <div class="md:mt-2 flex flex-row gap-1">
                     <div><b class="text-primary text-base">Accès</b></div>
-                    <div>depuis
-                      <select id="villeSelect" class="select select-primary select-xs w-32">
-                        <option value="-1">Choisir Ville</option>
-                        <?php foreach ($villes as $ville): ?>
-                          <option value="<?= $ville["ville_id"] ?>"><?= $ville["ville_nom"] ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                    </div>
+                  </div>
+                  <div class="flex flex-row gap-2">
+                    <div class="font-bold">&bull; Au départ de</div>
+                    <select id="villeSelect" class="select select-primary select-xs w-32">
+                      <option value="-1">Choisir Ville</option>
+                      <?php foreach ($villes as $ville): ?>
+                        <option value="<?= $ville["ville_id"] ?>"><?= $ville["ville_nom"] ?></option>
+                      <?php endforeach; ?>
+                    </select>
                   </div>
                   <div class="flex flex-col gap-2">
                     <div class="flex flex-row gap-2 items-center villeRequired opacity-30">
@@ -1116,7 +1165,10 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     const cot70 = document.getElementById("filterCot70").checked;
     const cot79 = document.getElementById("filterCot79").checked;
     const cot80 = document.getElementById("filterCot80").checked;
+    const couenne = document.getElementById("couenne").checked;
     const avecgv = document.getElementById("avecgv").checked;
+    const bloc = document.getElementById("bloc").checked;
+    const psychobloc = document.getElementById("psychobloc").checked;
     const apieduniquement = document.getElementById("apieduniquement").checked;
     const tempsMaxVelo = document.getElementById("tempsMaxVelo").value;
     const distMaxVelo = document.getElementById("distMaxVelo").value;
@@ -1130,15 +1182,18 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     const tempsMaxTVA = document.getElementById("tempsMaxTVA").value;
     const ville = document.getElementById("villeSelect").value;
     const villeSelected = ville !== "-1";
+    const nbVoies = document.getElementById("nbVoies").value;
     //
     const expoFiltered = [expoN, expoE, expoS, expoO].some(e => e);
     const cotFiltered = [cot40, cot50, cot59, cot60, cot69, cot70, cot79, cot80].some(e => e);
+    const typeVoiesFiltered = couenne || avecgv || bloc || psychobloc;
 
     // Case 1 : all default values --> set all falaises visible (even hors topo)
     if (
       !expoFiltered
       && !cotFiltered
-      && !avecgv
+      && !typeVoiesFiltered
+      && nbVoies === "0"
       && !apieduniquement
       && tempsMaxVelo === ""
       && denivMaxVelo === ""
@@ -1178,6 +1233,13 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
               && (tempsMaxTVA === "" || train.tempsTotal <= parseInt(tempsMaxTVA))
             )
           }));
+        const estNbVoiesCompatible = (parseInt(falaise.falaise_nbvoies) >= parseInt(nbVoies)) || nbVoies === "0";
+        const estTypeVoiesCompatible = (
+          (couenne && !!!parseInt(falaise.falaise_bloc))
+          || (avecgv && !!falaise.falaise_gvnb)
+          || (bloc && parseInt(falaise.falaise_bloc) === 1)
+          || (psychobloc && parseInt(falaise.falaise_bloc) === 2)
+        );
 
         // Main filter logic
         if (
@@ -1189,7 +1251,8 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
           ))
           && (!cotFiltered || estCotationsCompatible)
           && (tempsMaxMA === "" || parseInt(falaise.falaise_maa || 0) <= parseInt(tempsMaxMA))
-          && (avecgv === false || !!falaise.falaise_gvnb)
+          && estNbVoiesCompatible
+          && (!typeVoiesFiltered || estTypeVoiesCompatible)
           && (!villeSelected || estTrainCompatible)
           && falaise.access.some(it => {
             const duration = calculate_time(it);
@@ -1231,8 +1294,8 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 
   }
   document.querySelectorAll("#filtersForm input").forEach(i => i.addEventListener("change", filterHandler));
+  document.querySelectorAll("#filtersForm select").forEach(i => i.addEventListener("change", filterHandler));
   document.getElementById("villeSelect").addEventListener("change", villeChangeHandler);
-  document.getElementById("villeSelect").addEventListener("change", filterHandler);
   document.querySelectorAll("input[type=radio][name=nbCorrespMax]").forEach(i => i.addEventListener("change", (e) => {
     const resetIcon = document.getElementById("nbCorrespMax10Reset");
     const defaultCheckbox = document.getElementById("nbCorrespMax10");
