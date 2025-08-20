@@ -9,7 +9,6 @@ export default class Falaise extends Element {
 
   static iconSize = 24;
   static falaiseIcon(size, closed, bloc, className) {
-    console.log("bloc:", bloc, typeof bloc, "closed:", closed);
     return L.icon({
       iconUrl: closed
         ? "/images/icone_falaisefermee_carte.png"

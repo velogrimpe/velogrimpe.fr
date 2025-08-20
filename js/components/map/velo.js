@@ -63,7 +63,6 @@ function renderGpx(velo, options = {}) {
     },
     polyline_options: lopts,
   };
-  console.log("APIED", typeof velo.velo_apieduniquement);
   return new L.GPX("/bdd/gpx/" + gpx_path(velo), gpxOptions).on(
     "loaded",
     (e) => {
