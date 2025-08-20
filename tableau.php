@@ -543,9 +543,9 @@ $stmt->close();
                 <?php if ($common["falaise_gvnb"] > 0): ?>
                   <div class="text-accent"><?php echo $common["falaise_gvnb"] ?></div>
                 <?php endif; ?>
-                <?php if ($row["falaise_bloc"] === 1): ?>
+                <?php if ($common["falaise_bloc"] === 1): ?>
                   <div class="text-accent">Secteur de bloc</div>
-                <?php elseif ($row["falaise_bloc"] === 2): ?>
+                <?php elseif ($common["falaise_bloc"] === 2): ?>
                   <div class="text-accent">Psychobloc 🌊</div>
                 <?php endif; ?>
                 <div>
