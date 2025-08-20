@@ -80,279 +80,312 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   <?php include "./components/header.html"; ?>
   <main class="pb-2 px-2 md:px-8 pt-2">
     <h1 class="text-4xl font-bold text-center mb-1">Carte Vélogrimpe</h1>
-    <div class="flex flex-col gap-1">
+    <!-- <div class="flex flex-col gap-1">
       <div id="map" class="w-full --md:w-[calc(100%-17rem)] h-[calc(100dvh-160px)] relative">
       </div>
-    </div>
+    </div> -->
+
+    <div class="flex flex-col gap-1">
+      <div class="flex flex-row gap-4">
+        <div class="hidden md:flex w-[17rem] bg-base-100 rounded-lg p-4 shadow-lg text-sm flex-col gap-6">
+          <div class="flex flex-col gap-2">
+            <div id="searchFormPanelContainer">
+              <div id="searchForm" class="relative">
+                <label class="input input-primary input-sm flex items-center gap-2 w-full">
+                  <input tabindex="0" type="search" id="search" class="w-full" placeholder="falaise/gare"
+                    autocomplete="off" />
+                  <svg class="w-4 h-4 fill-current">
+                    <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
+                  </svg>
+                </label>
+                <ul id="search-list"
+                  class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
+                </ul>
+                <datalist id="garesetfalaises">
+                  <?php foreach ($falaises as $falaise): ?>
+                    <option value="<?= $falaise["falaise_nom"] ?> (falaise)"></option>
+                  <?php endforeach; ?>
+                  <?php foreach ($gares as $gare): ?>
+                    <option value="<?= $gare["gare_nom"] ?> (gare)"></option>
+                  <?php endforeach; ?>
+                </datalist>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-row items-center justify-between">
+              <div class="text-lg font-bold">Filtres</div>
+              <button type="button" id="filtersFormReset" class="btn btn-xs btn-ghost text-primary">
+                <svg class="w-3 h-3 fill-current">
+                  <use xlink:href="/symbols/icons.svg#ri-repeat-line"></use>
+                </svg>
+                Réinitialiser
+              </button>
+            </div>
+            <div id="filtersFormPanelContainer">
+              <form class="flex flex-col gap-2 text-sm" id="filtersForm">
+                <div class="flex flex-col gap-2">
+                  <div><b class="text-primary text-base">Falaise</b></div>
+                  <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-2">
+                      <div>&bull; Je veux une falaise exposée</div>
+                      <div class="flex flex-row gap-1 items-center ml-4">
+                        <div class="h-20 flex items-center w-3">
+                          <div class="h-full bg-base-300 rounded-full w-1 relative">
+                            <div class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 left-1/2
+                                        bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
+                                        flex items-center justify-center text-xs text-slate-600 font-bold">OU</div>
+                          </div>
+                        </div>
+                        <div class="max-w-96 grid grid-cols-[auto_auto] md:grid-cols-[auto] gap-x-2 md:gap-y-1">
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                            <input type="checkbox" id="filterExpoN" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">Nord
+                              <br class="md:hidden">
+                              <span class="text-xs text-slate-400">(NO, N, NE)</span>
+                            </span>
+                          </label>
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                            <input type="checkbox" id="filterExpoE" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">Est
+                              <br class="md:hidden">
+                              <span class="text-xs text-slate-400">(NE, E, SE)</span>
+                            </span>
+                          </label>
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                            <input type="checkbox" id="filterExpoS" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">Sud
+                              <br class="md:hidden">
+                              <span class="text-xs text-slate-400">(SE, S, SO)</span>
+                            </span>
+                          </label>
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                            <input type="checkbox" id="filterExpoO" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">Ouest
+                              <br class="md:hidden">
+                              <span class="text-xs text-slate-400">(SO, O, NO)</span>
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                      <div>&bull; Je veux des cotations dans le
+                        <br />
+                        <span class="italic text-base-300 text-sm">(5- = de 5a à 5b, 5+ = de 5b+ à 5c+)</span>
+                      </div>
+                      <div
+                        class="flex flex-row md:flex-col gap-3 items-center md:justify-center md:items-start ml-4 md:w-fit">
+                        <div class="flex items-center h-16 md:h-full md:w-full w-3">
+                          <div class="h-full md:w-full bg-base-300 rounded-full md:h-1 w-1 relative">
+                            <div class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 left-1/2
+                                        bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
+                                        flex items-center justify-center text-xs text-slate-600 font-bold">ET</div>
+                          </div>
+                        </div>
+                        <div
+                          class="max-w-96 md:flex flex-row grid grid-cols-[auto_auto_auto_auto] gap-x-[10px] gap-y-2 md:justify-between md:w-full">
+                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
+                            <input type="checkbox" id="filterCot40" value="40"
+                              class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">&le;4</span>
+                          </label>
+                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
+                            <input type="checkbox" id="filterCot50" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">5-</span>
+                          </label>
+                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
+                            <input type="checkbox" id="filterCot59" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">5+</span>
+                          </label>
+                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
+                            <input type="checkbox" id="filterCot60" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">6-</span>
+                          </label>
+                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
+                            <input type="checkbox" id="filterCot69" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">6+</span>
+                          </label>
+                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
+                            <input type="checkbox" id="filterCot70" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">7-</span>
+                          </label>
+                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
+                            <input type="checkbox" id="filterCot79" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">7+</span>
+                          </label>
+                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
+                            <input type="checkbox" id="filterCot80" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">&ge;8</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex flex-row gap-4 items-center">
+                      <div>&bull; Avec grandes voies</div>
+                      <input type="checkbox" id="avecgv" class="checkbox checkbox-primary" />
+                    </div>
+                  </div>
+                </div>
+                <hr class="border-t border-base-300 my-1" />
+                <div class="flex flex-col gap-2">
+                  <div class="md:mt-2 flex flex-row gap-1">
+                    <div><b class="text-primary text-base">Accès</b></div>
+                    <div>depuis
+                      <select id="villeSelect" class="select select-primary select-xs w-32">
+                        <option value="-1">Choisir Ville</option>
+                        <?php foreach ($villes as $ville): ?>
+                          <option value="<?= $ville["ville_id"] ?>"><?= $ville["ville_nom"] ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <div class="flex flex-row gap-2 items-center villeRequired opacity-30">
+                      <div class="font-bold">&bull; Train (T)</div>
+                      <div class="text-normal font-bold">&le;</div>
+                      <input type="number" id="tempsMaxTrain" step="1" min="0"
+                        class="input input-primary input-xs w-10" />
+                      <div>minutes</div>
+                    </div>
+                    <div class="flex flex-row items-center gap-1 ml-2 villeRequired opacity-30">
+                      <div>Nb. Corresp.</div>
+                      <div class="flex flex-row gap-2 items-center">
+                        <label class="label cursor-pointer gap-1">
+                          <input value="0" type="radio" name="nbCorrespMax" id="nbCorrespMax0"
+                            class="radio radio-primary radio-xs" />
+                          <span class="label-text">0</span>
+                        </label>
+                        <label class="label cursor-pointer gap-1">
+                          <input value="1" type="radio" name="nbCorrespMax" id="nbCorrespMax1"
+                            class="radio radio-primary radio-xs" />
+                          <span class="label-text">&le;1</span>
+                        </label>
+                        <label class="label cursor-pointer gap-1">
+                          <input value="10" type="radio" name="nbCorrespMax" id="nbCorrespMax10"
+                            class="radio radio-primary radio-xs" checked hidden />
+                          <svg id="nbCorrespMax10Reset" class="w-3 h-3 fill-current hidden">
+                            <use xlink:href="/symbols/icons.svg#ri-repeat-line"></use>
+                          </svg>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="flex flex-row gap-2 items-center">
+                      <div class="font-bold">&bull; Vélo (V)</div>
+                      <div class="flex flex-row gap-6 items-center ml-4">
+                        <div class="h-24 bg-base-300 rounded-full w-1 relative">
+                          <div class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 left-1/2
+                                        bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
+                                        flex items-center justify-center text-xs text-slate-600 font-bold">ET</div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <div class="flex flex-row gap-2 items-center">
+                            <div class="text-normal font-bold">&le;</div>
+                            <input type="number" id="tempsMaxVelo" step="1" min="0"
+                              class="input input-primary input-xs w-10" />
+                            <div>minutes</div>
+                          </div>
+                          <div class="flex flex-row gap-2 items-center">
+                            <div class="text-normal font-bold">&le;</div>
+                            <input type="number" id="distMaxVelo" step="1" min="0"
+                              class="input input-primary input-xs w-10" />
+                            <div>km</div>
+                          </div>
+                          <div class="flex flex-row gap-2 items-center">
+                            <div class="text-normal font-bold">&le;</div>
+                            <input type="number" id="denivMaxVelo" step="1" min="0"
+                              class="input input-primary input-xs w-10" />
+                            <div>D+</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex flex-row gap-2 items-center ml-2">
+                      <div class="bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
+                                  flex items-center justify-center text-xs text-slate-600 font-bold">OU</div>
+                      <input type="checkbox" id="apieduniquement" class="checkbox checkbox-primary" />
+                      <div>Accessible à pied</div>
+                    </div>
+                    <div class="flex flex-row gap-2 items-center">
+                      <div class="font-bold">&bull; Approche (A)</div>
+                      <div class="text-normal font-bold">&le;</div>
+                      <input type="number" id="tempsMaxMA" step="1" min="0" class="input input-primary input-xs w-10" />
+                      <div>minutes</div>
+                    </div>
+                  </div>
+                  <div
+                    class="flex flex-row gap-2 items-center mt-2 border border-base-300 rounded-md p-2 villeRequired opacity-30">
+                    <div class="font-bold underline uppercase">Temps Total</div>
+                    <div class="flex flex-col gap-2 items-end">
+                      <div class="flex flex-row gap-1 items-center">
+                        <div class="">T+V</div>
+                        <div class="text-normal font-bold">&le;</div>
+                        <input type="number" id="tempsMaxTV" step="1" min="0"
+                          class="input input-primary input-xs w-10" />
+                        <div>minutes</div>
+                      </div>
+                      <div class="flex flex-row gap-1 items-center">
+                        <div class="">T+V+A</div>
+                        <div class="text-normal font-bold">&le;</div>
+                        <input type="number" id="tempsMaxTVA" step="1" min="0"
+                          class="input input-primary input-xs w-10" />
+                        <div>minutes</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div id="map" class="w-full md:w-[calc(100%-17rem)] h-[calc(100dvh-160px)]"></div>
+      </div>
     </div>
   </main>
   <div class="hidden">
-    <form id="filtersForm"
-      class="flex flex-col md:flex-row gap-1 items-center w-full max-w-full justify-center flex-wrap">
-      <div class="flex gap-1 items-center flex-wrap justify-end">
-        <div class="dropdown w-fit">
-          <div tabindex="0" role="button" class="btn btn-xs text-nowrap focus:pointer-events-none rounded-full"
-            id="voiesFilterBtn">
-            Voies 🧗‍♀️</div>
-          <div class="dropdown-content menu gap-1 bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
-            <div class="flex flex-col gap-2">
-              <div class="flex flex-col gap-3">
-                <div><span class="font-bold">Cotations</span> (ex: 5+ ET 6+)</div>
-                <div class="flex flex-col gap-1">
-                  <div class="flex flex-row gap-4">
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1">
-                      <input type="checkbox" id="filterCot40" value="40"
-                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">4 et -</span>
-                    </label>
-                  </div>
-                  <div class="flex flex-row gap-4">
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
-                      <input type="checkbox" id="filterCot50"
-                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">5-</span>
-                    </label>
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
-                      <input type="checkbox" id="filterCot59"
-                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">5+</span>
-                    </label>
-                  </div>
-                  <div class="flex flex-row gap-4">
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
-                      <input type="checkbox" id="filterCot60"
-                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">6-</span>
-                    </label>
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
-                      <input type="checkbox" id="filterCot69"
-                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">6+</span>
-                    </label>
-                  </div>
-                  <div class="flex flex-row gap-4">
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
-                      <input type="checkbox" id="filterCot70"
-                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">7-</span>
-                    </label>
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 w-16 justify-start p-0 pr-1">
-                      <input type="checkbox" id="filterCot79"
-                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">7+</span>
-                    </label>
-                  </div>
-                  <div class="flex flex-row gap-4">
-                    <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1">
-                      <input type="checkbox" id="filterCot80"
-                        class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">8 et +</span>
-                    </label>
-                  </div>
-                  <span class="italic text-base-300 text-sm">(5- = de 5a à 5b, 5+ = de 5b+ à 5c+)</span>
-                </div>
-              </div>
-            </div>
-            <div class="font-bold">Nombre de voies</div>
-            <div>
-              <label for="" class="label cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                <select id="nbVoies" class="select border-base-300 select-sm focus:outline-base-300">
-                  <option value="0" selected>Pas de minimum</option>
-                  <option value="20">Plus de 20</option>
-                  <option value="50">Plus de 50</option>
-                  <option value="100">Plus de 100</option>
-                  <option value="200">Plus de 200</option>
-                </select>
-                <!-- <span class="label-text">Couenne</span> -->
-              </label>
-            </div>
-            <div class="font-bold">Types de voies</div>
-            <div class="grid grid-cols-[auto_auto] gap-x-2 gap-y-1 w-full">
-              <div class="flex flex-row gap-2 items-center w-full">
-                <label for=""
-                  class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                  <input type="checkbox" id="couenne"
-                    class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                  <span class="label-text">Couenne</span>
-                </label>
-              </div>
-              <div class="flex flex-row gap-2 items-center w-full">
-                <label for=""
-                  class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                  <input type="checkbox" id="avecgv"
-                    class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                  <span class="label-text">Grandes voies</span>
-                </label>
-              </div>
-              <div class="flex flex-row gap-2 items-center w-full">
-                <label for=""
-                  class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                  <input type="checkbox" id="bloc"
-                    class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                  <span class="label-text">Bloc</span>
-                </label>
-              </div>
-              <div class="flex flex-row gap-2 items-center w-full">
-                <label for=""
-                  class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                  <input type="checkbox" id="psychobloc"
-                    class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                  <span class="label-text">Psychobloc</span>
-                </label>
-              </div>
-            </div>
-          </div>
+    <div class="flex flex-row gap-1 justify-end md:hidden" id="searchAndFilter">
+      <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
+        onclick="searchModal.showModal()">
+        Chercher
+        <svg class="w-4 h-4 fill-current">
+          <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
+        </svg>
+      </button>
+      <dialog id="searchModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box md:w-3/5 max-w-xl">
+          <form method="dialog">
+            <button tabindex="-1" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+          </form>
+          <div id="searchFormDialogContainer" class="min-h-[200px] mt-4"></div>
         </div>
-        <div class="dropdown w-fit">
-          <div tabindex="0" role="button" class="btn btn-xs text-nowrap focus:pointer-events-none" id="expoFilterBtn">
-            Exposition 🔅</div>
-          <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-40 p-2 shadow-lg" tabindex="1">
-            <div class="flex flex-row gap-1 items-center">
-              <div class="max-w-96 flex flex-col gap-1 w-full">
-                <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                  <input type="checkbox" id="filterExpoN"
-                    class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                  <span class="label-text">Nord
-                    <span class="text-xs text-slate-400">(NO, N, NE)</span>
-                  </span>
-                </label>
-                <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                  <input type="checkbox" id="filterExpoE"
-                    class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                  <span class="label-text">Est
-                    <span class="text-xs text-slate-400">(NE, E, SE)</span>
-                  </span>
-                </label>
-                <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                  <input type="checkbox" id="filterExpoS"
-                    class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                  <span class="label-text">Sud
-                    <span class="text-xs text-slate-400">(SE, S, SO)</span>
-                  </span>
-                </label>
-                <label class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                  <input type="checkbox" id="filterExpoO"
-                    class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                  <span class="label-text">Ouest
-                    <span class="text-xs text-slate-400">(SO, O, NO)</span>
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
+        <form method="dialog" class="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
+      <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
+        onclick="document.getElementById('filtersModal').showModal()">
+        Filtrer
+        <svg class="w-4 h-4 fill-current">
+          <use xlink:href="/symbols/icons.svg#ri-filter-line"></use>
+        </svg>
+      </button>
+      <dialog id="filtersModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box md:w-4/5 max-w-3xl m-0 p-4">
+          <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+          </form>
+          <!-- <h3 class="font-bold text-xl">Je cherche...</h3> -->
+          <div id="filtersFormDialogContainer"></div>
+          <form method="dialog" class="flex justify-end mt-4 gap-2">
+            <button class="btn btn-sm btn-primary" onclick="">Appliquer et Fermer</button>
+            <button class="btn btn-sm btn-error text-base-100" id="filtersFormResetMobile">Réinitialiser</button>
+          </form>
         </div>
-        <div class="dropdown w-fit dropdown-end">
-          <div tabindex="0" role="button" class="btn btn-xs text-nowrap focus:pointer-events-none" id="trainFilterBtn">
-            Train 🚞</div>
-          <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
-            <label class="flex flex-row gap-2 items-center">
-              <div class="font-bold">Durée</div>
-              <div class="text-normal font-bold">&le;</div>
-              <input type="number" id="tempsMaxTrain" step="1" min="0" class="input input-bordered input-sm w-14" />
-              <div>minutes</div>
-            </label>
-            <div class="flex flex-row items-center gap-1">
-              <div>Nb. Corresp. Max</div>
-              <div class="flex flex-row gap-2 items-center">
-                <label class="label cursor-pointer gap-1">
-                  <input value="0" type="radio" name="nbCorrespMax" id="nbCorrespMax0"
-                    class="radio radio-primary radio-xs" />
-                  <span class="label-text">0</span>
-                </label>
-                <label class="label cursor-pointer gap-1">
-                  <input value="1" type="radio" name="nbCorrespMax" id="nbCorrespMax1"
-                    class="radio radio-primary radio-xs" />
-                  <span class="label-text">&le;1</span>
-                </label>
-                <label class="label cursor-pointer gap-1">
-                  <input value="10" type="radio" name="nbCorrespMax" id="nbCorrespMax10"
-                    class="radio radio-primary radio-xs" checked hidden />
-                  <svg id="nbCorrespMax10Reset" class="w-3 h-3 fill-current hidden">
-                    <use xlink:href="/symbols/icons.svg#ri-repeat-line"></use>
-                  </svg>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        <div class="dropdown w-fit">
-          <div tabindex="0" role="button" class="btn btn-xs text-nowrap focus:pointer-events-none" id="veloFilterBtn">
-            Vélo 🚲
-          </div>
-          <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
-            <div class="flex flex-row gap-3 items-center">
-              <div>Trajet vélo</div>
-              <div class="flex flex-col gap-1">
-                <label class="flex flex-row gap-2 flex-wrap items-center">
-                  <div class="text-normal font-bold">&le;</div>
-                  <input type="number" id="tempsMaxVelo" step="1" min="0" class="input input-bordered input-sm w-14" />
-                  <div>minutes</div>
-                </label>
-                <label class="flex flex-row gap-2 items-center">
-                  <div class="text-normal font-bold">&le;</div>
-                  <input type="number" id="distMaxVelo" step="1" min="0" class="input input-bordered input-sm w-14" />
-                  <div>km</div>
-                </label>
-                <label class="flex flex-row gap-2 items-center">
-                  <div class="text-normal font-bold">&le;</div>
-                  <input type="number" id="denivMaxVelo" step="1" min="0" class="input input-bordered input-sm w-14" />
-                  <div>D+</div>
-                </label>
-              </div>
-            </div>
-            <div class="flex flex-row gap-2 items-center">
-              <div class="bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
-                flex items-center justify-center text-xs text-slate-600 font-bold">OU</div>
-              <label class="flex flex-row gap-2 items-center hover:bg-base-300 rounded-lg cursor-pointer p-0 pr-1">
-                <input type="checkbox" id="apieduniquement"
-                  class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))]" />
-                <div>Accessible à pied</div>
-              </label>
-            </div>
-          </div>
-        </div>
-        <div class="dropdown w-fit">
-          <div tabindex="0" role="button" class="btn btn-xs text-nowrap focus:pointer-events-none"
-            id="approcheFilterBtn">Marche 🥾</div>
-          <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-56 p-2 shadow-lg" tabindex="1">
-            <label class="flex flex-row gap-2 items-center">
-              <div class="font-bold">Approche</div>
-              <div class="text-normal font-bold">&le;</div>
-              <input type="number" id="tempsMaxMA" step="1" min="0" class="input input-bordered input-sm w-14" />
-              <div>minutes</div>
-            </label>
-          </div>
-        </div>
-        <div class="dropdown w-fit dropdown-end">
-          <div tabindex="0" role="button" class="btn btn-xs text-nowrap focus:pointer-events-none" id="totalFilterBtn">
-            Total ⏱️</div>
-          <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 p-2 shadow-lg" tabindex="1">
-            <div class="flex flex-col gap-2 items-end">
-              <label class="flex flex-row gap-1 items-center">
-                <div class="">Train+Vélo</div>
-                <div class="text-normal font-bold">&le;</div>
-                <input type="number" id="tempsMaxTV" step="1" min="0" class="input input-bordered input-sm w-14" />
-                <div>minutes</div>
-              </label>
-              <label class="flex flex-row gap-1 items-center">
-                <div class="">Train+Vélo+Approche</div>
-                <div class="text-normal font-bold">&le;</div>
-                <input type="number" id="tempsMaxTVA" step="1" min="0" class="input input-bordered input-sm w-14" />
-                <div>minutes</div>
-              </label>
-            </div>
-          </div>
-        </div>
-        <button id="resetButton" class="btn btn-xs btn-ghost px-1 text-nowrap disabled:hidden" type="reset"
-          title="Réinitialiser les filtres">
-          <svg class="w-4 h-4 fill-current">
-            <use xlink:href="/symbols/icons.svg#ri-close-circle-line"></use>
-          </svg>
-        </button>
-      </div>
-    </form>
+        <form method="dialog" class="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
+    </div>
   </div>
   <?php include "./components/footer.html"; ?>
 </body>
@@ -808,17 +841,17 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   L.control.scale({ position: "bottomleft", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
   L.control.locate().addTo(map);
 
-  var filters = L.control({ position: 'topright' });
+  var searchAndFilter = L.control({ position: 'topright' });
 
-  filters.onAdd = function (map) {
+  searchAndFilter.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'w-[calc(100%-50px)]'); // create a div with a class "info"
     L.DomEvent.disableClickPropagation(this._div);
     L.DomEvent.disableScrollPropagation(this._div);
-    const form = document.getElementById("filtersForm")
+    const form = document.getElementById("searchAndFilter")
     this._div.appendChild(form)
     return this._div;
   };
-  filters.addTo(map);
+  searchAndFilter.addTo(map);
 
   // PANNEAU D'INFORMATION SUR LA FALAISE/GARE SELECTIONNEE
   var info = L.control({ position: 'bottomright' });
