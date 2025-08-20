@@ -592,14 +592,15 @@ $stmtV->close();
           </div>
         </div>
         <!-- CREATION DES TABLEAUX DYNAMIQUES -->
-        <table class='collapse-content table bg-base-100 border-spacing-0'>
-          <colgroup>
-            <col style='width: 30%;'>
-            <col style='width: 70%;'>
-          </colgroup>
+        <div class='collapse-content'>
+          <table class='table bg-base-100 border-spacing-0'>
+            <colgroup>
+              <col style='width: 30%;'>
+              <col style='width: 70%;'>
+            </colgroup>
 
-          <!-- // LIGNE 1 "ACCES DEPUIS LA GARE..." -->
-          <!-- <thead>
+            <!-- // LIGNE 1 "ACCES DEPUIS LA GARE..." -->
+            <!-- <thead>
           <tr>
             <td class='rounded-t-xl text-center text-lg font-bold bg-base-200 text-base-content text-wrap' colspan='2'>
               Accès depuis la gare de : <?php echo htmlspecialchars(mb_strtoupper($gare['gare_nom'], 'UTF-8')) ?>
@@ -610,26 +611,26 @@ $stmtV->close();
           </tr>
         </thead> -->
 
-          <!-- // LIGNE 2 TRAIN : -->
-          <tr>
-            <td class="justify-center border-t border-r border-b border-1 border-base-300">
-              <div class="flex flex-col md:flex-row gap-4 items-center">
-                <img src="/images/train-station_color.png" alt="Logo Train" class="h-10 w-auto">
-                <div>
-                  <?php if ($selected_ville_nom): ?>
-                    <b><?= htmlspecialchars($selected_ville_nom) . " → " . htmlspecialchars($gare["gare_nom"]) ?></b>
-                  <?php else: ?>
-                    Rejoindre la gare de : <b><?= htmlspecialchars($gare["gare_nom"]) ?></b>
-                  <?php endif; ?>
+            <!-- // LIGNE 2 TRAIN : -->
+            <tr>
+              <td class="justify-center border-t border-r border-b border-1 border-base-300">
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                  <img src="/images/train-station_color.png" alt="Logo Train" class="h-10 w-auto">
+                  <div>
+                    <?php if ($selected_ville_nom): ?>
+                      <b><?= htmlspecialchars($selected_ville_nom) . " → " . htmlspecialchars($gare["gare_nom"]) ?></b>
+                    <?php else: ?>
+                      Rejoindre la gare de : <b><?= htmlspecialchars($gare["gare_nom"]) ?></b>
+                    <?php endif; ?>
 
-                  <?php if (!empty($formatted_time)): ?>
-                    : <span class="text-lg font-bold"><?= $formatted_time ?></span>
-                  <?php endif ?>
-                  <?php if (!empty($corresp_text)): ?>
-                    <br>
-                    <?= nl2br($corresp_text) ?>
-                  <?php endif ?>
-                  <!-- <button class="btn btn-xs btn-outline btn-accent" onclick="gare<?= $gare["gare_id"] ?>.showModal()">
+                    <?php if (!empty($formatted_time)): ?>
+                      : <span class="text-lg font-bold"><?= $formatted_time ?></span>
+                    <?php endif ?>
+                    <?php if (!empty($corresp_text)): ?>
+                      <br>
+                      <?= nl2br($corresp_text) ?>
+                    <?php endif ?>
+                    <!-- <button class="btn btn-xs btn-outline btn-accent" onclick="gare<?= $gare["gare_id"] ?>.showModal()">
                     <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
                       <use xlink:href="/symbols/icons.svg#ri-ticket-line"></use>
                     </svg>
@@ -643,119 +644,120 @@ $stmtV->close();
                       <button>close</button>
                     </form>
                   </dialog> -->
-                </div>
-              </div>
-            </td>
-
-            <td class='border-t border-b border-1 border-base-300'>
-              <?php if ($ville_id_get): ?>
-                <?php if ($train_descr): ?>
-                  <?= nl2br($train_descr) ?>
-                <?php else: ?>
-                  Itinéraire non décrit (soit il est peu pertinent, soit j'ai pas eu le temps !).
-                <?php endif ?>
-              <?php else: ?>
-                <div>
-                  <?php if (count($villesFrom) > 0): ?>
-                    Accès décrits depuis:
-                    <ul class="list-disc pl-6">
-                      <?php foreach ($villesFrom as $villeFrom): ?>
-                        <li>
-                          <a class="text-primary font-bold hover:underline cursor-pointer"
-                            href="?falaise_id=<?= htmlspecialchars($falaise_id) ?>&ville_id=<?= htmlspecialchars($villeFrom['ville_id']) ?>">
-                            <?= htmlspecialchars($villeFrom['ville_nom']) ?>
-                          </a>
-                        </li>
-                      <?php endforeach; ?>
-                    </ul>
-                  <?php else: ?>
-                    Pas d'accès train décrits depuis cette gare.
-                    <a class="btn btn-primary btn-xs"
-                      href="/ajout/ajout_train.php?falaise_id=<?= htmlspecialchars($falaise_id) ?>&gare_id=<?= htmlspecialchars($gare['gare_id']) ?>">Proposer
-                      un accès train</a>
-                  <?php endif ?>
-                </div>
-              <?php endif ?>
-            </td>
-          </tr>
-
-          <!-- // LIGNES VELO -->
-          <?php foreach ($velo_itineraires as $velo): ?>
-            <tr>
-              <td class='justify-center border-t border-r border-b border-1 border-base-300'>
-                <div class='flex flex-col md:flex-row gap-4 items-center'>
-
-                  <?php if (isset($velo['velo_apieduniquement']) && $velo['velo_apieduniquement'] == 1): ?>
-                    <img src="/images/hiking_color.png" alt="Logo À Pied" class="h-auto w-10">
-                  <?php else: ?>
-                    <img src="/images/bicycle_color.png" alt="Logo Vélo" class="h-auto w-10">
-                  <?php endif ?>
-
-                  <div class='flex flex-col items-start'>
-                    <?php if (!empty($velo['velo_variante'])): ?>
-                      <div class='text-slate-400'><?= htmlspecialchars($velo['velo_variante']) ?></div>
-                    <?php endif ?>
-                    <div>Aller : <span
-                        class='text-lg font-bold'><?= htmlspecialchars(format_time($velo['velo_tpsa_calculated'])) ?></span>
-                    </div>
-                    <div>Retour : <span
-                        class='text-lg font-bold'><?= htmlspecialchars(format_time($velo['velo_tpsr_calculated'])) ?></span>
-                    </div>
                   </div>
                 </div>
               </td>
 
               <td class='border-t border-b border-1 border-base-300'>
-                <?= htmlspecialchars($velo['velo_km']) . " km, " . htmlspecialchars($velo['velo_dplus']) . " D+, " . htmlspecialchars($velo['velo_dmoins']) . " D-." ?>
-                <br>
-                <?= nl2br($velo['velo_descr']) ?>
-                <br>
-                <?php if ($velo['velo_openrunner']): ?>
-                  <!-- Desktop : ouvre juste en dessous -->
-                  <a class="font-bold text-primary hidden md:inline" href='#'
-                    onclick="document.getElementById('profil_<?= $velo['velo_id'] ?>').classList.toggle('hidden'); return false;">
-                    Profil altimétrique
-                  </a>
-                  <!-- Mobile : ouvre dans un dialog -->
-                  <a class="text-primary font-bold hover:underline cursor-pointer inline md:hidden"
-                    onclick="document.getElementById('profil_<?= $velo['velo_id'] ?>_modal').showModal()">
-                    Profil altimétrique
-                  </a>
-                <?php endif; ?>
-                <?php
-                $gpx_path = "./bdd/gpx/" . $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . ".gpx";
-                $exists = file_exists($gpx_path);
-                if ($velo['velo_openrunner'] && $exists): ?>
-                  |
-                <?php endif; ?>
-                <?php
-                if ($exists):
-                  ?>
-                  <a class="font-bold text-primary" href="<?= htmlspecialchars($gpx_path) ?>" target='_blank'>Trace GPS</a>
-                <?php endif; ?>
+                <?php if ($ville_id_get): ?>
+                  <?php if ($train_descr): ?>
+                    <?= nl2br($train_descr) ?>
+                  <?php else: ?>
+                    Itinéraire non décrit (soit il est peu pertinent, soit j'ai pas eu le temps !).
+                  <?php endif ?>
+                <?php else: ?>
+                  <div>
+                    <?php if (count($villesFrom) > 0): ?>
+                      Accès décrits depuis:
+                      <ul class="list-disc pl-6">
+                        <?php foreach ($villesFrom as $villeFrom): ?>
+                          <li>
+                            <a class="text-primary font-bold hover:underline cursor-pointer"
+                              href="?falaise_id=<?= htmlspecialchars($falaise_id) ?>&ville_id=<?= htmlspecialchars($villeFrom['ville_id']) ?>">
+                              <?= htmlspecialchars($villeFrom['ville_nom']) ?>
+                            </a>
+                          </li>
+                        <?php endforeach; ?>
+                      </ul>
+                    <?php else: ?>
+                      Pas d'accès train décrits depuis cette gare.
+                      <a class="btn btn-primary btn-xs"
+                        href="/ajout/ajout_train.php?falaise_id=<?= htmlspecialchars($falaise_id) ?>&gare_id=<?= htmlspecialchars($gare['gare_id']) ?>">Proposer
+                        un accès train</a>
+                    <?php endif ?>
+                  </div>
+                <?php endif ?>
+              </td>
+            </tr>
+
+            <!-- // LIGNES VELO -->
+            <?php foreach ($velo_itineraires as $velo): ?>
+              <tr>
+                <td class='justify-center border-t border-r border-b border-1 border-base-300'>
+                  <div class='flex flex-col md:flex-row gap-4 items-center'>
+
+                    <?php if (isset($velo['velo_apieduniquement']) && $velo['velo_apieduniquement'] == 1): ?>
+                      <img src="/images/hiking_color.png" alt="Logo À Pied" class="h-auto w-10">
+                    <?php else: ?>
+                      <img src="/images/bicycle_color.png" alt="Logo Vélo" class="h-auto w-10">
+                    <?php endif ?>
+
+                    <div class='flex flex-col items-start'>
+                      <?php if (!empty($velo['velo_variante'])): ?>
+                        <div class='text-slate-400'><?= htmlspecialchars($velo['velo_variante']) ?></div>
+                      <?php endif ?>
+                      <div>Aller : <span
+                          class='text-lg font-bold'><?= htmlspecialchars(format_time($velo['velo_tpsa_calculated'])) ?></span>
+                      </div>
+                      <div>Retour : <span
+                          class='text-lg font-bold'><?= htmlspecialchars(format_time($velo['velo_tpsr_calculated'])) ?></span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class='border-t border-b border-1 border-base-300'>
+                  <?= htmlspecialchars($velo['velo_km']) . " km, " . htmlspecialchars($velo['velo_dplus']) . " D+, " . htmlspecialchars($velo['velo_dmoins']) . " D-." ?>
+                  <br>
+                  <?= nl2br($velo['velo_descr']) ?>
+                  <br>
+                  <?php if ($velo['velo_openrunner']): ?>
+                    <!-- Desktop : ouvre juste en dessous -->
+                    <a class="font-bold text-primary hidden md:inline" href='#'
+                      onclick="document.getElementById('profil_<?= $velo['velo_id'] ?>').classList.toggle('hidden'); return false;">
+                      Profil altimétrique
+                    </a>
+                    <!-- Mobile : ouvre dans un dialog -->
+                    <a class="text-primary font-bold hover:underline cursor-pointer inline md:hidden"
+                      onclick="document.getElementById('profil_<?= $velo['velo_id'] ?>_modal').showModal()">
+                      Profil altimétrique
+                    </a>
+                  <?php endif; ?>
+                  <?php
+                  $gpx_path = "./bdd/gpx/" . $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . ".gpx";
+                  $exists = file_exists($gpx_path);
+                  if ($velo['velo_openrunner'] && $exists): ?>
+                    |
+                  <?php endif; ?>
+                  <?php
+                  if ($exists):
+                    ?>
+                    <a class="font-bold text-primary" href="<?= htmlspecialchars($gpx_path) ?>" target='_blank'>Trace GPS</a>
+                  <?php endif; ?>
 
 
-                <!-- Desktop : div en dessous -->
-                <div id="profil_<?= $velo['velo_id'] ?>" class="hidden mt-2">
-                  <iframe width="100%" height="650" loading="lazy" src="<?= $velo['velo_openrunner'] ?>"
-                    style="border: none;"></iframe>
-                </div>
-                <!-- Mobile : ouvre dans un dialog -->
-                <dialog id="profil_<?= $velo['velo_id'] ?>_modal" class="modal modal-bottom">
-                  <div class="modal-box md:w-4/5 max-w-3xl m-0 pt-10 p-4">
-                    <form method="dialog">
-                      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                    </form>
-
+                  <!-- Desktop : div en dessous -->
+                  <div id="profil_<?= $velo['velo_id'] ?>" class="hidden mt-2">
                     <iframe width="100%" height="650" loading="lazy" src="<?= $velo['velo_openrunner'] ?>"
                       style="border: none;"></iframe>
                   </div>
-                </dialog>
+                  <!-- Mobile : ouvre dans un dialog -->
+                  <dialog id="profil_<?= $velo['velo_id'] ?>_modal" class="modal modal-bottom">
+                    <div class="modal-box md:w-4/5 max-w-3xl m-0 pt-10 p-4">
+                      <form method="dialog">
+                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                      </form>
 
-              </td>
-            </tr>
-          <?php endforeach ?>
-        </table>
+                      <iframe width="100%" height="650" loading="lazy" src="<?= $velo['velo_openrunner'] ?>"
+                        style="border: none;"></iframe>
+                    </div>
+                  </dialog>
+
+                </td>
+              </tr>
+            <?php endforeach ?>
+          </table>
+        </div>
       </div>
     <?php } ?>
 
