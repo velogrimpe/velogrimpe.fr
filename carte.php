@@ -486,7 +486,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   const calculate_time = (it) => {
     const { velo_km, velo_dplus, velo_apieduniquement } = it;
     let time_in_hours;
-    if (velo_apieduniquement == "1") {
+    if (velo_apieduniquement === "1") {
       time_in_hours = parseFloat(velo_km) / 4 + parseInt(velo_dplus) / 500;
     } else {
       time_in_hours = parseFloat(velo_km) / 20 + parseInt(velo_dplus) / 500;
@@ -586,7 +586,12 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     return new L.GPX("./bdd/gpx/" + gpx_path(it), options)
       .addTo(map)
       .on('loaded', e => {
-        e.target.bindTooltip(format_time(calculate_time(it)),
+        e.target.bindTooltip(
+          format_time(calculate_time(it))
+          + (it.velo_apieduniquement === "1"
+            ? '<svg class="w-4 h-4 fill-current inline"><use xlink:href="/symbols/icons.svg#ri-footprint-fill"></use></svg>'
+            : ""
+          ),
           {
             className: `p-[1px] bg-[${c}] text-white border-[${c}] font-bold`,
             permanent: true,

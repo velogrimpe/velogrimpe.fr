@@ -63,14 +63,21 @@ function renderGpx(velo, options = {}) {
     },
     polyline_options: lopts,
   };
+  console.log("APIED", typeof velo.velo_apieduniquement);
   return new L.GPX("/bdd/gpx/" + gpx_path(velo), gpxOptions).on(
     "loaded",
     (e) => {
-      e.target.bindTooltip(format_time(calculate_time(velo)), {
-        className: `p-[1px] bg-[${color}] text-white border-[${color}] font-bold`,
-        permanent: true,
-        direction: "center",
-      });
+      e.target.bindTooltip(
+        format_time(calculate_time(velo)) +
+          (velo.velo_apieduniquement
+            ? '<svg class="w-4 h-4 fill-current inline"><use xlink:href="/symbols/icons.svg#ri-footprint-fill"></use></svg>'
+            : ""),
+        {
+          className: `p-[1px] bg-[${color}] text-white border-[${color}] font-bold`,
+          permanent: true,
+          direction: "center",
+        }
+      );
       e.target.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
       });

@@ -526,7 +526,11 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     return new L.GPX("./bdd/gpx/" + gpx_path(it), options)
       .addTo(map)
       .on('loaded', e => {
-        e.target.bindTooltip(format_time(calculate_time(it)),
+        e.target.bindTooltip(format_time(calculate_time(it))
+          + (it.velo_apieduniquement === "1"
+            ? '<svg class="w-4 h-4 fill-current inline"><use xlink:href="/symbols/icons.svg#ri-footprint-fill"></use></svg>'
+            : ""
+          ),
           {
             className: `p-[1px] bg-[${c}] text-white border-[${c}] font-bold`,
             permanent: true,
