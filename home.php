@@ -15,10 +15,10 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Velogrimpe.fr">
   <meta property="og:url" content="https://velogrimpe.fr/">
-  <meta property="og:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/032-chaussons-10.webp">
   <meta property="og:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
-  <meta name="twitter:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/032-chaussons-10.webp">
   <meta name="twitter:title"
     content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
