@@ -148,10 +148,10 @@ $stmt->close();
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Velogrimpe.fr">
   <meta property="og:url" content="https://velogrimpe.fr/tableau.php?ville_id=<?= $ville_id ?>">
-  <meta property="og:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
   <meta property="og:description"
     content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
-  <meta name="twitter:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
   <meta name="twitter:title" content="Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr">
   <meta name="twitter:description"
     content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">

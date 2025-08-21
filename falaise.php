@@ -155,10 +155,10 @@ $stmtV->close();
   <meta property="og:site_name" content="Velogrimpe.fr">
   <meta property="og:url"
     content="https://velogrimpe.fr/falaise.php?falaise_id=<?= $falaise_id ?>&ville_id=<?= $ville_id_get ?>">
-  <meta property="og:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
   <meta property="og:description"
     content="Escalade à <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?>. Découvrez les accès en vélo et en train, les topos et les informations pratiques pour une sortie vélo-grimpe en mobilité douce.">
-  <meta name="twitter:image" content="https://velogrimpe.fr/images/logo_velogrimpe.png">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
   <meta name="twitter:title"
     content="Escalade à <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"

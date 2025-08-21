@@ -8,6 +8,22 @@ $email = $config['contact_mail'];
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Escalade en mobilité douce à vélo et en train. Contribuez au topos d'accès vélo + train pour se rendre en falaise. Partagez vos bon plans et expérience, traces et falaises accessibles à vélo.">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="Velogrimpe.fr - Contribuer">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Velogrimpe.fr">
+  <meta property="og:url" content="https://velogrimpe.fr/">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta property="og:description"
+    content="Escalade en mobilité douce à vélo et en train. Contribuez au topos d'accès vélo + train pour se rendre en falaise. Partagez vos bon plans et expérience, traces et falaises accessibles à vélo.">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta name="twitter:title"
+    content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
+  <meta name="twitter:description"
+    content="Escalade en mobilité douce à vélo et en train. Contribuez au topos d'accès vélo + train pour se rendre en falaise. Partagez vos bon plans et expérience, traces et falaises accessibles à vélo.">
+
   <title>Contribuer - Vélogrimpe.fr</title>
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
