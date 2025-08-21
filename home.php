@@ -62,7 +62,8 @@
       <br />
       Synonyme : escaladopédalage.
     </div> -->
-    <div class="hero min-h-[500px]" style="background-image: url(/images/mw/027-velo-aiguille-40.webp);">
+    <div class="hero min-h-[500px] md:min-h-[640px]"
+      style="background-image: url(/images/mw/027-velo-aiguille-40.webp);">
       <div class="hero-overlay bg-opacity-60"></div>
       <div class="hero-content text-center">
         <div class="max-w-md">
@@ -94,7 +95,7 @@
       </div>
     </div>
 
-    <div class="hero min-h-[500px]" style="background-image: url(/images/mw/040-train-20.webp);">
+    <div class="hero min-h-[500px] md:min-h-[640px]" style="background-image: url(/images/mw/040-train-20.webp);">
       <div class="hero-overlay bg-opacity-60"></div>
       <div class="hero-content text-center text-base-100">
         <div class="max-w-md">
@@ -121,7 +122,7 @@
       </div>
     </div>
 
-    <div class="hero min-h-[500px]" style="background-image: url(/images/mw/078-groupe-5.webp);">
+    <div class="hero min-h-[500px] md:min-h-[640px]" style="background-image: url(/images/mw/078-groupe-5.webp);">
       <div class="hero-overlay bg-opacity-60"></div>
       <div class="hero-content text-center text-base-100">
         <div class="max-w-md">
