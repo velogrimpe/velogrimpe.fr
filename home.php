@@ -79,7 +79,7 @@
     </div>
 
     <div class="hero bg-base-200 min-h-[500px]">
-      <div class="hero-content flex-col sm:flex-row-reverse">
+      <div class="hero-content flex-col sm:flex-row-reverse text-center sm:text-left">
         <a class="flex max-w-[240px] rounded-lg shadow-2xl" href="/carte.php">
           <img class="max-w-[240px] rounded-lg shadow-2xl" src="/images/captures/saou-vert-60.webp" />
         </a>
@@ -113,7 +113,7 @@
     </div>
 
     <div class="hero bg-base-200 min-h-[500px]">
-      <div class="hero-content flex-col sm:flex-row">
+      <div class="hero-content flex-col sm:flex-row text-center sm:text-left">
         <img src="/images/captures/signal-2-40.webp" class="max-w-[240px] rounded-lg shadow-2xl" />
         <div class="max-w-xl">
           <h2 class="text-3xl font-bold">Une communauté pour partager l'expérience vélogrimpe</h2>
@@ -135,7 +135,7 @@
             Envie d'aider à améliorer le site et ses fonctionalités, le site est en open-source, tu peux nous aider en
             faisant remonter les bugs ou en proposant tes modifications.
           </p>
-          <a class="btn" href="/carte.php">Accéder au code</a>
+          <a class="btn" target="_blank" href="https://github.com/velogrimpe/velogrimpe.fr">Accéder au code</a>
         </div>
       </div>
     </div>
