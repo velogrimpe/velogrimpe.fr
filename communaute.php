@@ -45,22 +45,19 @@
       </div>
     </div>
   </div>
-  <main class="flex-grow w-full max-w-screen-xl mx-auto flex flex-col gap-2 md:gap-4 p-4">
+  <main class="flex-grow w-full max-w-screen-xl mx-auto flex flex-col gap-2 md:gap-4 p-4 mb-2">
 
-    <div>
+    <div class="flex flex-row items-center justify-center gap-8">
       <a href="https://instagram.com/velogrimpe" target="_blank">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/250px-Instagram_icon.png"
-          alt="Instagram Vélogrimpe" class="w-16 md:w-24 h-16 md:h-24 mx-auto mb-2" />
+          alt="Instagram Vélogrimpe" class="w-16 md:w-24 h-16 md:h-24" />
       </a>
+      <img src="/images/signal.svg" alt="Signal" class="w-16 md:w-24 h-16 md:h-24" />
     </div>
     <p class="md:text-center text-normal">Depuis peu nous avons créé une page Instagram <a
         href="https://instagram.com/velogrimpe" target="_blank">@velogrimpe</a>, venez nous y
       suivre !</p>
 
-
-    <div class="flex flex-col items-center">
-      <img src="/images/signal.svg" alt="Signal" class="w-16 md:w-24 h-16 md:h-24" />
-    </div>
     <p class="md:text-center text-normal">Il existe un groupe Signal "Vélogrimpe", sur lequel des propositions de
       sorties sont partagées. <br>
       Pour le rejoindre, merci de remplir de formulaire ci-dessous, nous vous y ajouterons dès que possible.</p>
