@@ -79,8 +79,9 @@
     </div>
 
     <div class="hero bg-base-200 min-h-[500px]">
-      <div class="hero-content text-center">
-        <div class="max-w-md">
+      <div class="hero-content flex-col sm:flex-row-reverse">
+        <img src="/images/captures/saou-vert-60.webp" class="max-w-[240px] rounded-lg shadow-2xl" />
+        <div class="max-w-xl">
           <h2 class="text-3xl font-bold">Tous les sites d'escalade accessibles à vélo</h2>
           <p class="py-6">
             Velogrimpe.fr recense les sites d'escalade en extérieur (sportive, bloc, grandes voies, ...)
@@ -110,8 +111,9 @@
     </div>
 
     <div class="hero bg-base-200 min-h-[500px]">
-      <div class="hero-content text-center">
-        <div class="max-w-md">
+      <div class="hero-content flex-col sm:flex-row">
+        <img src="/images/captures/signal-2-40.webp" class="max-w-[240px] rounded-lg shadow-2xl" />
+        <div class="max-w-xl">
           <h2 class="text-3xl font-bold">Une communauté pour partager l'expérience vélogrimpe</h2>
           <p class="py-6">
             Tu cherches des partenaires pour aller vélogrimper à plusieurs ? Nous avons un groupe sur Signal dans lequel
