@@ -181,11 +181,20 @@ $stmt->close();
 
 <body class="w-screen min-h-screen">
   <?php include "./components/header.html"; ?>
+
+  <div class="hero min-h-[200px] bg-center" style="background-image: url(/images/mw/005-train-2-10.webp);">
+    <div class="hero-overlay bg-opacity-60"></div>
+    <div class="hero-content text-center text-base-100">
+      <div class="max-w-md">
+        <h1 class="text-5xl font-bold">
+          Falaises proches de <?php echo $ville['ville_nom'] ?>
+        </h1>
+      </div>
+    </div>
+  </div>
+
   <main class="md:w-4/5 max-w-screen-xl mx-auto p-4 flex flex-col gap-4">
 
-    <h1 class="text-4xl font-bold text-wrap text-center mb-4 mt-2">
-      Falaises proches de <?php echo $ville['ville_nom'] ?>
-    </h1>
     <div class="flex flex-col justify-center gap-1 items-end w-full">
       <div class="flex justify-between w-full items-center">
         <button class="btn btn-xs w-fit" onclick="instructionsDialog.showModal()">

@@ -78,8 +78,19 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 
 <body>
   <?php include "./components/header.html"; ?>
+  <div class="hero bg-center" style="background-image: url(/images/mw/002-carte-cut-60.webp);">
+    <div class="hero-overlay bg-opacity-60"></div>
+    <div class="hero-content text-center text-base-100">
+      <div class="max-w-md">
+        <h1 class="text-3xl font-bold">
+          Carte Vélogrimpe
+        </h1>
+      </div>
+    </div>
+  </div>
   <main class="pb-2 px-2 md:px-8 pt-2">
-    <h1 class="text-4xl font-bold text-center mb-1">Carte Vélogrimpe</h1>
+
+    <!-- <h1 class="text-4xl font-bold text-center mb-1">Carte Vélogrimpe</h1> -->
     <!-- <div class="flex flex-col gap-1">
       <div id="map" class="w-full --md:w-[calc(100%-17rem)] h-[calc(100dvh-160px)] relative">
       </div>
@@ -88,7 +99,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     <div class="flex flex-col gap-1">
       <div class="flex flex-row gap-4">
         <div
-          class="hidden md:flex w-[17rem] bg-base-100 rounded-lg p-4 shadow-lg text-sm flex-col gap-6 h-[calc(100dvh-160px)] overflow-y-auto">
+          class="hidden md:flex w-[17rem] bg-base-100 rounded-lg p-4 shadow-lg text-sm flex-col gap-6 h-[calc(100dvh-185px)] overflow-y-auto">
           <div class="flex flex-col gap-2">
             <div id="searchFormPanelContainer">
               <div class="text-lg font-bold">Recherche</div>
@@ -387,7 +398,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
             </div>
           </div>
         </div>
-        <div id="map" class="w-full md:w-[calc(100%-17rem)] h-[calc(100dvh-160px)]"></div>
+        <div id="map" class="w-full md:w-[calc(100%-17rem)] h-[calc(100dvh-185px)]"></div>
       </div>
     </div>
   </main>
