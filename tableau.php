@@ -182,7 +182,7 @@ $stmt->close();
 <body class="w-screen min-h-screen">
   <?php include "./components/header.html"; ?>
 
-  <div class="hero min-h-[200px] bg-center" style="background-image: url(/images/mw/005-train-2-10.webp);">
+  <div class="hero min-h-[400px] bg-center" style="background-image: url(/images/mw/005-train-2-10.webp);">
     <div class="hero-overlay bg-opacity-60"></div>
     <div class="hero-content text-center text-base-100">
       <div class="max-w-md">
