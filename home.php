@@ -62,7 +62,8 @@
       <br />
       Synonyme : escaladopédalage.
     </div> -->
-    <div class="hero bg-primary min-h-[500px]">
+    <div class="hero min-h-[500px]" style="background-image: url(/images/mw/027-velo-aiguille-40.webp);">
+      <div class="hero-overlay bg-opacity-60"></div>
       <div class="hero-content text-center">
         <div class="max-w-md">
           <h1 class="text-5xl font-bold text-base-100">Vélogrimpe</h1>
@@ -93,15 +94,16 @@
       </div>
     </div>
 
-    <div class="hero bg-[#e9f5ec] min-h-[500px]">
-      <div class="hero-content text-center">
+    <div class="hero min-h-[500px]" style="background-image: url(/images/mw/040-train-20.webp);">
+      <div class="hero-overlay bg-opacity-60"></div>
+      <div class="hero-content text-center text-base-100">
         <div class="max-w-md">
           <h2 class="text-3xl font-bold">Un topo collaboratif !</h2>
           <p class="py-6">
             Les falaises et leurs accès vélo+trains sont renseignées par la communauté. Tu connais bien un secteur ? Tu
             veux partager ton expérience vélo-grimpe ? C'est par ici !
           </p>
-          <a class="btn btn-primary" href="/contribuer.php">Contribuer</a>
+          <a class="btn" href="/contribuer.php">Contribuer</a>
         </div>
       </div>
     </div>
@@ -119,15 +121,16 @@
       </div>
     </div>
 
-    <div class="hero bg-[#e9f5ec] min-h-[500px]">
-      <div class="hero-content text-center">
+    <div class="hero min-h-[500px]" style="background-image: url(/images/mw/078-groupe-5.webp);">
+      <div class="hero-overlay bg-opacity-60"></div>
+      <div class="hero-content text-center text-base-100">
         <div class="max-w-md">
           <h2 class="text-3xl font-bold">Une initiative open-source</h2>
           <p class="py-6">
             Envie d'aider à améliorer le site et ses fonctionalités, le site est en open-source, tu peux nous aider en
             faisant remonter les bugs ou en proposant tes modifications.
           </p>
-          <a class="btn btn-primary" href="/carte.php">Accéder au code</a>
+          <a class="btn" href="/carte.php">Accéder au code</a>
         </div>
       </div>
     </div>
