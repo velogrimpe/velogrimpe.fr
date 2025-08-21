@@ -78,9 +78,8 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 
 <body>
   <?php include "./components/header.html"; ?>
-  <div class="hero bg-center" style="background-image: url(/images/mw/002-carte-cut-60.webp);">
-    <div class="hero-overlay bg-opacity-60"></div>
-    <div class="hero-content text-center text-base-100">
+  <div class="hero">
+    <div class="hero-content text-center">
       <div class="max-w-md">
         <h1 class="text-3xl font-bold">
           Carte Vélogrimpe
