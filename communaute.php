@@ -52,7 +52,9 @@
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/250px-Instagram_icon.png"
           alt="Instagram Vélogrimpe" class="w-16 md:w-24 h-16 md:h-24" />
       </a>
-      <img src="/images/signal.svg" alt="Signal" class="w-16 md:w-24 h-16 md:h-24" />
+      <a href="https://signal.org/fr/download/" target="_blank">
+        <img src="/images/signal.svg" alt="Signal" class="w-16 md:w-24 h-16 md:h-24" />
+      </a>
     </div>
     <p class="md:text-center text-normal">Depuis peu nous avons créé une page Instagram <a
         href="https://instagram.com/velogrimpe" target="_blank">@velogrimpe</a>, venez nous y
