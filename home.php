@@ -80,7 +80,9 @@
 
     <div class="hero bg-base-200 min-h-[500px]">
       <div class="hero-content flex-col sm:flex-row-reverse">
-        <img src="/images/captures/saou-vert-60.webp" class="max-w-[240px] rounded-lg shadow-2xl" />
+        <a class="flex max-w-[240px] rounded-lg shadow-2xl" href="/carte.php">
+          <img class="max-w-[240px] rounded-lg shadow-2xl" src="/images/captures/saou-vert-60.webp" />
+        </a>
         <div class="max-w-xl">
           <h2 class="text-3xl font-bold">Tous les sites d'escalade accessibles à vélo</h2>
           <p class="py-6">
@@ -119,7 +121,7 @@
             Tu cherches des partenaires pour aller vélogrimper à plusieurs ? Nous avons un groupe sur Signal dans lequel
             chacun partage ses propositions de sorties et son expérience.
           </p>
-          <a class="btn btn-primary" href="/carte.php">Nous rejoindre</a>
+          <a class="btn btn-primary" href="/communaute.php">Nous rejoindre</a>
         </div>
       </div>
     </div>
