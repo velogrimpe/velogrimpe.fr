@@ -216,7 +216,7 @@ $stmtV->close();
   <main class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
 
     <div class="flex justify-between items-center w-full">
-      <a class="text-primary font-bold" href="/">← Retour à la carte</a>
+      <a class="text-primary font-bold" href="/carte.php">← Retour à la carte</a>
       <div class="flex flex-row items-center gap-2">
         <div class="dropdown dropdown-end hidden">
           <div tabindex="0" role="button"

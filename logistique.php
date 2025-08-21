@@ -117,7 +117,7 @@
       <li>On peut se référer à <a
           href="https://mmt.vsct.fr/sites/default/files/swt/CARA/2021-11/Carte_reseau_TER_Auvergne-Rhone-Alpes_40x60_1.pdf">la
           carte du réseau</a>, pour voir où sont les lignes et les gares.<br>
-        Voir aussi <a href="/">la carte interactive du topo</a>, moins exhaustive, mais plus lisible.</li>
+        Voir aussi <a href="/carte.php">la carte interactive du topo</a>, moins exhaustive, mais plus lisible.</li>
       <li>Le site et l’appli SNCF Connect ne donnent pas tous les trains existants, et blacklistent souvent les
         TER sur les longs trajets. On peut utiliser un autre planificateur d’itinéraire ; moi j’utilise <a
           href="https://hafas.bene-system.com/bin/query.exe/en?L=ns_hispeed&protocol=https:">celui-ci</a>.</li>
