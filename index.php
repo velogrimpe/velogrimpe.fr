@@ -86,12 +86,12 @@
         <div class="max-w-xl">
           <h2 class="text-3xl font-bold">Tous les sites d'escalade accessibles à vélo</h2>
           <p class="py-6">
-            Velogrimpe.fr recense les sites d'escalade en extérieur (sportive, bloc, grandes voies, ...)
-            accessible en train + vélo à partir des grandes villes de France.
+            Velogrimpe.fr recense les sites d'escalade en extérieur (couenne, bloc, grandes voies, ...)
+            accessibles en train + vélo à partir des grandes villes de France.
             <br />
             <br />
-            Chaque accès en train et en vélo est détaillé pour chaque falaise, il n'y a plus qu'à réserver les billets
-            de train et préparer les saccoches.
+            Les accès en train et vélo sont détaillés pour chaque falaise, il n'y a plus qu'à réserver les billets
+            de train et préparer les sacoches !
           </p>
           <a class="btn btn-primary" href="/carte.php">Voir la carte</a>
         </div>
@@ -104,7 +104,7 @@
         <div class="max-w-md">
           <h2 class="text-3xl font-bold">Un topo collaboratif !</h2>
           <p class="py-6">
-            Les falaises et leurs accès vélo+trains sont renseignées par la communauté. Tu connais bien un secteur ? Tu
+            Les falaises et leurs accès vélo+train sont renseignés par la communauté. Tu connais bien un secteur ? Tu
             veux partager ton expérience vélo-grimpe ? C'est par ici !
           </p>
           <a class="btn" href="/contribuer.php">Contribuer</a>
@@ -132,7 +132,7 @@
         <div class="max-w-md">
           <h2 class="text-3xl font-bold">Une initiative open-source</h2>
           <p class="py-6">
-            Envie d'aider à améliorer le site et ses fonctionalités, le site est en open-source, tu peux nous aider en
+            Si tu as envie d'aider à améliorer le site et ses fonctionalités, le code est en open-source, tu peux nous aider en
             faisant remonter les bugs ou en proposant tes modifications.
           </p>
           <a class="btn" target="_blank" href="https://github.com/velogrimpe/velogrimpe.fr">Accéder au code</a>
