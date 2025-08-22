@@ -84,7 +84,7 @@
           <img class="max-w-[240px] rounded-lg shadow-2xl" src="/images/captures/saou-vert-60.webp" />
         </a>
         <div class="max-w-xl">
-          <h2 class="text-3xl font-bold">Tous les sites d'escalade accessibles à vélo</h2>
+          <h2 class="text-3xl font-bold">Carte des sites d'escalade accessibles en train & vélo</h2>
           <p class="py-6">
             Velogrimpe.fr recense les sites d'escalade en extérieur (couenne, bloc, grandes voies, ...)
             accessibles en train + vélo à partir des grandes villes de France.
