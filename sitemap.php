@@ -8,6 +8,7 @@ echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 
 // URLs des pages statiques
 echo '  <url><loc>https://velogrimpe.fr/</loc></url>' . PHP_EOL;
+echo '  <url><loc>https://velogrimpe.fr/carte.php</loc></url>' . PHP_EOL;
 echo '  <url><loc>https://velogrimpe.fr/logistique.php</loc></url>' . PHP_EOL;
 echo '  <url><loc>https://velogrimpe.fr/infos.php</loc></url>' . PHP_EOL;
 echo '  <url><loc>https://velogrimpe.fr/contribuer.php</loc></url>' . PHP_EOL;
