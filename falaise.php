@@ -962,7 +962,7 @@ $stmtC->close();
               </div>
             <?php endforeach; ?>
           <?php else: ?>
-            <p>Aucune sortie trouvée.</p>
+            <p class="text-center">Aucune sortie trouvée.</p>
           <?php endif; ?>
           <div class="text-center my-4">
             <button class="btn btn-primary" onclick="newComment()">Raconter ma sortie / mon itinéraire</button>
