@@ -241,7 +241,7 @@ $stmtC->close();
 <body>
   <?php include "./components/header.html"; ?>
   <main class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
-    <section>
+    <section class="flex flex-col items-center gap-4">
 
       <div class="flex justify-between items-center w-full">
         <a class="text-primary font-bold" href="/carte.php">← Retour à la carte</a>
