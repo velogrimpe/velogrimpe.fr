@@ -896,183 +896,184 @@ $stmtC->close();
       </div>
     </section>
 
-    <section id="commentaires" class="w-full">
-      <?php
-      $formatter = new IntlDateFormatter(
-        'fr_FR',                // Locale française
-        IntlDateFormatter::LONG, // Format long pour la date
-        IntlDateFormatter::SHORT, // Format court pour l'heure
-        'Europe/Paris',         // Fuseau horaire
-        IntlDateFormatter::GREGORIAN,
-        "d MMMM y 'à' HH:mm"    // Pattern personnalisé
-      );
-      ?>
-      <h2 class="text-3xl font-bold text-center">Retours d'expérience et récits de sorties</h2>
-      <div id="comments">
-        <?php if (!empty($comments)): ?>
-          <?php foreach ($comments as $comment): ?>
-            <div class="border-b border-base-300 py-2">
-              <div class="flex flex-row justify-between flex-wrap gap-2">
-                <div class="flex flex-row gap-2 items-center">
-                  <div class="font-bold text-primary"><?= htmlspecialchars($comment['nom']) ?></div>
-                  <div class="text-sm text-slate-500"><?= $formatter->format(new DateTime($comment['date_creation'])) ?>
+    <?php if ($falaise_id == 33): ?>
+      <section id="commentaires" class="w-full">
+        <?php
+        $formatter = new IntlDateFormatter(
+          'fr_FR',                // Locale française
+          IntlDateFormatter::LONG, // Format long pour la date
+          IntlDateFormatter::SHORT, // Format court pour l'heure
+          'Europe/Paris',         // Fuseau horaire
+          IntlDateFormatter::GREGORIAN,
+          "d MMMM y 'à' HH:mm"    // Pattern personnalisé
+        );
+        ?>
+        <h2 class="text-3xl font-bold text-center">Retours d'expérience et récits de sorties</h2>
+        <div id="comments">
+          <?php if (!empty($comments)): ?>
+            <?php foreach ($comments as $comment): ?>
+              <div class="border-b border-base-300 py-2">
+                <div class="flex flex-row justify-between flex-wrap gap-2">
+                  <div class="flex flex-row gap-2 items-center">
+                    <div class="font-bold text-primary"><?= htmlspecialchars($comment['nom']) ?></div>
+                    <div class="text-sm text-slate-500"><?= $formatter->format(new DateTime($comment['date_creation'])) ?>
+                    </div>
+                  </div>
+                  <button title="Modifier le commentaire" class="btn btn-xs btn-ghost btn-circle"
+                    onclick="editComment(<?= $comment['id'] ?>)">
+                    <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
+                      <use xlink:href="/symbols/icons.svg#ri-pencil-line"></use>
+                    </svg>
+                  </button>
+                </div>
+                <div class="flex flex-row justify-between items-center flex-wrap gap-2">
+                  <div class="flex flex-row gap-4 flex-wrap text-sm text-slate-600">
+                    <? if (!empty($comment['ville_nom'])): ?>
+                      <div class="flex gap-1 items-center">
+                        <svg class="w-4 h-4 fill-current">
+                          <use xlink:href="/symbols/icons.svg#ri-building-2-line"></use>
+                        </svg> <?= htmlspecialchars($comment['ville_nom']) ?>
+                      </div>
+                    <? endif; ?>
+                    <? if (!empty($comment['gare_depart'])): ?>
+                      <div class="flex gap-1 items-center">
+                        <svg class="w-4 h-4 fill-current">
+                          <use xlink:href="/symbols/icons.svg#ri-logout-circle-r-line"></use>
+                        </svg> <?= htmlspecialchars($comment['gare_depart']) ?>
+                      </div>
+                    <? endif; ?>
+                    <? if (!empty($comment['gare_arrivee'])): ?>
+                      <div class="flex gap-1 items-center">
+                        <svg class="w-4 h-4 fill-current">
+                          <use xlink:href="/symbols/icons.svg#ri-login-circle-line"></use>
+                        </svg> <?= htmlspecialchars($comment['gare_arrivee']) ?>
+                      </div>
+                    <? endif; ?>
+                    <? if (!empty($comment['velo_id'])): ?>
+                      <div class="flex gap-1 items-center">
+                        <svg class="w-4 h-4 fill-current">
+                          <use xlink:href="/symbols/icons.svg#ri-riding-line"></use>
+                        </svg> <?= str_replace(" ()", "", htmlspecialchars($comment['velo_nom'])) ?>
+                      </div>
+                    <? endif; ?>
                   </div>
                 </div>
-                <button title="Modifier le commentaire" class="btn btn-xs btn-ghost btn-circle"
-                  onclick="editComment(<?= $comment['id'] ?>)">
-                  <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
-                    <use xlink:href="/symbols/icons.svg#ri-pencil-line"></use>
-                  </svg>
-                </button>
+                <div><?= nl2br(htmlspecialchars($comment['commentaire'])) ?></div>
               </div>
-              <div class="flex flex-row justify-between items-center flex-wrap gap-2">
-                <div class="flex flex-row gap-4 flex-wrap text-sm text-slate-600">
-                  <? if (!empty($comment['ville_nom'])): ?>
-                    <div class="flex gap-1 items-center">
-                      <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#ri-building-2-line"></use>
-                      </svg> <?= htmlspecialchars($comment['ville_nom']) ?>
-                    </div>
-                  <? endif; ?>
-                  <? if (!empty($comment['gare_depart'])): ?>
-                    <div class="flex gap-1 items-center">
-                      <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#ri-logout-circle-r-line"></use>
-                      </svg> <?= htmlspecialchars($comment['gare_depart']) ?>
-                    </div>
-                  <? endif; ?>
-                  <? if (!empty($comment['gare_arrivee'])): ?>
-                    <div class="flex gap-1 items-center">
-                      <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#ri-login-circle-line"></use>
-                      </svg> <?= htmlspecialchars($comment['gare_arrivee']) ?>
-                    </div>
-                  <? endif; ?>
-                  <? if (!empty($comment['velo_id'])): ?>
-                    <div class="flex gap-1 items-center">
-                      <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#ri-riding-line"></use>
-                      </svg> <?= str_replace(" ()", "", htmlspecialchars($comment['velo_nom'])) ?>
-                    </div>
-                  <? endif; ?>
-                </div>
-              </div>
-              <div><?= nl2br(htmlspecialchars($comment['commentaire'])) ?></div>
-            </div>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <p>Aucune sortie trouvée.</p>
-        <?php endif; ?>
-        <div class="text-center my-4">
-          <button class="btn btn-primary" onclick="newComment()">Raconter ma sortie / mon itinéraire</button>
-        </div>
-      </div>
-
-      <dialog id="commentFormModal" class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box w-screen sm:max-w-screen-md">
-          <form method="dialog">
-            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          </form>
-          <h3 id="commentFormEditTitle" class="font-bold text-xl hidden">Modifier le récit</h3>
-          <h3 id="commentFormNewTitle" class="font-bold text-xl">Nouveau récit</h3>
-          <form id="commentForm" class="flex flex-col gap-1">
-            <input type="hidden" name="commentaire_id" id="commentaire_id" value="">
-            <input type="hidden" name="falaise_id" id="falaise_id" value="<?= htmlspecialchars($falaise_id) ?>">
-            <div class="form-control w-full">
-              <label class="label" for="nom">
-                <span class="label-text">Nom<span class="text-red-500">*</span></span>
-              </label>
-              <input type="text" id="nom" name="nom" class="input input-primary w-full" required>
-            </div>
-            <div class="form-control w-full">
-              <label class="label" for="email">
-                <span class="label-text">Email<span class="text-red-500">*</span></span>
-              </label>
-              <input type="email" id="email" name="email" class="input input-primary w-full" required>
-            </div>
-            <div class="form-control w-full">
-              <label class="label" for="ville_nom">
-                <span class="label-text">Ville de départ</span>
-              </label>
-              <input type="text" id="ville_nom" name="ville_nom" class="input input-bordered w-full">
-            </div>
-            <div class="form-control w-full">
-              <label class="label" for="gare_depart">
-                <span class="label-text">Gare de départ</span>
-              </label>
-              <input type="text" id="gare_depart" name="gare_depart" class="input input-bordered w-full">
-            </div>
-            <div class="form-control w-full">
-              <label class="label" for="gare_arrivee">
-                <span class="label-text">Gare d'arrivée</span>
-              </label>
-              <input type="text" id="gare_arrivee" name="gare_arrivee" class="input input-bordered w-full">
-            </div>
-            <div class="form-control w-full">
-              <label class="label" for="velo_id">
-                <span class="label-text">Itinéraire vélo</span>
-              </label>
-              <select id="velo_id" name="velo_id" class="select select-bordered w-full">
-                <option value="">-- Aucun --</option>
-                <?php foreach ($itineraires as $it): ?>
-                  <option value="<?= $it['velo_id'] ?>">
-                    <?= str_replace(" ()", "", htmlspecialchars($it['velo_nom'])) ?>
-                  </option>
-                <?php endforeach; ?>
-                <option value="-1">-- Autre (préciser dans le commentaire) --</option>
-              </select>
-            </div>
-            <div class="form-control w-full">
-              <label class="label" for="commentaire">
-                <span class="label-text">Récit, retour d'expérience ou commentaires sur les itinéraires</span>
-              </label>
-              <textarea id="commentaire" name="commentaire" class="textarea textarea-primary w-full" rows="5"
-                required></textarea>
-            </div>
-            <div class="modal-action">
-              <button type="submit" class="btn btn-primary">Enregistrer</button>
-              <button type="button" class="btn btn-error text-base-100 hidden"
-                onclick="deleteComment()">Supprimer</button>
-              <button type="button" class="btn btn-outline"
-                onclick="document.getElementById('commentFormModal').close()">Annuler</button>
-            </div>
-          </form>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
-
-      <dialog id="emailPromptDialog" class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box w-screen sm:max-w-screen-md">
-          <form method="dialog">
-            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          </form>
-          <h3 class="font-bold text-xl">Modifier le récit</h3>
-          <div>
-            Veuillez confirmer l'adresse mail utilisée pour écrire le récit afin d'autoriser la modification.
+            <?php endforeach; ?>
+          <?php else: ?>
+            <p>Aucune sortie trouvée.</p>
+          <?php endif; ?>
+          <div class="text-center my-4">
+            <button class="btn btn-primary" onclick="newComment()">Raconter ma sortie / mon itinéraire</button>
           </div>
-          <form id="emailPromptForm" class="flex flex-col gap-1">
-            <input type="hidden" name="emailPromptCommentId" id="emailPromptCommentId" value="">
-            <div class="form-control w-full">
-              <label class="label" for="emailPromptEmail">
-                <span class="label-text">Email<span class="text-red-500">*</span></span>
-              </label>
-              <input type="email" id="emailPromptEmail" name="emailPromptEmail" class="input input-primary w-full"
-                required>
-            </div>
-            <div class="modal-action">
-              <button type="submit" class="btn btn-primary">Suivant</button>
-              <button type="button" class="btn btn-outline" onclick="emailPromptDialog.close()">Annuler</button>
-            </div>
-          </form>
         </div>
-        <form method="dialog" class="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
-    </section>
 
+        <dialog id="commentFormModal" class="modal modal-bottom sm:modal-middle">
+          <div class="modal-box w-screen sm:max-w-screen-md">
+            <form method="dialog">
+              <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 id="commentFormEditTitle" class="font-bold text-xl hidden">Modifier le récit</h3>
+            <h3 id="commentFormNewTitle" class="font-bold text-xl">Nouveau récit</h3>
+            <form id="commentForm" class="flex flex-col gap-1">
+              <input type="hidden" name="commentaire_id" id="commentaire_id" value="">
+              <input type="hidden" name="falaise_id" id="falaise_id" value="<?= htmlspecialchars($falaise_id) ?>">
+              <div class="form-control w-full">
+                <label class="label" for="nom">
+                  <span class="label-text">Nom<span class="text-red-500">*</span></span>
+                </label>
+                <input type="text" id="nom" name="nom" class="input input-primary w-full" required>
+              </div>
+              <div class="form-control w-full">
+                <label class="label" for="email">
+                  <span class="label-text">Email<span class="text-red-500">*</span></span>
+                </label>
+                <input type="email" id="email" name="email" class="input input-primary w-full" required>
+              </div>
+              <div class="form-control w-full">
+                <label class="label" for="ville_nom">
+                  <span class="label-text">Ville de départ</span>
+                </label>
+                <input type="text" id="ville_nom" name="ville_nom" class="input input-bordered w-full">
+              </div>
+              <div class="form-control w-full">
+                <label class="label" for="gare_depart">
+                  <span class="label-text">Gare de départ</span>
+                </label>
+                <input type="text" id="gare_depart" name="gare_depart" class="input input-bordered w-full">
+              </div>
+              <div class="form-control w-full">
+                <label class="label" for="gare_arrivee">
+                  <span class="label-text">Gare d'arrivée</span>
+                </label>
+                <input type="text" id="gare_arrivee" name="gare_arrivee" class="input input-bordered w-full">
+              </div>
+              <div class="form-control w-full">
+                <label class="label" for="velo_id">
+                  <span class="label-text">Itinéraire vélo</span>
+                </label>
+                <select id="velo_id" name="velo_id" class="select select-bordered w-full">
+                  <option value="">-- Aucun --</option>
+                  <?php foreach ($itineraires as $it): ?>
+                    <option value="<?= $it['velo_id'] ?>">
+                      <?= str_replace(" ()", "", htmlspecialchars($it['velo_nom'])) ?>
+                    </option>
+                  <?php endforeach; ?>
+                  <option value="-1">-- Autre (préciser dans le commentaire) --</option>
+                </select>
+              </div>
+              <div class="form-control w-full">
+                <label class="label" for="commentaire">
+                  <span class="label-text">Récit, retour d'expérience ou commentaires sur les itinéraires</span>
+                </label>
+                <textarea id="commentaire" name="commentaire" class="textarea textarea-primary w-full" rows="5"
+                  required></textarea>
+              </div>
+              <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <button type="button" class="btn btn-error text-base-100 hidden"
+                  onclick="deleteComment()">Supprimer</button>
+                <button type="button" class="btn btn-outline"
+                  onclick="document.getElementById('commentFormModal').close()">Annuler</button>
+              </div>
+            </form>
+          </div>
+          <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
+
+        <dialog id="emailPromptDialog" class="modal modal-bottom sm:modal-middle">
+          <div class="modal-box w-screen sm:max-w-screen-md">
+            <form method="dialog">
+              <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-xl">Modifier le récit</h3>
+            <div>
+              Veuillez confirmer l'adresse mail utilisée pour écrire le récit afin d'autoriser la modification.
+            </div>
+            <form id="emailPromptForm" class="flex flex-col gap-1">
+              <input type="hidden" name="emailPromptCommentId" id="emailPromptCommentId" value="">
+              <div class="form-control w-full">
+                <label class="label" for="emailPromptEmail">
+                  <span class="label-text">Email<span class="text-red-500">*</span></span>
+                </label>
+                <input type="email" id="emailPromptEmail" name="emailPromptEmail" class="input input-primary w-full"
+                  required>
+              </div>
+              <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Suivant</button>
+                <button type="button" class="btn btn-outline" onclick="emailPromptDialog.close()">Annuler</button>
+              </div>
+            </form>
+          </div>
+          <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
+      </section>
+    <?php endif; ?>
   </main>
 
   <script>
