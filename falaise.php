@@ -1004,7 +1004,8 @@ $stmtC->close();
             </div>
             <div class="form-control w-full">
               <label class="label" for="email">
-                <span class="label-text">Email<span class="text-red-500">*</span></span>
+                <span class="label-text">Email<span class="text-red-500">*</span>
+                  (n'apparaitra pas sur le site)</span>
               </label>
               <input type="email" id="email" name="email" class="input input-primary w-full" required>
             </div>
@@ -1058,7 +1059,8 @@ $stmtC->close();
             </div>
             <div class="form-control w-full">
               <label class="label" for="commentaire">
-                <span class="label-text">Récit, retour d'expérience ou commentaires sur les itinéraires</span>
+                <span class="label-text">Récit, retour d'expérience ou commentaires sur les itinéraires<span
+                    class="text-red-500">*</span></span>
               </label>
               <textarea id="commentaire" name="commentaire" class="textarea textarea-primary w-full" rows="5"
                 required></textarea>
