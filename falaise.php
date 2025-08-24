@@ -945,34 +945,35 @@ $stmtC->close();
               </div>
               <div class="flex flex-row justify-between items-center flex-wrap gap-2">
                 <div class="flex flex-row gap-4 flex-wrap text-sm text-slate-600">
-                  <? if (!empty($comment['ville_nom'])): ?>
+                  <?php if (!empty($comment['ville_nom'])): ?>
                     <div class="flex gap-1 items-center">
                       <svg class="w-4 h-4 fill-current">
                         <use xlink:href="/symbols/icons.svg#ri-building-2-line"></use>
                       </svg> <?= htmlspecialchars($comment['ville_nom']) ?>
                     </div>
-                  <? endif; ?>
-                  <? if (!empty($comment['gare_depart'])): ?>
+                  <?php endif; ?>
+                  <?php if (!empty($comment['gare_depart'])): ?>
                     <div class="flex gap-1 items-center">
                       <svg class="w-4 h-4 fill-current">
                         <use xlink:href="/symbols/icons.svg#ri-logout-circle-r-line"></use>
                       </svg> <?= htmlspecialchars($comment['gare_depart']) ?>
                     </div>
-                  <? endif; ?>
-                  <? if (!empty($comment['gare_arrivee'])): ?>
+                  <?php endif; ?>
+                  <?php if (!empty($comment['gare_arrivee'])): ?>
                     <div class="flex gap-1 items-center">
                       <svg class="w-4 h-4 fill-current">
                         <use xlink:href="/symbols/icons.svg#ri-login-circle-line"></use>
                       </svg> <?= htmlspecialchars($comment['gare_arrivee']) ?>
                     </div>
-                  <? endif; ?>
-                  <? if (!empty($comment['velo_id'])): ?>
+                  <?php endif; ?>
+                  <?php if (!empty($comment['velo_id']) || $comment['velo_id'] === 0): ?>
                     <div class="flex gap-1 items-center">
                       <svg class="w-4 h-4 fill-current">
                         <use xlink:href="/symbols/icons.svg#ri-riding-line"></use>
-                      </svg> <?= str_replace(" ()", "", htmlspecialchars($comment['velo_nom'])) ?>
+                      </svg>
+                      <?= $comment['velo_id'] === 0 ? 'Autre' : str_replace(" ()", "", htmlspecialchars($comment['velo_nom'])) ?>
                     </div>
-                  <? endif; ?>
+                  <?php endif; ?>
                 </div>
               </div>
               <div><?= nl2br(htmlspecialchars($comment['commentaire'])) ?></div>
@@ -1054,7 +1055,7 @@ $stmtC->close();
                     <?= str_replace(" ()", "", htmlspecialchars($it['velo_nom'])) ?>
                   </option>
                 <?php endforeach; ?>
-                <option value="-1">-- Autre (préciser dans le commentaire) --</option>
+                <option value="0">-- Autre (préciser dans le commentaire) --</option>
               </select>
             </div>
             <div class="form-control w-full">
