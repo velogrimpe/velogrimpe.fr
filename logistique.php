@@ -68,8 +68,9 @@
       <li>Les tandems, fatbikes, vélocargos, remorques ne sont pas toujours autorisés dans les TER.</li>
       <li>Sur certaines lignes, à certaines périodes, une réservation est obligatoire ! C’est par exemple le cas
         les week-ends et jours fériés du 01/05/24 au 29/09/24 sur les lignes Valence-Die-Gap, Lyon-
-        Genève, Lyon-Avignon-Marseille, Grenoble-Gap. C’est parait-il le cas tous les jours de l’année sur
-        Lyon-Mâcon.</li>
+        Genève, Lyon-Avignon-Marseille, Grenoble-Gap. Pour consulter les conditions d'accueil des vélos dans les TER,
+        vous pouvez vous référer au site <a href="https://www.veloabord.fr/">veloabord.fr</a> tenu par la SNCF, qui
+        indique en fonction des lignes et de la période si la réservation est nécessaire et/ou payante.</li>
     </ul>
     <p>
       Les TER ont le plus souvent des wagons prévus pour accrocher les vélos, qui sont généralement indiqués
