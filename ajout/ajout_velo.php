@@ -305,8 +305,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       <button type="submit" class="btn btn-primary">AJOUTER L'ITINÉRAIRE VÉLO</button>
 
     </form>
-    </ma>
-    <?php include "../components/footer.html"; ?>
+  </main>
+  <?php include "../components/footer.html"; ?>
 </body>
 <script>
   const gares = <?php echo json_encode($gares); ?>;
