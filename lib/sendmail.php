@@ -6,7 +6,7 @@ function sendMail($data)
   $mailgun_api_key = $config["mailgun_api_key"];
   $mailgun_domain = $config["mailgun_domain"];
   $mailgun_baseurl = $config["mailgun_baseurl"];
-  $from = 'Velogrimpe.fr <postmaster@velogrimpe.fr>';
+  $from = 'Velogrimpe.fr <postmaster@$mailgun_domain>';
 
   $data = array_merge($data, ['from' => $from]);
   $ch = curl_init();
