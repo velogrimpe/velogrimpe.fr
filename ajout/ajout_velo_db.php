@@ -95,33 +95,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Envoi du mail de confirmation seulement si admin = 0
     if ($admin == 0) {
+      require_once '../lib/sendmail.php';
       $to = $config["contact_mail"];
-      $headers = "From: noreply@velogrimpe.fr\r\n";
-      $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
-      $subject = "Ajout d'un itinéraire vélo par $nom_prenom : $velo_depart - $velo_arrivee";
+      $subject = "🚲 Itinéraire $velo_depart ⇢ $velo_arrivee ajouté par $nom_prenom";
 
-      $body = "<html><body>";
-      $body .= "<h1>L'itinéraire de $velo_depart à $velo_arrivee a été ajouté par $nom_prenom (mail : <a href='mailto:$email'>$email</a>)</h1>";
-      $body .= "<a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a><br/><br/>";
+      $html = "<html><body>";
+      $html .= "<h1>L'itinéraire de $velo_depart à $velo_arrivee a été ajouté par $nom_prenom</h1>";
+      $html .= "<p>email : <a href='mailto:$email'>$email</a></p>";
+      $html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a><br/><br/></p>";
       if ($message) {
-        $body .= "Message additionnel : $message<br/><br/>";
+        $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "<br/><br/></p>";
       }
-      $body .= "Détails de l'itinéraire :<br/>";
-      $body .= "<ul>";
-      $body .= "<li>Départ: $velo_depart</li>";
-      $body .= "<li>Arrivée: $velo_arrivee</li>";
-      $body .= "<li>Variante : $velo_variante</li>";
-      $body .= "<li>Distance: $velo_km km</li>";
-      $body .= "<li>D+ : $velo_dplus m</li>";
-      $body .= "<li>D- : $velo_dmoins m</li>";
-      $body .= "<li>A pied uniquement : " . ($velo_apieduniquement ? 'Oui' : 'Non') . "</li>";
-      $body .= "<li>A pied possible : " . ($velo_apiedpossible ? 'Oui' : 'Non') . "</li>";
-      $body .= "<li>Description : $velo_descr</li>";
-      $body .= "</ul>";
-      $body .= "</body></html>";
+      $html .= "<p>Détails de l'itinéraire :</p>";
+      $html .= "<ul>";
+      $html .= "<li><b>Départ</b>: $velo_depart</li>";
+      $html .= "<li><b>Arrivée</b>: $velo_arrivee</li>";
+      $html .= "<li><b>Variante</b>: $velo_variante</li>";
+      $html .= "<li><b>Distance</b>: $velo_km km</li>";
+      $html .= "<li><b>D+</b>: $velo_dplus m</li>";
+      $html .= "<li><b>D-</b>: $velo_dmoins m</li>";
+      $html .= "<li><b>A pied uniquement</b>: " . ($velo_apieduniquement ? 'Oui' : 'Non') . "</li>";
+      $html .= "<li><b>A pied possible</b>: " . ($velo_apiedpossible ? 'Oui' : 'Non') . "</li>";
+      $html .= "<li><b>Description</b>: " . htmlspecialchars(nl2br(trim($velo_descr))) . "</li>";
+      $html .= "</ul>";
+      $html .= "</body></html>";
 
-      mail($to, $subject, $body, $headers);
+      $data = [
+        'to' => $to,
+        'subject' => $subject,
+        'message' => $html,
+        'h:Reply-To' => $email
+      ];
+
+      sendMail($data);
       header("Location: /contribuer.php");
       exit;
     } else {

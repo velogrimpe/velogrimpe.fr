@@ -6,18 +6,30 @@ $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 $email = filter_var($_POST["email"], FILTER_SANITIZE_EMAIL);
 $phone = trim($_POST["phone"]);
-$message = htmlspecialchars(trim($_POST["message"]));
+$message = htmlspecialchars(nl2br(trim($_POST["message"])));
 
-$admin_email = $config['contact_mail'];
-$headers = "From: no-reply@velogrimpe.fr\r\n";
-$headers .= "Reply-To: $email\r\n";
-$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+require_once "../lib/sendmail.php";
 
-$subject_admin = "Demande d'ajout au groupe Signal - $phone";
-$message_admin = "Email : $email\nTéléphone : $phone\n\nMessage :\n$message";
+$subject = "Demande d'ajout au groupe Signal - $phone ($email)";
 
-$ret = mail($admin_email, $subject_admin, $message_admin, $headers)
-    ?>
+$html = "<html><body>";
+$html .= "<h1>Nouveau message depuis le site</h1>";
+$html .= "<ul>";
+$html .= "<li><strong>Téléphone:</strong> $phone</li>";
+$html .= "<li><strong>Email:</strong> <a href='mailto:$email'>$email</a></li>";
+$html .= "<li><strong>Commentaire:</strong> $message</li>";
+$html .= "</ul>";
+$html .= "</body></html>";
+
+$data = [
+    'to' => $config['contact_mail'],
+    'subject' => $subject,
+    'html' => $html,
+    'h:Reply-To' => $email
+];
+
+$ret = sendMail($data);
+?>
 
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">

@@ -86,14 +86,34 @@ $stmt->close();
 
 echo json_encode(['success' => true]);
 
+// get falaise nom from db
+$falaise_nom = '';
+$stmt = $mysqli->prepare("SELECT falaise_nom FROM falaises WHERE falaise_id = ?");
+$stmt->bind_param("i", $falaise_id);
+$stmt->execute();
+$stmt->bind_result($falaise_nom);
+$stmt->fetch();
+$stmt->close();
+
 // send mail to admin
-$to = $config['contact_mail'];
-$subject = "Nouveau commentaire de $nom sur la falaise ID $falaise_id";
-$message = "Un nouveau commentaire a été ajouté à la falaise ID $falaise_id.\n\n" .
-  "Nom: $nom\n" .
-  "Email: $email\n" .
-  "Commentaire: $commentaire\n\n" .
-  "<a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id#commentaires'>Voir les commentaires</a>";
-$headers = "From: no-reply@velogrimpe.fr\r\n" .
-  "X-Mailer: PHP/" . phpversion();
-mail($to, $subject, $message, $headers);
+require_once '../lib/sendmail.php';
+$to = $config["contact_mail"];
+$subject = "Nouveau commentaire de $nom sur la falaise $falaise_nom (ID: $falaise_id)";
+$html = "<html><body>";
+$html .= "<h1>Nouveau commentaire sur $falaise_nom</h1>";
+$html .= "<ul>";
+$html .= "<li><strong>Nom:</strong> $nom</li>";
+$html .= "<li><strong>Email:</strong> <a href='mailto:$email'>$email</a></li>";
+$html .= "<li><strong>Commentaire:</strong> " . htmlspecialchars(nl2br(trim($commentaire))) . "</li>";
+$html .= "<li><a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id#commentaires'>Voir les commentaires</a></li>";
+$html .= "</ul>";
+$html .= "</body></html>";
+
+$data = [
+  'to' => $to,
+  'subject' => $subject,
+  'html' => $html,
+  'h:Reply-To' => $email
+];
+
+sendMail($data);

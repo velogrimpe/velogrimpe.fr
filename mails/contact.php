@@ -6,17 +6,31 @@ $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 $email = filter_var($_POST["email"], FILTER_SANITIZE_EMAIL);
 $name = trim($_POST["name"]);
-$message = htmlspecialchars(trim($_POST["message"]));
+$message = htmlspecialchars(nl2br(trim($_POST["message"])));
 
-$admin_email = $config['contact_mail'];
-$headers = "From: no-reply@velogrimpe.fr\r\n";
-$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+require_once "../lib/sendmail.php";
 
-$subject_admin = "Prise de contact depuis le site - $name ($email)";
-$message_admin = "Nom : $name\nEmail : $email\n\nMessage :\n$message";
+$to = $config["contact_mail"];
+$subject = "Prise de contact depuis le site - $name ($email)";
 
-$ret = mail($admin_email, $subject_admin, $message_admin, $headers)
-    ?>
+$html = "<html><body>";
+$html .= "<h1>Nouveau message depuis le site</h1>";
+$html .= "<ul>";
+$html .= "<li><strong>Nom:</strong> $name</li>";
+$html .= "<li><strong>Email:</strong> <a href='mailto:$email'>$email</a></li>";
+$html .= "<li><strong>Commentaire:</strong> $message</li>";
+$html .= "</ul>";
+$html .= "</body></html>";
+
+$data = [
+    'to' => $to,
+    'subject' => $subject,
+    'html' => $html,
+    'h:Reply-To' => $email
+];
+
+$ret = sendMail($data);
+?>
 
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">

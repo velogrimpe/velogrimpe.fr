@@ -60,30 +60,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $stmt->close();
 
   if ($admin == 0) {
+    require_once '../lib/sendmail.php';
     $to = $config["contact_mail"];
-    $headers = "From: noreply@velogrimpe.fr\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $subject = "🚃 Itinéraire train $train_depart ⇢ $train_arrivee ajouté par $nom_prenom";
 
-    $subject = "Ajout d'un itinéraire train par $nom_prenom: $train_depart - $train_arrivee";
-
-    $body = "<html><body>";
-    $body = "<h1>L'itinéraire de $train_depart à $train_arrivee a été ajouté par $nom_prenom (mail : <a href='mailto:$email'>$email</a>)</h1>";
+    $html = "<html><body>";
+    $html .= "<h1>L'itinéraire de $train_depart à $train_arrivee a été ajouté par $nom_prenom</h1>";
+    $html .= "<p>email : <a href='mailto:$email'>$email</a></p>";
     if ($message) {
-      $body .= "Message additionnel : $message<br/><br/>";
+      $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "</p>";
     }
-    $body .= "Détails de l'itinéraire :<br/>";
-    $body .= "<ul>";
-    $body .= "<li>Départ: $train_depart</li>";
-    $body .= "<li>Arrivée: $train_arrivee</li>";
-    $body .= "<li>Temps: $train_temps min</li>";
-    $body .= "<li>Correspondance min: $train_correspmin</li>";
-    $body .= "<li>Correspondance max: $train_correspmax</li>";
-    $body .= "<li>Public: " . ($train_public ? 'Oui' : 'Non') . "</li>";
-    $body .= "<li>Description: $train_descr</li>";
-    $body .= "</ul>";
-    $body .= "</body></html>";
+    $html .= "<p>Détails de l'itinéraire :</p>";
+    $html .= "<ul>";
+    $html .= "<li><b>Départ</b>: $train_depart</li>";
+    $html .= "<li><b>Arrivée</b>: $train_arrivee</li>";
+    $html .= "<li><b>Temps</b>: $train_temps min</li>";
+    $html .= "<li><b>Correspondance min</b>: $train_correspmin</li>";
+    $html .= "<li><b>Correspondance max</b>: $train_correspmax</li>";
+    $html .= "<li><b>Public</b>: " . ($train_public ? 'Oui' : 'Non') . "</li>";
+    $html .= "<li><b>Description</b>: " . htmlspecialchars(nl2br(trim($train_descr))) . "</li>";
+    $html .= "</ul>";
+    $html .= "</body></html>";
 
-    mail($to, $subject, $body, $headers);
+    $data = [
+      'to' => $to,
+      'subject' => $subject,
+      'message' => $html,
+      'h:Reply-To' => $email
+    ];
+
+    sendMail($data);
     header("Location: /contribuer.php");
     exit;
   } else {

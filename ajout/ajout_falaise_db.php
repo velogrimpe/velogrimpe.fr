@@ -221,39 +221,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($res) {
     // Envoi du mail de confirmation seulement si admin = 0
     if ($admin == 0) {
+      require_once '../lib/sendmail.php';
       $to = $config["contact_mail"];
-      $headers = "From: noreply@velogrimpe.fr\r\n";
-      $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+      $subject = "🧗 Falaise '$falaise_nom' ajoutée par $nom_prenom";
 
-      $subject = "Ajout d'une falaise par $nom_prenom: $falaise_nom";
-
-      $body = "<html><body>";
-      $body .= "<h1>La falaise de $falaise_nom a été ajoutée par $nom_prenom (mail : <a href='mailto:$email'>$email</a>).</h1>";
-      $body .= "<a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a><br/><br/>";
+      $html = "<html><body>";
+      $html .= "<h1>La falaise de $falaise_nom a été ajoutée par $nom_prenom</h1>";
+      $html .= "<p>email : <a href='mailto:$email'>$email</a></p>";
+      $html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a></p>";
       if ($message) {
-        $body .= "Message additionnel : $message<br/><br/>";
+        $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "</p>";
       }
-      $body .= "Détails de la falaise :<br/>";
-      $body .= "<ul>";
-      $body .= "<li>Nom : $falaise_nom</li>";
-      $body .= "<li>Topo : $falaise_topo</li>";
-      $body .= "<li>Nb Voies : $falaise_nbvoies</li>";
-      $body .= "<li>Voies : $falaise_voies</li>";
-      $body .= "<li>Volet carto : $falaise_voletcarto</li>";
-      $body .= "<li>Expositions : $falaise_exposhort1</li>";
-      $body .= "<li>Exposition : $falaise_expotxt</li>";
-      $body .= "<li>Cotations min/max : $falaise_cotmin/$falaise_cotmax</li>";
-      $body .= "<li>Cotations : $falaise_cottxt</li>";
-      $body .= "<li>Approche A/R : $falaise_maa/$falaise_mar</li>";
-      $body .= "<li>Approche : $falaise_matxt</li>";
-      $body .= "<li>Grandes voies : " . $champs['falaise_gvtxt'] . "</li>";
-      $body .= "<li>Nombre de GV : " . $champs['falaise_gvnb'] . "</li>";
-      $body .= "<li>Bloc: " . $falaise_bloc . "</li>";
-      $body .= "<li>Remarque : " . $champs['falaise_rq'] . "</li>";
-      $body .= "</ul>";
-      $body .= "</body></html>";
+      $html .= "<p>Détails de la falaise :</p>";
+      $html .= "<ul>";
+      $html .= "<li><b>Nom</b>: $falaise_nom</li>";
+      $html .= "<li><b>Topo</b>: $falaise_topo</li>";
+      $html .= "<li><b>Nb Voies</b>: $falaise_nbvoies</li>";
+      $html .= "<li><b>Voies</b>: $falaise_voies</li>";
+      $html .= "<li><b>Volet carto</b>: $falaise_voletcarto</li>";
+      $html .= "<li><b>Expositions</b>: $falaise_exposhort1</li>";
+      $html .= "<li><b>Exposition</b>: $falaise_expotxt</li>";
+      $html .= "<li><b>Cotations min/max</b>: $falaise_cotmin/$falaise_cotmax</li>";
+      $html .= "<li><b>Cotations</b>: $falaise_cottxt</li>";
+      $html .= "<li><b>Approche A/R</b>: $falaise_maa/$falaise_mar</li>";
+      $html .= "<li><b>Approche</b>: $falaise_matxt</li>";
+      $html .= "<li><b>Grandes voies</b>: " . $champs['falaise_gvtxt'] . "</li>";
+      $html .= "<li><b>Nombre de GV</b>: " . $champs['falaise_gvnb'] . "</li>";
+      $html .= "<li><b>Bloc</b>: " . $falaise_bloc . "</li>";
+      $html .= "<li><b>Remarque</b>: " . $champs['falaise_rq'] . "</li>";
+      $html .= "</ul>";
+      $html .= "</body></html>";
 
-      mail($to, $subject, $body, $headers);
+
+      $data = [
+        'to' => $to,
+        'subject' => $subject,
+        'html' => $html,
+        'h:Reply-To' => $email
+      ];
+      sendMail($data);
+
+      // mail($to, $subject, $body, $headers);
       header("Location: /contribuer.php");
     } else {
       header("Location: admin/ajout_donnees_admin.php");
