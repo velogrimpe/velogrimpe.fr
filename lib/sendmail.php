@@ -15,6 +15,7 @@ function sendMail($data)
   curl_setopt($ch, CURLOPT_USERPWD, "api:$mailgun_api_key");
   curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
   $response = curl_exec($ch);
+  echo $response;
   curl_close($ch);
   // check response status
   if (curl_getinfo($ch, CURLINFO_HTTP_CODE) !== 200) {
