@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $headers = "From: noreply@velogrimpe.fr\r\n";
     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
-    $subject = "🚃 Ajout d'un itinéraire train par $nom_prenom: $train_depart - $train_arrivee";
+    $subject = "Ajout d'un itinéraire train par $nom_prenom: $train_depart - $train_arrivee";
 
     $body = "<html><body>";
     $body = "<h1>L'itinéraire de $train_depart à $train_arrivee a été ajouté par $nom_prenom (mail : <a href='mailto:$email'>$email</a>)</h1>";
