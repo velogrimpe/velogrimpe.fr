@@ -96,10 +96,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Envoi du mail de confirmation seulement si admin = 0
     if ($admin == 0) {
       $to = $config["contact_mail"];
-      $subject = "Ajout d'un itinéraire vélo par $nom_prenom : $velo_depart - $velo_arrivee";
-      $body = "L'itinéraire de $velo_depart à $velo_arrivee a été ajouté par $nom_prenom (mail : $email), avec le message additionnel suivant : $message.";
-      $body .= "<a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a>\n\n";
       $headers = "From: noreply@velogrimpe.fr\r\n";
+      $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
+      $subject = "🚲 Ajout d'un itinéraire vélo par $nom_prenom : $velo_depart - $velo_arrivee";
+
+      $body = "<html><body>";
+      $body .= "<h1>L'itinéraire de $velo_depart à $velo_arrivee a été ajouté par $nom_prenom (mail : <a href='mailto:$email'>$email</a>)</h1>";
+      $body .= "<a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a><br/><br/>";
+      if ($message) {
+        $body .= "Message additionnel : $message<br/><br/>";
+      }
+      $body .= "Détails de l'itinéraire :<br/>";
+      $body .= "<ul>";
+      $body .= "<li>Départ: $velo_depart</li>";
+      $body .= "<li>Arrivée: $velo_arrivee</li>";
+      $body .= "<li>Variante : $velo_variante</li>";
+      $body .= "<li>Distance: $velo_km km</li>";
+      $body .= "<li>D+ : $velo_dplus m</li>";
+      $body .= "<li>D- : $velo_dmoins m</li>";
+      $body .= "<li>A pied uniquement : " . ($velo_apieduniquement ? 'Oui' : 'Non') . "</li>";
+      $body .= "<li>A pied possible : " . ($velo_apiedpossible ? 'Oui' : 'Non') . "</li>";
+      $body .= "<li>Description : $velo_descr</li>";
+      $body .= "</ul>";
+      $body .= "</body></html>";
 
       mail($to, $subject, $body, $headers);
       header("Location: /contribuer.php");

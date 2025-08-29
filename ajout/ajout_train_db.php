@@ -61,9 +61,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if ($admin == 0) {
     $to = $config["contact_mail"];
-    $subject = "Ajout d'un itinéraire train par $nom_prenom: $train_depart - $train_arrivee";
-    $body = "L'itinéraire de $train_depart à $train_arrivee a été ajouté par $nom_prenom (mail : $email), avec le message additionnel suivant : $message.";
     $headers = "From: noreply@velogrimpe.fr\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
+    $subject = "🚃 Ajout d'un itinéraire train par $nom_prenom: $train_depart - $train_arrivee";
+
+    $body = "<html><body>";
+    $body = "<h1>L'itinéraire de $train_depart à $train_arrivee a été ajouté par $nom_prenom (mail : <a href='mailto:$email'>$email</a>)</h1>";
+    if ($message) {
+      $body .= "Message additionnel : $message<br/><br/>";
+    }
+    $body .= "Détails de l'itinéraire :<br/>";
+    $body .= "<ul>";
+    $body .= "<li>Départ: $train_depart</li>";
+    $body .= "<li>Arrivée: $train_arrivee</li>";
+    $body .= "<li>Temps: $train_temps min</li>";
+    $body .= "<li>Correspondance min: $train_correspmin</li>";
+    $body .= "<li>Correspondance max: $train_correspmax</li>";
+    $body .= "<li>Public: " . ($train_public ? 'Oui' : 'Non') . "</li>";
+    $body .= "<li>Description: $train_descr</li>";
+    $body .= "</ul>";
+    $body .= "</body></html>";
 
     mail($to, $subject, $body, $headers);
     header("Location: /contribuer.php");

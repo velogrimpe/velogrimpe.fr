@@ -221,30 +221,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($res) {
     // Envoi du mail de confirmation seulement si admin = 0
     if ($admin == 0) {
-      $to = $config['contact_mail'];
-      $subject = "Ajout d'une falaise par $nom_prenom: $falaise_nom";
-      $body = "La falaise de $falaise_nom a été ajoutée par $nom_prenom (mail : $email).";
-      $body .= "<a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a>\n\n";
-      if ($message) {
-        $body .= "Message additionnel : $message\n";
-      }
-      $body .= "\n\nDétails de la falaise :\n";
-      $body .= "Nom : $falaise_nom\n";
-      $body .= "Topo : $falaise_topo\n";
-      $body .= "Nb Voies : $falaise_nbvoies\n";
-      $body .= "Voies : $falaise_voies\n";
-      $body .= "Volet carto : $falaise_voletcarto\n";
-      $body .= "Expositions : $falaise_exposhort1\n";
-      $body .= "Exposition : $falaise_expotxt\n";
-      $body .= "Cotations min/max : $falaise_cotmin/$falaise_cotmax\n";
-      $body .= "Cotations : $falaise_cottxt\n";
-      $body .= "Approche A/R : $falaise_maa/$falaise_mar\n";
-      $body .= "Approche : $falaise_matxt\n";
-      $body .= "Grandes voies : " . $champs['falaise_gvtxt'] . "\n";
-      $body .= "Nombre de GV : " . $champs['falaise_gvnb'] . "\n";
-      $body .= "Bloc: " . $falaise_bloc . "\n";
-      $body .= "Remarque : " . $champs['falaise_rq'] . "\n";
+      $to = $config["contact_mail"];
       $headers = "From: noreply@velogrimpe.fr\r\n";
+      $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
+      $subject = "Ajout d'une falaise par $nom_prenom: $falaise_nom";
+
+      $body = "<html><body>";
+      $body .= "<h1>La falaise de $falaise_nom a été ajoutée par $nom_prenom (mail : <a href='mailto:$email'>$email</a>).</h1>";
+      $body .= "<a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a><br/><br/>";
+      if ($message) {
+        $body .= "Message additionnel : $message<br/><br/>";
+      }
+      $body .= "Détails de la falaise :<br/>";
+      $body .= "<ul>";
+      $body .= "<li>Nom : $falaise_nom</li>";
+      $body .= "<li>Topo : $falaise_topo</li>";
+      $body .= "<li>Nb Voies : $falaise_nbvoies</li>";
+      $body .= "<li>Voies : $falaise_voies</li>";
+      $body .= "<li>Volet carto : $falaise_voletcarto</li>";
+      $body .= "<li>Expositions : $falaise_exposhort1</li>";
+      $body .= "<li>Exposition : $falaise_expotxt</li>";
+      $body .= "<li>Cotations min/max : $falaise_cotmin/$falaise_cotmax</li>";
+      $body .= "<li>Cotations : $falaise_cottxt</li>";
+      $body .= "<li>Approche A/R : $falaise_maa/$falaise_mar</li>";
+      $body .= "<li>Approche : $falaise_matxt</li>";
+      $body .= "<li>Grandes voies : " . $champs['falaise_gvtxt'] . "</li>";
+      $body .= "<li>Nombre de GV : " . $champs['falaise_gvnb'] . "</li>";
+      $body .= "<li>Bloc: " . $falaise_bloc . "</li>";
+      $body .= "<li>Remarque : " . $champs['falaise_rq'] . "</li>";
+      $body .= "</ul>";
+      $body .= "</body></html>";
 
       mail($to, $subject, $body, $headers);
       header("Location: /contribuer.php");
