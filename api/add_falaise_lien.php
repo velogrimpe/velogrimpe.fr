@@ -55,7 +55,7 @@ $new_comment = [
 $collection = 'falaises_liens';
 $type = 'insert';
 $record_id = $mysqli->insert_id;
-logChanges('admin', $config['contact_mail'], $type, $collection, $record_id, $new_comment);
+logChanges($_SERVER['REMOTE_USER'] ?? 'admin', $config['contact_mail'], $type, $collection, $record_id, $new_comment);
 
 
 echo json_encode(true);

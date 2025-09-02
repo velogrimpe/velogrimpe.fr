@@ -30,7 +30,7 @@ $new_comment = [
 $collection = 'zones';
 $type = 'insert';
 $record_id = $mysqli->insert_id;
-logChanges('admin', $config['contact_mail'], $type, $collection, $record_id, $new_comment);
+logChanges($_SERVER['REMOTE_USER'] ?? 'admin', $config['contact_mail'], $type, $collection, $record_id, $new_comment);
 
 
 header("Location: /admin/");
