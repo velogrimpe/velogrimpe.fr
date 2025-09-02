@@ -63,7 +63,7 @@ $email = $config['contact_mail'];
     <ul>
       <li>
         <b>Etape 1 :</b>
-        <a href="/ajout/ajout_falaise.php">ajouter une falaise.</a><br />
+        <a href="/ajout/ajout_falaise.php">ajouter/modifier une falaise.</a><br />
         Prérequis : avoir le topo sous la main.
       </li>
       <li>
