@@ -54,7 +54,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="py-4 px-2 md:px-8">
     <div class="flex flex-col gap-1">
-      <div id="map" class="w-full h-[calc(100dvh-120px)]"></div>
+      <div id="map" class="w-full h-[calc(100dvh-130px)]"></div>
     </div>
   </main>
   <datalist id="falaises">
@@ -196,7 +196,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                   site_id: id,
                   site: "oblyk",
                   site_name: falaise.name,
-                  user: <?= $_SERVER['PHP_AUTH_USER'] ?>
+                  user: "<?= isset($_SERVER["REMOTE_USER"]) ? $_SERVER["REMOTE_USER"] : "nouser" ?>",
                 }),
               })
                 .then(response => response.json())
