@@ -3,7 +3,17 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
-$edit_logs = $mysqli->query("SELECT * FROM edit_logs ORDER BY date DESC")->fetch_all(MYSQLI_ASSOC);
+$page = $_GET['page'] ?? 0;
+$limit = 100;
+$offset = $page * $limit;
+
+$edit_logs = $mysqli->prepare("SELECT * FROM edit_logs ORDER BY date DESC LIMIT ? OFFSET ?");
+$edit_logs->bind_param("ii", $limit, $offset);
+$edit_logs->execute();
+$edit_logs = $edit_logs->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$page_count = $mysqli->query("SELECT COUNT(*) as count FROM edit_logs")->fetch_assoc()['count'];
+$page_count = ceil($page_count / $limit);
 
 ?>
 <!DOCTYPE html>
@@ -65,6 +75,18 @@ $edit_logs = $mysqli->query("SELECT * FROM edit_logs ORDER BY date DESC")->fetch
           </tr>
         <?php endforeach; ?>
     </table>
+    <div class="flex flex-row gap-2 items-center mx-auto">
+      <?php if ($page > 0): ?>
+        <a href="?page=<?= $page - 1 ?>" class="btn btn-ghost btn-sm">&larr;</a>
+      <?php else: ?>
+        <button class="btn btn-disabled btn-sm">&larr;</button>
+      <?php endif; ?>
+      <div class="font-bold text-sm">Page <?= $page + 1 ?> / <?= $page_count ?></div>
+      <?php if ($page < $page_count - 1): ?>
+        <a href="?page=<?= $page + 1 ?>" class="btn btn-ghost btn-sm">&rarr;</a>
+      <?php else: ?>
+        <button class="btn btn-disabled btn-sm">&rarr;</button>
+      <?php endif; ?>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
