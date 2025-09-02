@@ -328,7 +328,7 @@ $stmt->close();
                 <div class="font-bold">Types de voies</div>
                 <div class="grid grid-cols-[auto_auto] gap-x-2 gap-y-1 w-full">
                   <div class="flex flex-row gap-2 items-center w-full">
-                    <label for=""
+                    <label for="couenne"
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="couenne"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
@@ -336,7 +336,7 @@ $stmt->close();
                     </label>
                   </div>
                   <div class="flex flex-row gap-2 items-center w-full">
-                    <label for=""
+                    <label for="avecgv"
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="avecgv"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
@@ -344,7 +344,7 @@ $stmt->close();
                     </label>
                   </div>
                   <div class="flex flex-row gap-2 items-center w-full">
-                    <label for=""
+                    <label for="bloc"
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="bloc"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
@@ -352,7 +352,7 @@ $stmt->close();
                     </label>
                   </div>
                   <div class="flex flex-row gap-2 items-center w-full">
-                    <label for=""
+                    <label for="psychobloc"
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="psychobloc"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />

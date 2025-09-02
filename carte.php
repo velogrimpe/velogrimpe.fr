@@ -251,22 +251,22 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                           </div>
                         </div>
                         <div class="max-w-96 grid grid-cols-[auto_auto] md:grid-cols-[auto] gap-x-2 gap-y-2 md:gap-y-1">
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0" for="couenne">
                             <input type="checkbox" id="couenne" class="checkbox checkbox-primary checkbox-sm" />
                             <span class="label-text">Couenne
                             </span>
                           </label>
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
-                            <input type="checkbox" id="bloc" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Bloc
-                            </span>
-                          </label>
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0" for="avecgv">
                             <input type="checkbox" id="avecgv" class="checkbox checkbox-primary checkbox-sm" />
                             <span class="label-text">Grande Voie
                             </span>
                           </label>
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0" for="bloc">
+                            <input type="checkbox" id="bloc" class="checkbox checkbox-primary checkbox-sm" />
+                            <span class="label-text">Bloc
+                            </span>
+                          </label>
+                          <label class="label cursor-pointer justify-start gap-x-2 py-0" for="psychobloc">
                             <input type="checkbox" id="psychobloc" class="checkbox checkbox-primary checkbox-sm" />
                             <span class="label-text">Psychobloc
                             </span>
