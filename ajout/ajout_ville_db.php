@@ -22,6 +22,17 @@ $stmt->bind_param("s", $ville_nom);
 $stmt->execute();
 $stmt->close();
 
+//Store in log
+require_once "../lib/edit_logs.php";
+$new_comment = [
+    "ville_nom" => $ville_nom
+];
+$collection = 'villes';
+$type = 'insert';
+$record_id = $mysqli->insert_id;
+logChanges($nom_prenom, $email, $type, $collection, $record_id, $new_comment);
+
+
 header("Location: admin/ajout_donnees_admin.php");
 exit;
 ?>

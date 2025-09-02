@@ -93,6 +93,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt->close();
 
+    //Store in log
+    require_once "../lib/edit_logs.php";
+    $new_comment = [
+      "gare_id" => $gare_id,
+      "falaise_id" => $falaise_id,
+      "velo_depart" => $velo_depart,
+      "velo_arrivee" => $velo_arrivee,
+      "velo_km" => $velo_km,
+      "velo_dplus" => $velo_dplus,
+      "velo_dmoins" => $velo_dmoins,
+      "velo_descr" => $velo_descr,
+      "velo_public" => $velo_public,
+      "velo_variante" => $velo_variante,
+      "velo_varianteformate" => $velo_varianteformate,
+      "velo_openrunner" => $velo_openrunner,
+      "velo_apieduniquement" => $velo_apieduniquement,
+      "velo_apiedpossible" => $velo_apiedpossible,
+      "velo_contrib" => $velo_contrib
+    ];
+    $collection = 'velo';
+    $type = 'insert';
+    $record_id = $mysqli->insert_id;
+    logChanges($nom_prenom, $email, $type, $collection, $record_id, $new_comment);
+
+
     // Envoi du mail de confirmation seulement si admin = 0
     if ($admin == 0) {
       require_once '../lib/sendmail.php';

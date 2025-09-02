@@ -59,6 +59,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $stmt->close();
 
+  //Store in log
+  require_once "../lib/edit_logs.php";
+  $new_comment = [
+    "ville_id" => $ville_id,
+    "gare_id" => $gare_id,
+    "train_temps" => $train_temps,
+    "train_correspmin" => $train_correspmin,
+    "train_correspmax" => $train_correspmax,
+    "train_public" => $train_public,
+    "train_descr" => $train_descr,
+    "train_depart" => $train_depart,
+    "train_arrivee" => $train_arrivee,
+    "train_contrib" => $train_contrib,
+  ];
+  $collection = 'train';
+  $type = 'insert';
+  $record_id = $mysqli->insert_id;
+  logChanges($nom_prenom, $email, $type, $collection, $record_id, $new_comment);
+
+
+
   if ($admin == 0) {
     require_once '../lib/sendmail.php';
     $to = $config["contact_mail"];
