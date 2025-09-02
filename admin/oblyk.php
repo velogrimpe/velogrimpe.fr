@@ -183,7 +183,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
               const slug = falaise.slug;
               const id = falaise.id;
               const oblykUrl = `https://oblyk.org/crags/${id}/${slug}`
-              const url = `/api/link_falaise.php`;
+              const url = `/api/add_falaise_lien.php`;
               fetch(url, {
                 method: "POST",
                 headers: {

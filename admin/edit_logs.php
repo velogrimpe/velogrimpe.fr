@@ -15,6 +15,22 @@ $edit_logs = $edit_logs->get_result()->fetch_all(MYSQLI_ASSOC);
 $page_count = $mysqli->query("SELECT COUNT(*) as count FROM edit_logs")->fetch_assoc()['count'];
 $page_count = ceil($page_count / $limit);
 
+$type_labels = [
+  'insert' => 'Création',
+  'update' => 'Modification',
+  'delete' => 'Suppression',
+];
+$table_labels = [
+  'commentaires_falaises' => "Commentaire",
+  'falaises' => "Falaise",
+  'falaises_liens' => "Lien Falaise",
+  'gares' => "Gare",
+  'train' => "Train",
+  'velo' => "Itinéraire Vélo",
+  'villes' => "Villes",
+  'zones' => "Zones"
+];
+
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -56,8 +72,8 @@ $page_count = ceil($page_count / $limit);
             <td><a class="text-info"
                 href="mailto:<?= htmlspecialchars($log['author_email']) ?>"><?= htmlspecialchars($log['author']) ?></a>
             </td>
-            <td><?= htmlspecialchars($log['type']) ?></td>
-            <td><?= htmlspecialchars($log['collection']) ?></td>
+            <td><?= $type_labels[$log['type']] ?? htmlspecialchars($log['type']) ?></td>
+            <td><?= $table_labels[$log['collection']] ?? htmlspecialchars($log['collection']) ?></td>
             <td><?= htmlspecialchars($log['record_id']) ?></td>
             <!-- changes is a json list of {field, old, new} -->
             <?php $changes = json_decode($log['changes'], true); ?>

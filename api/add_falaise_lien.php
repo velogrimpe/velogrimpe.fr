@@ -43,4 +43,19 @@ if ($stmt->affected_rows === 0) {
 }
 $stmt->close();
 
+//Store in log
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
+$new_comment = [
+  "falaise_id" => $falaise_id,
+  "site_id" => $site_id,
+  "site_url" => $site_url,
+  "site" => $site,
+  "site_name" => $site_name
+];
+$collection = 'falaises_liens';
+$type = 'insert';
+$record_id = $mysqli->insert_id;
+logChanges($_SERVER['PHP_AUTH_USER'] || 'admin', $config['contact_mail'], $type, $collection, $record_id, $new_comment);
+
+
 echo json_encode(true);
