@@ -9,7 +9,7 @@ if (empty($falaise_id)) {
   exit;
 }
 
-require_once "../../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $falaises = $mysqli->query("SELECT falaise_id, falaise_nom
                                   FROM falaises
@@ -113,7 +113,7 @@ $stmtIt->close();
 </head>
 
 <body>
-  <?php include "../../components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="py-4 px-2 md:px-8 flex flex-col gap-4">
     <div class="flex gap-2 justify-end items-center">
       <select id="selectFalaise1" name="selectFalaise1" class="select select-primary select-sm"
@@ -161,7 +161,7 @@ $stmtIt->close();
         </div>
       </dialog>
   </main>
-  <?php include "../../components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 <script>
 

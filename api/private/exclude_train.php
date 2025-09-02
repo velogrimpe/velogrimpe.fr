@@ -23,7 +23,7 @@ if (empty($ville_id) || empty($gare_id)) {
   die("Ville ID and Gare ID are required.");
 }
 
-require_once "../../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $stmt = $mysqli->prepare("INSERT INTO exclusions_villes_gares (ville_id, gare_id) VALUES (?, ?)");
 if (!$stmt) {

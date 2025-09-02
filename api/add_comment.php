@@ -23,7 +23,7 @@ if (empty($falaise_id) || empty($commentaire) || empty($nom) || empty($email)) {
   die(json_encode(["error" => "Missing required field. $falaise_id, $commentaire, $nom, $email"]));
 }
 
-require_once "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $stmt = $mysqli->prepare(
   "INSERT INTO commentaires_falaises
     (falaise_id, velo_id, commentaire, nom, email, ville_nom, gare_depart, gare_arrivee)
@@ -52,7 +52,7 @@ if ($stmt->affected_rows === 0) {
 $stmt->close();
 
 //Store in log
-require_once "../lib/edit_logs.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 $new_comment = [
   "falaise_id" => $falaise_id,
   "velo_id" => $velo_id,
@@ -80,7 +80,7 @@ $stmt->fetch();
 $stmt->close();
 
 // send mail to admin
-require_once '../lib/sendmail.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
 $to = $config["contact_mail"];
 $subject = "Nouveau commentaire de $nom sur la falaise $falaise_nom (ID: $falaise_id)";
 $html = "<html><body>";

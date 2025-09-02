@@ -1,5 +1,5 @@
 <?php
-require_once "../../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
@@ -55,7 +55,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
 </head>
 
 <body class="h-full">
-  <?php include "../../components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="py-4 px-2 md:px-8">
     <div class="overflow-auto max-h-[calc(100vh-130px)] bg-base-100 rounded-md">
       <table class="table table-pin-rows table-pin-cols min-w-max" data-sort-col="id" data-sort-order="desc">
@@ -159,7 +159,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
       </table>
     </div>
   </main>
-  <?php include "../../components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 <script>
   function excludeVilleGare(villeId, gareId, thisElement) {

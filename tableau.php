@@ -48,7 +48,7 @@ $nbvoies_corresp = [
   1000 => "&ge; 500 voies",
 ];
 
-require_once "./database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $ville = $mysqli->query("SELECT ville_nom FROM villes WHERE ville_id = $ville_id")->fetch_assoc();
 

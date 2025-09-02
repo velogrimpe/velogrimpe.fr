@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 // Fetches the list of trains from the database
-require_once "../database/sncf.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $depart_uic = $_GET['depart_uic'] ?? '';
 // $gare_depart = 'Lyon Part Dieu';

@@ -8,7 +8,7 @@ $email = filter_var($_POST["email"], FILTER_SANITIZE_EMAIL);
 $name = trim($_POST["name"]);
 $message = htmlspecialchars(nl2br(trim($_POST["message"])));
 
-require_once "../lib/sendmail.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
 
 $to = $config["contact_mail"];
 $subject = "Prise de contact depuis le site - $name ($email)";
@@ -48,7 +48,7 @@ $ret = sendMail($data);
 </head>
 
 <body class="min-h-screen flex flex-col">
-    <?php include "../components/header.html"; ?>
+    <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
 
     <div class="flex-grow flex justify-center items-center">
         <?php if ($ret): ?>
@@ -72,7 +72,7 @@ $ret = sendMail($data);
             </div>
         <?php endif; ?>
     </div>
-    <?php include "../components/footer.html"; ?>
+    <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 
 </html>

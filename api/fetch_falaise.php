@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $falaise_id = $_GET['falaise_id'] ?? '';
 if (empty($falaise_id)) {

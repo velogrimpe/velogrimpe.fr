@@ -6,7 +6,7 @@ if (empty($falaise_id)) {
   exit;
 }
 
-require_once "./database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $stmtF = $mysqli->prepare("SELECT * FROM falaises WHERE falaise_id = ?");
 if (!$stmtF) {

@@ -1,6 +1,6 @@
 <?php
 // Connexion à la base de données
-include "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 // Récupération des villes
@@ -69,7 +69,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include "../components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
               prose-a:font-bold prose-a:no-underline hover:prose-a:underline
               prose-li:mt-0 prose-li:mb-0 prose-ul:mt-0 prose-ul:mb-0
@@ -82,7 +82,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       Commencez par vérifier que votre ville de départ est dans le menu déroulant ci-dessous.
       Si ce n'est pas le cas, l'ajout de données n'est pas possible : envoyez-nous un mail.
     </div>
-    <form method="POST" action="ajout_train_db.php" enctype="multipart/form-data" class="flex flex-col gap-4">
+    <form method="POST" action="/api/add_train.php" enctype="multipart/form-data" class="flex flex-col gap-4">
       <input type="hidden" class="input input-primary input-sm" id="train_public" name="train_public" value="2">
       <input class="input input-primary input-sm" type="hidden" id="admin" name="admin" value="0">
 
@@ -277,7 +277,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
     </form>
   </main>
-  <?php include "../components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 
 <script>
@@ -291,7 +291,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       document.getElementById("itineraireExistsAlert").classList.add("hidden");
       return;
     }
-    fetch(`/ajout/check_train.php?gare_id=${gareId}&ville_id=${villeId}`)
+    fetch(`/api/verify_train_dup.php?gare_id=${gareId}&ville_id=${villeId}`)
       .then(response => response.json())
       .then(exists => {
         if (exists) {
@@ -328,7 +328,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       alert("Veuillez sélectionner une gare de départ et une gare d'arrivée.");
       return;
     }
-    fetch(`/ajout/fetch_trains.php?depart_uic=${gareDepart}&arrivee_uic=${gareArrivee}`)
+    fetch(`/api/fetch_trains.php?depart_uic=${gareDepart}&arrivee_uic=${gareArrivee}`)
       .then(response => response.json())
       .then(data => {
         const tableBody = document.getElementById('tableTrainsBody');

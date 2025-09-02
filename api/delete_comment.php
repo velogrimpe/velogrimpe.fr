@@ -16,7 +16,7 @@ if (empty($commentaire_id) || empty($email)) {
   die(json_encode(["error" => "Missing required field."]));
 }
 
-require_once "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 // Get existing comment
 $stmt = $mysqli->prepare(
   "SELECT email FROM commentaires_falaises WHERE id = ?"

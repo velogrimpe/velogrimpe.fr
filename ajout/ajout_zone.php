@@ -36,7 +36,7 @@ if (!$admin) {
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include "../components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
     prose-a:font-bold prose-a:no-underline hover:prose-a:underline
     hover:prose-a:text-[oklch(var(--pf)/1)] prose-pre:my-0
@@ -44,7 +44,7 @@ if (!$admin) {
     <h1 class="text-4xl font-bold text-wrap text-center">
       AJOUTER UNE ZONE (ADMIN)
     </h1>
-    <form method="post" action="ajout_zone_db.php" class="flex flex-col gap-4">
+    <form method="post" action="/api/add_zone.php" class="flex flex-col gap-4">
       <input type="hidden" id="admin" name="admin" value="0" />
       <label class="form-control" for="zone_nom">
         <b>Zone :</b>
@@ -54,7 +54,7 @@ if (!$admin) {
     </form>
   </main>
 
-  <?php include "../components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 
 </html>

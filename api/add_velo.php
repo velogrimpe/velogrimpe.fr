@@ -1,5 +1,5 @@
 <?php
-include "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 
     //Store in log
-    require_once "../lib/edit_logs.php";
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
     $new_comment = [
       "gare_id" => $gare_id,
       "falaise_id" => $falaise_id,
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Envoi du mail de confirmation seulement si admin = 0
     if ($admin == 0) {
-      require_once '../lib/sendmail.php';
+      require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
       $to = $config["contact_mail"];
 
       $subject = "🚲 Itinéraire $velo_depart ⇢ $velo_arrivee ajouté par $nom_prenom";
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       header("Location: /contribuer.php");
       exit;
     } else {
-      header("Location: admin/ajout_donnees_admin.php");
+      header("Location: /admin/");
       exit;
     }
 

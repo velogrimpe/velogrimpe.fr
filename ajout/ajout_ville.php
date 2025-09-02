@@ -1,5 +1,5 @@
 <?php
-include "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 $result_villes = $mysqli->query("SELECT ville_nom FROM villes ORDER BY ville_nom");
@@ -43,7 +43,7 @@ if (!$admin) {
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include "../components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
     prose-a:font-bold prose-a:no-underline hover:prose-a:underline
     hover:prose-a:text-[oklch(var(--pf)/1)] prose-pre:my-0
@@ -51,7 +51,7 @@ if (!$admin) {
     <h1 class="text-4xl font-bold text-wrap text-center">
       AJOUTER UNE VILLE (ADMIN)
     </h1>
-    <form method="post" action="ajout_ville_db.php" class="flex flex-col gap-4">
+    <form method="post" action="/api/add_ville.php" class="flex flex-col gap-4">
       <input type="hidden" id="admin" name="admin" value="0" />
       <label class="form-control" for="ville_nom">
         <b>Ville :</b>
@@ -70,7 +70,7 @@ if (!$admin) {
       <button class="btn btn-primary" type="submit">AJOUTER LA VILLE</button>
     </form>
   </main>
-  <?php include "../components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 <script>
   const villes = <?= json_encode($villes) ?>.map(n => n.toLowerCase().normalize("NFD"));;

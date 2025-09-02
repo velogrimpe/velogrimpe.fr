@@ -1,5 +1,5 @@
 <?php
-require_once "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 $res_z = $mysqli->query("SELECT * FROM zones ORDER BY zone_nom");
@@ -120,7 +120,7 @@ if ($falaise_id) {
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include "../components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4
               prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
               hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]
@@ -140,7 +140,7 @@ if ($falaise_id) {
       <span class="text-red-700">Les champs obligatoires sont en noir, les champs optionnels en gris.</span>
     </div>
 
-    <form method="post" action="ajout_falaise_db.php" enctype="multipart/form-data" class="flex flex-col gap-4"
+    <form method="post" action="/api/add_falaise.php" enctype="multipart/form-data" class="flex flex-col gap-4"
       id="form">
       <datalist id="falaises">
         <?php foreach ($falaises as $falaise): ?>
@@ -775,11 +775,11 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
       <button type="submit" class="btn btn-primary">AJOUTER LA FALAISE</button>
     </form>
   </main>
-  <?php include "../components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 <script>
   function fetchAndPrefillData(id, fillAll = false) {
-    fetch(`/ajout/fetch_falaise.php?falaise_id=${id}`)
+    fetch(`/api/fetch_falaise.php?falaise_id=${id}`)
       .then(response => response.json())
       .then(falaise => {
         document.getElementById("falaise_zone").value = falaise.falaise_zone;

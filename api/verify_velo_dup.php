@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-include "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 if (!isset($_GET['falaise_id']) || !isset($_GET['gare_id'])) {
   echo json_encode(["error" => "ID manquant"]);

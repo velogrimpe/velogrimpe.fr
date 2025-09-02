@@ -11,7 +11,7 @@ if (empty($zone_nom)) {
     exit;
 }
 
-require_once "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $stmt = $mysqli->prepare("INSERT INTO zones (zone_nom) VALUES (?)");
 if (!$stmt) {
@@ -23,16 +23,16 @@ $stmt->execute();
 $stmt->close();
 
 //Store in log
-require_once "../lib/edit_logs.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 $new_comment = [
     "zone_nom" => $zone_nom
 ];
 $collection = 'zones';
 $type = 'insert';
 $record_id = $mysqli->insert_id;
-logChanges($nom_prenom, $email, $type, $collection, $record_id, $new_comment);
+logChanges($_SERVER['PHP_AUTH_USER'] || 'admin', $config['contact_mail'], $type, $collection, $record_id, $new_comment);
 
 
-header("Location: admin/ajout_donnees_admin.php");
+header("Location: /admin/");
 exit;
 ?>

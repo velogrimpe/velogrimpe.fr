@@ -1,5 +1,5 @@
 <?php
-require_once "../../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
@@ -51,7 +51,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
 </head>
 
 <body>
-  <?php include "../../components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="py-4 px-2 md:px-8">
     <div class="flex flex-col gap-1">
       <div id="map" class="w-full h-[calc(100dvh-120px)]"></div>
@@ -62,7 +62,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       <option value="<?= $falaise["falaise_nom"] ?> (falaise)"></option>
     <?php endforeach; ?>
   </datalist>
-  <?php include "../../components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 <script>
 
@@ -183,7 +183,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
               const slug = falaise.slug;
               const id = falaise.id;
               const oblykUrl = `https://oblyk.org/crags/${id}/${slug}`
-              const url = `/ajout/link_falaise.php`;
+              const url = `/api/link_falaise.php`;
               fetch(url, {
                 method: "POST",
                 headers: {

@@ -2,7 +2,7 @@
 
 function logChanges($author, $email, $type, $collection, $id, $new_values, $old_values = [])
 {
-  require "../database/velogrimpe.php";
+  require $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
   // get changes in the record
   $changes = [];

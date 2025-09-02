@@ -21,7 +21,7 @@ $site_id = trim($input['site_id'] ?? '');
 $site = trim($input['site'] ?? '');
 $site_name = trim($input['site_name'] ?? '');
 
-require_once "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $stmt = $mysqli->prepare("INSERT INTO falaises_liens (falaise_id, site_id, site_url, site, site_name) VALUES (?, ?, ?, ?, ?)");
 if (!$stmt) {

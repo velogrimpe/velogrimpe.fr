@@ -3,7 +3,7 @@ Il faudra aussi changer ajout_velo_db pour ajouter le champ openrunner, et netto
 
 <?php
 // Connexion à la base de données
-include "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 // Récupération des gares
@@ -102,7 +102,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include "../components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main
     class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]">
     <h1 class="text-4xl font-bold text-wrap text-center">
@@ -113,7 +113,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       <b>Vous vous apprêtez à décrire un itinéraire Gare &rarr; Falaise, en vélo ou à pied.</b><br>
       <i>Les champs obligatoires sont en noir, les optionnels en gris.</i>
     </div>
-    <form method="POST" action="ajout_velo_db.php" enctype="multipart/form-data" class="flex flex-col gap-4">
+    <form method="POST" action="/api/add_velo.php" enctype="multipart/form-data" class="flex flex-col gap-4">
       <datalist id="gares">
         <?php foreach ($gares as $gare_id => $gare): ?>
           <option value="<?= $gare['nom']; ?>"></option>
@@ -306,7 +306,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
     </form>
   </main>
-  <?php include "../components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 <script>
   const gares = <?php echo json_encode($gares); ?>;
@@ -319,7 +319,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       document.getElementById("itineraireExistsAlert").classList.add("hidden");
       return;
     }
-    fetch(`/ajout/check_velo.php?gare_id=${gareId}&falaise_id=${falaiseId}`)
+    fetch(`/api/verify_velo_dup.php?gare_id=${gareId}&falaise_id=${falaiseId}`)
       .then(response => response.json())
       .then(exists => {
         if (exists) {

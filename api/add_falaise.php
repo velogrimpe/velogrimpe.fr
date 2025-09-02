@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 // Remplissage des champs obligatoires de la table
 $admin = trim($_POST['admin'] ?? '') == $config["admin_token"];
-$falaise_id = trim($_POST['falaise_id'] ?? null);
+$falaise_id = json_decode(trim($_POST['falaise_id'] ?? null));
 $falaise_nom = trim($_POST['falaise_nom'] ?? '');
 $falaise_nomformate = trim($_POST['falaise_nomformate'] ?? '');
 $falaise_latlng = trim($_POST['falaise_latlng'] ?? '');
@@ -79,7 +79,7 @@ foreach ($champs as $key => &$val) {
   $val = trim($_POST[$key] ?? $val);
 }
 
-require_once "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 if ($mysqli->connect_error) {
   die("Erreur de connexion à la base de données : " . $mysqli->connect_error);
@@ -234,7 +234,7 @@ if (!$res) {
 }
 
 ////// DEBUT GESTION DES CHANGEMENTS
-require_once "../lib/edit_logs.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 $newFalaise = [
   "falaise_id" => $falaise_id,
   "falaise_nom" => $falaise_nom,
@@ -256,7 +256,7 @@ $newFalaise = [
   "falaise_bloc" => $falaise_bloc,
   "falaise_nbvoies" => $falaise_nbvoies,
 ];
-$record_id = $isEdition ? $falaise_id : $mysqli->insert_id;
+$record_id = $falaise_id;
 $type = $isEdition ? "update" : "insert";
 $collection = 'falaises';
 logChanges($nom_prenom, $email, $type, $collection, $record_id, $newFalaise, $oldFalaise);
@@ -264,7 +264,7 @@ logChanges($nom_prenom, $email, $type, $collection, $record_id, $newFalaise, $ol
 
 // Envoi du mail de confirmation seulement si admin = 0
 if ($admin == 0) {
-  require_once '../lib/sendmail.php';
+  require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
   $to = $config["contact_mail"];
   $subject = "🧗 Falaise '$falaise_nom' ajoutée par $nom_prenom";
 
@@ -307,7 +307,7 @@ if ($admin == 0) {
   // mail($to, $subject, $body, $headers);
   header("Location: /contribuer.php");
 } else {
-  header("Location: admin/ajout_donnees_admin.php");
+  header("Location: /admin/");
 }
 exit;
 

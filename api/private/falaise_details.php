@@ -23,7 +23,7 @@ if (empty($falaise_id)) {
 }
 header('Content-Type: application/json');
 
-require_once "../../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 // Prepare the SQL statement
 $stmt = $mysqli->prepare("SELECT
 falaise_id, falaise_nomformate

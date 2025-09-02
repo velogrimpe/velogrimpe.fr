@@ -36,7 +36,7 @@ if (!$authHeader || $authHeader !== $validToken) {
 }
 
 // add a pageview
-require_once '../../lib/pv.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/pv.php';
 sendEvent($_SERVER['REQUEST_URI'], "oblyk", "oblyk-api");
 
 $oblyk_id = trim($_GET['oblyk_id'] ?? '');
@@ -45,7 +45,7 @@ if (empty($oblyk_id)) {
 }
 header('Content-Type: application/json');
 
-require_once "../../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 // Prepare the SQL statement
 $stmt = $mysqli->prepare("SELECT
 f.falaise_id, falaise_nom

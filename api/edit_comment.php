@@ -25,7 +25,7 @@ if (empty($falaise_id) || empty($commentaire) || empty($nom) || empty($commentai
   die(json_encode(["error" => "Missing required field: $falaise_id, $commentaire, $nom, $commentaire_id, $email"]));
 }
 
-require_once "../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 // Get existing comment
 $stmt = $mysqli->prepare(
@@ -46,7 +46,7 @@ $existing_comment = $result->fetch_assoc();
 $stmt->close();
 
 //Store in log
-require_once "../lib/edit_logs.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 $new_comment = [
   "falaise_id" => $falaise_id,
   "velo_id" => $velo_id,

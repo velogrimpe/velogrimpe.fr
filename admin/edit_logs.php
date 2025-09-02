@@ -1,5 +1,5 @@
 <?php
-require_once "../../database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
@@ -23,7 +23,7 @@ $edit_logs = $mysqli->query("SELECT * FROM edit_logs ORDER BY date DESC")->fetch
 </head>
 
 <body class="flex flex-col min-h-screen">
-  <?php include "../../components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="w-full flex-grow max-w-screen-2xl mx-auto p-10 flex flex-col gap-8">
     <h1 class="text-4xl font-bold text-wrap text-center">
       <span class="text-red-900">Historique des changements</span>
@@ -66,7 +66,7 @@ $edit_logs = $mysqli->query("SELECT * FROM edit_logs ORDER BY date DESC")->fetch
         <?php endforeach; ?>
     </table>
   </main>
-  <?php include "../../components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 
 </html>
