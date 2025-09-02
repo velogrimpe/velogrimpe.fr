@@ -29,9 +29,6 @@ $falaises_topo = array_values(array_filter(
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ajouter des données (admin)</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <!-- Pageviews -->
@@ -62,6 +59,7 @@ $falaises_topo = array_values(array_filter(
       <a class="btn btn-primary btn-lg" href="/ajout/admin/oblyk.php?admin=<?= $token ?>">Créer les liens Oblyk</a>
       <a class="btn btn-primary btn-lg" href="/ajout/admin/tableau_trains.php?admin=<?= $token ?>">Récap. Trains</a>
       <a class="btn btn-primary btn-lg" href="/ajout/contrib/details_falaise.php?falaise_id=247">Éditeur Falaises</a>
+      <a class="btn btn-primary btn-lg" href="/ajout/admin/edit_logs.php">Historique des modifications</a>
     </div>
 
     <h2 class="text-4xl font-bold text-wrap text-center">

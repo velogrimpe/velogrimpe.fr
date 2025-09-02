@@ -814,17 +814,15 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_img1_preview").classList.remove("hidden");
         document.getElementById("falaise_img2_preview").classList.remove("hidden");
         document.getElementById("falaise_img3_preview").classList.remove("hidden");
-        if (fillAll) {
-          document.getElementById("falaise_latlng").value = falaise.falaise_latlng;
-          document.getElementById("falaise_nomformate").value = falaise.falaise_nomformate;
-          document.getElementById("falaise_id").value = falaise.falaise_id;
-          document.getElementById("falaise_nom").value = falaise.falaise_nom;
-          updateMarker();
-        }
+        document.getElementById("falaise_latlng").value = falaise.falaise_latlng;
+        document.getElementById("falaise_nomformate").value = falaise.falaise_nomformate;
+        document.getElementById("falaise_id").value = falaise.falaise_id;
+        document.getElementById("falaise_nom").value = falaise.falaise_nom;
+        updateMarker();
       });
   }
   <?php if ($falaise_id): ?>
-    fetchAndPrefillData(<?= $falaise_id ?>, true);
+    fetchAndPrefillData(<?= $falaise_id ?>);
   <?php endif ?>
 </script>
 <script>window.customElements.define('multi-select', MultiselectWebcomponent);</script>

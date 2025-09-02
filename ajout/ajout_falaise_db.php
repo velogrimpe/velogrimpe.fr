@@ -1,88 +1,101 @@
 <?php
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // Remplissage des champs obligatoires de la table
-  $admin = trim($_POST['admin'] ?? '') == $config["admin_token"];
-  $falaise_id = trim($_POST['falaise_id'] ?? null);
-  $falaise_nom = trim($_POST['falaise_nom'] ?? '');
-  $falaise_nomformate = trim($_POST['falaise_nomformate'] ?? '');
-  $falaise_latlng = trim($_POST['falaise_latlng'] ?? '');
-  $falaise_exposhort1 = trim($_POST['falaise_exposhort1'] ?? '');
-  $falaise_cotmin = trim($_POST['falaise_cotmin'] ?? '');
-  $falaise_cotmax = trim($_POST['falaise_cotmax'] ?? '');
-  $falaise_zone = trim($_POST['falaise_zone'] ?? -1);
-  $falaise_maa = isset($_POST['falaise_maa']) ? (int) $_POST['falaise_maa'] : null;
-  $falaise_mar = isset($_POST['falaise_mar']) ? (int) $_POST['falaise_mar'] : null;
-  $falaise_public = isset($_POST['falaise_public']) ? (int) $_POST['falaise_public'] : null;
-  $falaise_topo = trim($_POST['falaise_topo'] ?? '');
-  $falaise_expotxt = trim($_POST['falaise_expotxt'] ?? '');
-  $falaise_matxt = trim($_POST['falaise_matxt'] ?? '');
-  $falaise_cottxt = trim($_POST['falaise_cottxt'] ?? '');
-  $falaise_voletcarto = trim($_POST['falaise_voletcarto'] ?? '');
-  $falaise_voies = trim($_POST['falaise_voies'] ?? '');
-  $falaise_bloc = trim($_POST['falaise_bloc'] ?? null);
-  $falaise_nbvoies = trim($_POST['falaise_nbvoies'] ?? null);
-  $nom_prenom = trim($_POST['nom_prenom'] ?? '');
-  $email = trim($_POST['email'] ?? '');
-  $message = trim($_POST['message'] ?? '');
-  $falaise_contrib = trim("'" . $nom_prenom . "','" . $email . "'");
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  http_response_code(405);
+  die(json_encode(["error" => "Method not allowed"]));
+}
+// Remplissage des champs obligatoires de la table
+$admin = trim($_POST['admin'] ?? '') == $config["admin_token"];
+$falaise_id = trim($_POST['falaise_id'] ?? null);
+$falaise_nom = trim($_POST['falaise_nom'] ?? '');
+$falaise_nomformate = trim($_POST['falaise_nomformate'] ?? '');
+$falaise_latlng = trim($_POST['falaise_latlng'] ?? '');
+$falaise_exposhort1 = trim($_POST['falaise_exposhort1'] ?? '');
+$falaise_cotmin = trim($_POST['falaise_cotmin'] ?? '');
+$falaise_cotmax = trim($_POST['falaise_cotmax'] ?? '');
+$falaise_zone = trim($_POST['falaise_zone'] ?? -1);
+$falaise_maa = isset($_POST['falaise_maa']) ? (int) $_POST['falaise_maa'] : null;
+$falaise_mar = isset($_POST['falaise_mar']) ? (int) $_POST['falaise_mar'] : null;
+$falaise_public = isset($_POST['falaise_public']) ? (int) $_POST['falaise_public'] : null;
+$falaise_topo = trim($_POST['falaise_topo'] ?? '');
+$falaise_expotxt = trim($_POST['falaise_expotxt'] ?? '');
+$falaise_matxt = trim($_POST['falaise_matxt'] ?? '');
+$falaise_cottxt = trim($_POST['falaise_cottxt'] ?? '');
+$falaise_voletcarto = trim($_POST['falaise_voletcarto'] ?? '');
+$falaise_voies = trim($_POST['falaise_voies'] ?? '');
+$falaise_bloc = trim($_POST['falaise_bloc'] ?? null);
+$falaise_nbvoies = trim($_POST['falaise_nbvoies'] ?? null);
+$nom_prenom = trim($_POST['nom_prenom'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$message = trim($_POST['message'] ?? '');
+$isEdition = $falaise_id !== null;
+$falaise_contrib = trim("'" . $nom_prenom . "','" . $email . "'");
 
-  $champs_obligatoires = [
-    'falaise_nom' => $falaise_nom,
-    'falaise_nomformate' => $falaise_nomformate,
-    'falaise_latlng' => $falaise_latlng,
-    'falaise_exposhort1' => $falaise_exposhort1,
-    'falaise_cotmin' => $falaise_cotmin,
-    'falaise_cotmax' => $falaise_cotmax,
-    'falaise_zone' => $falaise_zone,
-    'falaise_maa' => $falaise_maa,
-    'falaise_mar' => $falaise_mar,
-    'falaise_public' => $falaise_public,
-    'falaise_topo' => $falaise_topo,
-    'falaise_expotxt' => $falaise_expotxt,
-    'falaise_matxt' => $falaise_matxt,
-    'falaise_voletcarto' => $falaise_voletcarto,
-    'falaise_voies' => $falaise_voies
-  ];
+$champs_obligatoires = [
+  'falaise_nom' => $falaise_nom,
+  'falaise_nomformate' => $falaise_nomformate,
+  'falaise_latlng' => $falaise_latlng,
+  'falaise_exposhort1' => $falaise_exposhort1,
+  'falaise_cotmin' => $falaise_cotmin,
+  'falaise_cotmax' => $falaise_cotmax,
+  'falaise_zone' => $falaise_zone,
+  'falaise_maa' => $falaise_maa,
+  'falaise_mar' => $falaise_mar,
+  'falaise_public' => $falaise_public,
+  'falaise_topo' => $falaise_topo,
+  'falaise_expotxt' => $falaise_expotxt,
+  'falaise_matxt' => $falaise_matxt,
+  'falaise_voletcarto' => $falaise_voletcarto,
+  'falaise_voies' => $falaise_voies
+];
 
-  foreach ($champs_obligatoires as $champ => $valeur) {
-    if (empty($valeur) && !is_numeric($valeur)) {
-      if ($admin == 1 && $champ != 'falaise_nom' && $champ != 'falaise_latlng') {
-        continue;
-      }
-      die("Il manque une info obligatoire : " . $champ);
+foreach ($champs_obligatoires as $champ => $valeur) {
+  if (empty($valeur) && !is_numeric($valeur)) {
+    if ($admin == 1 && $champ != 'falaise_nom' && $champ != 'falaise_latlng') {
+      continue;
     }
+    die("Il manque une info obligatoire : " . $champ);
   }
+}
 
-  // Remplissage par défaut des champs non obligatoires
-  $champs = [
-    'falaise_exposhort2' => null,
-    'falaise_gvtxt' => null,
-    'falaise_gvnb' => null,
-    'falaise_rq' => null,
-    'falaise_fermee' => null,
-    'falaise_txt1' => null,
-    'falaise_txt2' => null,
-    'falaise_leg1' => null,
-    'falaise_txt3' => null,
-    'falaise_txt4' => null,
-    'falaise_leg2' => null,
-    'falaise_leg3' => null,
-  ];
+// Remplissage par défaut des champs non obligatoires
+$champs = [
+  'falaise_exposhort2' => null,
+  'falaise_gvtxt' => null,
+  'falaise_gvnb' => null,
+  'falaise_rq' => null,
+  'falaise_fermee' => null,
+  'falaise_txt1' => null,
+  'falaise_txt2' => null,
+  'falaise_leg1' => null,
+  'falaise_txt3' => null,
+  'falaise_txt4' => null,
+  'falaise_leg2' => null,
+  'falaise_leg3' => null,
+];
 
-  foreach ($champs as $key => &$val) {
-    $val = trim($_POST[$key] ?? $val);
-  }
+foreach ($champs as $key => &$val) {
+  $val = trim($_POST[$key] ?? $val);
+}
 
-  require_once "../database/velogrimpe.php";
+require_once "../database/velogrimpe.php";
 
-  if ($mysqli->connect_error) {
-    die("Erreur de connexion à la base de données : " . $mysqli->connect_error);
-  }
+if ($mysqli->connect_error) {
+  die("Erreur de connexion à la base de données : " . $mysqli->connect_error);
+}
 
-  // Préparation de la requête d'insertion
-  $stmt = $mysqli->prepare("INSERT INTO falaises (
+
+// get old record
+$stmt = $mysqli->prepare("SELECT * FROM falaises WHERE falaise_id = ?");
+$stmt->bind_param("i", $falaise_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$oldFalaise = $result->fetch_assoc();
+$stmt->close();
+
+// Préparation de la requête d'insertion
+$stmt = $mysqli->prepare("INSERT INTO falaises (
     falaise_id,
     falaise_nom, falaise_zone, falaise_nomformate, falaise_public, falaise_latlng, falaise_exposhort1, falaise_exposhort2, 
     falaise_cotmin, falaise_cotmax, falaise_maa, falaise_mar, falaise_topo, falaise_expotxt, falaise_matxt, falaise_cottxt,
@@ -119,157 +132,184 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     falaise_txt4 = VALUES(falaise_txt4),
     falaise_leg2 = VALUES(falaise_leg2),
     falaise_leg3 = VALUES(falaise_leg3),
-    falaise_contrib = VALUES(falaise_contrib),
     falaise_bloc = VALUES(falaise_bloc),
-    falaise_nbvoies = VALUES(falaise_nbvoies)
+    falaise_nbvoies = VALUES(falaise_nbvoies),
+    date_modification = NOW()
     ");
 
-  if (!$stmt) {
-    die("Problème de préparation de la requête : " . $mysqli->error);
-  }
+if (!$stmt) {
+  die("Problème de préparation de la requête : " . $mysqli->error);
+}
 
-  $stmt->bind_param(
-    "isisisssssiissssssssssssssssssii",
-    $falaise_id,
-    $falaise_nom,
-    $falaise_zone,
-    $falaise_nomformate,
-    $falaise_public,
-    $falaise_latlng,
-    $falaise_exposhort1,
-    $champs['falaise_exposhort2'],
-    $falaise_cotmin,
-    $falaise_cotmax,
-    $falaise_maa,
-    $falaise_mar,
-    $falaise_topo,
-    $falaise_expotxt,
-    $falaise_matxt,
-    $falaise_cottxt,
-    $falaise_voletcarto,
-    $falaise_voies,
-    $champs['falaise_gvtxt'],
-    $champs['falaise_gvnb'],
-    $champs['falaise_rq'],
-    $champs['falaise_fermee'],
-    $champs['falaise_txt1'],
-    $champs['falaise_txt2'],
-    $champs['falaise_leg1'],
-    $champs['falaise_txt3'],
-    $champs['falaise_txt4'],
-    $champs['falaise_leg2'],
-    $champs['falaise_leg3'],
-    $falaise_contrib,
-    $falaise_bloc,
-    $falaise_nbvoies
-  );
-  $res = $stmt->execute();
-  // get falaise_id from last insert
-  $falaise_id = $mysqli->insert_id;
-  $stmt->close();
-  $mysqli->close();
+$stmt->bind_param(
+  "isisisssssiissssssssssssssssssii",
+  $falaise_id,
+  $falaise_nom,
+  $falaise_zone,
+  $falaise_nomformate,
+  $falaise_public,
+  $falaise_latlng,
+  $falaise_exposhort1,
+  $champs['falaise_exposhort2'],
+  $falaise_cotmin,
+  $falaise_cotmax,
+  $falaise_maa,
+  $falaise_mar,
+  $falaise_topo,
+  $falaise_expotxt,
+  $falaise_matxt,
+  $falaise_cottxt,
+  $falaise_voletcarto,
+  $falaise_voies,
+  $champs['falaise_gvtxt'],
+  $champs['falaise_gvnb'],
+  $champs['falaise_rq'],
+  $champs['falaise_fermee'],
+  $champs['falaise_txt1'],
+  $champs['falaise_txt2'],
+  $champs['falaise_leg1'],
+  $champs['falaise_txt3'],
+  $champs['falaise_txt4'],
+  $champs['falaise_leg2'],
+  $champs['falaise_leg3'],
+  $falaise_contrib,
+  $falaise_bloc,
+  $falaise_nbvoies
+);
+$res = $stmt->execute();
+// get falaise_id from last insert
+$falaise_id = $mysqli->insert_id;
+$stmt->close();
+$mysqli->close();
 
-  $targetDir = '../bdd/images_falaises/'; // Chemin relatif au script PHP
-  $fullTargetDir = realpath($targetDir); // Chemin absolu
+$targetDir = '../bdd/images_falaises/'; // Chemin relatif au script PHP
+$fullTargetDir = realpath($targetDir); // Chemin absolu
 
-  // Vérifiez si le dossier existe
-  if (!$fullTargetDir) {
-    die("Le dossier cible $targetDir n'existe pas ou est introuvable.");
-  }
+// Vérifiez si le dossier existe
+if (!$fullTargetDir) {
+  die("Le dossier cible $targetDir n'existe pas ou est introuvable.");
+}
 
-  function uploadImage($fileInputName, $targetDir, $falaiseId, $falaiseNomformate, $suffix)
-  {
-    if (!isset($_FILES[$fileInputName]) || $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_OK) {
-      return null;
-    }
-
-    $fileTmpName = $_FILES[$fileInputName]['tmp_name'];
-    $fileExtension = strtolower(pathinfo($_FILES[$fileInputName]['name'], PATHINFO_EXTENSION));
-    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-
-    if (!in_array($fileExtension, $allowedExtensions)) {
-      return "Extension non autorisée pour $fileInputName.";
-    }
-
-    $targetFileName = "{$falaiseId}_{$falaiseNomformate}_{$suffix}.png";
-    $targetFilePath = $targetDir . DIRECTORY_SEPARATOR . $targetFileName;
-
-    if (!imagepng(imagecreatefromstring(file_get_contents($fileTmpName)), $targetFilePath)) {
-      // if (!move_uploaded_file($fileTmpName, $targetFilePath)) {
-      return "Erreur lors de l'upload de $fileInputName.";
-    }
-
+function uploadImage($fileInputName, $targetDir, $falaiseId, $falaiseNomformate, $suffix)
+{
+  if (!isset($_FILES[$fileInputName]) || $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_OK) {
     return null;
   }
 
-  foreach (['falaise_img1' => 'img1', 'falaise_img2' => 'img2', 'falaise_img3' => 'img3'] as $fileInputName => $suffix) {
-    $uploadError = uploadImage($fileInputName, $targetDir, $falaise_id, $falaise_nomformate, $suffix);
-    if ($uploadError) {
-      $errors[] = $uploadError;
-    }
+  $fileTmpName = $_FILES[$fileInputName]['tmp_name'];
+  $fileExtension = strtolower(pathinfo($_FILES[$fileInputName]['name'], PATHINFO_EXTENSION));
+  $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+
+  if (!in_array($fileExtension, $allowedExtensions)) {
+    return "Extension non autorisée pour $fileInputName.";
   }
 
-  if ($errors) {
-    foreach ($errors as $error) {
-      echo "<p style='color:red;'>$error</p>";
-    }
-    echo "<a href='add_falaise.html'>Retour au formulaire</a>";
-    exit;
+  $targetFileName = "{$falaiseId}_{$falaiseNomformate}_{$suffix}.png";
+  $targetFilePath = $targetDir . DIRECTORY_SEPARATOR . $targetFileName;
+
+  if (!imagepng(imagecreatefromstring(file_get_contents($fileTmpName)), $targetFilePath)) {
+    // if (!move_uploaded_file($fileTmpName, $targetFilePath)) {
+    return "Erreur lors de l'upload de $fileInputName.";
   }
 
+  return null;
+}
 
-  if ($res) {
-    // Envoi du mail de confirmation seulement si admin = 0
-    if ($admin == 0) {
-      require_once '../lib/sendmail.php';
-      $to = $config["contact_mail"];
-      $subject = "🧗 Falaise '$falaise_nom' ajoutée par $nom_prenom";
-
-      $html = "<html><body>";
-      $html .= "<h1>La falaise de $falaise_nom a été ajoutée par $nom_prenom</h1>";
-      $html .= "<p>email : <a href='mailto:$email'>$email</a></p>";
-      $html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a></p>";
-      if ($message) {
-        $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "</p>";
-      }
-      $html .= "<p>Détails de la falaise :</p>";
-      $html .= "<ul>";
-      $html .= "<li><b>Nom</b>: $falaise_nom</li>";
-      $html .= "<li><b>Topo</b>: $falaise_topo</li>";
-      $html .= "<li><b>Nb Voies</b>: $falaise_nbvoies</li>";
-      $html .= "<li><b>Voies</b>: $falaise_voies</li>";
-      $html .= "<li><b>Volet carto</b>: $falaise_voletcarto</li>";
-      $html .= "<li><b>Expositions</b>: $falaise_exposhort1</li>";
-      $html .= "<li><b>Exposition</b>: $falaise_expotxt</li>";
-      $html .= "<li><b>Cotations min/max</b>: $falaise_cotmin/$falaise_cotmax</li>";
-      $html .= "<li><b>Cotations</b>: $falaise_cottxt</li>";
-      $html .= "<li><b>Approche A/R</b>: $falaise_maa/$falaise_mar</li>";
-      $html .= "<li><b>Approche</b>: $falaise_matxt</li>";
-      $html .= "<li><b>Grandes voies</b>: " . $champs['falaise_gvtxt'] . "</li>";
-      $html .= "<li><b>Nombre de GV</b>: " . $champs['falaise_gvnb'] . "</li>";
-      $html .= "<li><b>Bloc</b>: " . $falaise_bloc . "</li>";
-      $html .= "<li><b>Remarque</b>: " . $champs['falaise_rq'] . "</li>";
-      $html .= "</ul>";
-      $html .= "</body></html>";
-
-
-      $data = [
-        'to' => $to,
-        'subject' => $subject,
-        'html' => $html,
-        'h:Reply-To' => $email
-      ];
-      sendMail($data);
-
-      // mail($to, $subject, $body, $headers);
-      header("Location: /contribuer.php");
-    } else {
-      header("Location: admin/ajout_donnees_admin.php");
-    }
-    exit;
-  } else {
-    die("Erreur lors de l'ajout de la falaise : " . $stmt->error);
+foreach (['falaise_img1' => 'img1', 'falaise_img2' => 'img2', 'falaise_img3' => 'img3'] as $fileInputName => $suffix) {
+  $uploadError = uploadImage($fileInputName, $targetDir, $falaise_id, $falaise_nomformate, $suffix);
+  if ($uploadError) {
+    $errors[] = $uploadError;
   }
 }
+
+if ($errors) {
+  foreach ($errors as $error) {
+    echo "<p style='color:red;'>$error</p>";
+  }
+  echo "<a href='add_falaise.html'>Retour au formulaire</a>";
+  exit;
+}
+if (!$res) {
+  die("Erreur lors de l'ajout de la falaise : " . $stmt->error);
+}
+
+////// DEBUT GESTION DES CHANGEMENTS
+require_once "../lib/edit_logs.php";
+$newFalaise = [
+  "falaise_id" => $falaise_id,
+  "falaise_nom" => $falaise_nom,
+  "falaise_nomformate" => $falaise_nomformate,
+  "falaise_latlng" => $falaise_latlng,
+  "falaise_exposhort1" => $falaise_exposhort1,
+  "falaise_cotmin" => $falaise_cotmin,
+  "falaise_cotmax" => $falaise_cotmax,
+  "falaise_zone" => $falaise_zone,
+  "falaise_maa" => $falaise_maa,
+  "falaise_mar" => $falaise_mar,
+  "falaise_public" => $falaise_public,
+  "falaise_topo" => $falaise_topo,
+  "falaise_expotxt" => $falaise_expotxt,
+  "falaise_matxt" => $falaise_matxt,
+  "falaise_cottxt" => $falaise_cottxt,
+  "falaise_voletcarto" => $falaise_voletcarto,
+  "falaise_voies" => $falaise_voies,
+  "falaise_bloc" => $falaise_bloc,
+  "falaise_nbvoies" => $falaise_nbvoies,
+];
+$record_id = $isEdition ? $falaise_id : $mysqli->insert_id;
+$type = $isEdition ? "update" : "insert";
+$collection = 'falaises';
+logChanges($nom_prenom, $email, $type, $collection, $record_id, $newFalaise, $oldFalaise);
+////// FIN GESTION DES CHANGEMENTS
+
+// Envoi du mail de confirmation seulement si admin = 0
+if ($admin == 0) {
+  require_once '../lib/sendmail.php';
+  $to = $config["contact_mail"];
+  $subject = "🧗 Falaise '$falaise_nom' ajoutée par $nom_prenom";
+
+  $html = "<html><body>";
+  $html .= "<h1>La falaise de $falaise_nom a été ajoutée par $nom_prenom</h1>";
+  $html .= "<p>email : <a href='mailto:$email'>$email</a></p>";
+  $html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a></p>";
+  if ($message) {
+    $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "</p>";
+  }
+  $html .= "<p>Détails de la falaise :</p>";
+  $html .= "<ul>";
+  $html .= "<li><b>Nom</b>: $falaise_nom</li>";
+  $html .= "<li><b>Topo</b>: $falaise_topo</li>";
+  $html .= "<li><b>Nb Voies</b>: $falaise_nbvoies</li>";
+  $html .= "<li><b>Voies</b>: $falaise_voies</li>";
+  $html .= "<li><b>Volet carto</b>: $falaise_voletcarto</li>";
+  $html .= "<li><b>Expositions</b>: $falaise_exposhort1</li>";
+  $html .= "<li><b>Exposition</b>: $falaise_expotxt</li>";
+  $html .= "<li><b>Cotations min/max</b>: $falaise_cotmin/$falaise_cotmax</li>";
+  $html .= "<li><b>Cotations</b>: $falaise_cottxt</li>";
+  $html .= "<li><b>Approche A/R</b>: $falaise_maa/$falaise_mar</li>";
+  $html .= "<li><b>Approche</b>: $falaise_matxt</li>";
+  $html .= "<li><b>Grandes voies</b>: " . $champs['falaise_gvtxt'] . "</li>";
+  $html .= "<li><b>Nombre de GV</b>: " . $champs['falaise_gvnb'] . "</li>";
+  $html .= "<li><b>Bloc</b>: $falaise_bloc</li>";
+  $html .= "<li><b>Remarque</b>: " . $champs['falaise_rq'] . "</li>";
+  $html .= "</ul>";
+  $html .= "</body></html>";
+
+
+  $data = [
+    'to' => $to,
+    'subject' => $subject,
+    'html' => $html,
+    'h:Reply-To' => $email
+  ];
+  sendMail($data);
+
+  // mail($to, $subject, $body, $headers);
+  header("Location: /contribuer.php");
+} else {
+  header("Location: admin/ajout_donnees_admin.php");
+}
+exit;
+
 
 ?>

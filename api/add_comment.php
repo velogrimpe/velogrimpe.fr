@@ -52,37 +52,21 @@ if ($stmt->affected_rows === 0) {
 $stmt->close();
 
 //Store in log
-$stmt = $mysqli->prepare(
-  "INSERT INTO edit_logs (type, collection, record_id, author, author_email, changes) VALUES ('insert', ?, ?, ?, ?, ?)"
-);
-if (!$stmt) {
-  http_response_code(500);
-  die(json_encode(["error" => "Problème de préparation de la requête : " . $mysqli->error]));
-}
-$table = 'commentaires_falaises';
+require_once "../lib/edit_logs.php";
+$new_comment = [
+  "falaise_id" => $falaise_id,
+  "velo_id" => $velo_id,
+  "commentaire" => $commentaire,
+  "nom" => $nom,
+  "email" => $email,
+  "ville_nom" => $ville_nom,
+  "gare_depart" => $gare_depart,
+  "gare_arrivee" => $gare_arrivee
+];
+$collection = 'commentaires_falaises';
+$type = 'insert';
 $record_id = $mysqli->insert_id;
-$author = $nom;
-$author_email = $email;
-$changes = json_encode([
-  'falaise_id' => $falaise_id,
-  'velo_id' => $velo_id,
-  'commentaire' => $commentaire,
-  'nom' => $nom,
-  'email' => $email,
-  'ville_nom' => $ville_nom,
-  'gare_depart' => $gare_depart,
-  'gare_arrivee' => $gare_arrivee,
-]);
-$stmt->bind_param("sisss", $table, $record_id, $author, $author_email, $changes);
-if (!$stmt) {
-  die("Problème de liaison des paramètres : " . $mysqli->error);
-}
-// Execute the statement
-$stmt->execute();
-if ($stmt->error) {
-  die("Erreur lors de l'exécution de la requête : " . $stmt->error);
-}
-$stmt->close();
+logChanges($nom, $email, $type, $collection, $record_id, $new_comment);
 
 echo json_encode(['success' => true]);
 

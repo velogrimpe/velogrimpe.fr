@@ -45,39 +45,22 @@ if ($result->num_rows === 0) {
 $existing_comment = $result->fetch_assoc();
 $stmt->close();
 
-// Identify changes
-$changes = [];
-foreach ($existing_comment as $key => $value) {
-  if (strval($value) !== strval($$key)) {
-    $changes[$key] = $$key;
-  }
-}
-
-if (!empty($changes)) {
-  // Store changes in the log table
-  $stmt = $mysqli->prepare(
-    "INSERT INTO edit_logs (type, collection, record_id, author, author_email, changes) VALUES ('update', 'commentaires_falaises', ?, ?, ?, ?)"
-  );
-  if (!$stmt) {
-    http_response_code(500);
-    die(json_encode(["error" => "Problème de préparation de la requête : " . $mysqli->error]));
-  }
-  $author = $nom;
-  $author_email = $email;
-  $changes_json = json_encode($changes);
-  $stmt->bind_param("isss", $commentaire_id, $author, $author_email, $changes_json);
-  if (!$stmt) {
-    http_response_code(500);
-    die(json_encode(["error" => "Problème de liaison des paramètres : " . $mysqli->error]));
-  }
-  // Execute the statement
-  $stmt->execute();
-  if ($stmt->error) {
-    http_response_code(500);
-    die(json_encode(["error" => "Erreur lors de l'exécution de la requête : " . $stmt->error]));
-  }
-  $stmt->close();
-}
+//Store in log
+require_once "../lib/edit_logs.php";
+$new_comment = [
+  "falaise_id" => $falaise_id,
+  "velo_id" => $velo_id,
+  "commentaire" => $commentaire,
+  "nom" => $nom,
+  "email" => $email,
+  "ville_nom" => $ville_nom,
+  "gare_depart" => $gare_depart,
+  "gare_arrivee" => $gare_arrivee
+];
+$collection = 'commentaires_falaises';
+$type = 'update';
+$record_id = $commentaire_id;
+logChanges($nom, $email, $type, $collection, $record_id, $new_comment, $existing_comment);
 
 $stmt = $mysqli->prepare(
   "UPDATE commentaires_falaises
