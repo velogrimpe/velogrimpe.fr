@@ -4,10 +4,12 @@
   <!-- Open the modal using ID.showModal() method -->
   <a class="font-normal" href="/">© Velogrimpe.fr</a>
   <span class="hidden sm:block">-</span>
-  <a class="font-normal" onclick="credits_modal.showModal()">Crédits</a>
+  <a class="font-normal cursor-pointer" onclick="credits_modal.showModal()"
+    >Crédits</a
+  >
   <dialog id="credits_modal" class="modal">
-    <div class="modal-box">
-      <ul>
+    <div class="modal-box text-base">
+      <ul class="list list-disc">
         <li>
           Données topos fournies par les contributeurs velogrimpe, souvent à
           partir des topos papiers, de connaissances locales et des itinéraires
@@ -20,7 +22,13 @@
           >
             Stock de photos de la Campagne Mountain Wilderness "Changer
             d'approche" </a
-          >, par <a href="https://monikaglet.com/">Monika Glet</a>
+          >, par <a href="https://monikaglet.com/">Monika Glet</a>.
+          <br />
+          <a
+            href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr"
+            class="text-primary"
+            >Licence : CC BY-NC-SA</a
+          >
         </li>
         <li>Logo créé par Mélanie</li>
         <li>
