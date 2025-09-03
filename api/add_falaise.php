@@ -259,7 +259,16 @@ $newFalaise = [
 $record_id = $falaise_id;
 $type = $isEdition ? "update" : "insert";
 $collection = 'falaises';
-logChanges($nom_prenom, $email, $type, $collection, $record_id, $newFalaise, $oldFalaise);
+logChanges(
+  $nom_prenom,
+  $email,
+  $type,
+  $collection,
+  $record_id,
+  $falaise_id,
+  $newFalaise,
+  $oldFalaise
+);
 ////// FIN GESTION DES CHANGEMENTS
 
 // Envoi du mail de confirmation seulement si admin = 0

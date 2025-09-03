@@ -66,7 +66,15 @@ $new_comment = [
 $collection = 'commentaires_falaises';
 $type = 'insert';
 $record_id = $mysqli->insert_id;
-logChanges($nom, $email, $type, $collection, $record_id, $new_comment);
+logChanges(
+  $nom,
+  $email,
+  $type,
+  $collection,
+  $record_id,
+  $falaise_id,
+  $new_comment
+);
 
 echo json_encode(['success' => true]);
 

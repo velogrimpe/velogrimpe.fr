@@ -76,7 +76,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $collection = 'train';
   $type = 'insert';
   $record_id = $mysqli->insert_id;
-  logChanges($nom_prenom, $email, $type, $collection, $record_id, $new_comment);
+  logChanges(
+    $nom_prenom,
+    $email,
+    $type,
+    $collection,
+    $record_id,
+    null,
+    $new_comment
+  );
 
 
 

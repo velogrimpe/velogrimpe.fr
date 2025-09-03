@@ -60,7 +60,16 @@ $new_comment = [
 $collection = 'commentaires_falaises';
 $type = 'update';
 $record_id = $commentaire_id;
-logChanges($nom, $email, $type, $collection, $record_id, $new_comment, $existing_comment);
+logChanges(
+  $nom,
+  $email,
+  $type,
+  $collection,
+  $record_id,
+  $falaise_id,
+  $new_comment,
+  $existing_comment
+);
 
 $stmt = $mysqli->prepare(
   "UPDATE commentaires_falaises

@@ -115,7 +115,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $collection = 'velo';
     $type = 'insert';
     $record_id = $mysqli->insert_id;
-    logChanges($nom_prenom, $email, $type, $collection, $record_id, $new_comment);
+    logChanges(
+      $nom_prenom,
+      $email,
+      $type,
+      $collection,
+      $record_id,
+      $falaise_id,
+      $new_comment
+    );
 
 
     // Envoi du mail de confirmation seulement si admin = 0

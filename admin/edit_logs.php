@@ -63,6 +63,7 @@ $table_labels = [
           <th>Table</th>
           <th>ID</th>
           <th>Changements</th>
+          <th title="Voir la falaise concernée">🧗</th>
         </tr>
       </thead>
       <tbody>
@@ -87,6 +88,15 @@ $table_labels = [
                   </div>
                 <?php endforeach; ?>
               </div>
+            </td>
+            <td>
+              <?php if ($log['falaise_id'] !== null): ?>
+                <a href="/falaise.php?falaise_id=<?= $log['falaise_id'] ?>">
+                  <svg class="w-4 h-4 fill-current">
+                    <use xlink:href="/symbols/icons.svg#ri-eye-fill"></use>
+                  </svg>
+                </a>
+              <?php endif; ?>
             </td>
           </tr>
         <?php endforeach; ?>
