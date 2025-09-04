@@ -9,9 +9,9 @@ if (!isset($_GET['ville_id']) || !isset($_GET['gare_id'])) {
 
 $stmt = $mysqli->prepare("SELECT train_id FROM train WHERE ville_id = ? AND gare_id = ?");
 $stmt->execute([$_GET['ville_id'], $_GET['gare_id']]);
-$velo = $stmt->fetch();
+$train = $stmt->fetch();
 
-if ($velo) {
+if ($train) {
   echo json_encode(true);
 } else {
   echo json_encode(false);

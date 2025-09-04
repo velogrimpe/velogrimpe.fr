@@ -273,7 +273,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           rows="4"></textarea>
       </label>
 
-      <button type="submit" class="btn btn-primary">AJOUTER L'ITINÉRAIRE TRAIN</button>
+      <button type="submit" class="btn btn-primary" id="submitBtn">AJOUTER L'ITINÉRAIRE TRAIN</button>
 
     </form>
   </main>
@@ -296,8 +296,10 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       .then(exists => {
         if (exists) {
           document.getElementById("itineraireExistsAlert").classList.remove("hidden");
+          document.getElementById("submitBtn").disabled = true;
         } else {
           document.getElementById("itineraireExistsAlert").classList.add("hidden");
+          document.getElementById("submitBtn").disabled = false;
         }
       });
   };

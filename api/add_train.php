@@ -43,6 +43,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
+  // Ensure not a duplicate
+  $stmt = $mysqli->prepare("SELECT train_id FROM train WHERE ville_id = ? AND gare_id = ?");
+  $stmt->execute([$_GET['ville_id'], $_GET['gare_id']]);
+  $train = $stmt->fetch();
+
+  if ($train) {
+    die("Un itinéraire existe déjà entre cette ville et cette gare.");
+  }
+
   $stmt = $mysqli->prepare("INSERT INTO train
         (ville_id, gare_id, train_temps, train_correspmin, train_correspmax, train_public,
         train_descr, train_depart, train_arrivee, train_contrib)
