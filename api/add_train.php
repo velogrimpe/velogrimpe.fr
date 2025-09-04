@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   // Ensure not a duplicate
   $stmt = $mysqli->prepare("SELECT train_id FROM train WHERE ville_id = ? AND gare_id = ?");
-  $stmt->execute([$_GET['ville_id'], $_GET['gare_id']]);
+  $stmt->execute([$ville_id, $gare_id]);
   $train = $stmt->fetch();
 
   if ($train) {
