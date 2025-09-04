@@ -778,7 +778,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 <script>
-  function fetchAndPrefillData(id, fillAll = false) {
+  function fetchAndPrefillData(id) {
     fetch(`/api/fetch_falaise.php?falaise_id=${id}`)
       .then(response => response.json())
       .then(falaise => {
