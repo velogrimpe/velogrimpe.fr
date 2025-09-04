@@ -19,27 +19,26 @@ function logChanges($author, $email, $type, $collection, $id, $falaise_id, $new_
     }
   }
 
-  if (!empty($changes)) {
-    // Store changes in the log table
-    $stmt = $mysqli->prepare(
-      "INSERT INTO edit_logs (type, collection, record_id, author, author_email, changes, falaise_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    );
-    if (!$stmt) {
-      http_response_code(500);
-      die(json_encode(["error" => "Problème de préparation de la requête : " . $stmt->error]));
-    }
-    $changes_json = json_encode($changes);
-    $stmt->bind_param("ssissss", $type, $collection, $id, $author, $email, $changes_json, $falaise_id);
-    if (!$stmt) {
-      http_response_code(500);
-      die(json_encode(["error" => "Problème de liaison des paramètres : " . $stmt->error]));
-    }
-    // Execute the statement
-    $stmt->execute();
-    if ($stmt->error) {
-      http_response_code(500);
-      die(json_encode(["error" => "Erreur lors de l'exécution de la requête : " . $stmt->error]));
-    }
-    $stmt->close();
+  // Store changes in the log table
+  $stmt = $mysqli->prepare(
+    "INSERT INTO edit_logs (type, collection, record_id, author, author_email, changes, falaise_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  );
+  if (!$stmt) {
+    http_response_code(500);
+    die(json_encode(["error" => "Problème de préparation de la requête : " . $stmt->error]));
   }
+  $changes_json = json_encode($changes);
+  $stmt->bind_param("ssissss", $type, $collection, $id, $author, $email, $changes_json, $falaise_id);
+  if (!$stmt) {
+    http_response_code(500);
+    die(json_encode(["error" => "Problème de liaison des paramètres : " . $stmt->error]));
+  }
+  // Execute the statement
+  $stmt->execute();
+  if ($stmt->error) {
+    http_response_code(500);
+    die(json_encode(["error" => "Erreur lors de l'exécution de la requête : " . $stmt->error]));
+  }
+  $stmt->close();
+
 }
