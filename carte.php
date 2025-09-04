@@ -620,6 +620,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
           icon: falaiseIcon(defaultMarkerSize, falaise.falaise_fermee, falaise.falaise_bloc),
           riseOnHover: true,
           autoPanOnFocus: true,
+          title: "Clic pour voir les accès, puis second clic pour accéder à la fiche complète"
         }
       ).addTo(map);
       falaise.marker = marker;
@@ -658,8 +659,10 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
             });
           }), 0.76 * 1000);
         } else {
-          map.flyTo(falaise.falaise_latlng.split(","), 15, { duration: 0.25 });
-          marker.closeTooltip();
+          // map.flyTo(falaise.falaise_latlng.split(","), 15, { duration: 0.25 });
+          // navigate to falaise page
+          window.location.href = `/falaise.php?falaise_id=${falaise.falaise_id}`;
+          // marker.closeTooltip();
         }
         marker.unbindTooltip();
         marker.bindTooltip(falaise.falaise_nom, {
