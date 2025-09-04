@@ -31,6 +31,16 @@ $table_labels = [
   'zones' => "Zones"
 ];
 
+
+$formatter = new IntlDateFormatter(
+  'fr_FR',                // Locale française
+  IntlDateFormatter::SHORT, // Format long pour la date
+  IntlDateFormatter::SHORT, // Format court pour l'heure
+  'Europe/Paris',         // Fuseau horaire
+  IntlDateFormatter::GREGORIAN,
+  "d MMM YY 'à' HH'h'mm"    // Pattern personnalisé
+);
+
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -69,9 +79,14 @@ $table_labels = [
       <tbody>
         <?php foreach ($edit_logs as $log): ?>
           <tr class="bg-base-100 p-4 rounded-lg shadow-md">
-            <td><?= htmlspecialchars($log['date']) ?></td>
-            <td><a class="text-info"
-                href="mailto:<?= htmlspecialchars($log['author_email']) ?>"><?= htmlspecialchars($log['author']) ?></a>
+            <td><?= $formatter->format(new DateTime($log['date'])) ?></td>
+            <td>
+              <?= htmlspecialchars($log['author']) ?>
+              <a class="" href="mailto:<?= htmlspecialchars($log['author_email']) ?>">
+                <svg class="w-3 h-3 fill-current inline">
+                  <use xlink:href="/symbols/icons.svg#ri-mail-fill"></use>
+                </svg>
+              </a>
             </td>
             <td><?= $type_labels[$log['type']] ?? htmlspecialchars($log['type']) ?></td>
             <td><?= $table_labels[$log['collection']] ?? htmlspecialchars($log['collection']) ?></td>
