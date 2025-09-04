@@ -38,7 +38,7 @@ $formatter = new IntlDateFormatter(
   IntlDateFormatter::SHORT, // Format court pour l'heure
   'Europe/Paris',         // Fuseau horaire
   IntlDateFormatter::GREGORIAN,
-  "d MMM YY 'à' HH'h'mm"    // Pattern personnalisé
+  "d' 'MMM' 'YY 'à 'HH'h'mm"    // Pattern personnalisé
 );
 
 ?>
