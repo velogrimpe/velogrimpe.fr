@@ -71,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     "train_descr" => $train_descr,
     "train_depart" => $train_depart,
     "train_arrivee" => $train_arrivee,
-    "train_contrib" => $train_contrib,
   ];
   $collection = 'train';
   $type = 'insert';
@@ -114,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = [
       'to' => $to,
       'subject' => $subject,
-      'message' => $html,
+      'html' => $html,
       'h:Reply-To' => $email
     ];
 

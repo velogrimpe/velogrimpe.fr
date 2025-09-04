@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $data = [
         'to' => $to,
         'subject' => $subject,
-        'message' => $html,
+        'html' => $html,
         'h:Reply-To' => $email
       ];
 
