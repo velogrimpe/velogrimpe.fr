@@ -621,8 +621,9 @@ $stmtC->close();
               </span>
               <?php if ($selected_ville_nom && $train_descr): ?>
                 : <span class="font-bold text-primary">
-                  <?php echo format_time($shortest_velo_time + $train_temps + $falaise_maa) ?>
+                  <?= format_time($shortest_velo_time + $train_temps + $falaise_maa) ?>
                 </span>
+                <span class="text-base" title="Temps total (Train + Velo + Approche)">(🚃+🚲+🥾)</span>
               <?php endif ?>
             </div>
             <div class="hidden md:block">
