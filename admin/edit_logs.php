@@ -83,7 +83,7 @@ $table_labels = [
                 <?php foreach ($changes as $change): ?>
                   <div>
                     <strong><?= htmlspecialchars($change['field']) ?>:</strong>
-                    <span class="line-through text-danger"><?= htmlspecialchars($change['old']) ?></span>
+                    <span class="line-through text-error"><?= htmlspecialchars($change['old']) ?></span>
                     <span class="font-bold text-success"><?= htmlspecialchars($change['new']) ?></span>
                   </div>
                 <?php endforeach; ?>
