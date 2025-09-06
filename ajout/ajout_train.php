@@ -124,8 +124,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </div>
           <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_depart_id"
             name="train_depart_id" readonly required>
-          <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_depart_uic"
-            name="train_depart_uic" readonly required>
+          <!-- <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_depart_uic"
+            name="train_depart_uic" readonly required> -->
         </div>
 
         <!-- Menu déroulant des gares -->
@@ -146,8 +146,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </div>
           <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="gare_id" name="gare_id"
             readonly required>
-          <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_arrivee_uic"
-            name="train_arrivee_uic" readonly required>
+          <!-- <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_arrivee_uic"
+            name="train_arrivee_uic" readonly required> -->
         </div>
       </div>
 
@@ -308,92 +308,204 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   const arriveeCallback = (gareNom) => {
     const gare = gareNom ? Object.values(gares).find(g => g.nom === gareNom) : {};
     document.getElementById('gare_id').value = gare.id;
-    document.getElementById('train_arrivee_uic').value = gare.codeuic;
+    // document.getElementById('train_arrivee_uic').value = gare.codeuic;
     verifierExistenceItineraire();
   };
   const departCallback = (gareNom) => {
     const gare = gareNom ? Object.values(gares).find(g => g.nom === gareNom) : {};
     document.getElementById('train_depart_id').value = gare.id;
-    document.getElementById('train_depart_uic').value = gare.codeuic;
+    // document.getElementById('train_depart_uic').value = gare.codeuic;
   };
   document.getElementById('ville_id').addEventListener('change', () => {
     verifierExistenceItineraire();
   });
 
+  const nextSaturday = new Date();
+  nextSaturday.setDate(nextSaturday.getDate() + (6 - nextSaturday.getDay()) % 7);
+  nextSaturday.setHours(0, 0, 0, 0);
+
+  const toMinutes = (seconds) => Math.round(seconds / 60);
+
+  function computeStats(data) {
+    const itineraries = data.itineraries || [];
+    if (itineraries.length === 0) {
+      // resultDiv.innerHTML = "<p>Aucun départ trouvé.</p>"; TODO
+      return;
+    }
+
+    const brief = itineraries.map(it => {
+      const { fareTransfers, transfers, legs } = it
+      const transitLegs = legs.filter(leg => leg.mode !== "WALK");
+      const startTime = transitLegs[0]?.startTime || it.startTime;
+      const endTime = transitLegs[transitLegs.length - 1]?.endTime || it.endTime;
+      const duration = (new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000;
+      transitLegs.forEach(leg => {
+        const geom = leg.legGeometry.points; // TODO add a map to display all routes
+      });
+      return { duration, transfers, startTime, endTime }
+    });
+    // dedup trips on start and end times
+    const uniqueTrips = Array.from(new Map(brief.map(item => [`${item.startTime}-${item.endTime}`, item])).values());
+    // exclude trips spanning two days
+    const filteredTrips = uniqueTrips.filter(item => {
+      const start = new Date(item.startTime);
+      const end = new Date(item.endTime);
+      return start.getDate() === end.getDate();
+    });
+    // compute max/min transfers, max/min duration
+    const maxTransfers = Math.max(...filteredTrips.map(item => item.transfers), 0);
+    const minTransfers = Math.min(...filteredTrips.map(item => item.transfers), Infinity);
+    const maxDuration = Math.max(...filteredTrips.map(item => item.duration), 0);
+    const minDuration = Math.min(...filteredTrips.map(item => item.duration), Infinity);
+    const transferStations = itineraries.filter(item => item.transfers > 0).map(item => item.legs.filter(leg => leg.mode !== "WALK").slice(0, -1).map(leg => leg.to.name).join(" et "));
+    const transferStationsSet = new Set(transferStations);
+    const ratioDirects = filteredTrips.length > 0 ? (filteredTrips.filter(item => item.transfers === 0).length / filteredTrips.length) * 100 : 0;
+
+    return {
+      minDuration: toMinutes(minDuration),
+      maxDuration: toMinutes(maxDuration),
+      minTransfers,
+      maxTransfers,
+      ratioDirects,
+      transferStations: Array.from(transferStationsSet),
+      nTrips: filteredTrips.length,
+    };
+  }
+
+  function toHM(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  }
+
+  const updateFields = (stats) => {
+    document.getElementById("train_temps").value = stats.minDuration;
+    document.getElementById("train_correspmin").value = stats.minTransfers;
+    document.getElementById("train_correspmax").value = stats.maxTransfers;
+    document.getElementById("train_descr").value =
+      `- Environ ${stats.nTrips} trains / jours.\n` +
+      `- De ${toHM(stats.minDuration)} à ${toHM(stats.maxDuration)}.\n` +
+      (stats.ratioDirects >= 50 ? "- Majorité de directs.\n" : `- Majorité de trajets avec correspondances.\n`) +
+      (stats.transferStations.length > 0 ? `- Correspondances possibles : ${stats.transferStations.join(", ")}.\n` : "")
+  }
+
+  async function fetchRoute() {
+    const url = "https://api.transitous.org/api/";
+    const ua = "Vélogrimpe.fr (https://velogrimpe.fr) - v0.1 - contact@velogrimpe.fr";
+    const routingEndpoint = "v3/plan";
+    const geocodeEndpoint = "v1/geocode";
+
+    const from = encodeURIComponent(document.getElementById('train_depart').value);
+    const to = encodeURIComponent(document.getElementById('train_arrivee').value);
+    const transitModes = ["RAIL", "LONG_DISTANCE", "REGIONAL_FAST_RAIL", "REGIONAL_RAIL"].join(",");
+    const fromRes = await fetch(`${url}${geocodeEndpoint}?text=${from}, France`, { headers: { "X-Client-Identification": ua } }).then(res => res.json());
+    const { name: fromName, lat: fromLat, lon: fromLon } = fromRes.find(r => r.type === "STOP") || fromRes[0];
+    const toRes = await fetch(`${url}${geocodeEndpoint}?text=${to}, France`, { headers: { "X-Client-Identification": ua } }).then(res => res.json());
+    const { name: toName, lat: toLat, lon: toLon } = toRes.find(r => r.type === "STOP") || toRes[0];
+    const fromPlace = `${fromLat},${fromLon}`;
+    const toPlace = `${toLat},${toLon}`;
+    const fullUrl = (
+      `${url}${routingEndpoint}?1=1`
+      + `&fromPlace=${fromPlace}`
+      + `&toPlace=${toPlace}`
+      + `&transitModes=${transitModes}`
+      + `&time=${nextSaturday.toISOString()}`
+      + `&withFares=${true}`
+      + `&passengers=${1}`
+      + `&searchWindow=${86400}`
+      // + `&preTransitModes=${"BIKE"}`
+      // + `&maxPreTransitTime=${3600}` // returns too many duplicated results, requires to dedup
+    );
+
+    try {
+      const response = await fetch(fullUrl, { headers: { "X-Client-Identification": ua } });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      const stats = computeStats(data);
+      updateFields(stats);
+    } catch (error) {
+      console.error('Error fetching route:', error);
+      // resultDiv.innerHTML = `<p class="text-error">${error.message}</p>`;
+    }
+  }
   document.getElementById("fetchTrains").addEventListener('click', () => {
     // Add loader in the button and disable it
     document.querySelector("#fetchTrains .loading").classList.remove("hidden");
     document.getElementById("fetchTrains").disabled = true;
-    const gareDepart = document.getElementById('train_depart_uic').value;
-    const gareArrivee = document.getElementById('train_arrivee_uic').value;
-    if (!gareDepart || !gareArrivee) {
-      alert("Veuillez sélectionner une gare de départ et une gare d'arrivée.");
-      return;
-    }
-    fetch(`/api/fetch_trains.php?depart_uic=${gareDepart}&arrivee_uic=${gareArrivee}`)
-      .then(response => response.json())
-      .then(data => {
-        const tableBody = document.getElementById('tableTrainsBody');
-        tableBody.innerHTML = '';
-        data.forEach(row => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${row.depart.replace(/:00$/g, "")}</td>
-            <td>${row.arrivee.replace(/:00$/g, "")}</td>
-            <td>${row.via === "Direct" ? row.via : row.via + " (" + row.co_dur + ")"}</td>
-            <td>${row.duree} min</td>
-            <td class="w-12">${row.lundi}</td>
-            <td class="w-12">${row.mardi}</td>
-            <td class="w-12">${row.mercredi}</td>
-            <td class="w-12">${row.jeudi}</td>
-            <td class="w-12">${row.vendredi}</td>
-            <td class="w-12">${row.samedi}</td>
-            <td class="w-12">${row.dimanche}</td>
-          `;
-          tableBody.appendChild(tr);
-        });
-        const tempsMin = Math.min(...data.map(row => row.duree));
-        const minCorresp = data.find(row => row.via === 'Direct') ? 0 : 1;
-        const nbTrainsPerDay = data.reduce((acc, row) => {
-          acc.lundi += (row.lundi === '✅' || row.lundi >= "50") ? 1 : 0;
-          acc.mardi += (row.mardi === '✅' || row.mardi >= "50") ? 1 : 0;
-          acc.mercredi += (row.mercredi === '✅' || row.mercredi >= "50") ? 1 : 0;
-          acc.jeudi += (row.jeudi === '✅' || row.jeudi >= "50") ? 1 : 0;
-          acc.vendredi += (row.vendredi === '✅' || row.vendredi >= "50") ? 1 : 0;
-          acc.samedi += (row.samedi === '✅' || row.samedi >= "50") ? 1 : 0;
-          acc.dimanche += (row.dimanche === '✅' || row.dimanche >= "50") ? 1 : 0;
-          return acc;
-        }, { lundi: 0, mardi: 0, mercredi: 0, jeudi: 0, vendredi: 0, samedi: 0, dimanche: 0 });
-        const avgWeekDay = (nbTrainsPerDay.lundi + nbTrainsPerDay.mardi + nbTrainsPerDay.mercredi + nbTrainsPerDay.jeudi + nbTrainsPerDay.vendredi) / 5;
-        const nDirects = data.filter(row => row.via === 'Direct').length;
-        const nCorresp = data.length - nDirects;
-        const ratioDirects = nDirects > 15
-          ? `<i>Les trajets directs étant suffisament nombreux, les trajets avec correspondance n'ont pas été vérifiés</i>`
-          : nDirects > 2 * nCorresp
-            ? 'Une grande majorité de directs'
-            : nDirects > nCorresp
-              ? "Une majorité de directs"
-              : nDirects === 0
-                ? "Aucun trajet direct"
-                : "Une majorité de trains avec correspondance";
-        const maxCoDur = data.filter(r => r.via !== "Direct").reduce((acc, row) => Math.max(acc, row.co_dur), 0);
-        const minCoDur = data.filter(r => r.via !== "Direct").reduce((acc, row) => Math.min(acc, row.co_dur), 1000);
-        const maxDur = Math.max(...data.map(row => row.duree));
-        const minDur = Math.min(...data.map(row => row.duree));
-        const comment = (
-          `De ${minDur} à ${maxDur} minutes de trajet.\n`
-          + `En moyenne, ${nbTrainsPerDay.samedi} TER/jour le Samedi, ${nbTrainsPerDay.dimanche} TER/jour`
-          + ` le Dimanche et ${Math.round(avgWeekDay)} TER/jour en semaine.\n`
-          + `${ratioDirects}.\n`
-          + `${nCorresp > 0 ? `Durée de correspondance : ${minCoDur} à ${maxCoDur} minutes.` : ''}`
-        );
-        document.getElementById('train_descr').value = comment;
-        document.getElementById('train_temps').value = tempsMin;
-        document.getElementById('train_correspmin').value = minCorresp;
-        document.querySelector("#fetchTrains .loading").classList.add("hidden");
-        document.getElementById("fetchTrains").disabled = false;
-        document.getElementById("tableTrains").classList.remove("hidden");
-      });
+    const gareDepart = document.getElementById('train_depart').value;
+    const gareArrivee = document.getElementById('train_arrivee').value;
+    fetchRoute();
+
+    // ======================================================================================
+
+    // if (!gareDepart || !gareArrivee) {
+    //   alert("Veuillez sélectionner une gare de départ et une gare d'arrivée.");
+    //   return;
+    // }
+    // fetch(`/api/fetch_trains.php?depart_uic=${gareDepart}&arrivee_uic=${gareArrivee}`)
+    //   .then(response => response.json())
+    //   .then(data => {
+    //     const tableBody = document.getElementById('tableTrainsBody');
+    //     tableBody.innerHTML = '';
+    //     data.forEach(row => {
+    //       const tr = document.createElement('tr');
+    //       tr.innerHTML = `
+    //         <td>${row.depart.replace(/:00$/g, "")}</td>
+    //         <td>${row.arrivee.replace(/:00$/g, "")}</td>
+    //         <td>${row.via === "Direct" ? row.via : row.via + " (" + row.co_dur + ")"}</td>
+    //         <td>${row.duree} min</td>
+    //         <td class="w-12">${row.lundi}</td>
+    //         <td class="w-12">${row.mardi}</td>
+    //         <td class="w-12">${row.mercredi}</td>
+    //         <td class="w-12">${row.jeudi}</td>
+    //         <td class="w-12">${row.vendredi}</td>
+    //         <td class="w-12">${row.samedi}</td>
+    //         <td class="w-12">${row.dimanche}</td>
+    //       `;
+    //       tableBody.appendChild(tr);
+    //     });
+    //     const tempsMin = Math.min(...data.map(row => row.duree));
+    //     const minCorresp = data.find(row => row.via === 'Direct') ? 0 : 1;
+    //     const nbTrainsPerDay = data.reduce((acc, row) => {
+    //       acc.lundi += (row.lundi === '✅' || row.lundi >= "50") ? 1 : 0;
+    //       acc.mardi += (row.mardi === '✅' || row.mardi >= "50") ? 1 : 0;
+    //       acc.mercredi += (row.mercredi === '✅' || row.mercredi >= "50") ? 1 : 0;
+    //       acc.jeudi += (row.jeudi === '✅' || row.jeudi >= "50") ? 1 : 0;
+    //       acc.vendredi += (row.vendredi === '✅' || row.vendredi >= "50") ? 1 : 0;
+    //       acc.samedi += (row.samedi === '✅' || row.samedi >= "50") ? 1 : 0;
+    //       acc.dimanche += (row.dimanche === '✅' || row.dimanche >= "50") ? 1 : 0;
+    //       return acc;
+    //     }, { lundi: 0, mardi: 0, mercredi: 0, jeudi: 0, vendredi: 0, samedi: 0, dimanche: 0 });
+    //     const avgWeekDay = (nbTrainsPerDay.lundi + nbTrainsPerDay.mardi + nbTrainsPerDay.mercredi + nbTrainsPerDay.jeudi + nbTrainsPerDay.vendredi) / 5;
+    //     const nDirects = data.filter(row => row.via === 'Direct').length;
+    //     const nCorresp = data.length - nDirects;
+    //     const ratioDirects = nDirects > 15
+    //       ? `<i>Les trajets directs étant suffisament nombreux, les trajets avec correspondance n'ont pas été vérifiés</i>`
+    //       : nDirects > 2 * nCorresp
+    //         ? 'Une grande majorité de directs'
+    //         : nDirects > nCorresp
+    //           ? "Une majorité de directs"
+    //           : nDirects === 0
+    //             ? "Aucun trajet direct"
+    //             : "Une majorité de trains avec correspondance";
+    //     const maxCoDur = data.filter(r => r.via !== "Direct").reduce((acc, row) => Math.max(acc, row.co_dur), 0);
+    //     const minCoDur = data.filter(r => r.via !== "Direct").reduce((acc, row) => Math.min(acc, row.co_dur), 1000);
+    //     const maxDur = Math.max(...data.map(row => row.duree));
+    //     const minDur = Math.min(...data.map(row => row.duree));
+    //     const comment = (
+    //       `De ${minDur} à ${maxDur} minutes de trajet.\n`
+    //       + `En moyenne, ${nbTrainsPerDay.samedi} TER/jour le Samedi, ${nbTrainsPerDay.dimanche} TER/jour`
+    //       + ` le Dimanche et ${Math.round(avgWeekDay)} TER/jour en semaine.\n`
+    //       + `${ratioDirects}.\n`
+    //       + `${nCorresp > 0 ? `Durée de correspondance : ${minCoDur} à ${maxCoDur} minutes.` : ''}`
+    //     );
+    //     document.getElementById('train_descr').value = comment;
+    //     document.getElementById('train_temps').value = tempsMin;
+    //     document.getElementById('train_correspmin').value = minCorresp;
+    //     document.querySelector("#fetchTrains .loading").classList.add("hidden");
+    //     document.getElementById("fetchTrains").disabled = false;
+    //     document.getElementById("tableTrains").classList.remove("hidden");
+    //   });
   });
 </script>
 <script src="/js/autocomplete.js"></script>
