@@ -428,13 +428,13 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       // resultDiv.innerHTML = `<p class="text-error">${error.message}</p>`;
     }
   }
-  document.getElementById("fetchTrains").addEventListener('click', () => {
+  document.getElementById("fetchTrains").addEventListener('click', async () => {
     // Add loader in the button and disable it
     document.querySelector("#fetchTrains .loading").classList.remove("hidden");
     document.getElementById("fetchTrains").disabled = true;
-    const gareDepart = document.getElementById('train_depart').value;
-    const gareArrivee = document.getElementById('train_arrivee').value;
-    fetchRoute();
+    await fetchRoute();
+    document.querySelector("#fetchTrains .loading").classList.add("hidden");
+    document.getElementById("fetchTrains").disabled = false;
 
     // ======================================================================================
 
