@@ -58,6 +58,10 @@ if (!$admin) {
         <input type="text" class="input input-primary input-sm" id="ville_nom" name="ville_nom"
           oninput="verifierExistenceVille()" required />
       </label>
+      <label class="form-control">
+        <span class="label-text">Ajouter à la liste des villes du tableau</span>
+        <input type="checkbox" class="checkbox checkbox-primary" id="ville_tableau" />
+      </label>
 
       <div id="villeExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
         <svg class="w-4 h-4 mb-1 fill-current inline-block">
