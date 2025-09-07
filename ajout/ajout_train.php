@@ -2,6 +2,8 @@
 // Connexion à la base de données
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
+$preset_ville_id = isset($_GET['ville_id']) ? (int) $_GET['ville_id'] : null;
+$preset_gare_id = isset($_GET['gare_id']) ? (int) $_GET['gare_id'] : null;
 
 // Récupération des villes
 $result_villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom");
@@ -20,6 +22,7 @@ while ($row = $result_gares->fetch_assoc()) {
     'codeuic' => $row['gare_codeuic'],
   ];
 }
+$preset_gare_nom = $preset_gare_id !== null && isset($gares[$preset_gare_id]) ? $gares[$preset_gare_id]['nom'] : null;
 
 // Read the admin search parameter
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
@@ -96,10 +99,13 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       <div class="flex flex-col gap-1 w-1/2">
         <label class="form-control" for="ville_id">
           <b>Ville de départ :</b>
-          <select class="select select-primary select-sm" id="ville_id" name="ville_id" required>
+          <select class="select select-primary select-sm" id="ville_id" name="ville_id" required
+            value="<?= $preset_ville_id ?? '' ?>">
             <option value="">Sélectionnez une ville</option>
             <?php foreach ($villes as $ville_id => $ville_nom): ?>
-              <option value="<?= $ville_id; ?>"><?= $ville_nom; ?></option>
+              <option value="<?= $ville_id; ?>" <?= (isset($preset_ville_id) && $preset_ville_id == $ville_id) ? 'selected' : '' ?>>
+                <?= $ville_nom; ?>
+              </option>
             <?php endforeach; ?>
           </select>
         </label>
@@ -124,8 +130,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </div>
           <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_depart_id"
             name="train_depart_id" readonly required>
-          <!-- <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_depart_uic"
-            name="train_depart_uic" readonly required> -->
         </div>
 
         <!-- Menu déroulant des gares -->
@@ -134,7 +138,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             <label class="form-control" for="train_arrivee">
               <b>Gare d'arrivée :</b>
               <div class="input input-primary input-sm flex items-center gap-2 w-full">
-                <input class="grow" type="text" id="train_arrivee" name="train_arrivee" required autocomplete="off" />
+                <input class="grow" type="text" id="train_arrivee" name="train_arrivee" required autocomplete="off"
+                  value="<?= $preset_gare_nom ?? '' ?>" />
                 <svg class="w-4 h-4 fill-current">
                   <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
                 </svg>
@@ -145,9 +150,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             </ul>
           </div>
           <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="gare_id" name="gare_id"
-            readonly required>
-          <!-- <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_arrivee_uic"
-            name="train_arrivee_uic" readonly required> -->
+            value="<?= $preset_gare_id ?? '' ?>" readonly required>
         </div>
       </div>
 
@@ -280,6 +283,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 
+<script src="/js/services/horaires-trains.js"></script>
+
 <script>
   const villes = <?php echo json_encode($villes); ?>;
   const gares = <?php echo json_encode($gares); ?>;
@@ -320,119 +325,21 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     verifierExistenceItineraire();
   });
 
-  const nextSaturday = new Date();
-  nextSaturday.setDate(nextSaturday.getDate() + (6 - nextSaturday.getDay()) % 7);
-  nextSaturday.setHours(0, 0, 0, 0);
-
-  const toMinutes = (seconds) => Math.round(seconds / 60);
-
-  function computeStats(data) {
-    const itineraries = data.itineraries || [];
-    if (itineraries.length === 0) {
-      // resultDiv.innerHTML = "<p>Aucun départ trouvé.</p>"; TODO
-      return;
-    }
-
-    const brief = itineraries.map(it => {
-      const { fareTransfers, transfers, legs } = it
-      const transitLegs = legs.filter(leg => leg.mode !== "WALK");
-      const startTime = transitLegs[0]?.startTime || it.startTime;
-      const endTime = transitLegs[transitLegs.length - 1]?.endTime || it.endTime;
-      const duration = (new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000;
-      transitLegs.forEach(leg => {
-        const geom = leg.legGeometry.points; // TODO add a map to display all routes
-      });
-      return { duration, transfers, startTime, endTime }
-    });
-    // dedup trips on start and end times
-    const uniqueTrips = Array.from(new Map(brief.map(item => [`${item.startTime}-${item.endTime}`, item])).values());
-    // exclude trips spanning two days
-    const filteredTrips = uniqueTrips.filter(item => {
-      const start = new Date(item.startTime);
-      const end = new Date(item.endTime);
-      return start.getDate() === end.getDate();
-    });
-    // compute max/min transfers, max/min duration
-    const maxTransfers = Math.max(...filteredTrips.map(item => item.transfers), 0);
-    const minTransfers = Math.min(...filteredTrips.map(item => item.transfers), Infinity);
-    const maxDuration = Math.max(...filteredTrips.map(item => item.duration), 0);
-    const minDuration = Math.min(...filteredTrips.map(item => item.duration), Infinity);
-    const transferStations = itineraries.filter(item => item.transfers > 0).map(item => item.legs.filter(leg => leg.mode !== "WALK").slice(0, -1).map(leg => leg.to.name).join(" et "));
-    const transferStationsSet = new Set(transferStations);
-    const ratioDirects = filteredTrips.length > 0 ? (filteredTrips.filter(item => item.transfers === 0).length / filteredTrips.length) * 100 : 0;
-
-    return {
-      minDuration: toMinutes(minDuration),
-      maxDuration: toMinutes(maxDuration),
-      minTransfers,
-      maxTransfers,
-      ratioDirects,
-      transferStations: Array.from(transferStationsSet),
-      nTrips: filteredTrips.length,
-    };
+  const updateFields = (fields) => {
+    document.getElementById("train_temps").value = fields.train_temps;
+    document.getElementById("train_correspmin").value = fields.train_correspmin;
+    document.getElementById("train_correspmax").value = fields.train_correspmax;
+    document.getElementById("train_descr").value = fields.train_descr;
   }
 
-  function toHM(minutes) {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  }
-
-  const updateFields = (stats) => {
-    document.getElementById("train_temps").value = stats.minDuration;
-    document.getElementById("train_correspmin").value = stats.minTransfers;
-    document.getElementById("train_correspmax").value = stats.maxTransfers;
-    document.getElementById("train_descr").value =
-      `- Environ ${stats.nTrips} trains / jours.\n` +
-      `- De ${toHM(stats.minDuration)} à ${toHM(stats.maxDuration)}.\n` +
-      (stats.ratioDirects >= 50 ? "- Majorité de directs.\n" : `- Majorité de trajets avec correspondances.\n`) +
-      (stats.transferStations.length > 0 ? `- Correspondances possibles : ${stats.transferStations.join(", ")}.\n` : "")
-  }
-
-  async function fetchRoute() {
-    const url = "https://api.transitous.org/api/";
-    const ua = "Vélogrimpe.fr (https://velogrimpe.fr) - v0.1 - contact@velogrimpe.fr";
-    const routingEndpoint = "v3/plan";
-    const geocodeEndpoint = "v1/geocode";
-
-    const from = encodeURIComponent(document.getElementById('train_depart').value);
-    const to = encodeURIComponent(document.getElementById('train_arrivee').value);
-    const transitModes = ["RAIL", "LONG_DISTANCE", "REGIONAL_FAST_RAIL", "REGIONAL_RAIL"].join(",");
-    const fromRes = await fetch(`${url}${geocodeEndpoint}?text=${from}, France`, { headers: { "X-Client-Identification": ua } }).then(res => res.json());
-    const { name: fromName, lat: fromLat, lon: fromLon } = fromRes.find(r => r.type === "STOP") || fromRes[0];
-    const toRes = await fetch(`${url}${geocodeEndpoint}?text=${to}, France`, { headers: { "X-Client-Identification": ua } }).then(res => res.json());
-    const { name: toName, lat: toLat, lon: toLon } = toRes.find(r => r.type === "STOP") || toRes[0];
-    const fromPlace = `${fromLat},${fromLon}`;
-    const toPlace = `${toLat},${toLon}`;
-    const fullUrl = (
-      `${url}${routingEndpoint}?1=1`
-      + `&fromPlace=${fromPlace}`
-      + `&toPlace=${toPlace}`
-      + `&transitModes=${transitModes}`
-      + `&time=${nextSaturday.toISOString()}`
-      + `&withFares=${true}`
-      + `&passengers=${1}`
-      + `&searchWindow=${86400}`
-      // + `&preTransitModes=${"BIKE"}`
-      // + `&maxPreTransitTime=${3600}` // returns too many duplicated results, requires to dedup
-    );
-
-    try {
-      const response = await fetch(fullUrl, { headers: { "X-Client-Identification": ua } });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
-      const stats = computeStats(data);
-      updateFields(stats);
-    } catch (error) {
-      console.error('Error fetching route:', error);
-      // resultDiv.innerHTML = `<p class="text-error">${error.message}</p>`;
-    }
-  }
   document.getElementById("fetchTrains").addEventListener('click', async () => {
     // Add loader in the button and disable it
     document.querySelector("#fetchTrains .loading").classList.remove("hidden");
     document.getElementById("fetchTrains").disabled = true;
-    await fetchRoute();
+    const fromValue = document.getElementById('train_depart').value;
+    const toValue = document.getElementById('train_arrivee').value;
+    const { stats, fields } = await horairesTrains.fetchRoute(fromValue, toValue);
+    updateFields(fields);
     document.querySelector("#fetchTrains .loading").classList.add("hidden");
     document.getElementById("fetchTrains").disabled = false;
 

@@ -82,7 +82,8 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
             <tr class="border-top border-[black] text-center relative" data-id="<?= $gares[0]['falaise_id'] ?>"
               data-nom="<?= $falaise_nom ?>">
               <th class="border-left border-[1px] border-[black] w-48 z-10000">
-                <?= $falaise_nom ?><br>(<?= $gares[0]['falaise_id'] ?>)
+                <a
+                  href="/falaise.php?falaise_id=<?= $gares[0]['falaise_id'] ?>"><?= $falaise_nom ?></a><br>(<?= $gares[0]['falaise_id'] ?>)
               </th>
               <td class="border-left border-[1px] border-[black] w-48">
                 <?= join("<br />", array_map(fn($gare) => $gare["gare_nom"], $gares)) ?>
@@ -125,7 +126,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                                   <?= $gare["gare_nom"] ?>
                                 </span>
                                 <a class="badge badge-primary badge-outline badge-xs h-5 w-5 rounded-full text-sm shrink-0"
-                                  href="/ajout_train.php?gare_id=<?= $gare["gare_id"] ?>&ville_id=<?= $ville["ville_id"] ?>&admin=<?= $token ?>">
+                                  href="/ajout/ajout_train.php?gare_id=<?= $gare["gare_id"] ?>&ville_id=<?= $ville["ville_id"] ?>&admin=<?= $token ?>">
                                   +
                                 </a>
                                 <button

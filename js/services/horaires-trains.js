@@ -1,0 +1,182 @@
+"use strict";
+
+/**
+ *
+ * @module horairesTrains
+ */
+
+var horairesTrains = {};
+
+const url = "https://api.transitous.org/api/";
+const ua =
+  "Vélogrimpe.fr (https://velogrimpe.fr) - v0.1 - contact@velogrimpe.fr";
+const routingEndpoint = "v3/plan";
+const geocodeEndpoint = "v1/geocode";
+const transitModes = [
+  "RAIL",
+  "LONG_DISTANCE",
+  "REGIONAL_FAST_RAIL",
+  "REGIONAL_RAIL",
+].join(",");
+
+const toMinutes = (seconds) => Math.round(seconds / 60);
+
+function toHM(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours}h ${mins < 10 ? "0" : ""}${mins}m`;
+}
+
+function computeStats(data) {
+  const itineraries = data.itineraries || [];
+  if (itineraries.length === 0) {
+    throw new Error("Aucun itinéraire trouvé");
+  }
+
+  const brief = itineraries.map((it) => {
+    const { fareTransfers, transfers, legs } = it;
+    const transitLegs = legs.filter((leg) => leg.mode !== "WALK");
+    const startTime = transitLegs[0]?.startTime || it.startTime;
+    const endTime = transitLegs[transitLegs.length - 1]?.endTime || it.endTime;
+    const duration =
+      (new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000;
+    const geoms = transitLegs.map((leg) => {
+      const geom = leg.legGeometry.points; // TODO add a map to display all routes
+      return geom;
+    });
+    return { duration, transfers, startTime, endTime, geoms };
+  });
+  // dedup trips on start and end times
+  const uniqueTrips = Array.from(
+    new Map(
+      brief.map((item) => [`${item.startTime}-${item.endTime}`, item])
+    ).values()
+  );
+  // exclude trips spanning two days
+  const filteredTrips = uniqueTrips.filter((item) => {
+    const start = new Date(item.startTime);
+    const end = new Date(item.endTime);
+    return start.getDate() === end.getDate();
+  });
+  // compute max/min transfers, max/min duration
+  const maxTransfers = Math.max(
+    ...filteredTrips.map((item) => item.transfers),
+    0
+  );
+  const minTransfers = Math.min(
+    ...filteredTrips.map((item) => item.transfers),
+    Infinity
+  );
+  const maxDuration = Math.max(
+    ...filteredTrips.map((item) => item.duration),
+    0
+  );
+  const minDuration = Math.min(
+    ...filteredTrips.map((item) => item.duration),
+    Infinity
+  );
+  const transferStations = itineraries
+    .filter((item) => item.transfers > 0)
+    .map((item) =>
+      item.legs
+        .filter((leg) => leg.mode !== "WALK")
+        .slice(0, -1)
+        .map((leg) => leg.to.name)
+        .join(" et ")
+    );
+  const transferStationsSet = new Set(transferStations);
+  const ratioDirects =
+    filteredTrips.length > 0
+      ? (filteredTrips.filter((item) => item.transfers === 0).length /
+          filteredTrips.length) *
+        100
+      : 0;
+
+  return {
+    minDuration: toMinutes(minDuration),
+    maxDuration: toMinutes(maxDuration),
+    minTransfers,
+    maxTransfers,
+    ratioDirects,
+    transferStations: Array.from(transferStationsSet),
+    nTrips: filteredTrips.length,
+    geoms: filteredTrips.flatMap((item) => item.geoms),
+  };
+}
+
+const transformToTrainFields = (stats) => {
+  return {
+    train_temps: stats.minDuration,
+    train_correspmin: stats.minTransfers,
+    train_correspmax: stats.maxTransfers,
+    train_nb_par_jour: stats.nTrips,
+    train_descr:
+      `- Environ ${stats.nTrips} trains / jours.\n` +
+      `- De ${toHM(stats.minDuration)} à ${toHM(stats.maxDuration)}.\n` +
+      (stats.ratioDirects >= 50
+        ? "- Majorité de directs.\n"
+        : `- Majorité de trajets avec correspondances.\n`) +
+      (stats.transferStations.length > 0
+        ? `- Correspondances possibles : ${stats.transferStations.join(
+            ", "
+          )}.\n`
+        : ""),
+  };
+};
+
+async function fetchRoute(fromValue, toValue) {
+  const from = encodeURIComponent(fromValue);
+  const to = encodeURIComponent(toValue);
+  const nextSaturday = new Date();
+  nextSaturday.setDate(
+    nextSaturday.getDate() + ((6 - nextSaturday.getDay()) % 7)
+  );
+  nextSaturday.setHours(0, 0, 0, 0);
+  const fromRes = await fetch(`${url}${geocodeEndpoint}?text=${from}, France`, {
+    headers: { "X-Client-Identification": ua },
+  }).then((res) => res.json());
+  const {
+    name: fromName,
+    lat: fromLat,
+    lon: fromLon,
+  } = fromRes.find((r) => r.type === "STOP") || fromRes[0];
+  const toRes = await fetch(`${url}${geocodeEndpoint}?text=${to}, France`, {
+    headers: { "X-Client-Identification": ua },
+  }).then((res) => res.json());
+  const {
+    name: toName,
+    lat: toLat,
+    lon: toLon,
+  } = toRes.find((r) => r.type === "STOP") || toRes[0];
+  const fromPlace = `${fromLat},${fromLon}`;
+  const toPlace = `${toLat},${toLon}`;
+  const fullUrl =
+    `${url}${routingEndpoint}?1=1` +
+    `&fromPlace=${fromPlace}` +
+    `&toPlace=${toPlace}` +
+    `&transitModes=${transitModes}` +
+    `&time=${nextSaturday.toISOString()}` +
+    `&withFares=${true}` +
+    `&passengers=${1}` +
+    `&searchWindow=${86400}`;
+  // + `&preTransitModes=${"BIKE"}`
+  // + `&maxPreTransitTime=${3600}` // returns too many duplicated results, requires to dedup
+
+  try {
+    const response = await fetch(fullUrl, {
+      headers: { "X-Client-Identification": ua },
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    const stats = computeStats(data);
+    const fields = transformToTrainFields(stats);
+    return { stats, fields };
+  } catch (error) {
+    console.error("Error fetching route:", error);
+  }
+}
+horairesTrains.fetchRoute = fetchRoute;
+
+if (typeof module === "object" && module.exports) {
+  module.exports = horairesTrains;
+}
