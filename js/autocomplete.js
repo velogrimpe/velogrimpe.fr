@@ -32,9 +32,10 @@ function setupAutocomplete(
             "hover:text-white"
           );
           li.addEventListener("click", () => {
-            selectCallback(option.value);
             input.value = option.value;
+            selectCallback(option.value);
             list.classList.add("hidden");
+            console.log("click", option.value, input.value);
           });
           list.appendChild(li);
         });
@@ -50,7 +51,6 @@ function setupAutocomplete(
           );
           newValueLi.addEventListener("click", () => {
             selectCallback(input.value);
-            input.value = input.value;
             list.classList.add("hidden");
           });
           list.appendChild(newValueLi);
@@ -89,7 +89,10 @@ function setupAutocomplete(
   });
 
   input.addEventListener("blur", () => {
-    if (!options.includes(input.value) && !acceptNewValue) {
+    if (
+      !options.map((option) => option.value).includes(input.value) &&
+      !acceptNewValue
+    ) {
       input.value = "";
       setTimeout(() => list.classList.add("hidden"), 200);
     }
