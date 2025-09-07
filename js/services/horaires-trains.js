@@ -109,7 +109,7 @@ const transformToTrainFields = (stats) => {
     train_temps: stats.minDuration,
     train_correspmin: stats.minTransfers,
     train_correspmax: stats.maxTransfers,
-    train_nb_par_jour: stats.nTrips,
+    train_nbtrains: stats.nTrips,
     train_descr:
       `- Environ ${stats.nTrips} trains / jours.\n` +
       `- De ${toHM(stats.minDuration)} à ${toHM(stats.maxDuration)}.\n` +
@@ -123,6 +123,15 @@ const transformToTrainFields = (stats) => {
         : ""),
   };
 };
+
+async function fetchGares(ville) {
+  const query = encodeURIComponent(ville);
+  const res = await fetch(`${url}${geocodeEndpoint}?text=${query}&type=STOP`, {
+    headers: { "X-Client-Identification": ua },
+  }).then((res) => res.json());
+  return res.filter((r) => r.type === "STOP");
+}
+horairesTrains.fetchGares = fetchGares;
 
 async function fetchRoute(fromValue, toValue) {
   const from = encodeURIComponent(fromValue);

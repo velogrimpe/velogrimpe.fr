@@ -196,7 +196,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                   site_id: id,
                   site: "oblyk",
                   site_name: falaise.name,
-                  user: "<?= isset($_SERVER["REMOTE_USER"]) ? $_SERVER["REMOTE_USER"] : "nouser" ?>",
+                  user: "<?= isset($_SERVER["REMOTE_USER"]) ? $_SERVER["REMOTE_USER"] : "admin" ?>",
                 }),
               })
                 .then(response => response.json())
