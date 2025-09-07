@@ -198,19 +198,18 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
       <hr class="my-4" />
       <h3 class="text-lg font-bold">Résultats</h3>
       <div class="flex flex-col">
-        <label class="label p-1"><b>Temps min.</b><input disabled class="input input-xs" type="text"
-            id="train_temps" /></label>
-        <label class="label p-1"><b>Corresp min.</b><input disabled class="input input-xs" type="text"
+        <label class="label p-1"><b>Temps min.</b><input class="input input-xs" type="text" id="train_temps" /></label>
+        <label class="label p-1"><b>Corresp min.</b><input class="input input-xs" type="text"
             id="train_correspmin" /></label>
-        <label class="label p-1"><b>Corresp max.</b><input disabled class="input input-xs" type="text"
+        <label class="label p-1"><b>Corresp max.</b><input class="input input-xs" type="text"
             id="train_correspmax" /></label>
-        <label class="label p-1"><b>Nb. Trains/jour</b><input disabled class="input input-xs" type="text"
+        <label class="label p-1"><b>Nb. Trains/jour</b><input class="input input-xs" type="text"
             id="train_nbtrains" /></label>
-        <label class="label p-1 gap-2"><b>Description</b><textarea disabled rows="6" class="grow textarea textarea-xs"
+        <label class="label p-1 gap-2"><b>Description</b><textarea rows="6" class="grow textarea textarea-xs"
             id="train_descr"></textarea></label>
       </div>
       <div class="modal-action">
-        <button class="btn btn-sm btn-primary" id="addTrainButton" onclick="addTrain()" disabled>Ajouter</button>
+        <button class="btn btn-sm btn-primary" id="addTrainButton" onclick="addTrain()">Ajouter</button>
         <form method="dialog">
           <button class="btn btn-sm" onClick="cleanAddTripletDialog()">Close</button>
         </form>
