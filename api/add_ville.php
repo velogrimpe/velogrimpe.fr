@@ -48,4 +48,3 @@ logChanges(
 
 header("Location: /admin/");
 exit;
-?>
