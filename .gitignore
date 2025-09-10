@@ -1,5 +1,4 @@
-bdd/**/*.png
-bdd/**/*.jpeg
+bdd/images_falaises
 bdd/**/*.gpx
 bdd/**/*.geojson
 bdd/**/*.zip

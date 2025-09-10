@@ -679,6 +679,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           accept="image/*">
       </label>
       <img class="hidden w-full h-auto" id="falaise_img1_preview" src="" alt="Pas d'image 1" />
+      <input hidden id="falaise_img1_webp" name="falaise_img1_webp" type="file" accept="image/*" />
 
       <label class="form-control" for="falaise_leg1">
         <span>
@@ -705,6 +706,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           accept="image/*">
       </label>
       <img class="hidden w-full h-auto" id="falaise_img2_preview" src="" alt="Pas d'image 2" />
+      <input hidden id="falaise_img2_webp" name="falaise_img2_webp" type="file" accept="image/*" />
 
       <label class="form-control" for="falaise_leg2">
         <span>
@@ -728,6 +730,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           accept="image/*">
       </label>
       <img class="hidden w-full h-auto" id="falaise_img3_preview" src="" alt="Pas d'image 3" />
+      <input hidden id="falaise_img3_webp" name="falaise_img3_webp" type="file" accept="image/*" />
 
       <label class="form-control" for="falaise_leg3">
         <span>
@@ -825,14 +828,51 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
     fetchAndPrefillData(<?= $falaise_id ?>);
   <?php endif ?>
 </script>
+<script>
+  const images = ["falaise_img1", "falaise_img2", "falaise_img3"];
+  const resizeAndConvertImage = async (image) => {
+    console.log("converting", image);
+    const file = document.getElementById(image).files[0];
+    // Convert to webp and resize to maxwitdh = 1200px
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const img = new Image();
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        const maxWidth = 1200;
+        const scaleSize = maxWidth < img.width ? maxWidth / img.width : 1;
+        canvas.width = maxWidth < img.width ? maxWidth : img.width;
+        canvas.height = img.height * scaleSize;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          const url = URL.createObjectURL(blob);
+          document.getElementById(image + "_preview").src = url;
+          document.getElementById(image + "_preview").classList.remove("hidden");
+          const webpFile = new File([blob], file.name.split('.').slice(0, -1).join('.') + '.webp', { type: 'image/webp' });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(webpFile);
+          document.getElementById(image + "_webp").files = dataTransfer.files;
+        }, 'image/webp', 0.3);
+      }
+      img.src = event.target.result;
+    }
+    reader.readAsDataURL(file);
+  }
+  images.forEach((image) => {
+    document.getElementById(image).addEventListener("change", () => resizeAndConvertImage(image));
+    // if image field already has a value, resize and show the preview
+    if (document.getElementById(image).files.length > 0) {
+      resizeAndConvertImage(image);
+    }
+  })
+
+</script>
 <script>window.customElements.define('multi-select', MultiselectWebcomponent);</script>
 <script src="/js/autocomplete.js"></script>
 <script>
   const falaises = <?= json_encode($falaises) ?>;
   function falaiseCallback(falaiseNom) {
-    document.getElementById("falaise_img1_preview").classList.add("hidden");
-    document.getElementById("falaise_img2_preview").classList.add("hidden");
-    document.getElementById("falaise_img3_preview").classList.add("hidden");
     if (!falaiseNom) {
       document.getElementById("falaiseExistsAlert").classList.add("hidden");
       document.getElementById("falaiseEditInfo").classList.add("hidden");
@@ -840,6 +880,9 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
     }
     const existing = falaises.find((f) => f.nom.toLowerCase() === falaiseNom.toLowerCase());
     if (existing) {
+      document.getElementById("falaise_img1_preview").classList.add("hidden");
+      document.getElementById("falaise_img2_preview").classList.add("hidden");
+      document.getElementById("falaise_img3_preview").classList.add("hidden");
       document.getElementById("falaise_latlng").value = existing.latlng;
       updateMarker();
       document.getElementById("falaise_nomformate").value = existing.nomformate;

@@ -198,24 +198,26 @@ function uploadImage($fileInputName, $targetDir, $falaiseId, $falaiseNomformate,
 
   $fileTmpName = $_FILES[$fileInputName]['tmp_name'];
   $fileExtension = strtolower(pathinfo($_FILES[$fileInputName]['name'], PATHINFO_EXTENSION));
-  $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
 
-  if (!in_array($fileExtension, $allowedExtensions)) {
-    return "Extension non autorisée pour $fileInputName.";
-  }
-
-  $targetFileName = "{$falaiseId}_{$falaiseNomformate}_{$suffix}.png";
+  $targetFileName = "{$falaiseId}_{$falaiseNomformate}_{$suffix}.{$fileExtension}";
   $targetFilePath = $targetDir . DIRECTORY_SEPARATOR . $targetFileName;
 
-  if (!imagepng(imagecreatefromstring(file_get_contents($fileTmpName)), $targetFilePath)) {
-    // if (!move_uploaded_file($fileTmpName, $targetFilePath)) {
+  // store original and webp without format conversion
+  if (!move_uploaded_file($fileTmpName, $targetFilePath)) {
     return "Erreur lors de l'upload de $fileInputName.";
   }
 
   return null;
 }
 
-foreach (['falaise_img1' => 'img1', 'falaise_img2' => 'img2', 'falaise_img3' => 'img3'] as $fileInputName => $suffix) {
+foreach ([
+  'falaise_img1' => 'img1',
+  'falaise_img2' => 'img2',
+  'falaise_img3' => 'img3',
+  'falaise_img1_webp' => 'img1',
+  'falaise_img2_webp' => 'img2',
+  'falaise_img3_webp' => 'img3'
+] as $fileInputName => $suffix) {
   $uploadError = uploadImage($fileInputName, $targetDir, $falaise_id, $falaise_nomformate, $suffix);
   if ($uploadError) {
     $errors[] = $uploadError;
