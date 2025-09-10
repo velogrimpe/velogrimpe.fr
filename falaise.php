@@ -849,14 +849,13 @@ $stmtC->close();
       </div>
 
       <!-- Image optionnelle 1 -->
-      <?php if (urlExists("https://www.velogrimpe.fr/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img1.png")): ?>
+      <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img1.webp"; ?>
+      <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
         <div class="flex flex-col items-center gap-1">
-          <?php
-          echo '<img src="https://www.velogrimpe.fr/bdd/images_falaises/' . htmlspecialchars($falaise_id) . '_' . htmlspecialchars($falaise_nomformate) . '_img1.png" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">';
-          if (!empty($falaise_leg1)) {
-            echo '<div class="text-base-content">' . nl2br($falaise_leg1) . '</div>';
-          }
-          ?>
+          <img src="<?= $path ?>" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <?php if (!empty($falaise_leg1)): ?>
+            <div class="text-base-content"><?= nl2br($falaise_leg1) ?></div>
+          <?php endif; ?>
         </div>
       <?php endif; ?>
 
@@ -867,25 +866,15 @@ $stmtC->close();
         </div>
       <?php endif; ?>
 
-      <!-- Fonction pour vérifier si une URL existe -->
-
-      <?php
-      function urlExists($url)
-      {
-        $headers = @get_headers($url);
-        return $headers && strpos($headers[0], '200') !== false;
-      }
-      ?>
 
       <!-- Image optionnelle 2 -->
-      <?php if (urlExists("https://www.velogrimpe.fr/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img2.png")): ?>
+      <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img2.webp"; ?>
+      <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
         <div class="flex flex-col items-center gap-1">
-          <?php
-          echo '<img src="https://www.velogrimpe.fr/bdd/images_falaises/' . htmlspecialchars($falaise_id) . '_' . htmlspecialchars($falaise_nomformate) . '_img2.png" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">';
-          if (!empty($falaise_leg2)) {
-            echo '<div class="text-base-content">' . nl2br($falaise_leg2) . '</div>';
-          }
-          ?>
+          <img src="<?= $path ?>" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <?php if (!empty($falaise_leg2)): ?>
+            <div class="text-base-content"><?= nl2br($falaise_leg2) ?></div>
+          <?php endif; ?>
         </div>
       <?php endif; ?>
 
@@ -899,14 +888,13 @@ $stmtC->close();
       <?php endif; ?>
 
       <!-- Image optionnelle 3 -->
-      <?php if (urlExists("https://www.velogrimpe.fr/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img3.png")): ?>
+      <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img3.webp"; ?>
+      <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
         <div class="flex flex-col items-center gap-1">
-          <?php
-          echo '<img src="https://www.velogrimpe.fr/bdd/images_falaises/' . htmlspecialchars($falaise_id) . '_' . htmlspecialchars($falaise_nomformate) . '_img3.png" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">';
-          if (!empty($falaise_leg3)) {
-            echo '<div class="text-base-content">' . nl2br($falaise_leg3) . '</div>';
-          }
-          ?>
+          <img src="<?= $path ?>" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <?php if (!empty($falaise_leg3)): ?>
+            <div class="text-base-content"><?= nl2br($falaise_leg3) ?></div>
+          <?php endif; ?>
         </div>
       <?php endif; ?>
 

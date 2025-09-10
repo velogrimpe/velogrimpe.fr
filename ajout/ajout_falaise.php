@@ -811,9 +811,9 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_fermee").value = falaise.falaise_fermee;
         document.getElementById("falaise_voletcarto").value = falaise.falaise_voletcarto;
         document.getElementById("falaise_bloc").value = falaise.falaise_bloc;
-        document.getElementById("falaise_img1_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img1.png`;
-        document.getElementById("falaise_img2_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img2.png`;
-        document.getElementById("falaise_img3_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img3.png`;
+        document.getElementById("falaise_img1_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img1.webp`;
+        document.getElementById("falaise_img2_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img2.webp`;
+        document.getElementById("falaise_img3_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img3.webp`;
         document.getElementById("falaise_img1_preview").classList.remove("hidden");
         document.getElementById("falaise_img2_preview").classList.remove("hidden");
         document.getElementById("falaise_img3_preview").classList.remove("hidden");
