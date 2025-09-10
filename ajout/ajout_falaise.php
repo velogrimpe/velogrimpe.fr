@@ -831,7 +831,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 <script>
   const images = ["falaise_img1", "falaise_img2", "falaise_img3"];
   const resizeAndConvertImage = async (image) => {
-    console.log("converting", image);
     const file = document.getElementById(image).files[0];
     // Convert to webp and resize to maxwitdh = 1200px
     const reader = new FileReader();
@@ -849,11 +848,14 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           const url = URL.createObjectURL(blob);
           document.getElementById(image + "_preview").src = url;
           document.getElementById(image + "_preview").classList.remove("hidden");
-          const webpFile = new File([blob], file.name.split('.').slice(0, -1).join('.') + '.webp', { type: 'image/webp' });
+          const webpFile = new File([blob], file.name.split('.').slice(0, -1).join('.') + '.webp', {
+            type: 'image/webp',
+            lastModified: Date.now()
+          });
           const dataTransfer = new DataTransfer();
           dataTransfer.items.add(webpFile);
           document.getElementById(image + "_webp").files = dataTransfer.files;
-        }, 'image/webp', 0.3);
+        }, 'image/webp', 0.8);
       }
       img.src = event.target.result;
     }
