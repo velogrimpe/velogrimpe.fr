@@ -258,6 +258,11 @@ $newFalaise = [
   "falaise_bloc" => $falaise_bloc,
   "falaise_nbvoies" => $falaise_nbvoies,
 ];
+foreach (["falaise_img1", "falaise_img2", "falaise_img3"] as $img) {
+  if (isset($_FILES[$img]) && $_FILES[$img]['error'] === UPLOAD_ERR_OK) {
+    $newFalaise[$img] = "image modifiée";
+  }
+}
 $record_id = $falaise_id;
 $type = $isEdition ? "update" : "insert";
 $collection = 'falaises';
