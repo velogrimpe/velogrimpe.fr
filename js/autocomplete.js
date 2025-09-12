@@ -37,7 +37,7 @@ function setupAutocomplete(
             list.classList.add("hidden");
           };
           li.onclick = onclick;
-          li.addEventListener("click", onclick);
+          // li.addEventListener("click", onclick);
           list.appendChild(li);
         });
 

@@ -1142,10 +1142,12 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       }
       else if (filtered.item.type === "gare_hors_topo") {
         map.flyTo(filtered.item.gare_latlng.split(",").map(parseFloat), 11, { duration: 0.5 });
-        setTimeout(() => filtered.item.marker?.openPopup(), 1000);
+        setTimeout(() => filtered.item.marker?.openPopup(), 600);
         return;
       }
       filtered.item.marker?.fire("click");
+      setTimeout(() => filtered.item.marker?.openPopup(), 600);
+
     }
   }
 
