@@ -28,6 +28,16 @@ export default class Element {
     });
   }
 
+  setVisibility(visibility) {
+    const { visibility: currentVisibility } = this;
+    const {
+      from = currentVisibility.from || 0,
+      to = currentVisibility.to || 30,
+    } = visibility;
+    this.visibility = { from, to };
+    this.handleZoomChange();
+  }
+
   handleZoomChange() {
     const newIsVisible = isVisible(this.visibility, this.map);
     if (newIsVisible !== this.isVisible) {

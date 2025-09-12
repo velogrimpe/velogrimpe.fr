@@ -258,8 +258,8 @@ $stmtC->close();
 
 <body>
   <?php include "./components/header.html"; ?>
-  <main class="max-w-screen-lg mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
-    <section class="flex flex-col items-center gap-4">
+  <main class="max-w-screen-lg w-full mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
+    <section class="flex flex-col items-center gap-4 w-full">
 
       <div class="flex justify-between items-center w-full">
         <a class="text-primary font-bold" href="/carte.php">← Retour à la carte</a>
@@ -1218,6 +1218,9 @@ $stmtC->close();
     })
       .then((data) => {
         let id = 0;
+        if (data.features && data.features.length === 0) {
+          falaiseObject.setVisibility({ from: 0, to: 30 });
+        }
         if (data.features && data.features.length > 0) {
           data.features.forEach(feature => {
             let obj;
