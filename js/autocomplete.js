@@ -31,12 +31,13 @@ function setupAutocomplete(
             "hover:bg-primary",
             "hover:text-white"
           );
-          li.addEventListener("click", () => {
+          const onclick = () => {
             input.value = option.value;
             selectCallback(option.value);
             list.classList.add("hidden");
-            console.log("click", option.value, input.value);
-          });
+          };
+          li.onclick = onclick;
+          li.addEventListener("click", onclick);
           list.appendChild(li);
         });
 

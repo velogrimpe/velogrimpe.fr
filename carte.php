@@ -1137,6 +1137,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       if (filtered.item.type === "falaise_hors_topo") {
         setFalaiseHTMarker(filtered.item, map, "normal");
         map.flyTo(filtered.item.falaise_latlng.split(",").map(parseFloat), 12, { duration: 0.5 });
+        setTimeout(() => filtered.item.marker?.openPopup(), 600);
         return;
       }
       else if (filtered.item.type === "gare_hors_topo") {
