@@ -732,6 +732,7 @@ $stmt->close();
     </div>
 
   </main>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
 
 <script>
