@@ -68,6 +68,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $stmt->close();
 
+  // Récupérer le nom de la ville pour l'email
+  $stmt = $mysqli->prepare("SELECT ville_nom FROM villes WHERE ville_id = ?");
+  $stmt->execute([$ville_id]);
+  $res = $stmt->get_result();
+  if (!$res) {
+    $ville = 'Ville inconnue';
+  } else {
+    $ville = $res->fetch_assoc();
+    $ville = $ville ? $ville['ville_nom'] : 'Ville inconnue';
+  }
+
   //Store in log
   require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
   $new_comment = [
@@ -99,16 +110,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($admin == 0) {
     require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
     $to = $config["contact_mail"];
-    $subject = "🚃 Itinéraire train $train_depart ⇢ $train_arrivee ajouté par $nom_prenom";
+    $subject = "🚃 Itinéraire train $ville ($train_depart) ⇢ $train_arrivee ajouté par $nom_prenom";
 
     $html = "<html><body>";
-    $html .= "<h1>L'itinéraire de $train_depart à $train_arrivee a été ajouté par $nom_prenom</h1>";
+    $html .= "<h1>L'itinéraire de $ville ($train_depart) à $train_arrivee a été ajouté par $nom_prenom</h1>";
     $html .= "<p>email : <a href='mailto:$email'>$email</a></p>";
     if ($message) {
       $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "</p>";
     }
     $html .= "<p>Détails de l'itinéraire :</p>";
     $html .= "<ul>";
+    $html .= "<li><b>Ville</b>: $ville ($ville_id)</li>";
     $html .= "<li><b>Départ</b>: $train_depart</li>";
     $html .= "<li><b>Arrivée</b>: $train_arrivee</li>";
     $html .= "<li><b>Temps</b>: $train_temps min</li>";
