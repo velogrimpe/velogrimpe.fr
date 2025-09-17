@@ -264,7 +264,7 @@ $stmtC->close();
       <div class="flex justify-between items-center w-full">
         <a class="text-primary font-bold" href="/carte.php">← Retour à la carte</a>
         <div class="flex flex-row items-center gap-2">
-          <div class="dropdown dropdown-end hidden">
+          <div class="dropdown dropdown-end">
             <div tabindex="0" role="button"
               class="btn btn-sm md:btn-md btn-circle btn-outline btn-primary focus:pointer-events-none"
               title="J'y ai été" id="veloFilterBtn">
@@ -273,13 +273,12 @@ $stmtC->close();
               </svg>
             </div>
             <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
-              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout_commentaire.php?falaise_id=<?= $falaise_id ?>">
+              <button class="btn btn-primary btn-outline btn-sm py-1 h-fit" href="#commentaires" onclick="newComment()">
                 Raconter ma sortie vélogrimpe
-              </a>
+              </button>
             </div>
           </div>
-          <div class="dropdown dropdown-end hidden">
+          <div class="dropdown dropdown-end">
             <div tabindex="0" role="button"
               class="btn btn-sm md:btn-md btn-circle btn-outline focus:pointer-events-none"
               title="Proposer des modifications" id="veloFilterBtn">
@@ -293,16 +292,16 @@ $stmtC->close();
                 Modifier la fiche falaise
               </a>
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>">
-                Modifier un accès vélo
-              </a>
-              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
                 href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>">
                 Ajouter un accès vélo
               </a>
-              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
+              <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
+                href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>">
+                Modifier un accès vélo
+              </a>
+              <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
                 href="/ajout/ajout_train.php?falaise_id=<?= $falaise_id ?>">
-                Ajouter un accès train
+                Demander l'ajout d'un accès train depuis une nouvelle ville
               </a>
             </div>
           </div>

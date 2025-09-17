@@ -28,6 +28,9 @@ while ($row = $result_falaises->fetch_assoc()) {
   ];
 }
 
+$falaise_id = isset($_GET['falaise_id']) ? $_GET['falaise_id'] : null;
+$falaisePreset = $falaises[$falaise_id] ?? null;
+
 // Read the admin search parameter
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
@@ -169,9 +172,9 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </div>
           <div class="admin flex flex-row gap-4">
             <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="velo_arrivee"
-              name="velo_arrivee" readonly required>
+              name="velo_arrivee" required readonly />
             <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="falaise_id"
-              name="falaise_id" readonly required>
+              name="falaise_id" required readonly />
           </div>
         </div>
       </div>
@@ -338,6 +341,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     verifierExistenceItineraire();
   };
   const falaiseCallback = (falaiseNom) => {
+    console.log("Falaise sélectionnée :", falaiseNom);
     const falaiseId = falaiseNom ? Object.values(falaises).find(f => f.nom === falaiseNom)?.id : '';
     const falaiseNomFormate = falaiseNom ? Object.values(falaises).find(f => f.nom === falaiseNom)?.nomformate : '';
     document.getElementById('velo_arrivee').value = falaiseNomFormate;
@@ -349,6 +353,14 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 <script>
   setupAutocomplete("gare_nom", "gares-search-list", "gares", gareCallback);
   setupAutocomplete("falaise_nom", "falaises-search-list", "falaises", falaiseCallback);
+  <?php if ($falaisePreset): ?>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('falaise_nom').disabled = true;
+      document.getElementById('falaise_nom').value = "<?= $falaisePreset['nom'] ?>";
+      document.getElementById('falaise_id').value = "<?= $falaisePreset['id'] ?>";
+      document.getElementById('velo_arrivee').value = "<?= $falaisePreset['nomformate'] ?>";
+    });
+  <?php endif; ?>
 </script>
 
 </html>
