@@ -288,7 +288,7 @@ $stmtC->close();
             </div>
             <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/edition/commentaire_falaise.php?falaise_id=<?= $falaise_id ?>">
+                href="/ajout/ajout_falaise.php?falaise_id=<?= $falaise_id ?>">
                 Modifier la fiche falaise
               </a>
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
