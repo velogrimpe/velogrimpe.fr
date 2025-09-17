@@ -14,7 +14,7 @@ $falaise_id = $_GET['falaise_id'] ?? null;
 if ($falaise_id) {
   $falaises = [];
   if (!$admin) {
-    $is_locked_stmt = $mysqli->prepare("SELECT falaise_id FROM falaises WHERE falaise_id = ? AND falaise_public = 1");
+    $is_locked_stmt = $mysqli->prepare("SELECT falaise_id FROM falaises WHERE falaise_id = ? AND falaise_public = 4");
     $is_locked_stmt->bind_param("i", $falaise_id);
     $is_locked_stmt->execute();
     $is_locked = $is_locked_stmt->get_result()->num_rows > 0;
@@ -26,7 +26,13 @@ if ($falaise_id) {
   }
 } else {
   $result_falaises = $mysqli->query("SELECT
-  falaise_id, falaise_nom, falaise_latlng, falaise_public = 1 as in_topo,
+  falaise_id, falaise_nom, falaise_latlng,
+  case
+    when falaise_public = 1 or falaise_public = 2 then 'existante' 
+    when falaise_public = 3 then 'à décrire'
+    when falaise_public = 4 then 'verrouillée'
+    else 'à compléter'
+    end as status,
   falaise_nomformate
   FROM falaises f
   ORDER BY falaise_nom");
@@ -36,7 +42,7 @@ if ($falaise_id) {
       'nom' => $row['falaise_nom'],
       'id' => $row['falaise_id'],
       'latlng' => $row['falaise_latlng'],
-      'in_topo' => $row['in_topo'],
+      'status' => $row['status'],
       'nomformate' => $row['falaise_nomformate'],
     ];
   }
@@ -91,7 +97,7 @@ if ($falaise_id) {
         document.querySelectorAll("select").forEach(el => { el.required = false });
         document.getElementById('falaise_public').value = '1';
         document.getElementById('admin').value = "<?= $config["admin_token"] ?>";
-        document.getElementById('nom_prenom').value = "Florent";
+        document.getElementById('nom_prenom').value = "<?= isset($_SERVER["REMOTE_USER"]) ? $_SERVER["REMOTE_USER"] : "Florent" ?>";
         document.getElementById('email').value = "<?= $config['contact_mail'] ?>";
       <?php else: ?>
         document.getElementById('falaise_public').value = '2';
@@ -144,8 +150,7 @@ if ($falaise_id) {
       id="form">
       <datalist id="falaises">
         <?php foreach ($falaises as $falaise): ?>
-          <option value="<?= $falaise['nom']; ?>"
-            label="<?= $falaise['nom']; ?> (<?= $falaise['in_topo'] ? "décrite" : "à compléter"; ?>)"></option>
+          <option value="<?= $falaise['nom']; ?>" label="<?= $falaise['nom']; ?> (<?= $falaise['status'] ?>)"></option>
         <?php endforeach; ?>
       </datalist>
       <input type="hidden" id="admin" name="admin" value="0" />
@@ -166,8 +171,9 @@ if ($falaise_id) {
             <b>Statut : </b>
             <select class="select select-primary select-sm" id="falaise_public" name="falaise_public">
               <option value="1">Validée (1)</option>
-              <option value="2">Contribution (2)</option>
+              <option value="2">À valider (2)</option>
               <option value="3">Hors Topo (3)</option>
+              <option value="4">Verrouillée (4)</option>
             </select>
           </label>
         </div>
@@ -322,6 +328,12 @@ if ($falaise_id) {
               createMarker(lat, lng);
               map.setView([lat, lng], 11);
             }
+          } else {
+            if (marker) {
+              map.removeLayer(marker);
+              marker = undefined;
+            }
+            mapinstructions.style.display = "flex";
           }
         }
         map.on("click", function (e) {
@@ -775,7 +787,8 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           rows="4"></textarea>
       </label>
 
-      <button type="submit" class="btn btn-primary">AJOUTER LA FALAISE</button>
+      <button type="submit" id="confirmButton" class="btn btn-primary"><?= $falaise_id ? "Modifier" : "Ajouter" ?> la
+        falaise</button>
     </form>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
@@ -821,6 +834,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_nomformate").value = falaise.falaise_nomformate;
         document.getElementById("falaise_id").value = falaise.falaise_id;
         document.getElementById("falaise_nom").value = falaise.falaise_nom;
+        document.getElementById("confirmButton").textContent = "Modifier la falaise";
         updateMarker();
       });
   }
@@ -875,9 +889,11 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 <script>
   const falaises = <?= json_encode($falaises) ?>;
   function falaiseCallback(falaiseNom) {
+    document.getElementById("confirmButton").textContent = "Ajouter la falaise";
     if (!falaiseNom) {
       document.getElementById("falaiseExistsAlert").classList.add("hidden");
       document.getElementById("falaiseEditInfo").classList.add("hidden");
+      document.getElementById("form").reset();
       return;
     }
     const existing = falaises.find((f) => f.nom.toLowerCase() === falaiseNom.toLowerCase());
@@ -888,7 +904,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
       document.getElementById("falaise_latlng").value = existing.latlng;
       updateMarker();
       document.getElementById("falaise_nomformate").value = existing.nomformate;
-      if (existing.in_topo !== "0") {
+      if (existing.status === "verrouillée") {
         document.getElementById("falaiseExistsAlert").classList.remove("hidden");
         document.getElementById("falaiseEditInfo").classList.add("hidden");
         document.getElementById("linkSelectedFalaise").href = `/falaise.php?falaise_id=${existing.id}`;
@@ -904,6 +920,8 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
     } else {
       document.getElementById("falaiseExistsAlert").classList.add("hidden");
       document.getElementById("falaiseEditInfo").classList.add("hidden");
+      document.getElementById("form").reset();
+      updateMarker();
     }
   }
   setupAutocomplete("falaise_nom", "falaise-list", "falaises", falaiseCallback, true);
