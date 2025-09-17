@@ -264,16 +264,16 @@ $stmtC->close();
       <div class="flex justify-between items-center w-full">
         <a class="text-primary font-bold" href="/carte.php">← Retour à la carte</a>
         <div class="flex flex-row items-center gap-2">
-          <div class="dropdown dropdown-end">
+          <div class="dropdown dropdown-end w-fit">
             <div tabindex="0" role="button"
               class="btn btn-sm md:btn-md btn-circle btn-outline btn-primary focus:pointer-events-none"
-              title="J'y ai été" id="veloFilterBtn">
+              title="J'y ai été">
               <svg class="w-4 md:w-6 h-4 md:h-6 fill-current">
                 <use xlink:href="/symbols/icons.svg#ri-chat-4-line"></use>
               </svg>
             </div>
-            <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg">
-              <button class="btn btn-primary btn-outline btn-sm py-1 h-fit" href="#commentaires" onclick="newComment()">
+            <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
+              <button class="btn btn-primary btn-outline btn-sm py-1 h-fit" onclick="newComment()">
                 Raconter ma sortie vélogrimpe
               </button>
             </div>
@@ -281,7 +281,7 @@ $stmtC->close();
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button"
               class="btn btn-sm md:btn-md btn-circle btn-outline focus:pointer-events-none"
-              title="Proposer des modifications" id="veloFilterBtn">
+              title="Proposer des modifications">
               <svg class="w-4 md:w-6 h-4 md:h-6 fill-current">
                 <use xlink:href="/symbols/icons.svg#ri-pencil-line"></use>
               </svg>
