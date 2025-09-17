@@ -66,6 +66,11 @@ if ($falaise_id) {
     rel='stylesheet' />
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <!-- Carte : locate -->
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.js"
+    charset="utf-8"></script>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <!-- Multi-select -->
@@ -167,7 +172,7 @@ if ($falaise_id) {
           <div class="flex flex-col md:flex-row gap-2 justify-center md:items-center">
             <div class="relative not-prose z-[11000] flex-1">
               <label class="form-control">
-                <b>Nom de la falaise : </b>
+                <b>Nom de la falaise</b>
                 <input class="input input-primary input-sm <?php if ($falaise_id): ?> input-disabled <?php endif ?>"
                   type="text" id="falaise_nom" name="falaise_nom" required autocomplete="off"
                   oninput="formatNomFalaise();" <?php if ($falaise_id): ?> readonly <?php endif ?> />
@@ -177,7 +182,7 @@ if ($falaise_id) {
               </ul>
             </div>
             <label class="admin form-control flex-1">
-              <b>Statut : </b>
+              <b>Statut</b>
               <select class="select select-primary select-sm" id="falaise_public" name="falaise_public">
                 <option value="1">Validée (1)</option>
                 <option value="2">À valider (2)</option>
@@ -186,16 +191,16 @@ if ($falaise_id) {
               </select>
             </label>
           </div>
-          <div class="flex flex-row gap-2 items-center admin">
-            <div class="w-1/2 flex flex-row gap-2">
+          <div class="flex flex-col md:flex-row gap-2 md:items-center admin">
+            <div class="flex-grow flex flex-row justify-between w-full gap-2">
               <div class="text-sm text-gray-400">Nom formaté:</div>
-              <input tabindex="-1" class="input input-disabled input-xs" type="text" id="falaise_nomformate"
+              <input tabindex="-1" class="input input-disabled input-xs w-48" type="text" id="falaise_nomformate"
                 name="falaise_nomformate" readonly>
             </div>
-            <div class="w-1/2 flex flex-row gap-2">
+            <div class="flex-grow flex flex-row justify-between w-full gap-2">
               <div class="text-sm text-gray-400">ID:</div>
-              <input tabindex="-1" class="input input-disabled input-xs" type="text" id="falaise_id" name="falaise_id"
-                readonly>
+              <input tabindex="-1" class="input input-disabled input-xs w-48" type="text" id="falaise_id"
+                name="falaise_id" readonly>
             </div>
           </div>
         </div>
@@ -230,14 +235,15 @@ if ($falaise_id) {
 
         <div class="flex flex-col gap-2">
           <label class="form-control" for="falaise_latlng">
-            <b>Coordonnées GPS (format : "latitude,longitude" (degrés décimaux)) :</b>
+            <b>Coordonnées GPS <span class="text-error">(format : "latitude,longitude" (degrés décimaux))</span></b>
             <input class="input input-primary input-sm" type="text" id="falaise_latlng" name="falaise_latlng"
               placeholder="ex: 45.1234,6.2355" required>
           </label>
           <div id="map" class="w-full h-64 rounded-lg relative" title="Cliquez pour placer la falaise">
             <div id="mapinstructions" class="h-full w-full bg-[#3333] flex items-center justify-center
               pointer-events-none z-[10000] absolute top-0 left-0 rounded-lg text-black text-xl">
-              <span class="bg-[#fff8] rounded-lg px-2 py-1">Cliquez pour placer la falaise</span>
+              <span class="bg-[#fff8] rounded-lg px-2 py-1 max-w-[200px] sm:max-w-full">Cliquez pour placer la
+                falaise</span>
             </div>
           </div>
           <i class="text-slate-400 text-sm">
@@ -292,6 +298,7 @@ if ($falaise_id) {
           const map = L.map("map", {
             layers: [landscapeTiles], center: [45.1234, 3.2355], zoom: 5, fullscreenControl: true, zoomSnap: 0.5
           });
+          L.control.locate().addTo(map);
           var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
           L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
           <?= json_encode($falaises) ?>.map(f => {
@@ -366,7 +373,7 @@ if ($falaise_id) {
         </script>
 
         <label class="form-control admin" for="falaise_zone">
-          <b>Zone de la falaise :</b>
+          <b>Zone de la falaise</b>
           <select class="select select-primary select-sm" name="falaise_zone" id="falaise_zone">
             <option value="-1" disabled selected>Choisis une zone</option>
             <?php foreach ($zones as $zone): ?>
@@ -388,7 +395,7 @@ if ($falaise_id) {
         <div>
           <div class="flex flex-col md:flex-row gap-4">
             <label class="form-control flex-1" for="falaise_cotmin">
-              <b>Cotation minimum :</b>
+              <b>Cotation minimum</b>
               <select class="select select-primary select-sm" required name="falaise_cotmin" id="falaise_cotmin">
                 <option value="" disabled selected></option>
                 <option value="4">4 et -</option>
@@ -405,7 +412,7 @@ if ($falaise_id) {
               </select>
             </label>
             <label class="form-control flex-1" for="falaise_cotmax">
-              <b>Cotation maximum : </b>
+              <b>Cotation maximum</b>
               <select class="select select-primary select-sm" required name="falaise_cotmax" id="falaise_cotmax">
                 <option value="" disabled selected></option>
                 <option value="4">4 et -</option>
@@ -422,7 +429,7 @@ if ($falaise_id) {
               </select>
             </label>
             <label class="form-control flex-1" for="falaise_nbvoies">
-              <b>Nombre de voies : </b>
+              <b>Nombre de voies</b>
               <select class="select select-primary select-sm" required name="falaise_nbvoies" id="falaise_nbvoies">
                 <option value="" disabled selected></option>
                 <option value="10">0 à 20 voies</option>
@@ -451,7 +458,7 @@ if ($falaise_id) {
         </div>
 
         <label class="form-control" for="falaise_cottxt">
-          <b class="text-gray-400 opacity-70">Précisions sur les cotations :</b>
+          <b class="">Précisions sur les cotations <span class="text-accent opacity-50">(optionnel)</span></b>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_cottxt" name="falaise_cottxt"
             rows="2"
             placeholder="ex : Falaise surtout interessante pour les voies dans le 6-7. On compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7."></textarea>
@@ -463,7 +470,7 @@ if ($falaise_id) {
         </label>
 
         <label class="form-control" for="falaise_voies">
-          <b>Précisions sur la falaise et les voies :</b>
+          <b>Précisions sur la falaise et les voies</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voies" name="falaise_voies"
             rows="2" placeholder="ex : un secteur principal avec 54 voies et un secteur initiation avec 12 voies.
             Hauteur max 30 mètres. Pied des voies à l'ombre, beaucoup de voies sur réglettes." required></textarea>
@@ -491,7 +498,7 @@ if ($falaise_id) {
         <div>
           <div class="flex flex-col md:flex-row gap-4">
             <label class="form-control w-full md:w-1/2 relative" for="falaise_exposhort1">
-              <div><b>Exposition(s) principale(s) : </b></div>
+              <div><b>Exposition(s) principale(s)</b></div>
               <multi-select id="falaise_exposhort1" name="falaise_exposhort1" required
                 class="input input-primary input-sm mb-1" selected="items-center"
                 selecteditem="p-1 badge badge-info text-white w-10 badge-sm m-1 cursor-pointer"
@@ -517,8 +524,9 @@ if ($falaise_id) {
               </multi-select>
             </label>
             <label class="form-control w-full md:w-1/2 relative" for="falaise_exposhort2">
-              <div><b class="text-gray-400 opacity-70">Exposition(s) secondaire(s) [code] : </b></div>
-              <multi-select id="falaise_exposhort2" name="falaise_exposhort2" class="input input-primary input-sm mb-1"
+              <div><b class="">Exposition(s) secondaire(s) <span class="text-accent opacity-50">(optionnel)</span></b>
+              </div>
+              <multi-select id="falaise_exposhort2" name="falaise_exposhort2" class="input input-bordered input-sm mb-1"
                 selected="items-center" selecteditem="p-1 badge badge-info text-white w-10 badge-sm m-1 cursor-pointer"
                 dropdownitem="p-1 badge badge-info text-white m-1 w-12 cursor-pointer"
                 dropdown="border bg-white w-96 text-xs flex flex-row flew-wrap items-center rounded-lg shadow-lg"
@@ -558,7 +566,7 @@ if ($falaise_id) {
           </div>
         </div>
         <label class="form-control" for="falaise_expotxt">
-          <b>Précisions sur l'exposition : </b>
+          <b>Précisions sur l'exposition</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_expotxt" name="falaise_expotxt"
             rows="1" placeholder="ex : majoritairement orienté Sud, quelques faces à l'Ouest" required></textarea>
           <i class="text-slate-400 text-sm">
@@ -581,7 +589,7 @@ if ($falaise_id) {
 
         <label class="form-control" for="falaise_gvtxt">
           <span class="flex flex-col md:flex-row justify-center md:items-center gap-2">
-            <b class="text-gray-400 opacity-70">Grandes voies - Texte descriptif :</b>
+            <b class="">Grandes voies - Texte descriptif <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="text-red-600">champ à laisser vide s'il n'y a pas de grandes voies !</span>
           </span>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_gvtxt" name="falaise_gvtxt"
@@ -594,7 +602,8 @@ if ($falaise_id) {
         </label>
 
         <label class="form-control" for="falaise_gvnb">
-          <b class="text-gray-400 opacity-70">Grandes voies - Texte très court pour le tableau :</b>
+          <b class="">Grandes voies - Texte très court pour le tableau <span
+              class="text-accent opacity-50">(optionnel)</span></b>
           <input class="input input-bordered input-sm" type="text" id="falaise_gvnb" name="falaise_gvnb"
             placeholder="ex : Plusieurs GV, 3 à 4 longueurs" maxlength="40">
           <i class="text-slate-400 text-sm">Texte très court pour le tableau "falaises proches de...".<br>
@@ -604,7 +613,7 @@ if ($falaise_id) {
         </label>
 
         <label class="form-control" for="falaise_bloc">
-          <b class="text-gray-400 opacity-70">Falaise de bloc</b>
+          <b class="">Falaise de bloc <span class="text-accent opacity-50">(optionnel)</span></b>
           <select id="falaise_bloc" name="falaise_bloc" class="select select-primary select-sm">
             <option value="0" selected>Non</option>
             <option value="1">Bloc</option>
@@ -628,7 +637,7 @@ if ($falaise_id) {
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
         <label class="form-control" for="falaise_matxt">
-          <b>Marche d'approche - Texte descriptif :</b>
+          <b>Marche d'approche - Texte descriptif</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_matxt" name="falaise_matxt"
             rows="3" placeholder="ex : 10' aller, 15' retour, montée raide." required></textarea>
           <i class="text-slate-400 text-sm">
@@ -637,15 +646,15 @@ if ($falaise_id) {
         </label>
 
         <div>
-          <b>Temps minimal de marche d'approche (minutes) :</b>
+          <b>Temps minimal de marche d'approche (minutes)</b>
           <div class="flex flex-col md:flex-row gap-4">
             <label class="form-control w-full md:w-1/2" for="falaise_maa">
-              <b> Aller : </b>
+              <b> Aller</b>
               <input class="input input-primary input-sm" type="number" id="falaise_maa" name="falaise_maa"
                 placeholder="ex : 10" required>
             </label>
             <label class="form-control w-full md:w-1/2" for="falaise_mar">
-              <b>Retour : </b>
+              <b>Retour</b>
               <input class="input input-primary input-sm" type="number" id="falaise_mar" name="falaise_mar"
                 placeholder="ex : 5" required>
             </label>
@@ -668,7 +677,7 @@ if ($falaise_id) {
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
         <label class="form-control" for="falaise_topo">
-          <b>Topo(s) :</b>
+          <b>Topo(s)</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_topo" name="falaise_topo"
             rows="2" required></textarea>
           <i class="text-slate-400 text-sm">
@@ -682,7 +691,7 @@ if ($falaise_id) {
 
 
         <label class="form-control" for="falaise_rq">
-          <b class="text-gray-400 opacity-70">Remarque(s) falaise :</b>
+          <b class="">Remarque(s) falaise <span class="text-accent opacity-50">(optionnel)</span></b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_rq" name="falaise_rq" rows="2"
             placeholder="ex : falaise abritée de la pluie."></textarea>
           <i class="text-slate-400 text-sm">A compléter si vous avez des informations additionnelles sur la
@@ -691,7 +700,7 @@ if ($falaise_id) {
 
 
         <label class="form-control" for="falaise_voletcarto">
-          <b>Résumé de la fiche falaise :</b>
+          <b>Résumé de la fiche falaise</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voletcarto"
             name="falaise_voletcarto" rows="3"
             placeholder="ex : Falaise exposée Sud, avec 120 voies de 6a à 7c. Quelques grandes voies en 2 ou 3 longueurs."
@@ -722,7 +731,8 @@ if ($falaise_id) {
           <pre>NOM FALAISE</pre>
 
           <label class="form-control" for="falaise_fermee">
-            <b class="text-gray-400 opacity-70">Si la falaise est fermée / interdite, explication :</b>
+            <b class="">Si la falaise est fermée / interdite, explication <span
+                class="text-accent opacity-50">(optionnel)</span></b>
             <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_fermee" name="falaise_fermee"
               rows="2" placeholder="ex : Falaise interdite, en cours de conventionnement."></textarea>
             <i class="text-slate-400 text-sm">A compléter si vous avez des informations sur la cause de l'interdiction
@@ -733,7 +743,7 @@ if ($falaise_id) {
 
           <label class="form-control" for="falaise_txt2">
             <span>
-              <b class="text-gray-400 opacity-70">Remarques diverses</b>.
+              <b class="">Remarques diverses <span class="text-accent opacity-50">(optionnel)</span></b>
               <span class="admin text-xs text-accent">[falaise_txt2]</span></span>
             <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt2" name="falaise_txt2"
               rows="3"></textarea>
@@ -746,7 +756,8 @@ if ($falaise_id) {
 
           <label class="form-control" for="falaise_txt1">
             <span>
-              <b class="text-gray-400 opacity-70">Remarque sur les itinéraires</b> (apparaitra entre le tableau des
+              <b class="">Remarque sur les itinéraires <span class="text-accent opacity-50">(optionnel)</span></b>
+              (apparaitra entre le tableau des
               itinéraires et celui de la falaise). <span class="admin text-xs text-accent">[falaise_txt1]</span>
             </span>
             <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt1" name="falaise_txt1"
@@ -763,7 +774,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         </div>
 
         <label class="form-control" for="falaise_img1">
-          <b class="text-gray-400 opacity-70">Image optionnelle 1 :</b>
+          <b class="">Image 1 <span class="text-accent opacity-50">(optionnel)</span></b>
           <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img1" name="falaise_img1"
             accept="image/*">
         </label>
@@ -772,7 +783,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 
         <label class="form-control" for="falaise_leg1">
           <span>
-            <b class="text-gray-400 opacity-70">Légende image optionnelle 1</b>.
+            <b class="">Légende image 1 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">
               [falaise_leg1]
             </span>
@@ -783,14 +794,14 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 
         <label class="form-control" for="falaise_txt3">
           <span>
-            <b class="text-gray-400 opacity-70">Texte optionnel 1</b>.
+            <b class="">Texte 1 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_txt3]</span></span>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt3" name="falaise_txt3"
             rows="5"></textarea>
         </label>
 
         <label class="form-control" for="falaise_img2">
-          <b class="text-gray-400 opacity-70">Image optionnelle 2 :</b>
+          <b class="">Image 2 <span class="text-accent opacity-50">(optionnel)</span></b>
           <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img2" name="falaise_img2"
             accept="image/*">
         </label>
@@ -799,7 +810,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 
         <label class="form-control" for="falaise_leg2">
           <span>
-            <b class="text-gray-400 opacity-70">Légende image optionnelle 2</b>.
+            <b class="">Légende image 2 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_leg2]</span></span>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_leg2" name="falaise_leg2"
             rows="2"></textarea>
@@ -807,14 +818,14 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 
         <label class="form-control" for="falaise_txt4">
           <span>
-            <b class="text-gray-400 opacity-70">Texte optionnel 2</b>.
+            <b class="">Texte 2 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_txt4]</span></span>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt4" name="falaise_txt4"
             rows="5"></textarea>
         </label>
 
         <label class="form-control" for="falaise_img3">
-          <b class="text-gray-400 opacity-70">Image optionnelle 3 :</b>
+          <b class="">Image 3 <span class="text-accent opacity-50">(optionnel)</span></b>
           <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img3" name="falaise_img3"
             accept="image/*">
         </label>
@@ -823,7 +834,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
 
         <label class="form-control" for="falaise_leg3">
           <span>
-            <b class="text-gray-400 opacity-70">Légende image optionnelle 3</b>.
+            <b class="">Légende image 3 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_leg3]</span></span>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_leg3" name="falaise_leg3"
             rows="2"></textarea>
@@ -831,42 +842,44 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
       </div>
 
       <hr class="my-4">
-      <h3 class="text-center">VALIDATION DE L'AJOUT DE DONNÉES</h3>
+      <h3 class="text-center">Validation de l'ajout de données</h3>
 
 
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="form-control w-full md:w-1/2">
-          <b>Falaise ajoutée par : </b>
-          <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
-            <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
-              placeholder="Prénom (et/ou nom, surnom...)" required>
-            <svg class="w-4 h-4 fill-current">
-              <use xlink:href="/symbols/icons.svg#ri-user-line"></use>
-            </svg>
-          </label>
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
+        <div class="flex flex-col md:flex-row gap-4">
+          <div class="form-control flex-grow">
+            <b>Falaise ajoutée par</b>
+            <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
+              <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
+                placeholder="Prénom (et/ou nom, surnom...)" required>
+              <svg class="w-4 h-4 fill-current">
+                <use xlink:href="/symbols/icons.svg#ri-user-line"></use>
+              </svg>
+            </label>
+          </div>
+          <div class="form-control flex-grow">
+            <b>Mail</b>
+            <label for="email" class="input input-primary input-sm flex items-center gap-2 w-full">
+              <input class="grow" type="email" id="email" name="email" required>
+              <svg class="w-4 h-4 fill-current">
+                <use xlink:href="/symbols/icons.svg#ri-mail-line"></use>
+              </svg>
+            </label>
+          </div>
         </div>
-        <div class="form-control w-full md:w-1/2" for="email">
-          <b>Mail :</b>
-          <label for="email" class="input input-primary input-sm flex items-center gap-2 w-full">
-            <input class="grow" type="email" id="email" name="email" required>
-            <svg class="w-4 h-4 fill-current">
-              <use xlink:href="/symbols/icons.svg#ri-mail-line"></use>
-            </svg>
-          </label>
-        </div>
+
+        <label class="form-control" for="message">
+          <span class="">
+            <b>Message <span class="text-accent opacity-50">(optionnel)</span></b>
+            <i>(si vous voulez commenter votre ajout de données)</i>
+          </span>
+          <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
+            rows="4"></textarea>
+        </label>
+
+        <button type="submit" id="confirmButton" class="btn btn-primary"><?= $falaise_id ? "Modifier" : "Ajouter" ?> la
+          falaise</button>
       </div>
-
-      <label class="form-control" for="message">
-        <span class="text-gray-400 opacity-70">
-          <b>Message optionnel :</b>
-          <i>(si vous voulez commenter votre ajout de données)</i>
-        </span>
-        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
-          rows="4"></textarea>
-      </label>
-
-      <button type="submit" id="confirmButton" class="btn btn-primary"><?= $falaise_id ? "Modifier" : "Ajouter" ?> la
-        falaise</button>
     </form>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>

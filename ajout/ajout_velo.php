@@ -131,73 +131,92 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       <input class="input input-primary input-sm" type="hidden" id="velo_public" name="velo_public" value="2">
       <input class="input input-primary input-sm" type="hidden" id="admin" name="admin" value="0">
 
-      <div class="flex flex-row gap-4 items-center flex-1">
-        <div class="flex flex-col gap-1 w-1/2">
-          <div class="relative not-prose">
-            <label class="form-control" for="gare_nom">
-              <b>Gare de départ de l'itinéraire vélo :</b>
-              <div class="input input-primary input-sm flex items-center gap-2">
-                <input class="grow" type="text" id="gare_nom" name="gare_nom" required autocomplete="off" />
-                <svg class="w-4 h-4 fill-current">
-                  <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
-                </svg>
-              </div>
-            </label>
-            <ul id="gares-search-list"
-              class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-            </ul>
+      <!-- Partie Départ / Arrivées -->
+      <div class="relative flex items-center">
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
+        <div class="flex items-center justify-center">
+          <span class="px-2 text-primary italic bg-unset rounded-full">Gare et Falaise</span>
+        </div>
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
+      </div>
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
+        <div class="flex flex-col md:flex-row gap-4 md:items-center flex-1">
+          <div class="flex flex-col gap-1 flex-grow">
+            <div class="relative not-prose">
+              <label class="form-control" for="gare_nom">
+                <b>Gare de départ de l'itinéraire vélo :</b>
+                <div class="input input-primary input-sm flex items-center gap-2">
+                  <input class="grow" type="text" id="gare_nom" name="gare_nom" required autocomplete="off" />
+                  <svg class="w-4 h-4 fill-current">
+                    <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
+                  </svg>
+                </div>
+              </label>
+              <ul id="gares-search-list"
+                class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
+              </ul>
+            </div>
+            <div class="admin flex flex-row gap-4">
+              <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="velo_depart"
+                name="velo_depart" readonly required>
+              <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="gare_id" name="gare_id"
+                readonly required>
+            </div>
           </div>
-          <div class="admin flex flex-row gap-4">
-            <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="velo_depart"
-              name="velo_depart" readonly required>
-            <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="gare_id" name="gare_id"
-              readonly required>
+
+          <div class="flex flex-col gap-1 flex-grow">
+            <div class="relative not-prose">
+              <label class="form-control" for="falaise_nom">
+                <b>Falaise d'arrivée de l'itinéraire vélo :</b>
+                <div class="input input-primary input-sm flex items-center gap-2">
+                  <input class="grow" type="text" id="falaise_nom" name="falaise_nom" required autocomplete="off" />
+                  <svg class="w-4 h-4 fill-current">
+                    <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
+                  </svg>
+                </div>
+              </label>
+              <ul id="falaises-search-list"
+                class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
+              </ul>
+            </div>
+            <div class="admin flex flex-row gap-4">
+              <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="velo_arrivee"
+                name="velo_arrivee" required readonly />
+              <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="falaise_id"
+                name="falaise_id" required readonly />
+            </div>
           </div>
         </div>
 
-        <div class="flex flex-col gap-1 w-1/2">
-          <div class="relative not-prose">
-            <label class="form-control" for="falaise_nom">
-              <b>Falaise d'arrivée de l'itinéraire vélo :</b>
-              <div class="input input-primary input-sm flex items-center gap-2">
-                <input class="grow" type="text" id="falaise_nom" name="falaise_nom" required autocomplete="off" />
-                <svg class="w-4 h-4 fill-current">
-                  <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
-                </svg>
-              </div>
-            </label>
-            <ul id="falaises-search-list"
-              class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-            </ul>
-          </div>
-          <div class="admin flex flex-row gap-4">
-            <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="velo_arrivee"
-              name="velo_arrivee" required readonly />
-            <input tabindex="-1" class="input input-disabled input-xs w-1/2" type="text" id="falaise_id"
-              name="falaise_id" required readonly />
-          </div>
+        <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
+          <svg class="w-4 h-4 mb-1 fill-current inline-block">
+            <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
+          </svg> Un itinéraire existe déjà entre cette gare et cette falaise. Vérifiez que vous ne faites pas de
+          doublon.
         </div>
       </div>
 
-      <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
-        <svg class="w-4 h-4 mb-1 fill-current inline-block">
-          <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
-        </svg> Un itinéraire existe déjà entre cette gare et cette falaise. Vérifiez que vous ne faites pas de doublon.
+      <!-- Partie Indicateurs -->
+      <div class="relative flex items-center">
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
+        <div class="flex items-center justify-center">
+          <span class="px-2 text-primary italic bg-unset rounded-full">Indicateurs</span>
+        </div>
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
       </div>
-
-      <div>
-        <div class="flex flex-row gap-4">
-          <label class="form-control w-1/3" for="velo_km">
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
+        <div class="flex flex-col md:flex-row gap-4">
+          <label class="form-control w-full md:w-1/3" for="velo_km">
             <b>Longueur de l'itinéraire (km) :</b>
             <input class="input input-primary input-sm" type="number" id="velo_km" name="velo_km" placeholder="12.5"
               step="0.01" min="0" required>
           </label>
-          <label class="form-control w-1/3" for="velo_dplus">
+          <label class="form-control w-full md:w-1/3" for="velo_dplus">
             <b>Dénivelé positif (mètres) :</b>
             <input class="input input-primary input-sm" type="number" id="velo_dplus" name="velo_dplus"
               placeholder="650" min="0" required>
           </label>
-          <label class="form-control w-1/3" for="velo_dmoins">
+          <label class="form-control w-full md:w-1/3" for="velo_dmoins">
             <b>Dénivelé négatif (mètres) :</b>
             <input class="input input-primary input-sm" type="number" id="velo_dmoins" name="velo_dmoins"
               placeholder="650" min="0" required>
@@ -208,15 +227,59 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           le dénivelé un entier.</i>
       </div>
 
-      <label class="form-control" for="velo_descr">
-        <b class="text-gray-400 opacity-70">Description de l'itinéraire, remarques :</b>
-        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="velo_descr" name="velo_descr" rows="5"
-          cols="100"></textarea>
-        <i class="text-gray-400 opacity-70">
-          On peut y détailler la surface (goudron ? Piste ?), le trafic (beaucoup de voitures ?), s'il y a des
-          montées raides, si le parcours suit une voie verte, s'il y a des alternatives au tracé proposé...
-        </i>
-      </label>
+      <!-- Partie GPX -->
+      <div class="relative flex items-center">
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
+        <div class="flex items-center justify-center">
+          <span class="px-2 text-primary italic bg-unset rounded-full">Trace GPS</span>
+        </div>
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
+      </div>
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
+        <label class="form-control" for="gpx_file">
+          <b>Trace GPS :</b>
+          <input class="file-input file-input-primary file-input-sm" type="file" id="gpx_file" name="gpx_file"
+            accept=".gpx" required>
+          <i class="text-red-400">Au format GPX !</i>
+        </label>
+
+        <label class="form-control" for="velo_variante">
+          <b class="">Nom de la variante <span class="text-accent opacity-50">(optionnel)</span> :</b>
+          <input class="input input-bordered input-sm" type="text" id="velo_variante" name="velo_variante"
+            oninput="formatVariante()">
+          <i class="">
+            Dans le cas où il existe plusieurs itinéraires reliant une même gare à une même falaise, donner un nom aux
+            différentes possibilités.
+            Ex : "Option par le Nord" et "Option par le Sud".</i>
+        </label>
+
+        <label class="form-control" for="velo_varianteformate" style="display: none;">
+          <b class="">Nom de la variante (formatée) <span class="text-accent opacity-50">(optionnel)</span> :</b>
+          <input class="input input-bordered input-sm" type="text" id="velo_varianteformate" name="velo_varianteformate"
+            readonly style="display: none;">
+        </label>
+      </div>
+
+      <!-- Partie Remarques -->
+      <div class="relative flex items-center">
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
+        <div class="flex items-center justify-center">
+          <span class="px-2 text-primary italic bg-unset rounded-full">Description</span>
+        </div>
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
+      </div>
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
+        <label class="form-control" for="velo_descr">
+          <b class="">Description de l'itinéraire, remarques <span class="text-accent opacity-50">(optionnel)</span>
+            :</b>
+          <textarea class="textarea textarea-bordered textarea-sm leading-6" id="velo_descr" name="velo_descr" rows="5"
+            cols="100"></textarea>
+          <i class="">
+            On peut y détailler la surface (goudron ? Piste ?), le trafic (beaucoup de voitures ?), s'il y a des
+            montées raides, si le parcours suit une voie verte, s'il y a des alternatives au tracé proposé...
+          </i>
+        </label>
+      </div>
 
       <label class="form-control admin" for="velo_openrunner">
         <b class="text-gray-400 opactity-70">Lien Openrunner pour affichage profil en iframe :</b>
@@ -224,89 +287,77 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           name="velo_openrunner"></textarea>
       </label>
 
-      <label class="form-control" for="gpx_file">
-        <b>Trace GPS :</b>
-        <input class="file-input file-input-primary file-input-sm" type="file" id="gpx_file" name="gpx_file"
-          accept=".gpx" required>
-        <i class="text-red-400">Au format GPX !</i>
-      </label>
+      <!-- Partie Piéton -->
+      <div class="relative flex items-center">
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
+        <div class="flex items-center justify-center">
+          <span class="px-2 text-primary italic bg-unset rounded-full">Accessibilité Piéton</span>
+        </div>
+        <hr class="my-0 flex-grow border-[#2e8b57]" />
+      </div>
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
+        <div class="flex flex-col md:flex-row gap-4">
+          <label class="form-control flex-grow" for="velo_apieduniquement">
+            <div class="flex items-center gap-4">
+              <input class="checkbox checkbox-primary checkbox" type="checkbox" id="velo_apieduniquement"
+                name="velo_apieduniquement">
+              <b class="">Itinéraire conçu pour la marche uniquement ?</b>
+            </div>
+            <i class="">
+              Cocher si l'itinéraire peut se faire à pied, mais pas à vélo.
+            </i>
+          </label>
 
-      <label class="form-control" for="velo_variante">
-        <b class="text-gray-400 opacity-70">Nom de la variante :</b>
-        <input class="input input-bordered input-sm" type="text" id="velo_variante" name="velo_variante"
-          oninput="formatVariante()">
-        <i class="text-gray-400 opacity-70">
-          Dans le cas où il existe plusieurs itinéraires reliant une même gare à une même falaise, donner un nom aux
-          différentes possibilités.
-          Ex : "Option par le Nord" et "Option par le Sud".</i>
-      </label>
-
-      <label class="form-control" for="velo_varianteformate" style="display: none;">
-        <b class="text-gray-400 opacity-70">Nom de la variante (formatée) :</b>
-        <input class="input input-bordered input-sm" type="text" id="velo_varianteformate" name="velo_varianteformate"
-          readonly style="display: none;">
-      </label>
-
-      <div class="flex flex-row gap-4">
-        <label class="form-control w-1/2" for="velo_apieduniquement">
-          <div class="flex items-center gap-4">
-            <input class="checkbox checkbox-primary checkbox" type="checkbox" id="velo_apieduniquement"
-              name="velo_apieduniquement">
-            <b class="text-gray-400 opacity-70">Itinéraire conçu pour la marche uniquement ?</b>
-          </div>
-          <i class="text-gray-400 opacity-70">
-            Cocher si l'itinéraire peut se faire à pied, mais pas à vélo.
-          </i>
-        </label>
-
-        <label class="form-control w-1/2" for="velo_apiedpossible">
-          <div class="flex items-center gap-4">
-            <input class="checkbox checkbox-primary checkbox" type="checkbox" id="velo_apiedpossible"
-              name="velo_apiedpossible">
-            <b class="text-gray-400 opacity-70">Itinéraire conçu pour le vélo, mais faisable à pied ?</b>
-          </div>
-          <i class="text-gray-400 opacity-70">
-            Cocher si l'itinéraire peut se faire à vélo, mais est suffisamment court pour se faire
-            aussi à pied (< 1h). </i>
-        </label>
+          <label class="form-control flex-grow" for="velo_apiedpossible">
+            <div class="flex items-center gap-4">
+              <input class="checkbox checkbox-primary checkbox" type="checkbox" id="velo_apiedpossible"
+                name="velo_apiedpossible">
+              <b class="">Itinéraire conçu pour le vélo, mais faisable à pied ?</b>
+            </div>
+            <i class="">
+              Cocher si l'itinéraire peut se faire à vélo, mais est suffisamment court pour se faire
+              aussi à pied (< 1h). </i>
+          </label>
+        </div>
       </div>
 
       <hr class="my-4">
-      <h3 class="text-center">VALIDATION DE L'AJOUT DE DONNÉES</h3>
+      <h3 class="text-center">Validation de l'ajout de données</h3>
 
-      <div class="flex flex-row gap-4">
-        <div class="form-control w-1/2">
-          <b>Falaise ajoutée par : </b>
-          <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
-            <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
-              placeholder="Prénom (et/ou nom, surnom...)" required>
-            <svg class="w-4 h-4 fill-current">
-              <use xlink:href="/symbols/icons.svg#ri-user-line"></use>
-            </svg>
-          </label>
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
+        <div class="flex flex-col md:flex-row gap-4">
+          <div class="form-control flex-grow">
+            <b>Itinéraire ajouté par : </b>
+            <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
+              <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
+                placeholder="Prénom (et/ou nom, surnom...)" required>
+              <svg class="w-4 h-4 fill-current">
+                <use xlink:href="/symbols/icons.svg#ri-user-line"></use>
+              </svg>
+            </label>
+          </div>
+          <div class="form-control flex-grow">
+            <b>Mail :</b>
+            <label for="email" class="input input-primary input-sm flex items-center gap-2 w-full">
+              <input class="grow" type="email" id="email" name="email" required>
+              <svg class="w-4 h-4 fill-current">
+                <use xlink:href="/symbols/icons.svg#ri-mail-line"></use>
+              </svg>
+            </label>
+          </div>
         </div>
-        <div class="form-control w-1/2" for="email">
-          <b>Mail :</b>
-          <label for="email" class="input input-primary input-sm flex items-center gap-2 w-full">
-            <input class="grow" type="email" id="email" name="email" required>
-            <svg class="w-4 h-4 fill-current">
-              <use xlink:href="/symbols/icons.svg#ri-mail-line"></use>
-            </svg>
-          </label>
-        </div>
+
+        <label class="form-control" for="message">
+          <span class="">
+            <b>Message <span class="text-accent opacity-50">(optionnel)</span> :</b>
+            <i>(si vous voulez commenter votre ajout de données)</i>
+          </span>
+          <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
+            rows="4"></textarea>
+        </label>
+
+        <button type="submit" class="btn btn-primary">Ajouter l'itinéraire vélo</button>
       </div>
-
-      <label class="form-control" for="message">
-        <span class="text-gray-400 opacity-70">
-          <b>Message optionnel :</b>
-          <i>(si vous voulez commenter votre ajout de données)</i>
-        </span>
-        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
-          rows="4"></textarea>
-      </label>
-
-      <button type="submit" class="btn btn-primary">AJOUTER L'ITINÉRAIRE VÉLO</button>
-
     </form>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>

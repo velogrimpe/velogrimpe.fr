@@ -243,40 +243,42 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       </label>
 
       <hr class="my-4">
-      <h3 class="text-center">VALIDATION DE L'AJOUT DE DONNÉES</h3>
+      <h3 class="text-center">Validation de l'ajout de données</h3>
 
-      <div class="flex flex-row gap-4">
-        <div class="form-control w-1/2">
-          <b>Falaise ajoutée par : </b>
-          <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
-            <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
-              placeholder="Prénom (et/ou nom, surnom...)" required>
-            <svg class="w-4 h-4 fill-current">
-              <use xlink:href="/symbols/icons.svg#ri-user-line"></use>
-            </svg>
-          </label>
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
+        <div class="flex flex-col md:flex-row gap-4">
+          <div class="form-control flex-grow">
+            <b>Itinéraire ajouté par : </b>
+            <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
+              <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
+                placeholder="Prénom (et/ou nom, surnom...)" required>
+              <svg class="w-4 h-4 fill-current">
+                <use xlink:href="/symbols/icons.svg#ri-user-line"></use>
+              </svg>
+            </label>
+          </div>
+          <div class="form-control flex-grow">
+            <b>Mail :</b>
+            <label for="email" class="input input-primary input-sm flex items-center gap-2 w-full">
+              <input class="grow" type="email" id="email" name="email" required>
+              <svg class="w-4 h-4 fill-current">
+                <use xlink:href="/symbols/icons.svg#ri-mail-line"></use>
+              </svg>
+            </label>
+          </div>
         </div>
-        <div class="form-control w-1/2" for="email">
-          <b>Mail :</b>
-          <label for="email" class="input input-primary input-sm flex items-center gap-2 w-full">
-            <input class="grow" type="email" id="email" name="email" required>
-            <svg class="w-4 h-4 fill-current">
-              <use xlink:href="/symbols/icons.svg#ri-mail-line"></use>
-            </svg>
-          </label>
-        </div>
+
+        <label class="form-control" for="message">
+          <span class="">
+            <b>Message <span class="text-accent opacity-50">(optionnel)</span> :</b>
+            <i>(si vous voulez commenter votre ajout de données)</i>
+          </span>
+          <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
+            rows="4"></textarea>
+        </label>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn">Ajouter l'itinéraire train</button>
       </div>
-
-      <label class="form-control" for="message">
-        <span class="text-gray-400 opacity-70">
-          <b>Message optionnel :</b>
-          <i>(si vous voulez commenter votre ajout de données)</i>
-        </span>
-        <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
-          rows="4"></textarea>
-      </label>
-
-      <button type="submit" class="btn btn-primary" id="submitBtn">AJOUTER L'ITINÉRAIRE TRAIN</button>
 
     </form>
   </main>
