@@ -278,7 +278,7 @@ $stmtC->close();
               </button>
             </div>
           </div>
-          <div class="dropdown dropdown-end">
+          <div class="dropdown dropdown-end w-fit">
             <div tabindex="0" role="button"
               class="btn btn-sm md:btn-md btn-circle btn-outline focus:pointer-events-none"
               title="Proposer des modifications">
