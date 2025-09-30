@@ -12,6 +12,8 @@ $gares = $mysqli->query("SELECT
 )->fetch_all(MYSQLI_ASSOC);
 $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);
 
+$highlight = $_GET['h'] ?? '';
+
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -624,6 +626,27 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
         }
       ).addTo(map);
       falaise.marker = marker;
+      if (falaise.highlighted) {
+        const hmarker = L.marker(
+          falaise.falaise_latlng.split(","),
+          {
+            icon: L.divIcon({
+              iconSize: [0, 0],
+              iconAnchor: [0, 0],
+              className: "relative",
+              html: `<div
+                class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2
+                bg-gradient-to-r from-primary to-secondary border-2 border-white text-white text-xs p-[2px] leading-none rounded-md"
+                >
+              ${falaise.falaise_nom}
+            </div>`,
+            }),
+            riseOnHover: true,
+            autoPanOnFocus: true,
+          }
+        ).addTo(map);
+        falaise.hmarker = hmarker;
+      }
       marker.bindTooltip(falaise.falaise_nom, {
         className: "p-[1px]",
         direction: "right",
@@ -863,6 +886,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   const zoom = 6.5;
   // Récupération des données
   const falaisesBase = <?php echo json_encode($falaises); ?>;
+  const highlightedFalaiseIds = "<?= $highlight ?>".split(",");
   const itineraires = <?php echo json_encode($itineraires); ?>.map(it => ({ ...it, tempsVelo: calculate_time(it) }));
   const garesBase = <?php echo json_encode($gares); ?>.map(g => {
     g.villes = (g.villes || "")
@@ -882,6 +906,9 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       });
       return { ...it, gare, villes };
     }).sort((a, b) => a.tempsVelo - b.tempsVelo);
+    if (highlightedFalaiseIds.includes(f.falaise_id)) {
+      f.highlighted = true;
+    }
     return { ...f, access }
   })
   const gares = garesBase.map(g => {
