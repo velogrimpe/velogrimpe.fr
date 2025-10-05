@@ -1121,6 +1121,7 @@ $highlight = $_GET['h'] ?? '';
   renderGares();
 
   map.on("zoomend", (e) => {
+    console.log("zoomend", map.getZoom());
     renderFalaises();
     renderGares();
   });
@@ -1129,19 +1130,12 @@ $highlight = $_GET['h'] ?? '';
     renderGares();
   });
 
-  //  --- Ajout des lignes de train ---
-  const paintRules = [
-    {
-      dataLayer: "fr",
-      symbolizer: new protomapsL.LineSymbolizer({
-        color: "#000",
-        width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5),
-      })
-    }
-  ]
-  var layer = protomapsL.leafletLayer({ url: '/bdd/trains/trainlines.pmtiles', paintRules, maxDataZoom: 16, pane: "overlayPane", attribution: "Protomaps" })
-  layer.addTo(map);
+</script>
 
+<script type="module">
+  import { campingLayer, trainlinesLayer } from "/js/components/map/load-vector-tiles.js";
+  campingLayer.addTo(map);
+  trainlinesLayer.addTo(map);
 </script>
 
 <script>
