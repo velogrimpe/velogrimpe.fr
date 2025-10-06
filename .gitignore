@@ -1,5 +1,4 @@
 bdd/images_falaises
-bdd/datatourisme
 bdd/**/*.gpx
 bdd/**/*.geojson
 bdd/**/*.zip

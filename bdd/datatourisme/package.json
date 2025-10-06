@@ -1,0 +1,15 @@
+{
+  "name": "datatourisme",
+  "version": "1.0.0",
+  "main": "extract-campings.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "csv": "^6.4.1",
+    "progress": "^2.0.3"
+  }
+}

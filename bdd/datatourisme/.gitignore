@@ -1,0 +1,5 @@
+*.csv
+*.geojson
+*.pmtiles
+node_modules/
+bun.lockb
