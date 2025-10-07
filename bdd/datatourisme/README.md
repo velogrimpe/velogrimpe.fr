@@ -19,7 +19,7 @@ bun run extract-campings.js
 ### Création des pmtiles
 
 ```
-tippecanoe -zg -o camping.pmtiles --minimum-zoom=8 --drop-densest-as-needed --extend-zooms-if-still-dropping --force output.geojson
+tippecanoe -zg -o camping.pmtiles --minimum-zoom=8 --drop-densest-as-needed --extend-zooms-if-still-dropping --force camping.geojson -r1 --cluster-distance=0
 ```
 
 ### Upload de la donnée

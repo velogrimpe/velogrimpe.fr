@@ -57,7 +57,12 @@ function main() {
       VELOGRIMPE_CATS.includes(cat)
     );
     if (intersection.length > 0) {
-      row.Categories_de_POI = intersection.map((cat) => cat.split("#")[1])[0];
+      row.Categories_de_POI = intersection
+        .map((cat) => cat.split("#")[1])[0]
+        .toLowerCase()
+        .includes("camping")
+        ? "Camping"
+        : "Gite";
       const feature = {
         type: "Feature",
         properties: Object.fromEntries(
@@ -94,13 +99,13 @@ function main() {
     .on("error", (err) => console.error("Transformer error:", err))
     .pipe(stringifier)
     .on("error", (err) => console.error("Stringifier error:", err))
-    .pipe(fs.createWriteStream("output.csv"))
+    .pipe(fs.createWriteStream("camping.csv"))
     .on("finish", () => {
       const geojson = {
         type: "FeatureCollection",
         features,
       };
-      fs.writeFileSync("output.geojson", JSON.stringify(geojson, null, 2));
+      fs.writeFileSync("camping.geojson", JSON.stringify(geojson, null, 2));
       console.log("\nDone!");
       console.log("Categories trouvées :", Array.from(cats).join(", "));
     })
