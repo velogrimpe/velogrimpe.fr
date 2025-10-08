@@ -224,7 +224,8 @@ $stmtC->close();
   <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.js"
     charset="utf-8"></script>
   <!-- Carte : Lignes de train-->
-  <script src="https://unpkg.com/protomaps-leaflet@5.0.1/dist/protomaps-leaflet.js"></script>
+  <!-- <script src="https://unpkg.com/protomaps-leaflet@5.1.0/dist/protomaps-leaflet.js"></script> -->
+  <script src="/js/vendor/protomaps-leaflet.js"></script>
   <!-- Carte : Pour les détails falaise-->
   <script src="/js/vendor/leaflet-textpath.js"></script>
   <!-- Styles -->

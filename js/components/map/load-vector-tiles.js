@@ -16,7 +16,8 @@ var trainlinesLayer = protomapsL.leafletLayer({
   attribution: "Protomaps",
 });
 //  --- Ajout des campings ---
-const sheetIconSize = 20;
+const sheetIconSize = 40;
+// const showLabelFromZoom = 8;
 const showLabelFromZoom = 14;
 const ICONS = `
 <html><body>
@@ -163,7 +164,10 @@ const campingLabelSymbolizer = new protomapsL.OffsetTextSymbolizer({
   maxLineChars: 15,
   lineHeight: 1.2,
   placements: [protomapsL.TextPlacements.S],
-  offsetY: sheetIconSize / 2 + 2,
+  // offsetY: sheetIconSize / 2 + 2,
+  offsetY: 1,
+  // dpr === 2 ?  : dpr === 1 ? 0 : sheetIconSize / 2 + 8,
+  // offsetX: 0,
   justify: 2,
   font: (z, f) => {
     return "700 14px sans-serif";
@@ -174,10 +178,16 @@ const campingLabelRules = [
     dataLayer: "camping",
     filter: (z, f) => f.props.category === "Camping",
     symbolizer: new protomapsL.GroupSymbolizer([
+      // new protomapsL.OffsetSymbolizer(
       new protomapsL.IconSymbolizer({
         name: "camping", // matches the SVG id
         sheet: sheet,
       }),
+      // {
+      // placements: [protomapsL.TextPlacements.N],
+      // offsetY: -sheetIconSize / dprWorkaroundFactor / 2,
+      // }
+      // ),
       campingLabelSymbolizer,
     ]),
   },
@@ -194,13 +204,14 @@ const campingLabelRules = [
   },
 ];
 var campingLayer = protomapsL.leafletLayer({
-  url: "/bdd/datatourisme/camping.pmtiles",
+  url: "/bdd/datatourisme/camping_2.pmtiles",
   tasks: [sheet.load()],
   labelRules: campingLabelRules,
   minZoom: 12,
-  maxDataZoom: 8,
+  maxDataZoom: 14,
   pane: "overlayPane",
   attribution: "Protomaps",
+  devicePixelRatio: 2,
 });
 
 export { campingLayer, trainlinesLayer };

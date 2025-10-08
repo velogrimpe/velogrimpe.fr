@@ -18,8 +18,11 @@ bun run extract-campings.js
 
 ### Création des pmtiles
 
+[Tippecanoe Command builder](https://maptiling.streamlit.app/Tippecanoe_Command_Generator)
+
 ```
-tippecanoe -zg -o camping.pmtiles --minimum-zoom=8 --drop-densest-as-needed --extend-zooms-if-still-dropping --force camping.geojson -r1 --cluster-distance=0
+# tippecanoe -zg -o camping.pmtiles --minimum-zoom=8 --drop-densest-as-needed --extend-zooms-if-still-dropping --force camping.geojson -r1 --cluster-distance=0
+tippecanoe -o camping_2.pmtiles -f -z14 -Z6 -ae -d30 -m12 -pf -pk -r0.0 -K1 -k0 -L camping:camping.geojson
 ```
 
 ### Upload de la donnée

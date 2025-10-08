@@ -52,7 +52,8 @@ $highlight = $_GET['h'] ?? '';
     href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.js"
     charset="utf-8"></script>
-  <script src="https://unpkg.com/protomaps-leaflet@5.0.1/dist/protomaps-leaflet.js"></script>
+  <!-- <script src="https://unpkg.com/protomaps-leaflet@5.1.0/dist/protomaps-leaflet.js"></script> -->
+  <script src="/js/vendor/protomaps-leaflet.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -1136,6 +1137,25 @@ $highlight = $_GET['h'] ?? '';
   import { campingLayer, trainlinesLayer } from "/js/components/map/load-vector-tiles.js";
   campingLayer.addTo(map);
   trainlinesLayer.addTo(map);
+  // fetch("/bdd/datatourisme/camping.geojson").then(res => res.json()).then(data => {
+  //   L.geoJSON(data, {
+  //     pointToLayer: function (feature, latlng) {
+  //       return L.circleMarker(latlng, {
+  //         radius: 5,
+  //         fillColor: "#32d47a",
+  //         color: "#ffffff",
+  //         weight: 2,
+  //         opacity: 1,
+  //         fillOpacity: 0.8,
+  //       }).bindPopup(
+  //         `<div class="flex flex-col gap-1">`
+  //         + `<div class="text-xl font-bold">${feature.properties.name}</div>`
+  //         + `</div>`,
+  //         { offset: [0, -10] }
+  //       );
+  //     }
+  //   }).addTo(map);
+  // });
 </script>
 
 <script>
