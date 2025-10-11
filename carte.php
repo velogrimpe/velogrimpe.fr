@@ -499,6 +499,8 @@ $highlight = $_GET['h'] ?? '';
     return time_in_minutes;
   }
 
+  const halo = "[text-shadow:-1px_-1px_0_#fff,1px_-1px_0_#fff,-1px_1px_0_#fff,1px_1px_0_#fff,0_1px_0_#fff,0_-1px_0_#fff,1px_0_0_#fff,-1px_0_0_#fff]";
+
   const gpx_path = (it) => {
     return (
       it.velo_id + "_" + it.velo_depart + "_" + it.velo_arrivee + "_" + (it.velo_varianteformate || "") + ".gpx"
@@ -627,6 +629,19 @@ $highlight = $_GET['h'] ?? '';
         }
       ).addTo(map);
       falaise.marker = marker;
+      const labelMarker = L.marker(
+        falaise.falaise_latlng.split(","),
+        {
+          icon: L.divIcon({
+            className: "relative",
+            html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo}">${falaise.falaise_nom}</div>`,
+            iconSize: [0, 0],
+          }),
+          riseOnHover: true,
+          autoPanOnFocus: true,
+        }
+      ).addTo(map);
+      falaise.labelMarker = labelMarker;
       if (falaise.highlighted) {
         const hmarker = L.marker(
           falaise.falaise_latlng.split(","),
@@ -703,7 +718,7 @@ $highlight = $_GET['h'] ?? '';
       return;
     }
     // Clear old marker when mode changed
-    if (!falaise.marker || falaise.displayMode === "hidden") {
+    if (!falaise.marker || !falaise.labelMarker || falaise.displayMode === "hidden") {
       initMarker();
     }
     // Set new mode
@@ -719,8 +734,14 @@ $highlight = $_GET['h'] ?? '';
         permanent,
       });
     };
+    if (mode === "normal+label") {
+      falaise.labelMarker?.addTo(map);
+    } else {
+      map.removeLayer(falaise.labelMarker);
+    }
     switch (mode) {
       case "normal":
+      case "normal+label":
         falaise.marker.setOpacity(1);
         setIconAndTooltip(defaultMarkerSize, "right");
         return;
@@ -743,15 +764,30 @@ $highlight = $_GET['h'] ?? '';
     if (falaise.displayMode !== undefined && falaise.marker) {
       map.removeLayer(falaise.marker);
     }
+    const size = 20;
     const marker = L.marker(
       falaise.falaise_latlng.split(","),
       {
-        icon: falaiseIcon(20, falaise.falaise_fermee, falaise.falaise_bloc),
+        icon: falaiseIcon(size, falaise.falaise_fermee, falaise.falaise_bloc),
         opacity: 0.75,
         riseOnHover: true,
         autoPanOnFocus: true,
       }
     ).addTo(map);
+    const labelMarker = L.marker(
+      falaise.falaise_latlng.split(","),
+      {
+        icon: L.divIcon({
+          className: "relative",
+          html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo}">${falaise.falaise_nom}</div>`,
+          iconSize: [0, 0],
+        }),
+        opacity: 0.75,
+        riseOnHover: true,
+        autoPanOnFocus: true,
+      }
+    ).addTo(map);
+    falaise.labelMarker = labelMarker;
     falaise.marker = marker;
     falaise.displayMode = mode;
     marker.bindPopup(
@@ -766,6 +802,11 @@ $highlight = $_GET['h'] ?? '';
       + `</div>`,
       { offset: [0, -10] }
     );
+    if (mode === "normal+label") {
+      falaise.labelMarker.addTo(map);
+    } else {
+      map.removeLayer(falaise.labelMarker);
+    }
     if (mode === "hidden") {
       falaise.displayMode = mode;
       map.removeLayer(falaise.marker);
@@ -1043,8 +1084,10 @@ $highlight = $_GET['h'] ?? '';
         falaise.type = "falaise_hors_topo";
         if (zoom < 11 || falaise.filteredOut) {
           setFalaiseHTMarker(falaise, map, "hidden");
-        } else {
+        } else if (zoom < 14) {
           setFalaiseHTMarker(falaise, map, "normal");
+        } else {
+          setFalaiseHTMarker(falaise, map, "normal+label");
         }
       } else {
         falaise.type = "falaise";
@@ -1060,14 +1103,18 @@ $highlight = $_GET['h'] ?? '';
         if (falaise.falaise_fermee) {
           if (zoom < 11) {
             setFalaiseMarker(falaise, map, "hidden");
-          } else {
+          } else if (zoom < 14) {
             setFalaiseMarker(falaise, map, "normal");
+          } else {
+            setFalaiseMarker(falaise, map, "normal+label");
           }
         } else {
           if (zoom < 9) {
             setFalaiseMarker(falaise, map, "reduced");
-          } else {
+          } else if (zoom < 14) {
             setFalaiseMarker(falaise, map, "normal");
+          } else {
+            setFalaiseMarker(falaise, map, "normal+label");
           }
         }
       }
@@ -1134,9 +1181,13 @@ $highlight = $_GET['h'] ?? '';
 </script>
 
 <script type="module">
-  import { campingLayer, trainlinesLayer } from "/js/components/map/load-vector-tiles.js";
+  import { campingLayer, trainlinesLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
   campingLayer.addTo(map);
   trainlinesLayer.addTo(map);
+  biodivLayer.addTo(map);
+  layerControl.addOverlay(campingLayer, 'Campings');
+  layerControl.addOverlay(trainlinesLayer, 'Lignes de train');
+  layerControl.addOverlay(biodivLayer, 'Aires de protections de la biodiversité (escalade réglementée ou interdite)');
   // fetch("/bdd/datatourisme/camping.geojson").then(res => res.json()).then(data => {
   //   L.geoJSON(data, {
   //     pointToLayer: function (feature, latlng) {

@@ -214,4 +214,66 @@ var campingLayer = protomapsL.leafletLayer({
   devicePixelRatio: 2,
 });
 
-export { campingLayer, trainlinesLayer };
+//  --- Ajout des zones de biodiv ---
+const biodivPaintRules = [
+  {
+    dataLayer: "biodiv",
+    filter: (z, f) => {
+      const rules = f.props.rules ? JSON.parse(f.props.rules) : [];
+      return (
+        f.props.practices.includes(2) &&
+        (rules.some((rule) => rule.code === "CLIMBING-REGULATED") ||
+          rules.length === 0)
+      );
+    },
+    symbolizer: new protomapsL.PolygonSymbolizer({
+      fill: "tomato",
+      opacity: 0.3,
+    }),
+  },
+  {
+    filter: (z, f) => {
+      return (
+        f.props.practices.includes(2) &&
+        JSON.parse(f.props.rules)?.some(
+          (rule) => rule.code === "CLIMBING-FORBIDDEN"
+        )
+      );
+    },
+    dataLayer: "biodiv",
+    symbolizer: new protomapsL.PolygonSymbolizer({
+      fill: "darkred",
+      opacity: 0.5,
+    }),
+  },
+];
+const biodivLabelRules = [
+  {
+    dataLayer: "biodiv",
+    filter: (z, f) => z >= 14 && f.props.name && f.props.name.length > 0,
+    symbolizer: new protomapsL.OffsetTextSymbolizer({
+      label_props: (z, f) => f.props.name.fr,
+      fill: "tomato",
+      stroke: "white",
+      width: 2,
+      maxLineChars: 15,
+      lineHeight: 1.2,
+      placements: [protomapsL.TextPlacements.CENTER],
+      justify: 1,
+      font: (z, f) => {
+        return "700 14px sans-serif";
+      },
+    }),
+  },
+];
+var biodivLayer = protomapsL.leafletLayer({
+  url: "/bdd/biodiv/biodiv.pmtiles",
+  paintRules: biodivPaintRules,
+  labelRules: biodivLabelRules,
+  // minZoom: 12,
+  maxDataZoom: 14,
+  pane: "overlayPane",
+  attribution: "Protomaps",
+});
+
+export { campingLayer, trainlinesLayer, biodivLayer };
