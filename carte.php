@@ -634,7 +634,7 @@ $highlight = $_GET['h'] ?? '';
         {
           icon: L.divIcon({
             className: "relative",
-            html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo}">${falaise.falaise_nom}</div>`,
+            html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo} text-sm">${falaise.falaise_nom}</div>`,
             iconSize: [0, 0],
           }),
           riseOnHover: true,
@@ -764,53 +764,69 @@ $highlight = $_GET['h'] ?? '';
     if (falaise.displayMode !== undefined && falaise.marker) {
       map.removeLayer(falaise.marker);
     }
-    const size = 20;
-    const marker = L.marker(
-      falaise.falaise_latlng.split(","),
-      {
-        icon: falaiseIcon(size, falaise.falaise_fermee, falaise.falaise_bloc),
-        opacity: 0.75,
-        riseOnHover: true,
-        autoPanOnFocus: true,
-      }
-    ).addTo(map);
-    const labelMarker = L.marker(
-      falaise.falaise_latlng.split(","),
-      {
-        icon: L.divIcon({
-          className: "relative",
-          html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo}">${falaise.falaise_nom}</div>`,
-          iconSize: [0, 0],
-        }),
-        opacity: 0.75,
-        riseOnHover: true,
-        autoPanOnFocus: true,
-      }
-    ).addTo(map);
-    falaise.labelMarker = labelMarker;
-    falaise.marker = marker;
     falaise.displayMode = mode;
-    marker.bindPopup(
-      `<div class="flex flex-col gap-1">`
-      + `<div class="text-slate-400"><span class="uppercase">hors topo</span> (aucun accès 🚲 décrit)</div>`
-      + `<div class="text-sm font-bold">${falaise.falaise_nom}</div>`
-      + `${falaise.falaise_fermee ? `<div class="text-error">${falaise.falaise_fermee.replace(/\n/g, "<br>")}</div>` : ""}`
-      + `<div class="flex gap-2 w-full justify-end">`
-      + `  <a href="/ajout/ajout_falaise.php?falaise_id=${falaise.falaise_id}" class="btn btn-xs btn-primary">Renseigner la falaise</a>`
-      + `  <a href="/ajout/ajout_velo.php?falaise_id=${falaise.falaise_id}"class="btn btn-xs btn-primary">Ajouter accès</a>`
-      + `</div>`
-      + `</div>`,
-      { offset: [0, -10] }
-    );
-    if (mode === "normal+label") {
-      falaise.labelMarker.addTo(map);
-    } else {
-      map.removeLayer(falaise.labelMarker);
+    console.log("setFalaiseHTMarker", mode);
+    const size = 20;
+    const init = () => {
+      const marker = L.marker(
+        falaise.falaise_latlng.split(","),
+        {
+          icon: falaiseIcon(size, falaise.falaise_fermee, falaise.falaise_bloc),
+          opacity: 0.75,
+          riseOnHover: true,
+          autoPanOnFocus: true,
+        }
+      ).addTo(map);
+      const labelMarker = L.marker(
+        falaise.falaise_latlng.split(","),
+        {
+          icon: L.divIcon({
+            className: "relative",
+            html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo}">${falaise.falaise_nom}</div>`,
+            iconSize: [0, 0],
+          }),
+          opacity: 0.75,
+          riseOnHover: true,
+          autoPanOnFocus: true,
+        }
+      ).addTo(map);
+      falaise.labelMarker = labelMarker;
+      falaise.marker = marker;
+      marker.bindPopup(
+        `<div class="flex flex-col gap-1">`
+        + `<div class="text-slate-400"><span class="uppercase">hors topo</span> (aucun accès 🚲 décrit)</div>`
+        + `<div class="text-sm font-bold">${falaise.falaise_nom}</div>`
+        + `${falaise.falaise_fermee ? `<div class="text-error">${falaise.falaise_fermee.replace(/\n/g, "<br>")}</div>` : ""}`
+        + `<div class="flex gap-2 w-full justify-end">`
+        + `  <a href="/ajout/ajout_falaise.php?falaise_id=${falaise.falaise_id}" class="btn btn-xs btn-primary">Renseigner la falaise</a>`
+        + `  <a href="/ajout/ajout_velo.php?falaise_id=${falaise.falaise_id}"class="btn btn-xs btn-primary">Ajouter accès</a>`
+        + `</div>`
+        + `</div>`,
+        { offset: [0, -10] }
+      );
+    };
+    if (!falaise.marker || !falaise.labelMarker) {
+      console.log("init falaise");
+      init();
     }
-    if (mode === "hidden") {
-      falaise.displayMode = mode;
-      map.removeLayer(falaise.marker);
-      return;
+    switch (mode) {
+      case "normal":
+      case "normal+label":
+        falaise.marker.addTo(map);
+        if (mode === "normal+label") {
+          if (!falaise.labelMarker._map) {
+            console.log("add label");
+            falaise.labelMarker.addTo(map);
+          }
+        } else {
+          console.log("remove label");
+          map.removeLayer(falaise.labelMarker);
+        }
+        return;
+      case "hidden":
+        map.removeLayer(falaise.marker);
+        map.removeLayer(falaise.labelMarker);
+        return;
     }
   }
   function setGareMarker(gare, map, mode) {
@@ -1188,6 +1204,8 @@ $highlight = $_GET['h'] ?? '';
   layerControl.addOverlay(campingLayer, 'Campings');
   layerControl.addOverlay(trainlinesLayer, 'Lignes de train');
   layerControl.addOverlay(biodivLayer, 'Aires de protections de la biodiversité (escalade réglementée ou interdite)');
+  // disable biodiv overlay by default
+  map.removeLayer(biodivLayer);
   // fetch("/bdd/datatourisme/camping.geojson").then(res => res.json()).then(data => {
   //   L.geoJSON(data, {
   //     pointToLayer: function (feature, latlng) {
