@@ -140,8 +140,8 @@
       supplémentaire, pour y accrocher deux autres sacoches.
     </p>
     <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
-      <img src="/images/logistique_0.jpg" alt="Vélo chargé à l'arrière" class="w-full md:w-1/2" />
-      <img src="/images/logistique_1.jpg" alt="Saccoches avant et arrière" class="w-full md:w-1/2" />
+      <img src="/images/pages/logistique/logistique_0.jpg" alt="Vélo chargé à l'arrière" class="w-full md:w-1/2" />
+      <img src="/images/pages/logistique/logistique_1.jpg" alt="Saccoches avant et arrière" class="w-full md:w-1/2" />
     </div>
     <p>
       <i>
@@ -165,7 +165,8 @@
       <li>Panier à fixer sur le guidon : pas recommandé pour porter de lourdes charges.</li>
     </ul>
     <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
-      <img src="/images/logistique_2.jpg" alt="Saccoches de selle, de cadre et de guidon" class="w-full md:w-1/2" />
+      <img src="/images/pages/logistique/logistique_2.jpg" alt="Saccoches de selle, de cadre et de guidon"
+        class="w-full md:w-1/2" />
     </div>
     <h3>Le choix du porte-bagages</h3>
     <p>Lorsque vous choisissez un porte-bagages :</p>

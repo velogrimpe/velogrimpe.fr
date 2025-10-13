@@ -53,7 +53,7 @@
           alt="Instagram Vélogrimpe" class="w-16 md:w-24 h-16 md:h-24" />
       </a>
       <a href="https://signal.org/fr/download/" target="_blank">
-        <img src="/images/signal.svg" alt="Signal" class="w-16 md:w-24 h-16 md:h-24" />
+        <img src="/images/pages/communaute/signal.svg" alt="Signal" class="w-16 md:w-24 h-16 md:h-24" />
       </a>
     </div>
     <p class="md:text-center text-normal">Depuis peu nous avons créé une page Instagram <a

@@ -91,23 +91,23 @@ $stmtIt->close();
     }
 
     .vg-draw-approche {
-      background-image: url('/images/pm_walking.png');
+      background-image: url('/images/map/pm/pm_walking.png');
     }
 
     .vg-draw-parking {
-      background-image: url('/images/pm_parking.png');
+      background-image: url('/images/map/pm/pm_parking.png');
     }
 
     .vg-draw-secteur {
-      background-image: url('/images/pm_rock-climbing.png');
+      background-image: url('/images/map/pm/pm_rock-climbing.png');
     }
 
     .vg-draw-ext-falaise {
-      background-image: url('/images/pm_link.png');
+      background-image: url('/images/map/pm/pm_link.png');
     }
 
     .vg-draw-velo {
-      background-image: url('/images/pm_bicycle.png');
+      background-image: url('/images/map/pm/pm_bicycle.png');
     }
   </style>
 </head>

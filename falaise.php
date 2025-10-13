@@ -375,11 +375,11 @@ $stmtC->close();
         <div class="vg-a-primary flex flex-col gap-4 md:gap-10 w-full items-center md:my-auto max-w-[600px] mx-auto">
           <div class="flex flex-row gap-2 items-start justify-around w-full">
             <div class="flex flex-col items-center justify-start gap-2">
-              <img src="/images/abacus_color.png" alt=" Logo Nb voies" class="h-12 w-12 mx-auto" />
+              <img src="/images/icons/abacus_color.png" alt=" Logo Nb voies" class="h-12 w-12 mx-auto" />
               <div class="font-bold text-center text-lg"><?= $falaise_nbvoies ?></div>
             </div>
             <div class="flex flex-col items-center justify-start gap-2">
-              <img src="/images/speedometer_color.png" alt=" Logo difficulté" class="h-12 w-12 mx-auto" />
+              <img src="/images/icons/speedometer_color.png" alt=" Logo difficulté" class="h-12 w-12 mx-auto" />
               <div class="font-bold text-center text-lg">
                 <?= $falaise_cotmin ?> à <?= $falaise_cotmax ?>
               </div>
@@ -388,7 +388,7 @@ $stmtC->close();
 
           <div class="flex flex-row gap-2 items-center justify-center mx-auto">
             <div class='w-full grid grid-cols-[auto_auto] gap-4 md:gap-y-6 items-center'>
-              <img src="/images/rock-climbing_color.png" alt=" Voies" class="h-12 w-12 mx-auto" />
+              <img src="/images/icons/rock-climbing_color.png" alt=" Voies" class="h-12 w-12 mx-auto" />
               <!-- <div class="font-bold ">Voies</div> -->
               <div class="">
                 <?= nl2br($falaise_voies) ?>
@@ -398,7 +398,7 @@ $stmtC->close();
                   </div>
                 <?php endif ?>
               </div>
-              <img src="/images/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
+              <img src="/images/icons/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
               <!-- <div class="font-bold  ">Topo(s)</div> -->
               <div class="">
                 <div><?= nl2br($falaise_topo) ?></div>
@@ -430,24 +430,24 @@ $stmtC->close();
                   </a>
                 <?php endif ?>
               </div>
-              <img src="/images/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
+              <img src="/images/icons/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
               <!-- <div class="font-bold  ">Approche</div> -->
               <div class="">Approche
                 : <?= nl2br(mb_strtolower(substr($falaise_matxt, 0, 1))) . nl2br(substr($falaise_matxt, 1)) ?></div>
               <?php if (!empty($falaise_gvtxt)): ?>
-                <img src="/images/mountain_color.png" alt=" Grande voies" class="h-12 w-12 mx-auto" />
+                <img src="/images/icons/mountain_color.png" alt=" Grande voies" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Grandes voies</div> -->
                 <div class="">
                   <?= nl2br($falaise_gvtxt) ?>
                 </div>
               <?php endif; ?>
               <?php if (!empty($falaise_rq)): ?>
-                <img src="/images/note_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
+                <img src="/images/icons/note_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Remarques</div> -->
                 <div class=""><?= nl2br($falaise_rq) ?></div>
               <?php endif; ?>
 
-              <!-- <img src="/images/expo.png" alt="Exposition" class="h-12 w-12 mx-auto" /> -->
+              <!-- <img src="/images/icons/expo.png" alt="Exposition" class="h-12 w-12 mx-auto" /> -->
               <div id="rose-des-vents"></div>
               <!-- <div id="rose-mini" class="sm:hidden"></div> -->
               <!-- <div class="font-bold self-stretch flex items-center">Exposition</div> -->
@@ -663,7 +663,7 @@ $stmtC->close();
               <tr>
                 <td class="justify-center border-t border-r border-b border-1 border-base-300">
                   <div class="flex flex-col md:flex-row gap-4 items-center">
-                    <img src="/images/train-station_color.png" alt="Logo Train" class="h-10 w-auto">
+                    <img src="/images/icons/train-station_color.png" alt="Logo Train" class="h-10 w-auto">
                     <div>
                       <?php if ($selected_ville_nom): ?>
                         <b><?= htmlspecialchars($selected_ville_nom) . " → " . htmlspecialchars($gare["gare_nom"]) ?></b>
@@ -735,9 +735,9 @@ $stmtC->close();
                     <div class='flex flex-col md:flex-row gap-4 items-center'>
 
                       <?php if (isset($velo['velo_apieduniquement']) && $velo['velo_apieduniquement'] == 1): ?>
-                        <img src="/images/hiking_color.png" alt="Logo À Pied" class="h-auto w-10">
+                        <img src="/images/icons/hiking_color.png" alt="Logo À Pied" class="h-auto w-10">
                       <?php else: ?>
-                        <img src="/images/bicycle_color.png" alt="Logo Vélo" class="h-auto w-10">
+                        <img src="/images/icons/bicycle_color.png" alt="Logo Vélo" class="h-auto w-10">
                       <?php endif ?>
 
                       <div class='flex flex-col items-start'>

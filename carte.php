@@ -456,18 +456,18 @@ $highlight = $_GET['h'] ?? '';
   const falaiseIcon = (size, closed, bloc) =>
     L.icon({
       iconUrl: closed
-        ? "/images/icone_falaisefermee_carte.png"
+        ? "/images/map/icone_falaisefermee_carte.png"
         : bloc === "1"
-          ? "/images/icone_falaise_carte_bloc.png"
+          ? "/images/map/icone_falaise_carte_bloc.png"
           : bloc === "2"
-            ? "/images/icone_falaise_carte_psychobloc.png"
-            : "/images/icone_falaise_carte.png",
+            ? "/images/map/icone_falaise_carte_psychobloc.png"
+            : "/images/map/icone_falaise_carte.png",
       iconSize: [size, size],
       iconAnchor: [size / 2, size],
     });
   const trainIcon = (size = 24) => {
     return L.icon({
-      iconUrl: "/images/icone_train_carte.png",
+      iconUrl: "/images/map/icone_train_carte.png",
       className: "train-icon" + (size === 24 ? " bgwhite" : " bgblue"),
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],

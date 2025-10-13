@@ -32,7 +32,7 @@ export default class Gare extends MultiScaleElement {
 
   static gareIcon = (size = 24) => {
     return L.icon({
-      iconUrl: "/images/icone_train_carte.png",
+      iconUrl: "/images/map/icone_train_carte.png",
       className: "train-icon bgwhite",
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],

@@ -74,7 +74,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   const iconSize = 24;
   const falaiseIcon = (size, className) =>
     L.icon({
-      iconUrl: "/images/icone_falaise_carte.png",
+      iconUrl: "/images/map/icone_falaise_carte.png",
       iconSize: [size, size],
       iconAnchor: [size / 2, size],
       className,

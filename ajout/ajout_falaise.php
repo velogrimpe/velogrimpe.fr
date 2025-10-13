@@ -309,7 +309,7 @@ if ($falaise_id) {
               if (!isNaN(lat) && !isNaN(lng)) {
                 L.marker([lat, lng], {
                   icon: L.icon({
-                    iconUrl: "/images/icone_falaise_carte.png",
+                    iconUrl: "/images/map/icone_falaise_carte.png",
                     iconSize: [18, 18],
                     iconAnchor: [9, 18],
                     className: "opacity-50"
@@ -329,7 +329,7 @@ if ($falaise_id) {
             }
             marker = L.marker([lat, lng], {
               drag: true, icon: L.icon({
-                iconUrl: "/images/icone_falaise_carte.png",
+                iconUrl: "/images/map/icone_falaise_carte.png",
                 iconSize: [size, size],
                 iconAnchor: [size / 2, size],
               })
@@ -561,7 +561,7 @@ if ($falaise_id) {
               </i>
             </div>
             <div class="flex-grow flex justify-center">
-              <img src="/images/rosedesvents.png" alt="Rose des vents" class="max-w-[200px]">
+              <img src="/images/pages/contribution/rosedesvents.png" alt="Rose des vents" class="max-w-[200px]">
             </div>
           </div>
         </div>

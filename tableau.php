@@ -136,7 +136,6 @@ $stmt->close();
 
 <head>
   <meta charset="UTF-8" />
-  <title>Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="index, follow">
@@ -155,6 +154,9 @@ $stmt->close();
   <meta name="twitter:title" content="Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr">
   <meta name="twitter:description"
     content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
+  <title>Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
@@ -614,13 +616,13 @@ $stmt->close();
         Temps total (T+V+A)
       </div>
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
-        <img class="h-12" alt="Train" src="/images/train-station_color.png" />
+        <img class="h-12" alt="Train" src="/images/icons/train-station_color.png" />
       </div>
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
-        <img class="h-12" alt="Velo" src="/images/bicycle_color.png" />
+        <img class="h-12" alt="Velo" src="/images/icons/bicycle_color.png" />
       </div>
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
-        <img class="h-12" alt="Corde" src="/images/rock-climbing_color.png" />
+        <img class="h-12" alt="Corde" src="/images/icons/rock-climbing_color.png" />
       </div>
       <!-- <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center font-bold">Zone</div> -->
       <?php foreach ($falaises as $falaise_id => $acces): ?>
