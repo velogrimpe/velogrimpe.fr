@@ -228,7 +228,7 @@ const biodivPaintRules = [
     },
     symbolizer: new protomapsL.PolygonSymbolizer({
       fill: "tomato",
-      opacity: 0.3,
+      opacity: 0.6,
     }),
   },
   {
@@ -243,7 +243,7 @@ const biodivPaintRules = [
     dataLayer: "biodiv",
     symbolizer: new protomapsL.PolygonSymbolizer({
       fill: "darkred",
-      opacity: 0.5,
+      opacity: 0.7,
     }),
   },
 ];

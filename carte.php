@@ -765,7 +765,6 @@ $highlight = $_GET['h'] ?? '';
       map.removeLayer(falaise.marker);
     }
     falaise.displayMode = mode;
-    console.log("setFalaiseHTMarker", mode);
     const size = 20;
     const init = () => {
       const marker = L.marker(
@@ -806,7 +805,6 @@ $highlight = $_GET['h'] ?? '';
       );
     };
     if (!falaise.marker || !falaise.labelMarker) {
-      console.log("init falaise");
       init();
     }
     switch (mode) {
@@ -815,11 +813,9 @@ $highlight = $_GET['h'] ?? '';
         falaise.marker.addTo(map);
         if (mode === "normal+label") {
           if (!falaise.labelMarker._map) {
-            console.log("add label");
             falaise.labelMarker.addTo(map);
           }
         } else {
-          console.log("remove label");
           map.removeLayer(falaise.labelMarker);
         }
         return;
@@ -1185,7 +1181,7 @@ $highlight = $_GET['h'] ?? '';
   renderGares();
 
   map.on("zoomend", (e) => {
-    console.log("zoomend", map.getZoom());
+    // console.log("zoomend", map.getZoom());
     renderFalaises();
     renderGares();
   });
