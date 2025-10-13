@@ -1115,7 +1115,7 @@ $highlight = $_GET['h'] ?? '';
         if (falaise.falaise_fermee) {
           if (zoom < 11) {
             setFalaiseMarker(falaise, map, "hidden");
-          } else if (zoom < 14) {
+          } else if (zoom < 12) {
             setFalaiseMarker(falaise, map, "normal");
           } else {
             setFalaiseMarker(falaise, map, "normal+label");
@@ -1123,7 +1123,7 @@ $highlight = $_GET['h'] ?? '';
         } else {
           if (zoom < 9) {
             setFalaiseMarker(falaise, map, "reduced");
-          } else if (zoom < 14) {
+          } else if (zoom < 12) {
             setFalaiseMarker(falaise, map, "normal");
           } else {
             setFalaiseMarker(falaise, map, "normal+label");
