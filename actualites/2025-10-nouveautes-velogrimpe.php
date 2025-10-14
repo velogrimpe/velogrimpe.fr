@@ -1,8 +1,8 @@
 <?php
 // IMPORTANT: This file is a template for html mails and web pages I need to use only mail-compatible html apis
 $date = "Juin - Octobre 2025";
-$description = "Actualités et nouveautés du site Velogrimpe.fr - $date";
-$page_title = "Actualités Velogrimpe.fr - $date";
+$description = "Actualités et nouveautés du site Velogrimpe.fr: $date";
+$page_title = "Actualités Velogrimpe.fr<br/>$date";
 $slugified_date = preg_replace('/ /', '', strtolower($date));
 $utm = "utm_source=newsletter-$slugified_date";
 $slug = "2025-10-nouveautes-velogrimpe";
@@ -100,6 +100,7 @@ $slug = "2025-10-nouveautes-velogrimpe";
 
     h1 {
       color: #2c3e50;
+      text-align: center;
     }
 
     h3 {
@@ -323,12 +324,10 @@ $slug = "2025-10-nouveautes-velogrimpe";
           <li>Présence de vélogrimpe.fr sur un stand avec Mountain Wilderness au salon de l’escalade en janvier 2026 à
             Paris.
           </li>
-          <li>Présence à la Cordée Jean Macé pour une soirée Changer d’Approche le 25 Novembre (infos à suivre pour y
-            participer !).</li>
+          <li>Présence à la Cordée Jean Macé (à Lyon) pour une soirée Changer d’Approche le 25 Novembre (infos à suivre
+            pour y participer !).</li>
           <li>Florian Garibal et Fanny Audigé sont en pleine campagne de financement participatif pour leur topo
-            d’escalade
-            en
-            mobilité douce au départ de Grenoble. <a
+            d’escalade en mobilité douce au départ de Grenoble. <a
               href="https://fr.ulule.com/topo-doux-depuis-grenoble/?utm_campaign=presale_205100&utm_source=shared-from-Ulule-project-page-on---http.referer--&utm_medium=uluid_2444055">Allez
               y faire un tour</a>, l’ouvrage est splendide !</li>
           <li>On aimerait bien cartographier Fontainebleau, mais ne connaissant pas bien le secteur, on est toujours à
@@ -337,11 +336,8 @@ $slug = "2025-10-nouveautes-velogrimpe";
         </ul>
 
         <p>Et voilà ! Merci mille fois à ceux qui sont arrivés jusque-là ! Envoyez nous un petit message pour nous dire
-          ce
-          que
-          vous en pensez ! Et si vous ne souhaitez plus recevoir de mails comme celui-ci, dites le nous, ceci n'est pas
-          un
-          mail automatique on rentre les adresses une à une 😉</p>
+          ce que vous en pensez ! Et si vous ne souhaitez plus recevoir de mails comme celui-ci, dites le nous, ceci
+          n'est pas un mail automatique on rentre les adresses une à une 😉</p>
       </td>
     </tr>
   </table>
