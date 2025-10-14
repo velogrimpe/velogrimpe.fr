@@ -1,10 +1,10 @@
 <?php
 // IMPORTANT: This file is a template for html mails and web pages I need to use only mail-compatible html apis
 $date = "Juin - Octobre 2025";
-$description = "Actualités et nouveautés du site Velogrimpe.fr d'<?= $date ?>";
-$page_title = "Actualités Velogrimpe.fr - <?= $date ?>";
+$description = "Actualités et nouveautés du site Velogrimpe.fr - $date";
+$page_title = "Actualités Velogrimpe.fr - $date";
 $slugified_date = preg_replace('/ /', '', strtolower($date));
-$utm = "utm_source=newsletter<?= $slugified_date ?>";
+$utm = "utm_source=newsletter-$slugified_date";
 $slug = "2025-10-nouveautes-velogrimpe";
 ?>
 <!DOCTYPE html>
