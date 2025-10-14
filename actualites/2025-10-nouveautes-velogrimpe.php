@@ -118,12 +118,6 @@ $slug = "2025-10-nouveautes-velogrimpe";
       margin-bottom: 20px;
       font-weight: normal;
     }
-
-    /* FIXME */
-    /* table,
-    td {
-      border: 2px solid #000000 !important;
-    } */
   </style>
 </head>
 
@@ -131,7 +125,7 @@ $slug = "2025-10-nouveautes-velogrimpe";
   <table role="presentation">
     <tr>
       <td>
-        <a id="webLink" href="https://velogrimpe.fr/news/<?= $slug ?>?<?= $utm ?>">version web</a>
+        <a id="webLink" href="https://velogrimpe.fr/actualites/<?= $slug ?>?<?= $utm ?>">version web</a>
         <div class="logo">
           <a href="https://velogrimpe.fr/?<?= $utm ?>">
             <img src="https://velogrimpe.fr/images/logo_titre_horizontal.webp" />
