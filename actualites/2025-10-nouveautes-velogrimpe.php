@@ -115,6 +115,7 @@ $slug = "2025-10-nouveautes-velogrimpe";
       font-size: 0.8em;
       color: #ccc;
       margin-bottom: 20px;
+      font-weight: normal;
     }
 
     /* FIXME */
