@@ -164,10 +164,7 @@ const campingLabelSymbolizer = new protomapsL.OffsetTextSymbolizer({
   maxLineChars: 15,
   lineHeight: 1.2,
   placements: [protomapsL.TextPlacements.S],
-  // offsetY: sheetIconSize / 2 + 2,
   offsetY: 1,
-  // dpr === 2 ?  : dpr === 1 ? 0 : sheetIconSize / 2 + 8,
-  // offsetX: 0,
   justify: 2,
   font: (z, f) => {
     return "700 14px sans-serif";
@@ -178,19 +175,26 @@ const campingLabelRules = [
     dataLayer: "camping",
     filter: (z, f) => f.props.category === "Camping",
     symbolizer: new protomapsL.GroupSymbolizer([
-      // new protomapsL.OffsetSymbolizer(
       new protomapsL.IconSymbolizer({
         name: "camping", // matches the SVG id
         sheet: sheet,
       }),
-      // {
-      // placements: [protomapsL.TextPlacements.N],
-      // offsetY: -sheetIconSize / dprWorkaroundFactor / 2,
-      // }
-      // ),
       campingLabelSymbolizer,
     ]),
   },
+];
+var campingLayer = protomapsL.leafletLayer({
+  url: "/bdd/datatourisme/camping_2.pmtiles",
+  tasks: [sheet.load()],
+  labelRules: campingLabelRules,
+  minZoom: 12,
+  maxDataZoom: 14,
+  pane: "overlayPane",
+  attribution: "Protomaps",
+  devicePixelRatio: 2,
+});
+
+const gitesLabelRules = [
   {
     dataLayer: "camping",
     filter: (z, f) => f.props.category === "Gite",
@@ -203,10 +207,11 @@ const campingLabelRules = [
     ]),
   },
 ];
-var campingLayer = protomapsL.leafletLayer({
+
+var giteLayer = protomapsL.leafletLayer({
   url: "/bdd/datatourisme/camping_2.pmtiles",
   tasks: [sheet.load()],
-  labelRules: campingLabelRules,
+  labelRules: gitesLabelRules,
   minZoom: 12,
   maxDataZoom: 14,
   pane: "overlayPane",
@@ -276,4 +281,4 @@ var biodivLayer = protomapsL.leafletLayer({
   attribution: "Protomaps",
 });
 
-export { campingLayer, trainlinesLayer, biodivLayer };
+export { campingLayer, giteLayer, trainlinesLayer, biodivLayer };

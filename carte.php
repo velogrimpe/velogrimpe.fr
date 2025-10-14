@@ -1193,15 +1193,13 @@ $highlight = $_GET['h'] ?? '';
 </script>
 
 <script type="module">
-  import { campingLayer, trainlinesLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
+  import { campingLayer, giteLayer, trainlinesLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
   campingLayer.addTo(map);
   trainlinesLayer.addTo(map);
-  biodivLayer.addTo(map);
   layerControl.addOverlay(campingLayer, 'Campings');
-  layerControl.addOverlay(trainlinesLayer, 'Lignes de train');
+  layerControl.addOverlay(giteLayer, 'Gîtes');
+  // layerControl.addOverlay(trainlinesLayer, 'Lignes de train');
   layerControl.addOverlay(biodivLayer, 'Aires de protections de la biodiversité (escalade réglementée ou interdite)');
-  // disable biodiv overlay by default
-  map.removeLayer(biodivLayer);
   // fetch("/bdd/datatourisme/camping.geojson").then(res => res.json()).then(data => {
   //   L.geoJSON(data, {
   //     pointToLayer: function (feature, latlng) {
