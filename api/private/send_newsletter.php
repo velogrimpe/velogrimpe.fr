@@ -1,0 +1,64 @@
+<?php
+$config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
+// Check that Authorization header is and equal to config["admin_token"]
+
+// Allow CORS from all origins
+// header('Access-Control-Allow-Origin: https://velogrimpe.fr, https://www.velogrimpe.fr, https://couble.eu, http://localhost:3100');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+
+$headers = getallheaders();
+
+$authHeader = $headers['authorization'] ?? $headers['Authorization'] ?? null;
+if (!$authHeader) {
+  die("Authorization header not found");
+}
+if ($authHeader !== 'Bearer ' . $config["admin_token"]) {
+  die("Invalid token");
+}
+
+// Allow only GET requests
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+  http_response_code(405);
+  echo json_encode(['error' => 'Method Not Allowed']);
+  exit;
+}
+
+$slug = trim($_GET['slug'] ?? '');
+if (empty($slug)) {
+  http_response_code(400);
+  die("Slug is required.");
+}
+
+$url = "http://localhost/actualites/$slug.php";
+$options = [
+  CURLOPT_URL => $url,
+  CURLOPT_RETURNTRANSFER => true,
+];
+
+$ch = curl_init();
+curl_setopt_array($ch, $options);
+$mailBody = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+// Check that the response is a 200
+if ($httpCode !== 200) {
+  http_response_code(500);
+  die("Failed to fetch the newsletter content: $url - HTTP code: $httpCode, body='$mailBody'");
+}
+curl_close($ch);
+
+// Store document in a variable mailBody
+$recipients = ["yoann@couble.eu", "couble.yoann@gmail.com", "ycouble@icloud.com"];
+// parse html for title tag
+preg_match('/<title>(.*?)<\/title>/', $mailBody, $matches);
+$title = preg_replace('/(\n|<br\s*\/?>)/', ' - ', trim($matches[1])) ?? 'Actualités Velogrimpe.fr';
+// Send the email
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
+
+$data = [
+  'to' => $recipients,
+  'subject' => $title,
+  'html' => $mailBody,
+  'h:Reply-To' => $config["contact_mail"]
+];
+sendMail($data);
