@@ -2,4 +2,5 @@ bdd/images_falaises
 bdd/**/*.gpx
 bdd/**/*.geojson
 bdd/**/*.zip
+images/news/
 .DS_Store
