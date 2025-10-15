@@ -1,9 +1,6 @@
 <?php
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 // Check that Authorization header is and equal to config["admin_token"]
-
-// Allow CORS from all origins
-// header('Access-Control-Allow-Origin: https://velogrimpe.fr, https://www.velogrimpe.fr, https://couble.eu, http://localhost:3100');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 
 $headers = getallheaders();
