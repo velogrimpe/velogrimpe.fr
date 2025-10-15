@@ -2,7 +2,7 @@
 // IMPORTANT: This file is a template for html mails and web pages I need to use only mail-compatible html apis
 $date = "Juin - Octobre 2025";
 $description = "Actualités et nouveautés du site Velogrimpe.fr: $date";
-$page_title = "Actualités Velogrimpe.fr<br/>$date";
+$page_title = "Actualités Velogrimpe.fr - $date";
 $slugified_date = preg_replace('/ /', '', strtolower($date));
 $utm = "source=newsletter-$slugified_date";
 $slug = "2025-10-nouveautes-velogrimpe";
@@ -13,7 +13,7 @@ $tableStyle = "width: 700px; background-color: #fff; padding: 20px;";
 $imgTableStyle = "margin: 10px 0;";
 $imageContainerStyle = "width: 700px; text-align: center;";
 $imageStyle = "border-radius: 12px; border: 1px solid #ccc;";
-$logoStyle = "width: 700px;text-align: center; height: auto;";
+$logoStyle = "background: white; width: 700px;text-align: center; height: auto;";
 $nouvellesFalaiseStyle = "margin: 0 auto; padding-left: 12px;";
 $h1Style = "color: #2c3e50; text-align: center;";
 $h2Style = "color: #2e8b57; margin-bottom: 4px;";
@@ -102,8 +102,6 @@ $nouvellesFalaises = [
   <meta name="supported-color-schemes" content="light" />
   <!-- What it does: Makes background images in 72ppi Outlook render at correct size. -->
   <title><?= $page_title ?></title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
   <script async defer src="https://velogrimpe.frhttps://velogrimpe.fr/js/pv.js"></script>
   <style>
     /* Hopefully get it rendered */
@@ -117,11 +115,14 @@ $nouvellesFalaises = [
   <table role="presentation" style="<?= $tableStyle ?>">
     <tr>
       <td>
-        <a style="<?= $webLinkStyle ?>" href="https://velogrimpe.fr/actualites/<?= $slug ?>?<?= $utm ?>">version web</a>
+        <a style="<?= $webLinkStyle ?>" href="https://velogrimpe.fr/actualites/<?= $slug ?>.php?<?= $utm ?>">un problème
+          pour visualiser le contenu ? cliquez ici pour la version web</a>
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $logoStyle ?>">
-              <img width="300px" height="auto" src="https://velogrimpe.fr/images/logo_titre_horizontal.webp" />
+              <a href="https://velogrimpe.fr/?<?= $utm ?>">
+                <img width="300px" height="auto" src="https://velogrimpe.fr/images/news/logo.png" />
+              </a>
             </td>
           </tr>
         </table>
@@ -129,7 +130,7 @@ $nouvellesFalaises = [
     </tr>
     <tr>
       <td>
-        <h1 style="<?= $h1Style ?>"><?= $page_title ?></h1>
+        <h1 style="<?= $h1Style ?>"><?= preg_replace('/ - /', '<br />', trim($page_title), 1) ?></h1>
         <p>Salut ! <br />
           <br /> C'est Florent et Yoann, l'équipe derrière le site <a style="<?= $astyle ?>"
             href="https://velogrimpe.fr/?<?= $utm ?>">velogrimpe.fr</a>. Vous recevez ce mail car vous avez à un moment

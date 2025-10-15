@@ -47,18 +47,17 @@ if ($httpCode !== 200) {
 curl_close($ch);
 
 // Store document in a variable mailBody
-$recipients = ["yoann@couble.eu", "couble.yoann@gmail.com", "ycouble@icloud.com"];
+$recipients = ["yoann@couble.eu", "couble.yoann@gmail.com"];//, "ycouble@icloud.com", "contact@velogrimpe.fr", "marc_miroil@hotmail.com", "amandine.spiandore@orange.fr", "amandine.spiandore@hotmail.fr"];
 // parse html for title tag
 preg_match('/<title>(.*?)<\/title>/', $mailBody, $matches);
-$title = preg_replace('/(\n|<br\s*\/?>)/', ' - ', trim($matches[1])) ?? 'Actualités Velogrimpe.fr';
+$title = trim($matches[1]) ?? 'Actualités Velogrimpe.fr';
 // Send the email
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
 
 $data = [
   'to' => $recipients,
-  'subject' => $title,
+  'subject' => "[TEST] $title",
   'html' => $mailBody,
-  'h:Reply-To' => $config["contact_mail"]
 ];
 sendMail($data);
