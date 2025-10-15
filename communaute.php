@@ -4,7 +4,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <meta name="description"
     content="Escalade en mobilité douce à vélo et en train. Rejoingnez la communauté Vélogrimpe sur instagram et Signal.">
   <meta property="og:locale" content="fr_FR">
@@ -20,23 +19,17 @@
     content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Rejoingnez la communauté Vélogrimpe sur instagram et Signal.">
-
   <title>Communauté - Vélogrimpe.fr</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
-
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
 </head>
 
 <body class="min-h-screen flex flex-col">
   <?php include "./components/header.html"; ?>
-
   <div class="hero min-h-[400px] bg-top" style="background-image: url(/images/mw/0100b-grimpe-60.webp);">
     <div class="hero-overlay bg-opacity-60"></div>
     <div class="hero-content text-center text-base-100">
@@ -46,7 +39,6 @@
     </div>
   </div>
   <main class="flex-grow w-full max-w-screen-xl mx-auto flex flex-col gap-2 md:gap-4 p-4 mb-2">
-
     <div class="flex flex-row items-center justify-center gap-8">
       <a href="https://instagram.com/velogrimpe" target="_blank">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/250px-Instagram_icon.png"
@@ -57,13 +49,10 @@
       </a>
     </div>
     <p class="md:text-center text-normal">Depuis peu nous avons créé une page Instagram <a
-        href="https://instagram.com/velogrimpe" target="_blank">@velogrimpe</a>, venez nous y
-      suivre !</p>
-
+        href="https://instagram.com/velogrimpe" target="_blank">@velogrimpe</a>, venez nous y suivre !</p>
     <p class="md:text-center text-normal">Il existe un groupe Signal "Vélogrimpe", sur lequel des propositions de
-      sorties sont partagées. <br>
-      Pour le rejoindre, merci de remplir de formulaire ci-dessous, nous vous y ajouterons dès que possible.</p>
-
+      sorties sont partagées. <br> Pour le rejoindre, merci de remplir de formulaire ci-dessous, nous vous y ajouterons
+      dès que possible.</p>
     <div class="w-full flex flex-col items-center">
       <form action="/mails/rejoindre_communaute.php" method="post"
         class="flex flex-col items-center w-96 max-w-full p-4 pt-1 border rounded-lg bg-base-100 border-base-300 shadow-lg">
@@ -91,9 +80,7 @@
         </div>
         <div class="w-full">
           <div class="label">
-            <span class="label-text">
-              Pourquoi voulez-vous rejoindre le groupe Signal "Vélogrimpe" ?
-            </span>
+            <span class="label-text"> Pourquoi voulez-vous rejoindre le groupe Signal "Vélogrimpe" ? </span>
           </div>
           <textarea class="textarea leading-6 textarea-primary w-full leading-[18px]" id="message" name="message"
             rows="4" minlength="100" required

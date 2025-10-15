@@ -1,7 +1,5 @@
 <!--Pour la version admin : ajouter le champ velo_openrunner, mettre "1" dans le champ velo_public, et afficher les noms formatés dans le formulaire pour les vérifier.
-Il faudra aussi changer ajout_velo_db pour ajouter le champ openrunner, et nettoyer l'envoi mail automatique-->
-
-<?php
+Il faudra aussi changer ajout_velo_db pour ajouter le champ openrunner, et nettoyer l'envoi mail automatique--> <?php
 // Connexion à la base de données
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
@@ -35,7 +33,6 @@ $falaisePreset = $falaises[$falaise_id] ?? null;
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
 ?>
-
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -43,14 +40,10 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ajouter un itinéraire vélo - Vélogrimpe.fr</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
-
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
   <style>
@@ -108,10 +101,9 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main
     class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]">
-    <h1 class="text-4xl font-bold text-wrap text-center">
-      Ajouter un itinéraire vélo<span class="admin text-red-900"> (version admin)</span>
+    <h1 class="text-4xl font-bold text-wrap text-center"> Ajouter un itinéraire vélo<span class="admin text-red-900">
+        (version admin)</span>
     </h1>
-
     <div class="rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-sm text-base-content">
       <b>Vous vous apprêtez à décrire un itinéraire Gare &rarr; Falaise, en vélo ou à pied.</b><br>
       <i>Les champs obligatoires sont en noir, les optionnels en gris.</i>
@@ -127,10 +119,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <option value="<?= $falaise['nom']; ?>"></option>
         <?php endforeach; ?>
       </datalist>
-
       <input class="input input-primary input-sm" type="hidden" id="velo_public" name="velo_public" value="2">
       <input class="input input-primary input-sm" type="hidden" id="admin" name="admin" value="0">
-
       <!-- Partie Départ / Arrivées -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -163,7 +153,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
                 readonly required>
             </div>
           </div>
-
           <div class="flex flex-col gap-1 flex-grow">
             <div class="relative not-prose">
               <label class="form-control" for="falaise_nom">
@@ -187,7 +176,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             </div>
           </div>
         </div>
-
         <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
           <svg class="w-4 h-4 mb-1 fill-current inline-block">
             <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
@@ -195,7 +183,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           doublon.
         </div>
       </div>
-
       <!-- Partie Indicateurs -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -223,10 +210,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </label>
         </div>
         <i>Le nombre de km peut être un nombre décimal (<span class="text-red-600">avec un point et pas une virgule
-            !</span>),
-          le dénivelé un entier.</i>
+            !</span>), le dénivelé un entier.</i>
       </div>
-
       <!-- Partie GPX -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -242,24 +227,19 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             accept=".gpx" required>
           <i class="text-red-400">Au format GPX !</i>
         </label>
-
         <label class="form-control" for="velo_variante">
           <b class="">Nom de la variante <span class="text-accent opacity-50">(optionnel)</span> :</b>
           <input class="input input-bordered input-sm" type="text" id="velo_variante" name="velo_variante"
             oninput="formatVariante()">
-          <i class="">
-            Dans le cas où il existe plusieurs itinéraires reliant une même gare à une même falaise, donner un nom aux
-            différentes possibilités.
-            Ex : "Option par le Nord" et "Option par le Sud".</i>
+          <i class=""> Dans le cas où il existe plusieurs itinéraires reliant une même gare à une même falaise, donner
+            un nom aux différentes possibilités. Ex : "Option par le Nord" et "Option par le Sud".</i>
         </label>
-
         <label class="form-control" for="velo_varianteformate" style="display: none;">
           <b class="">Nom de la variante (formatée) <span class="text-accent opacity-50">(optionnel)</span> :</b>
           <input class="input input-bordered input-sm" type="text" id="velo_varianteformate" name="velo_varianteformate"
             readonly style="display: none;">
         </label>
       </div>
-
       <!-- Partie Remarques -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -274,19 +254,15 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             :</b>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="velo_descr" name="velo_descr" rows="5"
             cols="100"></textarea>
-          <i class="">
-            On peut y détailler la surface (goudron ? Piste ?), le trafic (beaucoup de voitures ?), s'il y a des
-            montées raides, si le parcours suit une voie verte, s'il y a des alternatives au tracé proposé...
-          </i>
+          <i class=""> On peut y détailler la surface (goudron ? Piste ?), le trafic (beaucoup de voitures ?), s'il y a
+            des montées raides, si le parcours suit une voie verte, s'il y a des alternatives au tracé proposé... </i>
         </label>
       </div>
-
       <label class="form-control admin" for="velo_openrunner">
         <b class="text-gray-400 opactity-70">Lien Openrunner pour affichage profil en iframe :</b>
         <textarea type="text" class="textarea textarea-bordered textarea-sm leading-6" id="velo_openrunner" rows="3"
           name="velo_openrunner"></textarea>
       </label>
-
       <!-- Partie Piéton -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -303,27 +279,21 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
                 name="velo_apieduniquement">
               <b class="">Itinéraire conçu pour la marche uniquement ?</b>
             </div>
-            <i class="">
-              Cocher si l'itinéraire peut se faire à pied, mais pas à vélo.
-            </i>
+            <i class=""> Cocher si l'itinéraire peut se faire à pied, mais pas à vélo. </i>
           </label>
-
           <label class="form-control flex-grow" for="velo_apiedpossible">
             <div class="flex items-center gap-4">
               <input class="checkbox checkbox-primary checkbox" type="checkbox" id="velo_apiedpossible"
                 name="velo_apiedpossible">
               <b class="">Itinéraire conçu pour le vélo, mais faisable à pied ?</b>
             </div>
-            <i class="">
-              Cocher si l'itinéraire peut se faire à vélo, mais est suffisamment court pour se faire
-              aussi à pied (< 1h). </i>
+            <i class=""> Cocher si l'itinéraire peut se faire à vélo, mais est suffisamment court pour se faire aussi à
+              pied (< 1h). </i>
           </label>
         </div>
       </div>
-
       <hr class="my-4">
       <h3 class="text-center">Validation de l'ajout de données</h3>
-
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
         <div class="flex flex-col md:flex-row gap-4">
           <div class="form-control flex-grow">
@@ -346,7 +316,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             </label>
           </div>
         </div>
-
         <label class="form-control" for="message">
           <span class="">
             <b>Message <span class="text-accent opacity-50">(optionnel)</span> :</b>
@@ -355,7 +324,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
             rows="4"></textarea>
         </label>
-
         <button type="submit" class="btn btn-primary">Ajouter l'itinéraire vélo</button>
       </div>
     </form>

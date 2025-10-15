@@ -28,7 +28,6 @@ $preset_gare_nom = $preset_gare_id !== null && isset($gares[$preset_gare_id]) ? 
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
 ?>
-
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -36,14 +35,10 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ajouter un itinéraire train - Vélogrimpe.fr</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
-
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
   <style>
@@ -77,24 +72,22 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
               prose-a:font-bold prose-a:no-underline hover:prose-a:underline
               prose-li:mt-0 prose-li:mb-0 prose-ul:mt-0 prose-ul:mb-0
               hover:prose-a:text-[oklch(var(--pf)/1)]">
-    <h1 class="text-4xl font-bold text-wrap text-center">
-      Ajouter un itinéraire train<span class="admin text-red-900"> (version admin)</span>
+    <h1 class="text-4xl font-bold text-wrap text-center"> Ajouter un itinéraire train<span class="admin text-red-900">
+        (version admin)</span>
     </h1>
     <div class="rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-sm text-base-content">
-      <b>Vous vous apprêtez à décrire un itinéraire Ville &rarr; Gare.</b><br>
-      Commencez par vérifier que votre ville de départ est dans le menu déroulant ci-dessous.
-      Si ce n'est pas le cas, l'ajout de données n'est pas possible : envoyez-nous un mail.
+      <b>Vous vous apprêtez à décrire un itinéraire Ville &rarr; Gare.</b><br> Commencez par vérifier que votre ville de
+      départ est dans le menu déroulant ci-dessous. Si ce n'est pas le cas, l'ajout de données n'est pas possible :
+      envoyez-nous un mail.
     </div>
     <form method="POST" action="/api/add_train.php" enctype="multipart/form-data" class="flex flex-col gap-4">
       <input type="hidden" class="input input-primary input-sm" id="train_public" name="train_public" value="2">
       <input class="input input-primary input-sm" type="hidden" id="admin" name="admin" value="0">
-
       <datalist id="gares">
         <?php foreach ($gares as $gare_id => $gare): ?>
           <option value="<?= $gare['nom']; ?>"></option>
         <?php endforeach; ?>
       </datalist>
-
       <!-- Menu déroulant des villes -->
       <div class="flex flex-col gap-1 w-1/2">
         <label class="form-control" for="ville_id">
@@ -110,7 +103,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </select>
         </label>
       </div>
-
       <div class="flex flex-row gap-4 items-center">
         <!-- Menu déroulant des gares -->
         <div class="flex flex-col gap-1 w-1/2">
@@ -131,7 +123,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_depart_id"
             name="train_depart_id" readonly required>
         </div>
-
         <!-- Menu déroulant des gares -->
         <div class="flex flex-col gap-1 w-1/2">
           <div class="relative not-prose">
@@ -153,7 +144,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             value="<?= $preset_gare_id ?? '' ?>" readonly required>
         </div>
       </div>
-
       <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
         <svg class="w-4 h-4 mb-1 fill-current inline-block">
           <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
@@ -161,11 +151,10 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         informations, contactez nous par mail à l'addresse <a
           href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>.
       </div>
-
       <div class="flex flex-col gap-4">
         <div class="flex flex-row justify-start">
-          <button class="btn btn-secondary btn-sm" type="button" id="fetchTrains">Consulter les horaires
-            <div class="hidden loading loading-spinner"></div>
+          <button class="btn btn-secondary btn-sm" type="button" id="fetchTrains">Consulter les horaires <div
+              class="hidden loading loading-spinner"></div>
           </button>
         </div>
         <div class="border rounded-lg border-slate-400 hidden p-4 shadow-lg bg-base-100 max-h-[400px] overflow-y-auto"
@@ -191,13 +180,11 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </table>
         </div>
       </div>
-
       <details>
         <summary>Ancien protocole de relevé de données <i>(cliquez pour développer)</i></summary>
         <div class="prose-p:mb-0 prose-p:mt-0">
-          <p>
-            Pour la suite, suivez le protocole ci-dessous ; c'est galère, mais on n'a pas trouvé mieux pour l'instant !
-          </p>
+          <p> Pour la suite, suivez le protocole ci-dessous ; c'est galère, mais on n'a pas trouvé mieux pour l'instant
+            ! </p>
           <ul>
             <li>Allez sur <a href="https://www.b-europe.com/FR">le site de la SNCB.</a></li>
             <li>Lancez une recherche AVANCÉE entre votre ville de départ et la gare d'arrivée, et dans les options,
@@ -208,43 +195,35 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </ul>
         </div>
       </details>
-
       <div class="flex flex-row gap-4">
         <label class="form-control" for="train_temps">
           <b>Temps minimal de trajet (en minutes) :</b>
           <input type="number" class="input input-primary input-sm" id="train_temps" name="train_temps" placeholder="52"
             min="0" required>
         </label>
-
         <label class="form-control" for="train_correspmin">
           <b>Nombre minimal de correspondances :</b>
           <input type="number" class="input input-primary input-sm" id="train_correspmin" name="train_correspmin"
             placeholder="0" min="0" required>
         </label>
-
         <label class="form-control" for="train_correspmax">
           <b>Nombre maximal de correspondances :</b>
           <input type="number" class="input input-primary input-sm" id="train_correspmax" name="train_correspmax"
             placeholder="1" min="0" required>
         </label>
       </div>
-
       <label class="form-control" for="train_descr">
         <b>Description de l'itinéraire train :</b>
         <textarea class="textarea textarea-primary textarea-sm leading-6" id="train_descr" name="train_descr" rows="5"
           required></textarea>
-        <i>Ici, on donne le nombre de trains par jours (dire si la fréquence change selon les jours),
-          le nombre de correspondances et les gares de correspondances, les différentes possibilités s'il y en a,
-          le prix d'un billet plein tarif,...<br>
-          Exemple : <br>
-          "22 TER/jour le Samedi, 13 TER/jour le Dimanche, 34 TER/jour en semaine.<br>
-          La plupart des trains sont directs (8 à 10 minutes - plein tarif 4€), quelques trains avec correspondance à
-          Moirans (19 à 57' - plein tarif 6,30€) ou rarement à Voiron."</i>
+        <i>Ici, on donne le nombre de trains par jours (dire si la fréquence change selon les jours), le nombre de
+          correspondances et les gares de correspondances, les différentes possibilités s'il y en a, le prix d'un billet
+          plein tarif,...<br> Exemple : <br> "22 TER/jour le Samedi, 13 TER/jour le Dimanche, 34 TER/jour en
+          semaine.<br> La plupart des trains sont directs (8 à 10 minutes - plein tarif 4€), quelques trains avec
+          correspondance à Moirans (19 à 57' - plein tarif 6,30€) ou rarement à Voiron."</i>
       </label>
-
       <hr class="my-4">
       <h3 class="text-center">Validation de l'ajout de données</h3>
-
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
         <div class="flex flex-col md:flex-row gap-4">
           <div class="form-control flex-grow">
@@ -267,7 +246,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             </label>
           </div>
         </div>
-
         <label class="form-control" for="message">
           <span class="">
             <b>Message <span class="text-accent opacity-50">(optionnel)</span> :</b>
@@ -276,17 +254,13 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
             rows="4"></textarea>
         </label>
-
         <button type="submit" class="btn btn-primary" id="submitBtn">Ajouter l'itinéraire train</button>
       </div>
-
     </form>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
-
 <script src="/js/services/horaires-trains.js"></script>
-
 <script>
   const villes = <?php echo json_encode($villes); ?>;
   const gares = <?php echo json_encode($gares); ?>;

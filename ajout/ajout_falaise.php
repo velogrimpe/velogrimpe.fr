@@ -48,7 +48,6 @@ if ($falaise_id) {
 }
 
 ?>
-
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -56,9 +55,6 @@ if ($falaise_id) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><?= $falaise_id ? "Modifier" : "Ajouter" ?> une falaise - Vélogrimpe.fr</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
-
   <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
   <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
   <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
@@ -75,7 +71,6 @@ if ($falaise_id) {
   <script async defer src="/js/pv.js"></script>
   <!-- Multi-select -->
   <script src="/js/multi-select.min.js"></script>
-
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
   <style>
@@ -126,7 +121,6 @@ if ($falaise_id) {
       document.getElementById("falaise_id").value = undefined;
     }
   </script>
-
 </head>
 
 <body class="min-h-screen flex flex-col">
@@ -139,17 +133,13 @@ if ($falaise_id) {
       <?= $falaise_id ? "Modifier" : "Ajouter" ?> une falaise<span class='text-red-900 admin'> (version admin)</span>
     </h1>
     <div class="notadmin rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-sm text-base-content">
-      <b>Il s'agit ici d'ajouter une falaise au site web.</b><br>
-      Commencez par vérifier qu'elle n'est pas déjà sur le site !<br>
-      Vous allez avoir besoin de certaines infos, les plus fiables possibles : il est donc préférable d'avoir un topo
-      sous la main.
-      Il n'est pas question de le recopier de fond en comble,
-      <span class="text-red-700">ce site ne remplace pas un topo</span>.<br>
-      Vous pouvez consulter les fiches falaises déjà présentes sur le site pour
+      <b>Il s'agit ici d'ajouter une falaise au site web.</b><br> Commencez par vérifier qu'elle n'est pas déjà sur le
+      site !<br> Vous allez avoir besoin de certaines infos, les plus fiables possibles : il est donc préférable d'avoir
+      un topo sous la main. Il n'est pas question de le recopier de fond en comble, <span class="text-red-700">ce site
+        ne remplace pas un topo</span>.<br> Vous pouvez consulter les fiches falaises déjà présentes sur le site pour
       avoir des modèles, comme par exemple celle de <a href="/falaise.php?falaise_id=39">Pont de Barret</a>. <br>
       <span class="text-red-700">Les champs obligatoires sont en noir, les champs optionnels en gris.</span>
     </div>
-
     <form method="post" action="/api/add_falaise.php" enctype="multipart/form-data" class="flex flex-col gap-4"
       id="form">
       <datalist id="falaises">
@@ -158,7 +148,6 @@ if ($falaise_id) {
         <?php endforeach; ?>
       </datalist>
       <input type="hidden" id="admin" name="admin" value="0" />
-
       <!-- Partie Nom / Position / Zone (admin) -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -204,35 +193,25 @@ if ($falaise_id) {
             </div>
           </div>
         </div>
-
         <div id="falaiseExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
           <svg class="w-4 h-4 mb-1 fill-current inline-block">
             <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
-          </svg>
-          Une falaise avec ce nom existe déjà (<a id="linkSelectedFalaise" class="inline-flex items-center gap-1"
+          </svg> Une falaise avec ce nom existe déjà (<a id="linkSelectedFalaise" class="inline-flex items-center gap-1"
             target="_blank">
-            <span>
-              consulter la page de cette
-              falaise
-            </span>
+            <span> consulter la page de cette falaise </span>
             <svg class="w-4 h-4 fill-current">
               <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
-            </svg></a>)
-          dans la base de données et a été vérouillée pour éviter la dégradation du
-          topo. Si vous vous souhaitez modifier les données de la fiche falaise, merci de <a
-            href="mailto:contact@velogrimpe.fr">contacter l'équipe velogrimpe</a> qui pourra vous ouvrir l'accès à la
-          modification.
+            </svg></a>) dans la base de données et a été vérouillée pour éviter la dégradation du topo. Si vous vous
+          souhaitez modifier les données de la fiche falaise, merci de <a href="mailto:contact@velogrimpe.fr">contacter
+            l'équipe velogrimpe</a> qui pourra vous ouvrir l'accès à la modification.
         </div>
-
         <div id="falaiseEditInfo" class="hidden bg-blue-100 border border-blue-900 text-blue-900 p-2 rounded-lg">
           <svg class="w-4 h-4 mb-1 fill-current inline-block">
             <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
-          </svg>
-          Une falaise avec ce nom existe déjà. Les données connues sont pré-remplies
-          ci-dessous, libre à vous de les modifier / compléter. Attention toutefois aux homonymes, vérifiez sa
-          localisation. En cas d'erreur, recharger la page pour éviter de remplacer la falaise existante.
+          </svg> Une falaise avec ce nom existe déjà. Les données connues sont pré-remplies ci-dessous, libre à vous de
+          les modifier / compléter. Attention toutefois aux homonymes, vérifiez sa localisation. En cas d'erreur,
+          recharger la page pour éviter de remplacer la falaise existante.
         </div>
-
         <div class="flex flex-col gap-2">
           <label class="form-control" for="falaise_latlng">
             <b>Coordonnées GPS <span class="text-error">(format : "latitude,longitude" (degrés décimaux))</span></b>
@@ -246,17 +225,12 @@ if ($falaise_id) {
                 falaise</span>
             </div>
           </div>
-          <i class="text-slate-400 text-sm">
-            Cliquez sur la carte pour placer la position. Les coordonnées doivent être sous la forme "45.1234,6.2355"
-            par
-            exemple (au moins 4 décimales).<br>
-            Pour trouver les coordonnées GPS : sur la fiche Climbing Away de la falaise (bas de page, "plus de
-            coordonnées", degrés décimaux), ou clic droit sur Google Maps, puis cliquer sur les coordonnées qui
-            s'affichent pour les copier.<br>
-            Il est conseillé de vérifier que les coordonnées correspondent bien à la falaise (par exemple en les
-            copiant
-            dans Google Maps, avec la couche "photos satellites").
-          </i>
+          <i class="text-slate-400 text-sm"> Cliquez sur la carte pour placer la position. Les coordonnées doivent être
+            sous la forme "45.1234,6.2355" par exemple (au moins 4 décimales).<br> Pour trouver les coordonnées GPS :
+            sur la fiche Climbing Away de la falaise (bas de page, "plus de coordonnées", degrés décimaux), ou clic
+            droit sur Google Maps, puis cliquer sur les coordonnées qui s'affichent pour les copier.<br> Il est
+            conseillé de vérifier que les coordonnées correspondent bien à la falaise (par exemple en les copiant dans
+            Google Maps, avec la couche "photos satellites"). </i>
         </div>
         <script>
 
@@ -371,7 +345,6 @@ if ($falaise_id) {
             }
           });
         </script>
-
         <label class="form-control admin" for="falaise_zone">
           <b>Zone de la falaise</b>
           <select class="select select-primary select-sm" name="falaise_zone" id="falaise_zone">
@@ -382,7 +355,6 @@ if ($falaise_id) {
           </select>
         </label>
       </div>
-
       <!-- Partie Cotation / Nombre de voies -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -446,45 +418,28 @@ if ($falaise_id) {
               </select>
             </label>
           </div>
-          <i class="text-slate-400 text-sm">
-            Remarques :<br>
-            - Dans ce topo, on utilise la notation "6-" pour désigner les voies de 6a à 6b, et "6+" pour les voies de
-            6b+
-            à 6c+.<br>
-            - Ne pas mettre "8-" comme cotation max s'il n'y a que des voies dans le 6, et une seule voie dans le 8a
-            par
-            exemple.
-          </i>
+          <i class="text-slate-400 text-sm"> Remarques :<br> - Dans ce topo, on utilise la notation "6-" pour désigner
+            les voies de 6a à 6b, et "6+" pour les voies de 6b+ à 6c+.<br> - Ne pas mettre "8-" comme cotation max s'il
+            n'y a que des voies dans le 6, et une seule voie dans le 8a par exemple. </i>
         </div>
-
         <label class="form-control" for="falaise_cottxt">
           <b class="">Précisions sur les cotations <span class="text-accent opacity-50">(optionnel)</span></b>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_cottxt" name="falaise_cottxt"
             rows="2"
             placeholder="ex : Falaise surtout interessante pour les voies dans le 6-7. On compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7."></textarea>
-          <i class="text-slate-400 text-sm">
-            Texte optionnel pour préciser les cotations (ex : "Falaise surtout interessante pour les voies dans le
-            6-7.
-            On
-            compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7").</i>
+          <i class="text-slate-400 text-sm"> Texte optionnel pour préciser les cotations (ex : "Falaise surtout
+            interessante pour les voies dans le 6-7. On compte 2 voies dans le 5, 15 dans le 6, et 12 dans le 7").</i>
         </label>
-
         <label class="form-control" for="falaise_voies">
           <b>Précisions sur la falaise et les voies</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voies" name="falaise_voies"
             rows="2" placeholder="ex : un secteur principal avec 54 voies et un secteur initiation avec 12 voies.
             Hauteur max 30 mètres. Pied des voies à l'ombre, beaucoup de voies sur réglettes." required></textarea>
-          <i class="text-slate-400 text-sm">
-            Exemple d'infos que vous pouvez rentrer ici : <br>
-            - La présence ou non de différents secteurs espacés.<br>
-            - Nombre exact de voies.<br>
-            - Hauteur max de la falaise.<br>
-            - Pied des voies (confortable, à l'ombre...).<br>
-            - Style des voies (dévers, réglettes...).<br>
-            - ...</i>
+          <i class="text-slate-400 text-sm"> Exemple d'infos que vous pouvez rentrer ici : <br> - La présence ou non de
+            différents secteurs espacés.<br> - Nombre exact de voies.<br> - Hauteur max de la falaise.<br> - Pied des
+            voies (confortable, à l'ombre...).<br> - Style des voies (dévers, réglettes...).<br> - ...</i>
         </label>
       </div>
-
       <!-- Partie Exposition -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -494,7 +449,6 @@ if ($falaise_id) {
         <hr class="my-0 flex-grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
-
         <div>
           <div class="flex flex-col md:flex-row gap-4">
             <label class="form-control w-full md:w-1/2 relative" for="falaise_exposhort1">
@@ -552,13 +506,9 @@ if ($falaise_id) {
           </div>
           <div class="flex flex-col md:flex-row gap-6 md:items-center">
             <div class="flex-grow">
-              <i class="text-slate-400 text-sm">
-                Ces deux champs apparaitront dans la rose des vents sur la fiche falaise, et sont utilisés pour les
-                filtres.<br>
-                Le champ "exposition(s) secondaire(s)" est prévu pour le cas où il existe un petit nombre de voies
-                avec
-                une orientation différente des autres.
-              </i>
+              <i class="text-slate-400 text-sm"> Ces deux champs apparaitront dans la rose des vents sur la fiche
+                falaise, et sont utilisés pour les filtres.<br> Le champ "exposition(s) secondaire(s)" est prévu pour le
+                cas où il existe un petit nombre de voies avec une orientation différente des autres. </i>
             </div>
             <div class="flex-grow flex justify-center">
               <img src="/images/pages/contribution/rosedesvents.png" alt="Rose des vents" class="max-w-[200px]">
@@ -569,14 +519,11 @@ if ($falaise_id) {
           <b>Précisions sur l'exposition</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_expotxt" name="falaise_expotxt"
             rows="1" placeholder="ex : majoritairement orienté Sud, quelques faces à l'Ouest" required></textarea>
-          <i class="text-slate-400 text-sm">
-            Ecrivez un court texte décrivant l'exposition. Ex : "falaise orientée Sud à Sud-Est", "la plupart des
-            voies orientées Ouest, quelques voies orientées Nord".<br>
+          <i class="text-slate-400 text-sm"> Ecrivez un court texte décrivant l'exposition. Ex : "falaise orientée Sud à
+            Sud-Est", "la plupart des voies orientées Ouest, quelques voies orientées Nord".<br>
           </i>
         </label>
       </div>
-
-
       <!-- Partie Types de voies -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -586,7 +533,6 @@ if ($falaise_id) {
         <hr class="my-0 flex-grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
-
         <label class="form-control" for="falaise_gvtxt">
           <span class="flex flex-col md:flex-row justify-center md:items-center gap-2">
             <b class="">Grandes voies - Texte descriptif <span class="text-accent opacity-50">(optionnel)</span></b>
@@ -594,24 +540,17 @@ if ($falaise_id) {
           </span>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_gvtxt" name="falaise_gvtxt"
             rows="2" placeholder="ex : 10 grandes voies, de PD+ à AD+."></textarea>
-          <i class="text-slate-400 text-sm">
-            Indiquez s'il y a des grandes voies, et si oui, combien environ, de combien à combien de longueurs,
-            jusqu'à
-            quelle hauteur max, éventuellement donner les cotations...
-          </i>
+          <i class="text-slate-400 text-sm"> Indiquez s'il y a des grandes voies, et si oui, combien environ, de combien
+            à combien de longueurs, jusqu'à quelle hauteur max, éventuellement donner les cotations... </i>
         </label>
-
         <label class="form-control" for="falaise_gvnb">
           <b class="">Grandes voies - Texte très court pour le tableau <span
               class="text-accent opacity-50">(optionnel)</span></b>
           <input class="input input-bordered input-sm" type="text" id="falaise_gvnb" name="falaise_gvnb"
             placeholder="ex : Plusieurs GV, 3 à 4 longueurs" maxlength="40">
-          <i class="text-slate-400 text-sm">Texte très court pour le tableau "falaises proches de...".<br>
-            Exemples : "Nombreuses GV - 2 à 10 longueurs" ; "GV en 2 à 3 longueurs" ; "12 GV - 4 à 9
-            longueurs".
-          </i>
+          <i class="text-slate-400 text-sm">Texte très court pour le tableau "falaises proches de...".<br> Exemples :
+            "Nombreuses GV - 2 à 10 longueurs" ; "GV en 2 à 3 longueurs" ; "12 GV - 4 à 9 longueurs". </i>
         </label>
-
         <label class="form-control" for="falaise_bloc">
           <b class="">Falaise de bloc <span class="text-accent opacity-50">(optionnel)</span></b>
           <select id="falaise_bloc" name="falaise_bloc" class="select select-primary select-sm">
@@ -620,13 +559,9 @@ if ($falaise_id) {
             <option value="2">PsychoBloc 🌊</option>
           </select>
           <i class="text-slate-400 text-sm">À saisir uniquement si la falaise est un site de bloc ou de psychobloc
-            (grimpe
-            sans corde au dessus de l'eau, deep water solo)
-          </i>
+            (grimpe sans corde au dessus de l'eau, deep water solo) </i>
         </label>
       </div>
-
-
       <!-- Partie Marche d'approche -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -640,11 +575,9 @@ if ($falaise_id) {
           <b>Marche d'approche - Texte descriptif</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_matxt" name="falaise_matxt"
             rows="3" placeholder="ex : 10' aller, 15' retour, montée raide." required></textarea>
-          <i class="text-slate-400 text-sm">
-            Petit texte décrivant la marche d'approche. Ex : "10' en montée", "10' aller, 7' retour",...
-          </i>
+          <i class="text-slate-400 text-sm"> Petit texte décrivant la marche d'approche. Ex : "10' en montée", "10'
+            aller, 7' retour",... </i>
         </label>
-
         <div>
           <b>Temps minimal de marche d'approche (minutes)</b>
           <div class="flex flex-col md:flex-row gap-4">
@@ -659,14 +592,10 @@ if ($falaise_id) {
                 placeholder="ex : 5" required>
             </label>
           </div>
-          <i class="text-slate-400 text-sm">
-            Donner le temps de marche d'approche pour arriver au secteur le plus proche du parking vélo, aller et
-            retour.
-          </i>
+          <i class="text-slate-400 text-sm"> Donner le temps de marche d'approche pour arriver au secteur le plus proche
+            du parking vélo, aller et retour. </i>
         </div>
       </div>
-
-
       <!-- Partie Infos supplémentaires -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -680,39 +609,29 @@ if ($falaise_id) {
           <b>Topo(s)</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_topo" name="falaise_topo"
             rows="2" required></textarea>
-          <i class="text-slate-400 text-sm">
-            Lister les différents topos présentant la falaise.<br>
-            Optionnel : ajouter un lien vers la fiche Climbing Away de la falaise. Pour cela, copiez le code &lt;a
-            href="URL"&gt;Fiche Climbing Away&lt;/a&gt;, en remplaçant "URL" par l'URL de la fiche.<br>
-            Exemple : "Escalade dans le Jura - &lt;a
-            href="https://climbingaway.fr/fr/site-escalade/le-trou-de-la-lune"&gt;Fiche Climbing Away&lt;/a&gt;"
+          <i class="text-slate-400 text-sm"> Lister les différents topos présentant la falaise.<br> Optionnel : ajouter
+            un lien vers la fiche Climbing Away de la falaise. Pour cela, copiez le code &lt;a href="URL"&gt;Fiche
+            Climbing Away&lt;/a&gt;, en remplaçant "URL" par l'URL de la fiche.<br> Exemple : "Escalade dans le Jura -
+            &lt;a href="https://climbingaway.fr/fr/site-escalade/le-trou-de-la-lune"&gt;Fiche Climbing Away&lt;/a&gt;"
           </i>
         </label>
-
-
         <label class="form-control" for="falaise_rq">
           <b class="">Remarque(s) falaise <span class="text-accent opacity-50">(optionnel)</span></b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_rq" name="falaise_rq" rows="2"
             placeholder="ex : falaise abritée de la pluie."></textarea>
-          <i class="text-slate-400 text-sm">A compléter si vous avez des informations additionnelles sur la
-            falaise.</i>
+          <i class="text-slate-400 text-sm">A compléter si vous avez des informations additionnelles sur la falaise.</i>
         </label>
-
-
         <label class="form-control" for="falaise_voletcarto">
           <b>Résumé de la fiche falaise</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voletcarto"
             name="falaise_voletcarto" rows="3"
             placeholder="ex : Falaise exposée Sud, avec 120 voies de 6a à 7c. Quelques grandes voies en 2 ou 3 longueurs."
             required maxlength="200"></textarea>
-          <i class="text-slate-400 text-sm">Résumé court et synthétique sur la falaise, qui apparaitra dans le volet
-            qui
-            s'ouvre quand on clique sur une falaise de la carte.<br>
-            Ex : "Falaise exposée Sud, avec 120 voies de 6a à 7c. Quelques grandes voies en 2 ou 3 longueurs."</i>
+          <i class="text-slate-400 text-sm">Résumé court et synthétique sur la falaise, qui apparaitra dans le volet qui
+            s'ouvre quand on clique sur une falaise de la carte.<br> Ex : "Falaise exposée Sud, avec 120 voies de 6a à
+            7c. Quelques grandes voies en 2 ou 3 longueurs."</i>
         </label>
-
       </div>
-
       <!-- Partie Remarques et images -->
       <div class="relative flex items-center">
         <hr class="my-0 flex-grow border-[#2e8b57]" />
@@ -722,14 +641,10 @@ if ($falaise_id) {
         <hr class="my-0 flex-grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
-
         <p>Ces remarques et images s'afficheront en bas des fiches falaises, dans le même ordre que les champs suivants
           (voir par exemple la fiche de <a href="/falaise.php?falaise_id=32">Cessens</a> pour avoir une idée) :</p>
-
         <div class="admin flex flex-col gap-4">
-
           <pre>NOM FALAISE</pre>
-
           <label class="form-control" for="falaise_fermee">
             <b class="">Si la falaise est fermée / interdite, explication <span
                 class="text-accent opacity-50">(optionnel)</span></b>
@@ -738,9 +653,7 @@ if ($falaise_id) {
             <i class="text-slate-400 text-sm">A compléter si vous avez des informations sur la cause de l'interdiction
               ou les perspectives de réouverture.</i>
           </label>
-
           <pre>TABLEAU DESCRIPTIF FALAISE</pre>
-
           <label class="form-control" for="falaise_txt2">
             <span>
               <b class="">Remarques diverses <span class="text-accent opacity-50">(optionnel)</span></b>
@@ -750,29 +663,23 @@ if ($falaise_id) {
             <i class="text-slate-400 text-sm">Remarques non incluses dans le tableau descriptif. Typiquement utilisé
               pour décrire les différents secteurs, les modalités de bivouac, camping.</i>
           </label>
-
           <pre>Menu déroulant des villes</pre>
           <pre>TABLEAUX DYNAMIQUES ITINERAIRES VILLE->FALAISE</pre>
-
           <label class="form-control" for="falaise_txt1">
             <span>
               <b class="">Remarque sur les itinéraires <span class="text-accent opacity-50">(optionnel)</span></b>
-              (apparaitra entre le tableau des
-              itinéraires et celui de la falaise). <span class="admin text-xs text-accent">[falaise_txt1]</span>
+              (apparaitra entre le tableau des itinéraires et celui de la falaise). <span
+                class="admin text-xs text-accent">[falaise_txt1]</span>
             </span>
             <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt1" name="falaise_txt1"
               rows="3"></textarea>
-            <i class="text-slate-400 text-sm">Exemple: remarque optionnelle générale sur l’accès falaise, qui
-              s’affiche quelle que soit la ville de
-              départ</i>
+            <i class="text-slate-400 text-sm">Exemple: remarque optionnelle générale sur l’accès falaise, qui s’affiche
+              quelle que soit la ville de départ</i>
           </label>
-
           <pre>Remarque optionnelle sur l’accès depuis la ville V (s’affiche si V est sélectionnée ;
 champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
-
           <pre>CARTE</pre>
         </div>
-
         <label class="form-control" for="falaise_img1">
           <b class="">Image 1 <span class="text-accent opacity-50">(optionnel)</span></b>
           <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img1" name="falaise_img1"
@@ -780,18 +687,14 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         </label>
         <img class="hidden w-full h-auto" id="falaise_img1_preview" src="" alt="Pas d'image 1" />
         <input hidden id="falaise_img1_webp" name="falaise_img1_webp" type="file" accept="image/*" />
-
         <label class="form-control" for="falaise_leg1">
           <span>
             <b class="">Légende image 1 <span class="text-accent opacity-50">(optionnel)</span></b>
-            <span class="admin text-xs text-accent">
-              [falaise_leg1]
-            </span>
+            <span class="admin text-xs text-accent"> [falaise_leg1] </span>
           </span>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_leg1" name="falaise_leg1"
             rows="2"></textarea>
         </label>
-
         <label class="form-control" for="falaise_txt3">
           <span>
             <b class="">Texte 1 <span class="text-accent opacity-50">(optionnel)</span></b>
@@ -799,7 +702,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt3" name="falaise_txt3"
             rows="5"></textarea>
         </label>
-
         <label class="form-control" for="falaise_img2">
           <b class="">Image 2 <span class="text-accent opacity-50">(optionnel)</span></b>
           <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img2" name="falaise_img2"
@@ -807,7 +709,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         </label>
         <img class="hidden w-full h-auto" id="falaise_img2_preview" src="" alt="Pas d'image 2" />
         <input hidden id="falaise_img2_webp" name="falaise_img2_webp" type="file" accept="image/*" />
-
         <label class="form-control" for="falaise_leg2">
           <span>
             <b class="">Légende image 2 <span class="text-accent opacity-50">(optionnel)</span></b>
@@ -815,7 +716,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_leg2" name="falaise_leg2"
             rows="2"></textarea>
         </label>
-
         <label class="form-control" for="falaise_txt4">
           <span>
             <b class="">Texte 2 <span class="text-accent opacity-50">(optionnel)</span></b>
@@ -823,7 +723,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="falaise_txt4" name="falaise_txt4"
             rows="5"></textarea>
         </label>
-
         <label class="form-control" for="falaise_img3">
           <b class="">Image 3 <span class="text-accent opacity-50">(optionnel)</span></b>
           <input class="file-input file-input-bordered file-input-sm" type="file" id="falaise_img3" name="falaise_img3"
@@ -831,7 +730,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         </label>
         <img class="hidden w-full h-auto" id="falaise_img3_preview" src="" alt="Pas d'image 3" />
         <input hidden id="falaise_img3_webp" name="falaise_img3_webp" type="file" accept="image/*" />
-
         <label class="form-control" for="falaise_leg3">
           <span>
             <b class="">Légende image 3 <span class="text-accent opacity-50">(optionnel)</span></b>
@@ -840,11 +738,8 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
             rows="2"></textarea>
         </label>
       </div>
-
       <hr class="my-4">
       <h3 class="text-center">Validation de l'ajout de données</h3>
-
-
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
         <div class="flex flex-col md:flex-row gap-4">
           <div class="form-control flex-grow">
@@ -867,7 +762,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
             </label>
           </div>
         </div>
-
         <label class="form-control" for="message">
           <span class="">
             <b>Message <span class="text-accent opacity-50">(optionnel)</span></b>
@@ -876,7 +770,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
             rows="4"></textarea>
         </label>
-
         <button type="submit" id="confirmButton" class="btn btn-primary"><?= $falaise_id ? "Modifier" : "Ajouter" ?> la
           falaise</button>
       </div>

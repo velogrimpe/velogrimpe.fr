@@ -155,22 +155,16 @@ $stmt->close();
   <meta name="twitter:description"
     content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
   <title>Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
-
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
   <link rel="manifest" href="/site.webmanifest" />
   <script src="/js/rose-des-vents.js"></script>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
-  <style type="text/tailwindcss">
-    @tailwind base;
+  <style type="text/tailwindcss"> @tailwind base;
     @tailwind components;
     @tailwind utilities;
     @layer base {
@@ -183,38 +177,29 @@ $stmt->close();
 
 <body class="w-screen min-h-screen">
   <?php include "./components/header.html"; ?>
-
   <div class="hero min-h-[400px] bg-center" style="background-image: url(/images/mw/005-train-2-10.webp);">
     <div class="hero-overlay bg-opacity-60"></div>
     <div class="hero-content text-center text-base-100">
       <div class="max-w-md">
-        <h1 class="text-5xl font-bold">
-          Falaises proches de <?php echo $ville['ville_nom'] ?>
+        <h1 class="text-5xl font-bold"> Falaises proches de <?php echo $ville['ville_nom'] ?>
         </h1>
       </div>
     </div>
   </div>
-
   <main class="md:w-4/5 max-w-screen-xl mx-auto p-4 flex flex-col gap-4">
-
     <div class="flex flex-col justify-center gap-1 items-end w-full">
       <div class="flex justify-between w-full items-center">
         <button class="btn btn-xs w-fit" onclick="instructionsDialog.showModal()">
           <svg class="w-4 h-4 fill-current">
             <use xlink:href="/symbols/icons.svg#ri-information-line"></use>
-          </svg>
-          Comment lire ce tableau ?</button>
+          </svg> Comment lire ce tableau ?</button>
         <dialog id="instructionsDialog" class="modal">
           <div class="modal-box">
-            <h3 class="text-lg font-bold">
-              Comment lire ce tableau ?
-            </h3>
+            <h3 class="text-lg font-bold"> Comment lire ce tableau ? </h3>
             <div class="p-2">
               <p>Les falaises sont classées en fonction du temps total de trajet depuis
-                <?php echo $ville["ville_nom"] ?>.
-                Ce «temps total», très théorique, est l’addition du meilleur temps possible
-                en train, du temps à vélo et du temps de marche d’approche.
-              </p>
+                <?php echo $ville["ville_nom"] ?>. Ce «temps total», très théorique, est l’addition du meilleur temps
+                possible en train, du temps à vélo et du temps de marche d’approche. </p>
               <p><b>Abréviations</b> : </p>
               <ul class="list-disc list-inside">
                 <li><b>D</b> pour "train direct", <b>1C</b> pour "une correspondance".</li>
@@ -232,16 +217,12 @@ $stmt->close();
           <!-- Rempli dynamiquement par la fonction `updateInfo` -->
         </div>
       </div>
-
-
       <div class="mx-auto">
         <div class="flex flex-row items-center gap-1 px-8">
           <div class="h-[1px] my-2 bg-base-300 rounded-lg flex-grow"></div>
-          <div class="text-xs text-slate-500 rounded-lg px-3">
-            Filtres</div>
+          <div class="text-xs text-slate-500 rounded-lg px-3"> Filtres</div>
           <div class="h-[1px] my-2 bg-base-300 rounded-lg flex-grow"></div>
         </div>
-
         <form id="filtersForm"
           class="flex flex-col md:flex-row gap-1 items-center w-full max-w-full justify-center flex-wrap">
           <div class="flex gap-1 items-center">
@@ -374,32 +355,28 @@ $stmt->close();
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="filterExpoN"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">Nord
-                        <span class="text-xs text-slate-400">(NO, N, NE)</span>
+                      <span class="label-text">Nord <span class="text-xs text-slate-400">(NO, N, NE)</span>
                       </span>
                     </label>
                     <label
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="filterExpoE"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">Est
-                        <span class="text-xs text-slate-400">(NE, E, SE)</span>
+                      <span class="label-text">Est <span class="text-xs text-slate-400">(NE, E, SE)</span>
                       </span>
                     </label>
                     <label
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="filterExpoS"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">Sud
-                        <span class="text-xs text-slate-400">(SE, S, SO)</span>
+                      <span class="label-text">Sud <span class="text-xs text-slate-400">(SE, S, SO)</span>
                       </span>
                     </label>
                     <label
                       class="label hover:bg-base-300 rounded-lg cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
                       <input type="checkbox" id="filterExpoO"
                         class="checkbox border-base-300 bg-base-100 [--chkbg:oklch(var(--p))] checkbox-sm" />
-                      <span class="label-text">Ouest
-                        <span class="text-xs text-slate-400">(SO, O, NO)</span>
+                      <span class="label-text">Ouest <span class="text-xs text-slate-400">(SO, O, NO)</span>
                       </span>
                     </label>
                   </div>
@@ -444,8 +421,7 @@ $stmt->close();
           <div class="flex gap-1 items-center">
             <div class="dropdown w-fit">
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
-                id="veloFilterBtn">Vélo 🚲
-              </div>
+                id="veloFilterBtn">Vélo 🚲 </div>
               <div class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
                 <div class="flex flex-row gap-3 items-center">
                   <div>Trajet vélo</div>
@@ -547,8 +523,7 @@ $stmt->close();
                 </div>
                 <div>
                   <b title="Cotations (6-: 6a à 6b, 6+: 6b+ à 6c+ etc.)">Cotations</b> : <span>de
-                    <?php echo $common["falaise_cotmin"] ?> à
-                    <?php echo $common["falaise_cotmax"] ?>
+                    <?php echo $common["falaise_cotmin"] ?> à <?php echo $common["falaise_cotmax"] ?>
                   </span>
                 </div>
                 <?php if ($common["falaise_gvnb"] > 0): ?>
@@ -560,8 +535,7 @@ $stmt->close();
                   <div class="text-accent">Psychobloc 🌊</div>
                 <?php endif; ?>
                 <div>
-                  <b title="Marche d'approche">Marche d'approche</b> :
-                  <?php if ($common["falaise_maa"] > 0): ?>
+                  <b title="Marche d'approche">Marche d'approche</b> : <?php if ($common["falaise_maa"] > 0): ?>
                     <span>
                       <?php echo format_time($common["falaise_maa"]) ?>
                     </span>
@@ -569,8 +543,6 @@ $stmt->close();
                     <span>Aucune</span>
                   <?php endif; ?>
                 </div>
-
-
               </div>
               <div id="<?php echo 'rose-mobile-' . $common['falaise_id'] ?>" class="w-[72px]"></div>
             </div>
@@ -580,15 +552,11 @@ $stmt->close();
               <ul class="list-disc list-inside">
                 <?php foreach ($acces as $row): ?>
                   <li>
-                    <?php if ($row["train_temps"] > 0): ?>
-                      Train pour <?php echo $row["train_arrivee"] ?>
-                      (<?php echo format_time($row["train_temps"]) ?>,
-                      <span title='D=Direct / C=Correspondances'>
+                    <?php if ($row["train_temps"] > 0): ?> Train pour <?php echo $row["train_arrivee"] ?>
+                      (<?php echo format_time($row["train_temps"]) ?>, <span title='D=Direct / C=Correspondances'>
                         <?php echo ($row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C")
                           . ($row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C")
-                          ?></span>)
-                      +
-                    <?php endif; ?>
+                          ?></span>) + <?php endif; ?>
                     <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement'])) ?>
                     <?php echo $row["velo_apieduniquement"] == 1 ? "À pied" : "à vélo" ?>
                     <?php if (($row["variante_a_pied"] ?? 0) == 1): ?>
@@ -602,9 +570,8 @@ $stmt->close();
         </a>
       <?php endforeach; ?>
       <div id="nomatch-mobile"
-        class="bg-base-100 text-center w-full col-span-6 py-4 font-bold hidden rounded-lg shadow-lg">Aucune falaise
-        ne correspond aux filtres.
-      </div>
+        class="bg-base-100 text-center w-full col-span-6 py-4 font-bold hidden rounded-lg shadow-lg">Aucune falaise ne
+        correspond aux filtres. </div>
     </div>
     <!-- VERSION DESKTOP -->
     <div class="hidden
@@ -612,9 +579,8 @@ $stmt->close();
                 bg-base-300 shadow-xl rounded-lg overflow-hidden
                 text-center items-center text-sm">
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center"></div>
-      <div class="bg-base-100 px-1 py-1 self-stretch flex items-center justify-center font-bold text-xs">
-        Temps total (T+V+A)
-      </div>
+      <div class="bg-base-100 px-1 py-1 self-stretch flex items-center justify-center font-bold text-xs"> Temps total
+        (T+V+A) </div>
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
         <img class="h-12" alt="Train" src="/images/icons/train-station_color.png" />
       </div>
@@ -674,16 +640,13 @@ $stmt->close();
           class="bg-base-100 py-1 self-stretch grid grid-rows-<?php echo count($acces) ?> divide-y divide-slate-200 items-center falaise-<?= $common['falaise_id'] ?>-desktop">
           <?php foreach ($acces as $row): ?>
             <div class="self-stretch flex flex-col justify-center py-2 px-2">
-              <div class="text-base font-bold">
-                Aller :
+              <div class="text-base font-bold"> Aller :
                 <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dplus'], $row['velo_apieduniquement'])) ?>
-                -
-                Retour :
+                - Retour :
                 <?php echo format_time(calculate_time($row['velo_km'], $row['velo_dmoins'], $row['velo_apieduniquement'])) ?>
               </div>
-              <div><?php echo $row["velo_km"] ?> km, <?php echo $row["velo_dplus"] ?> D+,
-                <?php echo $row["velo_dmoins"] ?> D-
-              </div>
+              <div><?php echo $row["velo_km"] ?> km, <?php echo $row["velo_dplus"] ?> D+, <?php echo $row["velo_dmoins"] ?>
+                D- </div>
               <?php if ($row["velo_apieduniquement"] == 1): ?>
                 <div class="text-primary">À pied uniquement</div>
               <?php endif; ?>
@@ -700,15 +663,12 @@ $stmt->close();
             <div><span title="Marche d'approche">Marche d'approche</span> : <span class="font-bold">
                 <?php if ($row["falaise_maa"] > 0): ?>
                   <?= format_time($row["falaise_maa"]) ?>
-                <?php else: ?>
-                  Aucune
-                <?php endif; ?>
+                <?php else: ?> Aucune <?php endif; ?>
               </span>
             </div>
             <div>
-              <span class="font-bold"><?= $nbvoies_corresp[$row["falaise_nbvoies"]] ?? "Voies" ?></span>
-              de
-              <span class="font-bold" title="Cotations (6-: 6a à 6b, 6+: 6b+ à 6c+ etc.)"><?= $row["falaise_cotmin"] ?> à
+              <span class="font-bold"><?= $nbvoies_corresp[$row["falaise_nbvoies"]] ?? "Voies" ?></span> de <span
+                class="font-bold" title="Cotations (6-: 6a à 6b, 6+: 6b+ à 6c+ etc.)"><?= $row["falaise_cotmin"] ?> à
                 <?= $row["falaise_cotmax"] ?></span>
             </div>
             <?php if ($row["falaise_gvnb"]): ?>
@@ -725,18 +685,13 @@ $stmt->close();
         <!-- <div
           class="bg-base-100 px-2 py-1 self-stretch flex flex-col justify-center items-center falaise-<?= $common['falaise_id'] ?>-desktop">
           <?php echo $row["zone_nom"] ?>
-        </div> -->
-
-      <?php endforeach; ?>
-      <div id="nomatch" class="bg-base-100 text-center w-full col-span-5 py-4 font-bold hidden">Aucune falaise
-        ne correspond aux filtres.
-      </div>
+        </div> --> <?php endforeach; ?> <div id="nomatch"
+        class="bg-base-100 text-center w-full col-span-5 py-4 font-bold hidden">Aucune falaise ne correspond aux
+        filtres. </div>
     </div>
-
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
-
 <script>
   window.addEventListener("DOMContentLoaded", function () {
     <?php foreach ($falaises as $falaise_id => $acces): ?>
