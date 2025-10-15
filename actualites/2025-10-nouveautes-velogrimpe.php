@@ -265,8 +265,8 @@ $nouvellesFalaises = [
           25 Novembre (infos à suivre pour y participer !).</p>
         <p style="<?= $liStyle ?>">&bull; Florian Garibal et Fanny Audigé sont en pleine campagne de financement
           participatif pour leur topo d’escalade en mobilité douce au départ de Grenoble. <a style="<?= $astyle ?>"
-            href="https://fr.ulule.com/topo-doux-depuis-grenoble/?utm_campaign=presale_205100&utm_source=shared-from-Ulule-project-page-on---http.referer--&utm_medium=uluid_2444055">Allez
-            y faire un tour</a>, l’ouvrage est splendide !</p>
+            href="https://fr.ulule.com/topo-doux-depuis-grenoble/">Allez y faire un tour</a>, l’ouvrage est splendide !
+        </p>
         <p style="<?= $liStyle ?>">&bull; On aimerait bien cartographier Fontainebleau, mais ne connaissant pas bien le
           secteur, on est toujours à la recherche de connaisseurs pour nous conseiller voire aider dans ce travail.</p>
         <p>Et voilà ! Merci mille fois à ceux qui sont arrivés jusque-là ! Envoyez nous un petit message pour nous dire

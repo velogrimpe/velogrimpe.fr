@@ -26,7 +26,7 @@ if (empty($slug)) {
   die("Slug is required.");
 }
 
-$host = $config['base_url'] ?? 'http://localhost:4000';
+$host = $config['base_url'] ?? 'http://localhost';
 $url = "$host/actualites/$slug.php";
 $options = [
   CURLOPT_URL => $url,
@@ -93,4 +93,5 @@ foreach ($recipients as $recipient) {
   $stmt->bind_param('ssss', $recipient, $slug, $status, $status);
   $stmt->execute();
 }
+header('Content-Type: application/json');
 echo json_encode(['status' => 'ok', 'sent_to' => count($recipients), 'success' => $successCount, 'error' => $errorCount]);
