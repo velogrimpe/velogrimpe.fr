@@ -47,17 +47,51 @@ if ($httpCode !== 200) {
 curl_close($ch);
 
 // Store document in a variable mailBody
-$recipients = ["yoann@couble.eu", "couble.yoann@gmail.com"];//, "ycouble@icloud.com", "contact@velogrimpe.fr", "marc_miroil@hotmail.com", "amandine.spiandore@orange.fr", "amandine.spiandore@hotmail.fr"];
+// $recipients = ["yoann@couble.eu", "couble.yoann@gmail.com"];//, "ycouble@icloud.com", "contact@velogrimpe.fr", "marc_miroil@hotmail.com", "amandine.spiandore@orange.fr", "amandine.spiandore@hotmail.fr"];
 // parse html for title tag
 preg_match('/<title>(.*?)<\/title>/', $mailBody, $matches);
 $title = trim($matches[1]) ?? 'Actualités Velogrimpe.fr';
 // Send the email
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
-$data = [
-  'to' => $recipients,
-  'subject' => "[TEST] $title",
-  'html' => $mailBody,
-];
-sendMail($data);
+$recipientsStmt = $mysqli->prepare("SELECT
+  ml.mail
+  FROM mailing_list ml
+  LEFT JOIN newsletter_status ns ON ml.mail = ns.mail AND ns.newsletter_slug = ?
+  WHERE ml.desinscrit = 0
+    AND (ns.mail IS NULL OR ns.status != 'sent')");
+// add slug parameter to the query
+$recipientsStmt->bind_param('s', $slug);
+$recipientsStmt->execute();
+$recipientsStmt = $recipientsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$recipients = array_map(fn($row) => $row['mail'], $recipientsStmt);
+
+$successCount = 0;
+$errorCount = 0;
+
+// send one by one
+foreach ($recipients as $recipient) {
+  $data = [
+    'to' => $recipient,
+    'subject' => "$title",
+    'html' => $mailBody,
+  ];
+  $res = sendMail($data);
+  // store the status in the database
+  $status = $res === true ? 'sent' : 'error';
+  // count successes and errors
+  $successCount += $res === true ? 1 : 0;
+  $errorCount += $res === true ? 0 : 1;
+  $stmt = $mysqli->prepare("INSERT INTO
+    newsletter_status (mail, newsletter_slug, status, last_attempt)
+  VALUES (?, ?, ?, NOW())
+  ON DUPLICATE KEY UPDATE
+    status = ?,
+    last_attempt = NOW()
+  ;");
+  $stmt->bind_param('ssss', $recipient, $slug, $status, $status);
+  $stmt->execute();
+}
+echo json_encode(['status' => 'ok', 'sent_to' => count($recipients), 'success' => $successCount, 'error' => $errorCount]);
