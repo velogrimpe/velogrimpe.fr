@@ -29,7 +29,8 @@ if (empty($slug)) {
   die("Slug is required.");
 }
 
-$url = "http://localhost/actualites/$slug.php";
+$host = $config['base_url'] ?? 'http://localhost:4000';
+$url = "$host/actualites/$slug.php";
 $options = [
   CURLOPT_URL => $url,
   CURLOPT_RETURNTRANSFER => true,
