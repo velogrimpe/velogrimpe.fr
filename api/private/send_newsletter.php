@@ -74,8 +74,9 @@ $errorCount = 0;
 // send one by one
 foreach ($recipients as $recipient) {
   $data = [
+    'from' => 'Velogrimpe.fr <contact@velogrimpe.fr>',
     'to' => $recipient,
-    'subject' => "$title",
+    'subject' => $title,
     'html' => $mailBody,
   ];
   $res = sendMail($data);

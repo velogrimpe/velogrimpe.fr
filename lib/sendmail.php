@@ -8,7 +8,10 @@ function sendMail($data)
   $mailgun_baseurl = $config["mailgun_baseurl"];
   $from = "Velogrimpe.fr <postmaster@$mailgun_domain>";
 
-  $data = array_merge($data, ['from' => $from]);
+  // if from is not set in data, use default
+  if (!isset($data['from']) || empty($data['from'])) {
+    $data["from"] = $from;
+  }
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, "$mailgun_baseurl/v3/$mailgun_domain/messages");
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
