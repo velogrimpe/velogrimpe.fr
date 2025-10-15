@@ -231,7 +231,7 @@ $nouvellesFalaises = [
                 </table>
                 <?php foreach ($content['falaises'] as $falaise): ?>
                   <p style="<?= $liStyle ?>">&bull; <a style="<?= $astyle ?>"
-                      href="https://velogrimpe.fr/falaise.php?falaise_id=<?= $falaise['id'] ?>?<?= $utm ?>">
+                      href="https://velogrimpe.fr/falaise.php?falaise_id=<?= $falaise['id'] ?>&<?= $utm ?>">
                       <?= $falaise['name'] ?>
                     </a> par <?php
                     $contributors = explode(',', $falaise['contributor']);
