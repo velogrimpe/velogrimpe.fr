@@ -27,7 +27,7 @@ if (empty($slug)) {
 }
 
 $host = $config['base_url'] ?? 'http://localhost';
-$hostWithPort = (strpos($host, 'localhost') !== false && strpos($host, ':') === false) ? "$host:4000" : $host;
+$hostWithPort = strpos($host, 'localhost') !== false ? "$host:4000" : $host;
 $url = "$host/actualites/$slug.php";
 $options = [
   CURLOPT_URL => $url,
@@ -75,19 +75,20 @@ $errorCount = 0;
 foreach ($recipients as $recipient) {
 
   $unsubscribeLink = $hostWithPort . "/actualites/gestion/unsubscribe.php?mail=" . urlencode($recipient['mail']) . "&token=" . urlencode($recipient['token']);
+
+  $mailBodyForRecipient = $mailBody;
+  $mailBodyForRecipient = str_replace(
+    '<span data-placeholder></span>',
+    "<a style=\"text-align: center; display: block; width: 100%; font-size: 10px; color: #ccc; margin-bottom: 20px; font-weight: normal;\" href=\"$unsubscribeLink\">Se désinscrire</a>",
+    $mailBodyForRecipient
+  );
   $data = [
     'from' => 'Velogrimpe.fr <contact@velogrimpe.fr>',
     'to' => $recipient['mail'],
     'subject' => $title,
-    'html' => $mailBody,
+    'html' => $mailBodyForRecipient,
     'h:List-Unsubscribe' => "<$unsubscribeLink>",
   ];
-  // Add a link to unsubscribe instead of <span id="placeholder" ></span>
-  $mailBody = str_replace(
-    '<span id="placeholder"></span>',
-    "<a style=\"text-align: center; display: block; width: 100%; font-size: 10px; color: #ccc; margin-bottom: 20px; font-weight: normal;\" href=\"$unsubscribeLink\">Se désinscrire</a>",
-    $mailBody
-  );
 
   $res = sendMail($data);
   // store the status in the database

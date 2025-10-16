@@ -15,7 +15,7 @@ if ($result->num_rows === 0) {
   die("Lien invalide ou déjà utilisé.");
 }
 
-$updateStmt = $mysqli->prepare("UPDATE mailing_list SET desinscrit = 1 WHERE mail = ? AND token = ?");
+$updateStmt = $mysqli->prepare("UPDATE mailing_list SET desinscrit = 1, date_desinscription = NOW() WHERE mail = ? AND token = ?");
 $updateStmt->bind_param('ss', $mail, $token);
 $updateStmt->execute();
 
