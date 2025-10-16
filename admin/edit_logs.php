@@ -53,7 +53,6 @@ $formatter = new IntlDateFormatter(
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <link rel="stylesheet" href="/global.css" />
   <link rel="manifest" href="/site.webmanifest" />
 </head>
@@ -72,8 +71,8 @@ $formatter = new IntlDateFormatter(
           <th>Type</th>
           <th>Table</th>
           <th>ID</th>
-          <th>Changements</th>
           <th title="Voir la falaise concernée">🧗</th>
+          <th>Changements</th>
         </tr>
       </thead>
       <tbody>
@@ -91,6 +90,15 @@ $formatter = new IntlDateFormatter(
             <td><?= $type_labels[$log['type']] ?? htmlspecialchars($log['type']) ?></td>
             <td><?= $table_labels[$log['collection']] ?? htmlspecialchars($log['collection']) ?></td>
             <td><?= htmlspecialchars($log['record_id']) ?></td>
+            <td>
+              <?php if ($log['falaise_id'] !== null): ?>
+                <a href="/falaise.php?falaise_id=<?= $log['falaise_id'] ?>">
+                  <svg class="w-4 h-4 fill-current">
+                    <use xlink:href="/symbols/icons.svg#ri-eye-fill"></use>
+                  </svg>
+                </a>
+              <?php endif; ?>
+            </td>
             <!-- changes is a json list of {field, old, new} -->
             <?php $changes = json_decode($log['changes'], true); ?>
             <td>
@@ -103,15 +111,6 @@ $formatter = new IntlDateFormatter(
                   </div>
                 <?php endforeach; ?>
               </div>
-            </td>
-            <td>
-              <?php if ($log['falaise_id'] !== null): ?>
-                <a href="/falaise.php?falaise_id=<?= $log['falaise_id'] ?>">
-                  <svg class="w-4 h-4 fill-current">
-                    <use xlink:href="/symbols/icons.svg#ri-eye-fill"></use>
-                  </svg>
-                </a>
-              <?php endif; ?>
             </td>
           </tr>
         <?php endforeach; ?>

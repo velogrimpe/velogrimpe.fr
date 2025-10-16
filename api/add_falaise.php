@@ -243,6 +243,7 @@ $newFalaise = [
   "falaise_nomformate" => $falaise_nomformate,
   "falaise_latlng" => $falaise_latlng,
   "falaise_exposhort1" => $falaise_exposhort1,
+  "falaise_exposhort2" => $champs['falaise_exposhort2'],
   "falaise_cotmin" => $falaise_cotmin,
   "falaise_cotmax" => $falaise_cotmax,
   "falaise_zone" => $falaise_zone,
@@ -257,6 +258,17 @@ $newFalaise = [
   "falaise_voies" => $falaise_voies,
   "falaise_bloc" => $falaise_bloc,
   "falaise_nbvoies" => $falaise_nbvoies,
+  "falaise_gvtxt" => $champs['falaise_gvtxt'],
+  "falaise_gvnb" => $champs['falaise_gvnb'],
+  "falaise_rq" => $champs['falaise_rq'],
+  "falaise_fermee" => $champs['falaise_fermee'],
+  "falaise_txt1" => $champs['falaise_txt1'],
+  "falaise_txt2" => $champs['falaise_txt2'],
+  "falaise_leg1" => $champs['falaise_leg1'],
+  "falaise_txt3" => $champs['falaise_txt3'],
+  "falaise_txt4" => $champs['falaise_txt4'],
+  "falaise_leg2" => $champs['falaise_leg2'],
+  "falaise_leg3" => $champs['falaise_leg3'],
 ];
 foreach (["falaise_img1", "falaise_img2", "falaise_img3"] as $img) {
   if (isset($_FILES[$img]) && $_FILES[$img]['error'] === UPLOAD_ERR_OK) {
