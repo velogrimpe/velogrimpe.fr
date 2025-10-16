@@ -121,7 +121,8 @@ $nouvellesFalaises = [
           <tr>
             <td style="<?= $logoStyle ?>">
               <a href="https://velogrimpe.fr/?<?= $utm ?>">
-                <img width="300px" height="auto" src="https://velogrimpe.fr/images/news/logo.png" />
+                <img width="300px" height="auto" src="https://velogrimpe.fr/images/news/logo.png"
+                  alt="logo velogrimpe.fr" />
               </a>
             </td>
           </tr>
@@ -153,6 +154,7 @@ $nouvellesFalaises = [
           <tr>
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto"
+                alt="exemple de retour d'expérience sur une falaise"
                 src="https://velogrimpe.fr/images/news/2025-10/retour-experience.webp" />
             </td>
           </tr>
@@ -165,7 +167,7 @@ $nouvellesFalaises = [
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
-              <img style="<?= $imageStyle ?>" width="500px" height="auto"
+              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="nouvelle page d'accueil velogrimpe.fr"
                 src="https://velogrimpe.fr/images/news/2025-10/accueil.webp" />
             </td>
           </tr>
@@ -177,6 +179,7 @@ $nouvellesFalaises = [
           <tr>
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="250px" height="auto"
+                alt="filtres par nombre de voies et type d'escalade"
                 src="https://velogrimpe.fr/images/news/2025-10/filtres.webp" />
             </td>
           </tr>
@@ -187,7 +190,7 @@ $nouvellesFalaises = [
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
-              <img style="<?= $imageStyle ?>" width="400px" height="auto"
+              <img style="<?= $imageStyle ?>" width="400px" height="auto" alt="bouton suggérer une modification"
                 src="https://velogrimpe.fr/images/news/2025-10/edition.webp" />
             </td>
           </tr>
@@ -204,7 +207,7 @@ $nouvellesFalaises = [
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
-              <img style="<?= $imageStyle ?>" width="500px" height="auto"
+              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="florent au caf lyon"
                 src="https://velogrimpe.fr/images/news/2025-10/caf.jpeg" />
             </td>
           </tr>
@@ -225,6 +228,7 @@ $nouvellesFalaises = [
                   <tr>
                     <td style="width: 700px;">
                       <img style="<?= $imageStyle ?>" width="500px" height="auto"
+                        alt="Aperçu des nouvelles falaises de la région <?= $region ?>"
                         src="https://velogrimpe.fr/images/news/2025-10/<?= $content['img'] ?>" />
                     </td>
                   </tr>
@@ -253,7 +257,7 @@ $nouvellesFalaises = [
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
-              <img style="<?= $imageStyle ?>" width="500px" height="auto"
+              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="details falaises calanques"
                 src="https://velogrimpe.fr/images/news/2025-10/sormiou.webp" />
             </td>
           </tr>
@@ -272,6 +276,11 @@ $nouvellesFalaises = [
         <p>Et voilà ! Merci mille fois à ceux qui sont arrivés jusque-là ! Envoyez nous un petit message pour nous dire
           ce que vous en pensez ! Et si vous ne souhaitez plus recevoir de mails comme celui-ci, dites le nous, ceci
           n'est pas un mail automatique on rentre les adresses une à une 😉</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span id="placeholder"></span>
       </td>
     </tr>
   </table>

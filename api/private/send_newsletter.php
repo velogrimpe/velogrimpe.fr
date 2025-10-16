@@ -27,6 +27,7 @@ if (empty($slug)) {
 }
 
 $host = $config['base_url'] ?? 'http://localhost';
+$hostWithPort = (strpos($host, 'localhost') !== false && strpos($host, ':') === false) ? "$host:4000" : $host;
 $url = "$host/actualites/$slug.php";
 $options = [
   CURLOPT_URL => $url,
@@ -48,6 +49,8 @@ curl_close($ch);
 // $recipients = ["yoann@couble.eu", "couble.yoann@gmail.com"];//, "ycouble@icloud.com", "contact@velogrimpe.fr", "marc_miroil@hotmail.com", "amandine.spiandore@orange.fr", "amandine.spiandore@hotmail.fr"];
 // parse html for title tag
 preg_match('/<title>(.*?)<\/title>/', $mailBody, $matches);
+// remove script tags from head
+$mailBody = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', "", $mailBody);
 $title = trim($matches[1]) ?? 'Actualités Velogrimpe.fr';
 // Send the email
 
@@ -55,7 +58,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $recipientsStmt = $mysqli->prepare("SELECT
-  ml.mail
+  ml.mail, ml.token
   FROM mailing_list ml
   LEFT JOIN newsletter_status ns ON ml.mail = ns.mail AND ns.newsletter_slug = ?
   WHERE ml.desinscrit = 0
@@ -63,20 +66,29 @@ $recipientsStmt = $mysqli->prepare("SELECT
 // add slug parameter to the query
 $recipientsStmt->bind_param('s', $slug);
 $recipientsStmt->execute();
-$recipientsStmt = $recipientsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$recipients = array_map(fn($row) => $row['mail'], $recipientsStmt);
+$recipients = $recipientsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $successCount = 0;
 $errorCount = 0;
 
 // send one by one
 foreach ($recipients as $recipient) {
+
+  $unsubscribeLink = $hostWithPort . "/actualites/gestion/unsubscribe.php?mail=" . urlencode($recipient['mail']) . "&token=" . urlencode($recipient['token']);
   $data = [
     'from' => 'Velogrimpe.fr <contact@velogrimpe.fr>',
-    'to' => $recipient,
+    'to' => $recipient['mail'],
     'subject' => $title,
     'html' => $mailBody,
+    'h:List-Unsubscribe' => "<$unsubscribeLink>",
   ];
+  // Add a link to unsubscribe instead of <span id="placeholder" ></span>
+  $mailBody = str_replace(
+    '<span id="placeholder"></span>',
+    "<a style=\"text-align: center; display: block; width: 100%; font-size: 10px; color: #ccc; margin-bottom: 20px; font-weight: normal;\" href=\"$unsubscribeLink\">Se désinscrire</a>",
+    $mailBody
+  );
+
   $res = sendMail($data);
   // store the status in the database
   $status = $res === true ? 'sent' : 'error';
@@ -87,10 +99,10 @@ foreach ($recipients as $recipient) {
     newsletter_status (mail, newsletter_slug, status, last_attempt)
   VALUES (?, ?, ?, NOW())
   ON DUPLICATE KEY UPDATE
-    status = ?,
+    status = VALUES(status),
     last_attempt = NOW()
   ;");
-  $stmt->bind_param('ssss', $recipient, $slug, $status, $status);
+  $stmt->bind_param('sss', $recipient["mail"], $slug, $status);
   $stmt->execute();
 }
 header('Content-Type: application/json');
