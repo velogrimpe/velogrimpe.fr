@@ -39,7 +39,7 @@ $recipientsStmt = $mysqli->prepare("SELECT
   ml.mail, ml.token
   FROM mailing_list ml
   LEFT JOIN newsletter_status ns ON ml.mail = ns.mail AND ns.newsletter_slug = ?
-  WHERE ml.desinscrit = 0
+  WHERE ml.desinscrit = 0 AND ml.confirme = 1
     AND (ns.mail IS NULL OR ns.status != 'sent')");
 // add slug parameter to the query
 $recipientsStmt->bind_param('s', $slug);
