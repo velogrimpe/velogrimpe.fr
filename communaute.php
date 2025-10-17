@@ -38,7 +38,24 @@
       </div>
     </div>
   </div>
-  <main class="flex-grow w-full max-w-screen-xl mx-auto flex flex-col gap-2 md:gap-4 p-4 mb-2">
+  <main class="flex-grow w-full max-w-screen-md mx-auto flex flex-col gap-2 md:gap-4 p-4 mb-2">
+    <h2 class="text-2xl font-bold text-center">Actualités du site et ajouts au topo</h2>
+    <p class="md:text-center text-normal">Nous publions une newsletter (environ trimestrielle) pour vous tenir au
+      courant des nouveautés du site et des nouvelles falaises ajoutées au topo. Si vous souhaitez la recevoir,
+      inscrivez-vous ci-dessous.</p>
+    <div class="w-full flex flex-col items-center">
+      <form action="/api/newsletter_subscribe.php" method="post"
+        class="flex items-center gap-4 max-w-full p-4 rounded-lg  mb-8">
+        <label class="input input-primary flex items-center gap-2 w-full">
+          <input class="grow" type="email" id="email" name="email" placeholder="Votre email" required />
+          <svg class="w-4 h-4 fill-current">
+            <use xlink:href="/symbols/icons.svg#ri-mail-line"></use>
+          </svg>
+        </label>
+        <button class="btn btn-primary" type="submit">S'inscrire à la newsletter</button>
+      </form>
+    </div>
+    <h2 class="text-2xl font-bold text-center">Réseaux sociaux</h2>
     <div class="flex flex-row items-center justify-center gap-8">
       <a href="https://instagram.com/velogrimpe" target="_blank">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/250px-Instagram_icon.png"

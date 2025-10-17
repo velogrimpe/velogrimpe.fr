@@ -26,33 +26,11 @@ if (empty($slug)) {
   die("Slug is required.");
 }
 
-$host = $config['base_url'] ?? 'http://localhost';
-$hostWithPort = strpos($host, 'localhost') !== false ? "$host:4000" : $host;
-$url = "$host/actualites/$slug.php";
-$options = [
-  CURLOPT_URL => $url,
-  CURLOPT_RETURNTRANSFER => true,
-];
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/fetch_mail_template.php';
 
-$ch = curl_init();
-curl_setopt_array($ch, $options);
-$mailBody = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-// Check that the response is a 200
-if ($httpCode !== 200) {
-  http_response_code(500);
-  die("Failed to fetch the newsletter content: $url - HTTP code: $httpCode, body='$mailBody'");
-}
-curl_close($ch);
-
-// Store document in a variable mailBody
-// $recipients = ["yoann@couble.eu", "couble.yoann@gmail.com"];//, "ycouble@icloud.com", "contact@velogrimpe.fr", "marc_miroil@hotmail.com", "amandine.spiandore@orange.fr", "amandine.spiandore@hotmail.fr"];
-// parse html for title tag
-preg_match('/<title>(.*?)<\/title>/', $mailBody, $matches);
-// remove script tags from head
-$mailBody = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', "", $mailBody);
-$title = trim($matches[1]) ?? 'Actualités Velogrimpe.fr';
-// Send the email
+$template = fetchMailTemplate("/actualites/$slug.php");
+$title = $template['title'];
+$mailBody = $template['html'];
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
