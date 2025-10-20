@@ -1,3 +1,8 @@
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . "/database/velogrimpe.php";
+
+$falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
+?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -62,6 +67,7 @@
 </body>
 <script type="module">
   import * as BaseMaps from '/js/components/map/basemap.js';
+  import Falaise from "/js/components/map/falaise.js";
 
   const center = [45.391, 5.420]
   const zoom = 6.5;
@@ -157,6 +163,19 @@
     });
     geojsonLayer.addTo(map)
   });
+
+  const falaisesVG = (<?php echo json_encode($falaisesVG); ?>).map(falaise => {
+    names.push(L.marker(falaise.falaise_latlng.split(',').map(Number), {
+      icon: L.divIcon({
+        className: 'relative',
+        html: `<div class="absolute top-0 w-96 flex justify-center -translate-x-1/2 text-normal text-primary ${halo}">[VG] ${falaise.falaise_nom}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
+      })
+    }))
+    return new Falaise(map, falaise, { visibility: { from: 11, to: 20 } })
+  }
+  );
 
   map.on('zoomend', function () {
     const currentZoom = map.getZoom();
