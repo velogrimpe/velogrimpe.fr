@@ -8,7 +8,22 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
 
 <head>
   <meta charset="UTF-8" />
-  <title>Détecteur de falaises intéressantes - Vélogrimpe.fr</title>
+  <meta name="description"
+    content="Falaises proches d'une gare en france. 1134 falaises à moins de 10km d'une gare SNCF.">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="Velogrimpe.fr - Falaises prioritaires">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Velogrimpe.fr">
+  <meta property="og:url" content="https://velogrimpe.fr/">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta property="og:description"
+    content="Falaises proches d'une gare en france. 1134 falaises à moins de 10km d'une gare SNCF.">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta name="twitter:title"
+    content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
+  <meta name="twitter:description"
+    content="Falaises proches d'une gare en france. 1134 falaises à moins de 10km d'une gare SNCF.">
+  <title>Falaises prioritaires - Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
   <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
