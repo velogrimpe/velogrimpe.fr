@@ -41,9 +41,21 @@
 
 <body>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-  <main class="py-4 px-2 md:px-8">
-    <div class="flex flex-col gap-1">
-      <div id="map" class="w-full h-[calc(100dvh-130px)]"></div>
+  <main class="">
+    <div class="hero min-h-[100px] bg-bottom"
+      style="background-image: url(/images/mw/078-groupe-5.webp); background-position-y: 200px;">
+      <div class="hero-overlay bg-opacity-60"></div>
+      <div class="hero-content text-center text-base-100">
+        <div class="">
+          <h1 class="text-5xl font-bold">Falaises prioritaires Vélogrimpe</h1>
+        </div>
+      </div>
+    </div>
+    <p class="mx-auto max-w-4xl">Voici une carte des falaises prioritaires, situées à moins de 10 km d'une gare. Elles
+      peuvent être de sérieuses candidates pour être ajoutées dans la base de données de Velogrimpe. Attention tout de
+      même aux doublons.</p>
+    <div class="flex flex-col gap-1 p-2">
+      <div id="map" class="w-full h-[calc(100dvh-260px)]"></div>
     </div>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>

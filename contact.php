@@ -16,7 +16,14 @@
 <body class="min-h-screen flex flex-col">
   <?php include "./components/header.html"; ?>
   <main class="w-full flex-grow max-w-screen-xl mx-auto flex flex-col gap-2 md:gap-4 p-4">
-    <h1 class="text-4xl font-bold text-wrap text-center "> Nous contacter </h1>
+    <div class="hero min-h-[400px] bg-bottom" style="background-image: url(/images/mw/078-groupe-5.webp);">
+      <div class="hero-overlay bg-opacity-60"></div>
+      <div class="hero-content text-center text-base-100">
+        <div class="max-w-md">
+          <h1 class="text-5xl font-bold">Nous contacter</h1>
+        </div>
+      </div>
+    </div>
     <div class="w-full flex flex-col items-center">
       <form action="/mails/contact.php" method="post"
         class="flex flex-col items-center w-full md:w-2/3 max-w-full p-4 pt-1 border rounded-lg bg-base-100 border-base-300 shadow-lg">
