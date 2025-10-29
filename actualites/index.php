@@ -65,40 +65,41 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
     </div>
     <div class="bg-base-100 p-8 max-w-3xl mx-auto">
       <h2 class="text-3xl font-bold mb-8">Dernières Actualités</h2>
-      <div class="flex flex-col gap-8 justify-stretch w-full"> <?php
-      $articles = [];
-      $newsletters = [];
-      // Load articles from the 'articles' directory
-      $article_files = glob($_SERVER['DOCUMENT_ROOT'] . '/articles/20*.php');
-      $newsletters_files = glob($_SERVER['DOCUMENT_ROOT'] . '/actualites/20*.php');
-      // merge and sort by date descending
-      foreach (array_merge($article_files, $newsletters_files) as $file) {
+      <div class="flex flex-col gap-8 justify-stretch w-full">
+        <?php
+        $articles = [];
+        $newsletters = [];
+        // Load articles from the 'articles' directory
+        $article_files = glob($_SERVER['DOCUMENT_ROOT'] . '/articles/20*.php');
+        $newsletters_files = glob($_SERVER['DOCUMENT_ROOT'] . '/actualites/20*.php');
+        // merge and sort by date descending
+        foreach (array_merge($article_files, $newsletters_files) as $file) {
 
-        $type = strpos($file, '/actualites/') !== false ? 'actualites' : 'articles';
-        $template = fetchMailTemplate("/" . $type . "/" . basename($file));
-        $title = $template['title'];
-        $desc = $template['description'];
-        $image = $template['image'];
-        $filename = basename($file);
-        $date_str = $type === "actualites" ? substr($filename, 0, 7) . "-01" : substr($filename, 0, 10);
-        $date = DateTime::createFromFormat('Y-m-d', $date_str);
+          $type = strpos($file, '/actualites/') !== false ? 'actualites' : 'articles';
+          $template = fetchMailTemplate("/" . $type . "/" . basename($file));
+          $title = $template['title'];
+          $desc = $template['description'];
+          $image = $template['image'];
+          $filename = basename($file);
+          $date_str = $type === "actualites" ? substr($filename, 0, 7) . "-01" : substr($filename, 0, 10);
+          $date = DateTime::createFromFormat('Y-m-d', $date_str);
 
-        if ($date) {
-          $articles[] = [
-            'date' => $date,
-            'file' => $file,
-            'title' => $title,
-            'description' => $desc,
-            'image' => $type === "actualites" ? $logoUrl : $image,
-            'type' => $type,
-            'url' => str_replace($_SERVER['DOCUMENT_ROOT'], '', $file)
-          ];
+          if ($date) {
+            $articles[] = [
+              'date' => $date,
+              'file' => $file,
+              'title' => $title,
+              'description' => $desc,
+              'image' => $type === "actualites" ? $logoUrl : $image,
+              'type' => $type,
+              'url' => str_replace($_SERVER['DOCUMENT_ROOT'], '', $file)
+            ];
+          }
         }
-      }
-      usort($articles, function ($a, $b) {
-        return $b['date'] <=> $a['date'];
-      });
-      ?>
+        usort($articles, function ($a, $b) {
+          return $b['date'] <=> $a['date'];
+        });
+        ?>
         <?php foreach ($articles as $article): ?>
           <?php
           $title = htmlspecialchars($article['title']);
@@ -108,8 +109,8 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
           ?>
           <a href="<?= $url ?>" class="block hover:no-underline font-normal">
             <div
-              class="flex items-center justify-between gap-2 border-l-4 border-<?= $article['type'] === 'actualites' ? 'primary' : 'secondary' ?>  hover:shadow-lg hover:bg-base-200 rounded-md transition">
-              <div class="p-2">
+              class="flex flex-col-reverse sm:flex-row items-center sm:justify-between gap-2 border-l-4 border-l-<?= $article['type'] === 'actualites' ? 'primary' : 'secondary' ?>  shadow-xl sm:shadow-none hover:shadow-lg hover:bg-base-200 rounded-md transition border sm:border-0">
+              <div class="p-2 text-center sm:text-left">
                 <h3 class="text-xl font-bold mb-1">
                   <?php if ($article['type'] === 'actualites'): ?>
                     <svg class="w-5 h-5 fill-current inline pb-1">
@@ -120,11 +121,11 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
                 </h3>
                 <p class="text-sm text-slate-600 mb-2"><?= $dateFormatted ?></p>
                 <p class="text-normal text-slate-800 mb-4"><?= htmlspecialchars($article['description']) ?></p>
-                <div class="text-primary font-bold text-xs">Lire la suite</div>
+                <div class="text-primary font-bold sm:text-xs text-normal">Lire la suite</div>
               </div>
-              <div class="flex-shrink-0">
+              <div class="flex-shrink-0 pt-2 sm:pt-0">
                 <img src="<?= htmlspecialchars($article['image']) ?>" alt="<?= $title ?>"
-                  class="w-36 h-36 rounded-md object-contain" />
+                  class="w-auto h-48 sm:w-36 sm:h-36 rounded-md object-contain" />
               </div>
             </div>
           </a>
