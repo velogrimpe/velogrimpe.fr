@@ -109,8 +109,8 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
           ?>
           <a href="<?= $url ?>" class="block hover:no-underline font-normal">
             <div
-              class="flex flex-col-reverse sm:flex-row items-center sm:justify-between gap-2 border-l-4 border-l-<?= $article['type'] === 'actualites' ? 'primary' : 'secondary' ?>  shadow-xl sm:shadow-none hover:shadow-lg hover:bg-base-200 rounded-md transition border sm:border-0">
-              <div class="p-2 text-center sm:text-left">
+              class="flex flex-col-reverse sm:flex-row items-center sm:justify-between gap-2 shadow-xl hover:shadow-lg hover:bg-base-200 rounded-md transition border p-2">
+              <div class="text-center sm:text-left">
                 <h3 class="text-xl font-bold mb-1">
                   <?php if ($article['type'] === 'actualites'): ?>
                     <svg class="w-5 h-5 fill-current inline pb-1">
