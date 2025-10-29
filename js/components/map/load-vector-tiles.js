@@ -8,12 +8,58 @@ const paintRules = [
     }),
   },
 ];
-var trainlinesLayer = protomapsL.leafletLayer({
+const trainlinesLayer = protomapsL.leafletLayer({
   url: "/bdd/trains/trainlines.pmtiles",
   paintRules,
   maxDataZoom: 16,
   pane: "overlayPane",
-  attribution: "Protomaps",
+  attribution: "SNCF",
+});
+//  --- Ajout des lignes de TGV ---
+const tgvPaintRules = [
+  {
+    dataLayer: "tgv",
+    symbolizer: new protomapsL.LineSymbolizer({
+      color: "#800",
+      width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5),
+    }),
+  },
+];
+const tgvShowLabelFromZoom = 14;
+const tgvLabelRules = [
+  {
+    dataLayer: "tgv",
+    symbolizer: new protomapsL.GroupSymbolizer([
+      new protomapsL.CircleSymbolizer({
+        radius: 3,
+        fill: "#800",
+        stroke: "#fff",
+        width: 1,
+      }),
+      new protomapsL.OffsetTextSymbolizer({
+        label_props: ["name"],
+        fill: (z, f) => (z < tgvShowLabelFromZoom ? "transparent" : "#800"),
+        stroke: "white",
+        width: (z, f) => (z < tgvShowLabelFromZoom ? 0 : 2),
+        maxLineChars: 15,
+        lineHeight: 1.2,
+        placements: [protomapsL.TextPlacements.S],
+        offsetY: 1,
+        justify: 2,
+        font: (z, f) => {
+          return "700 14px sans-serif";
+        },
+      }),
+    ]),
+  },
+];
+const tgvLayer = protomapsL.leafletLayer({
+  url: "/bdd/trains/tgv.pmtiles",
+  paintRules: tgvPaintRules,
+  labelRules: tgvLabelRules,
+  maxDataZoom: 16,
+  pane: "overlayPane",
+  attribution: "SNCF",
 });
 //  --- Ajout des campings ---
 const sheetIconSize = 40;
@@ -183,14 +229,14 @@ const campingLabelRules = [
     ]),
   },
 ];
-var campingLayer = protomapsL.leafletLayer({
+const campingLayer = protomapsL.leafletLayer({
   url: "/bdd/datatourisme/camping_2.pmtiles",
   tasks: [sheet.load()],
   labelRules: campingLabelRules,
   minZoom: 12,
   maxDataZoom: 14,
   pane: "overlayPane",
-  attribution: "Protomaps",
+  attribution: "Datatourisme",
   devicePixelRatio: 2,
 });
 
@@ -208,14 +254,14 @@ const gitesLabelRules = [
   },
 ];
 
-var giteLayer = protomapsL.leafletLayer({
+const giteLayer = protomapsL.leafletLayer({
   url: "/bdd/datatourisme/camping_2.pmtiles",
   tasks: [sheet.load()],
   labelRules: gitesLabelRules,
   minZoom: 12,
   maxDataZoom: 14,
   pane: "overlayPane",
-  attribution: "Protomaps",
+  attribution: "Datatourisme",
   devicePixelRatio: 2,
 });
 
@@ -271,14 +317,14 @@ const biodivLabelRules = [
     }),
   },
 ];
-var biodivLayer = protomapsL.leafletLayer({
+const biodivLayer = protomapsL.leafletLayer({
   url: "/bdd/biodiv/biodiv.pmtiles",
   paintRules: biodivPaintRules,
   labelRules: biodivLabelRules,
   // minZoom: 12,
   maxDataZoom: 14,
   pane: "overlayPane",
-  attribution: "Protomaps",
+  attribution: "BiodivSport",
 });
 
-export { campingLayer, giteLayer, trainlinesLayer, biodivLayer };
+export { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer };

@@ -40,7 +40,6 @@ $highlight = $_GET['h'] ?? '';
     content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
-
   <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
   <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js" defer></script>
@@ -56,39 +55,32 @@ $highlight = $_GET['h'] ?? '';
   <script src="/js/vendor/protomaps-leaflet.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
   <link rel="stylesheet" href="./index.css" />
   <link rel="manifest" href="./site.webmanifest" />
-
   <style>
     /* #map .leaflet-top.leaflet-right {
       top: 88px;
     } */
-
     /* @media (min-width: 640px) {
       #map .leaflet-top.leaflet-right {
         top: 44px;
       }
     } */
   </style>
-
 </head>
 
 <body>
   <?php include "./components/header.html"; ?>
   <main class="pb-2 px-2 md:px-8 pt-2">
-
     <!-- <h1 class="text-4xl font-bold text-center mb-1">Carte Vélogrimpe</h1> -->
     <!-- <div class="flex flex-col gap-1">
       <div id="map" class="w-full --md:w-[calc(100%-17rem)] h-[calc(100dvh-160px)] relative">
       </div>
     </div> -->
-
     <div class="flex flex-col gap-1">
       <div class="flex flex-row gap-4">
         <div
@@ -124,9 +116,7 @@ $highlight = $_GET['h'] ?? '';
               <button type="button" id="filtersFormReset" class="btn btn-xs btn-ghost text-primary">
                 <svg class="w-3 h-3 fill-current">
                   <use xlink:href="/symbols/icons.svg#ri-repeat-line"></use>
-                </svg>
-                Réinitialiser
-              </button>
+                </svg> Réinitialiser </button>
             </div>
             <div id="filtersFormPanelContainer">
               <form class="flex flex-col gap-2 text-sm" id="filtersForm">
@@ -146,29 +136,25 @@ $highlight = $_GET['h'] ?? '';
                         <div class="max-w-96 grid grid-cols-[auto_auto] md:grid-cols-[auto] gap-x-2 md:gap-y-1">
                           <label class="label cursor-pointer justify-start gap-x-2 py-0">
                             <input type="checkbox" id="filterExpoN" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Nord
-                              <br class="md:hidden">
+                            <span class="label-text">Nord <br class="md:hidden">
                               <span class="text-xs text-slate-400">(NO, N, NE)</span>
                             </span>
                           </label>
                           <label class="label cursor-pointer justify-start gap-x-2 py-0">
                             <input type="checkbox" id="filterExpoE" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Est
-                              <br class="md:hidden">
+                            <span class="label-text">Est <br class="md:hidden">
                               <span class="text-xs text-slate-400">(NE, E, SE)</span>
                             </span>
                           </label>
                           <label class="label cursor-pointer justify-start gap-x-2 py-0">
                             <input type="checkbox" id="filterExpoS" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Sud
-                              <br class="md:hidden">
+                            <span class="label-text">Sud <br class="md:hidden">
                               <span class="text-xs text-slate-400">(SE, S, SO)</span>
                             </span>
                           </label>
                           <label class="label cursor-pointer justify-start gap-x-2 py-0">
                             <input type="checkbox" id="filterExpoO" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Ouest
-                              <br class="md:hidden">
+                            <span class="label-text">Ouest <br class="md:hidden">
                               <span class="text-xs text-slate-400">(SO, O, NO)</span>
                             </span>
                           </label>
@@ -191,8 +177,7 @@ $highlight = $_GET['h'] ?? '';
                       </div>
                     </div>
                     <div class="flex flex-col gap-2">
-                      <div>&bull; Je veux des cotations dans le
-                        <br />
+                      <div>&bull; Je veux des cotations dans le <br />
                         <span class="italic text-base-300 text-sm">(5- = de 5a à 5b, 5+ = de 5b+ à 5c+)</span>
                       </div>
                       <div
@@ -256,23 +241,19 @@ $highlight = $_GET['h'] ?? '';
                         <div class="max-w-96 grid grid-cols-[auto_auto] md:grid-cols-[auto] gap-x-2 gap-y-2 md:gap-y-1">
                           <label class="label cursor-pointer justify-start gap-x-2 py-0" for="couenne">
                             <input type="checkbox" id="couenne" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Couenne
-                            </span>
+                            <span class="label-text">Couenne </span>
                           </label>
                           <label class="label cursor-pointer justify-start gap-x-2 py-0" for="avecgv">
                             <input type="checkbox" id="avecgv" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Grande Voie
-                            </span>
+                            <span class="label-text">Grande Voie </span>
                           </label>
                           <label class="label cursor-pointer justify-start gap-x-2 py-0" for="bloc">
                             <input type="checkbox" id="bloc" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Bloc
-                            </span>
+                            <span class="label-text">Bloc </span>
                           </label>
                           <label class="label cursor-pointer justify-start gap-x-2 py-0" for="psychobloc">
                             <input type="checkbox" id="psychobloc" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Psychobloc
-                            </span>
+                            <span class="label-text">Psychobloc </span>
                           </label>
                         </div>
                       </div>
@@ -398,9 +379,7 @@ $highlight = $_GET['h'] ?? '';
   <div class="hidden">
     <div class="flex flex-row gap-1 justify-end md:hidden" id="searchAndFilter">
       <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
-        onclick="searchModal.showModal()">
-        Chercher
-        <svg class="w-4 h-4 fill-current">
+        onclick="searchModal.showModal()"> Chercher <svg class="w-4 h-4 fill-current">
           <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
         </svg>
       </button>
@@ -416,9 +395,7 @@ $highlight = $_GET['h'] ?? '';
         </form>
       </dialog>
       <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
-        onclick="document.getElementById('filtersModal').showModal()">
-        Filtrer
-        <svg class="w-4 h-4 fill-current">
+        onclick="document.getElementById('filtersModal').showModal()"> Filtrer <svg class="w-4 h-4 fill-current">
           <use xlink:href="/symbols/icons.svg#ri-filter-line"></use>
         </svg>
       </button>
@@ -934,7 +911,6 @@ $highlight = $_GET['h'] ?? '';
     return marker;
   }
 </script>
-
 <script>
   const center = [45.391, 5.420]
   const zoom = 6.5;
@@ -1191,11 +1167,11 @@ $highlight = $_GET['h'] ?? '';
   });
 
 </script>
-
 <script type="module">
-  import { campingLayer, giteLayer, trainlinesLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
+  import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
   campingLayer.addTo(map);
   trainlinesLayer.addTo(map);
+  layerControl.addOverlay(tgvLayer, 'Lignes et Gares TGV');
   layerControl.addOverlay(campingLayer, 'Campings');
   layerControl.addOverlay(giteLayer, 'Gîtes');
   // layerControl.addOverlay(trainlinesLayer, 'Lignes de train');
@@ -1220,7 +1196,6 @@ $highlight = $_GET['h'] ?? '';
   //   }).addTo(map);
   // });
 </script>
-
 <script>
   // ============================================ RECHERCHE ============================================
 
@@ -1448,7 +1423,6 @@ $highlight = $_GET['h'] ?? '';
   });
 
 </script>
-
 <script>
   // --------------------------------- MOVE FORM ACCORDING TO SCREEN SIZE ---------------------------------
   document.addEventListener("DOMContentLoaded", function () {
