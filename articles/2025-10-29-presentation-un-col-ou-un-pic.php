@@ -7,14 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://velogrimpe.fr/actualites/" />
   <meta name="description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
   <meta property="og:locale" content="fr_FR">
   <meta property="og:title" content="Velogrimpe.fr x Un Col ou Un Pic">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Velogrimpe.fr">
-  <meta property="og:url" content="https://velogrimpe.fr/actualites/2025-10-29-presentation-un-col-ou-un-pic.php">
+  <meta property="og:url" content="https://velogrimpe.fr/articles/2025-10-29-presentation-un-col-ou-un-pic.php">
   <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
   <meta property="og:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
@@ -34,7 +33,7 @@
 </head>
 
 <body>
-  <?php include "../../components/header.html"; ?>
+  <?php include "../components/header.html"; ?>
   <main class="pb-4">
     <div class="hero min-h-[400px] bg-bottom"
       style="background-image: url(/images/articles/2025-10-29-presentation-un-col-ou-un-pic/hero.webp);">
@@ -57,6 +56,13 @@
         et sécurisée.</p>
       <p>L’idée est de promouvoir un tourisme doux : se rendre à la falaise à vélo, grimper en plein air et profiter
         d’un cadre naturel, dans un esprit de respect de l’environnement et de mobilité responsable.</p>
+      <div class="w-full text-center mb-8">
+        <a href="https://www.uncolouunpic.com/" class="mx-auto not-prose btn btn-primary mt-4" target="_blank">
+          Découvrir Un Col ou un Pic <svg class="w-4 h-4 fill-current">
+            <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
+          </svg>
+        </a>
+      </div>
       <hr class="mt-2 mb-2" />
       <p class="italic leading-1 text-sm text-slate-600"><b>Note de l'équipe Velogrimpe.fr :</b> Velogrimpe.fr est un
         site communautaire permettant de référencer les sites accessible en train + vélo. Avec velogrimpe.fr, nous
@@ -69,7 +75,7 @@
     </div>
     </div>
   </main>
-  <?php include "../../components/footer.html"; ?>
+  <?php include "../components/footer.html"; ?>
 </body>
 
 </html>
