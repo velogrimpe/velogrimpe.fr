@@ -67,6 +67,7 @@ if ($result) {
     }
 }
 
+echo '  <url><loc>https://velogrimpe.fr/actualites</loc></url>' . PHP_EOL;
 echo '</urlset>';
 
 ?>
