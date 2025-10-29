@@ -45,15 +45,15 @@
     <div class="pt-4 max-w-xl mx-auto prose prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
               hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]
               ">
-      <h1 class="text-3xl font-bold text-center">Stage d’escalade outdoor en mobilité douce avec Un Col ou un Pic</h1>
+      <h1 class="text-3xl font-bold text-center">Stage d’escalade outdoor en mobilité douce avec <b>Un Col ou un Pic</b>
+      </h1>
       <p>Vous êtes à la recherche d’un séjour qui combine aventure sportive, immersion en pleine nature et engagement
-        éco-responsable ? Découvrez l’agence Un Col ou un Pic, spécialisée dans les stages d’escalade en nature, alliant
-        l’escalade en falaise et la mobilité douce à vélo.</p>
-      <p> Sur leur site <a href="https://www.uncolouunpic.com/">https://www.uncolouunpic.com/</a>, vous trouverez
-        plusieurs formules de stages d’escalade en nature, de 2 à 5 jours, dans des sites emblématiques comme les
-        Dentelles de Montmirail les falaises de Vergisson-Solutré ou les falaises d’Entrelacs avec vue sur le lac du
-        Bourget. Les séjours, en petits groupes de 4 à 10 personnes, garantissent une expérience conviviale, authentique
-        et sécurisée.</p>
+        éco-responsable ? Découvrez l’agence <b>Un Col ou un Pic</b>, spécialisée dans les stages d’escalade en nature,
+        alliant l’escalade en falaise et la mobilité douce à vélo.</p>
+      <p> Sur leur site <a href="https://www.uncolouunpic.com/">uncolouunpic.com</a>, vous trouverez plusieurs formules
+        de stages d’escalade en nature, de 2 à 5 jours, dans des sites emblématiques comme les Dentelles de Montmirail
+        les falaises de Vergisson-Solutré ou les falaises d’Entrelacs avec vue sur le lac du Bourget. Les séjours, en
+        petits groupes de 4 à 10 personnes, garantissent une expérience conviviale, authentique et sécurisée.</p>
       <p>L’idée est de promouvoir un tourisme doux : se rendre à la falaise à vélo, grimper en plein air et profiter
         d’un cadre naturel, dans un esprit de respect de l’environnement et de mobilité responsable.</p>
       <div class="w-full text-center mb-8">
