@@ -43,17 +43,8 @@
     <p class="md:text-center text-normal">Nous publions une newsletter (environ trimestrielle) pour vous tenir au
       courant des nouveautés du site et des nouvelles falaises ajoutées au topo. Si vous souhaitez la recevoir,
       inscrivez-vous ci-dessous.</p>
-    <div class="w-full flex flex-col items-center">
-      <form action="/api/newsletter_subscribe.php" method="post"
-        class="flex items-center gap-4 max-w-full p-4 rounded-lg  mb-8">
-        <label class="input input-primary flex items-center gap-2 w-full">
-          <input class="grow" type="email" id="email" name="email" placeholder="Votre email" required />
-          <svg class="w-4 h-4 fill-current">
-            <use xlink:href="/symbols/icons.svg#ri-mail-line"></use>
-          </svg>
-        </label>
-        <button class="btn btn-primary" type="submit">S'inscrire à la newsletter</button>
-      </form>
+    <div class="mb-8">
+      <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/newsletter-form.php"; ?>
     </div>
     <h2 class="text-2xl font-bold text-center">Réseaux sociaux</h2>
     <div class="flex flex-row items-center justify-center gap-8">

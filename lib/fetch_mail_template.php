@@ -27,12 +27,24 @@ function fetchMailTemplate($url)
 // $recipients = ["yoann@couble.eu", "couble.yoann@gmail.com"];//, "ycouble@icloud.com", "contact@velogrimpe.fr", "marc_miroil@hotmail.com", "amandine.spiandore@orange.fr", "amandine.spiandore@hotmail.fr"];
 // parse html for title tag
   preg_match('/<title>(.*?)<\/title>/', $mailBody, $matches);
+  // check if matches found
+  if (empty($matches)) {
+    http_response_code(500);
+    die("Failed to parse the template content: $url - No title found");
+  }
   $title = trim($matches[1]) ?? 'Actualités Velogrimpe.fr';
+  preg_match('/<meta name="description"\s+content="(.*?)"/', $mailBody, $matches);
+  $desc = empty($matches) ? 'Actualités Velogrimpe.fr' : trim($matches[1]);
+  preg_match('/<meta property="og:image"\s+content="(.*?)"/', $mailBody, $matches);
+  $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
+  $image = empty($matches) ? $logoUrl : trim($matches[1]);
   // remove script tags from head
   $mailBody = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', "", $mailBody);
 
   return [
     'title' => $title,
-    'html' => $mailBody
+    'html' => $mailBody,
+    'description' => $desc,
+    'image' => $image
   ];
 }

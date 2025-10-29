@@ -15,6 +15,7 @@ $newsletterDateFormatter = new IntlDateFormatter(
   null,
   'MMMM yyyy'
 );
+$logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -58,14 +59,13 @@ $newsletterDateFormatter = new IntlDateFormatter(
       <div class="hero-overlay bg-opacity-60"></div>
       <div class="hero-content text-center text-base-100">
         <div class="max-w-md">
-          <h1 class="text-5xl font-bold">Actualités</h1>
+          <h1 class="text-5xl font-bold">Actualités Vélogrimpe</h1>
         </div>
       </div>
     </div>
-    <div
-      class="bg-base-100 p-8 max-w-2xl mx-auto prose prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline">
-      <h2 class="text-2xl font-bold mb-4">Dernières Actualités</h2>
-      <div class="flex flex-col gap-4 justify-stretch w-full"> <?php
+    <div class="bg-base-100 p-8 max-w-3xl mx-auto">
+      <h2 class="text-3xl font-bold mb-8">Dernières Actualités</h2>
+      <div class="flex flex-col gap-8 justify-stretch w-full"> <?php
       $articles = [];
       $newsletters = [];
       // Load articles from the 'articles' directory
@@ -77,6 +77,8 @@ $newsletterDateFormatter = new IntlDateFormatter(
         $type = strpos($file, '/actualites/') !== false ? 'actualites' : 'articles';
         $template = fetchMailTemplate("/" . $type . "/" . basename($file));
         $title = $template['title'];
+        $desc = $template['description'];
+        $image = $template['image'];
         $filename = basename($file);
         $date_str = $type === "actualites" ? substr($filename, 0, 7) . "-01" : substr($filename, 0, 10);
         $date = DateTime::createFromFormat('Y-m-d', $date_str);
@@ -86,6 +88,8 @@ $newsletterDateFormatter = new IntlDateFormatter(
             'date' => $date,
             'file' => $file,
             'title' => $title,
+            'description' => $desc,
+            'image' => $type === "actualites" ? $logoUrl : $image,
             'type' => $type,
             'url' => str_replace($_SERVER['DOCUMENT_ROOT'], '', $file)
           ];
@@ -102,15 +106,33 @@ $newsletterDateFormatter = new IntlDateFormatter(
           $typeLabel = $article['type'] === 'actualites' ? 'Actualité' : 'Article';
           $dateFormatted = $article['type'] === "actualites" ? ucfirst($newsletterDateFormatter->format($article['date'])) : $articleDateFormatter->format($article['date']);
           ?>
-          <a href="<?= $url ?>" class="flex flex-col pl-4 hover:no-underline">
-            <div class="border-l-4 border-<?= $article['type'] === 'actualites' ? 'primary' : 'secondary' ?>">
-              <h3 class="text-xl font-bold mb-1"><?= $title ?></h3>
-              <p class="text-sm text-slate-600 mb-2"><?= $dateFormatted ?></p>
-              <a href="<?= $url ?>" class="btn btn-sm btn-ghost text-slate-600">Lire la suite</a>
+          <a href="<?= $url ?>" class="block hover:no-underline font-normal">
+            <div
+              class="flex items-center justify-between gap-2 border-l-4 border-<?= $article['type'] === 'actualites' ? 'primary' : 'secondary' ?>  hover:shadow-lg hover:bg-base-200 rounded-md transition">
+              <div class="p-2">
+                <h3 class="text-xl font-bold mb-1">
+                  <?php if ($article['type'] === 'actualites'): ?>
+                    <svg class="w-5 h-5 fill-current inline pb-1">
+                      <use xlink:href="/symbols/icons.svg#ri-mail-fill"></use>
+                    </svg>
+                  <?php endif; ?>
+                  <?= $title ?>
+                </h3>
+                <p class="text-sm text-slate-600 mb-2"><?= $dateFormatted ?></p>
+                <p class="text-normal text-slate-800 mb-4"><?= htmlspecialchars($article['description']) ?></p>
+                <div class="text-primary font-bold text-xs">Lire la suite</div>
+              </div>
+              <div class="flex-shrink-0">
+                <img src="<?= htmlspecialchars($article['image']) ?>" alt="<?= $title ?>"
+                  class="w-36 h-36 rounded-md object-contain" />
+              </div>
             </div>
           </a>
         <?php endforeach; ?>
       </div>
+      <hr class="mt-8 mb-2" />
+      <h3 class="text-2xl font-bold">Inscrivez-vous à notre newsletter</h3>
+      <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/newsletter-form.php"; ?>
     </div>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>

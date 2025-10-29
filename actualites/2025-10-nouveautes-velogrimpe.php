@@ -1,7 +1,7 @@
 <?php
 // IMPORTANT: This file is a template for html mails and web pages I need to use only mail-compatible html apis
 $date = "Juin - Octobre 2025";
-$description = "Actualités et nouveautés du site Velogrimpe.fr: $date";
+$description = "Nouvelles Falaises autour de Montpellier, dans le Gard et dans les Calanques. Élargissement des contributions et Commentaires de sorties. Découvrez toutes les actualités et nouveautés du site Velogrimpe.fr pour la période $date";
 $page_title = "Actualités Velogrimpe.fr - $date";
 $slugified_date = preg_replace('/ /', '', strtolower($date));
 $utm = "source=newsletter-$slugified_date";
