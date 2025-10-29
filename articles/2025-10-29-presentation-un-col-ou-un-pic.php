@@ -45,6 +45,8 @@
     <div class="pt-4 max-w-xl mx-auto prose prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
               hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]
               ">
+      <img src="/images/articles/2025-10-29-presentation-un-col-ou-un-pic/logo-uncolouunpic.webp"
+        alt="Logo Un Col ou un Pic" class="mx-auto mb-4 h-48 rounded-lg border shadow-lg" />
       <h1 class="text-3xl font-bold text-center">Stage d’escalade outdoor en mobilité douce avec <b>Un Col ou un Pic</b>
       </h1>
       <p>Vous êtes à la recherche d’un séjour qui combine aventure sportive, immersion en pleine nature et engagement
@@ -57,8 +59,8 @@
       <p>L’idée est de promouvoir un tourisme doux : se rendre à la falaise à vélo, grimper en plein air et profiter
         d’un cadre naturel, dans un esprit de respect de l’environnement et de mobilité responsable.</p>
       <div class="w-full text-center mb-8">
-        <a href="https://www.uncolouunpic.com/" class="mx-auto not-prose btn btn-primary mt-4" target="_blank">
-          Découvrir Un Col ou un Pic <svg class="w-4 h-4 fill-current">
+        <a href="https://www.uncolouunpic.com/" class="mx-auto not-prose btn btn-primary mt-4 shadow-xl"
+          target="_blank"> Découvrir Un Col ou un Pic <svg class="w-4 h-4 fill-current">
             <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
           </svg>
         </a>
