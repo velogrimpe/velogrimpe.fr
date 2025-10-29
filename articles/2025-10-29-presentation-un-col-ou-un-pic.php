@@ -70,7 +70,7 @@
         suffisamment rassurant. Pour les grimpeurs qui voudraient se faire accompagner dans leurs sorties velo-grimpe,
         une agence spécialisée dans le domaine existe : Un Col ou un Pic ! <br />Velogrimpe.fr et Un Col ou Un Pic ne
         sont pas liées commercialement et sont deux organisations indépendantes, mais la proposition commerciale de
-        l'agence est parfaitement alignée avec ce que nous promouvons sur le site, voire complémentaire. </p>
+        l'agence est parfaitement alignée et complémentaire avec ce que nous promouvons sur le site. </p>
     </div>
     </div>
     </div>
