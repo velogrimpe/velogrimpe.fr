@@ -3,4 +3,5 @@ bdd/**/*.gpx
 bdd/**/*.geojson
 bdd/**/*.zip
 images/news/
+images/articles/
 .DS_Store
