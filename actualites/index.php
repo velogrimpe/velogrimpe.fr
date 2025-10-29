@@ -54,7 +54,7 @@ $newsletterDateFormatter = new IntlDateFormatter(
 <body>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="pb-4">
-    <div class="hero min-h-[400px] bg-bottom" style="background-image: url(/images/mw/078-groupe-5.webp);">
+    <div class="hero min-h-[400px] bg-center" style="background-image: url(/images/mw/075-matos-5.webp);">
       <div class="hero-overlay bg-opacity-60"></div>
       <div class="hero-content text-center text-base-100">
         <div class="max-w-md">
