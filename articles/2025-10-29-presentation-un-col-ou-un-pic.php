@@ -42,7 +42,7 @@
         <div class="text-5xl font-bold">Présentation : Un Col ou un Pic</div>
       </div>
     </div>
-    <div class="pt-4 max-w-xl mx-auto prose prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
+    <div class="bg-base-100 p-8 max-w-2xl mx-auto prose prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
               hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]
               ">
       <img src="/images/articles/2025-10-29-presentation-un-col-ou-un-pic/logo-uncolouunpic.webp"
