@@ -68,6 +68,15 @@ if ($result) {
 }
 
 echo '  <url><loc>https://velogrimpe.fr/actualites</loc></url>' . PHP_EOL;
-echo '</urlset>';
 
-?>
+$article_files = glob($_SERVER['DOCUMENT_ROOT'] . '/articles/20*.php');
+foreach ($article_files as $file) {
+    $url = 'https://velogrimpe.fr/articles/' . basename($file);
+    echo "  <url><loc>$url</loc></url>" . PHP_EOL;
+}
+$newsletters_files = glob($_SERVER['DOCUMENT_ROOT'] . '/actualites/20*.php');
+foreach ($newsletters_files as $file) {
+    $url = 'https://velogrimpe.fr/actualites/' . basename($file);
+    echo "  <url><loc>$url</loc></url>" . PHP_EOL;
+}
+echo '</urlset>';
