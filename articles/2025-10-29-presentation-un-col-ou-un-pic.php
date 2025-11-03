@@ -8,7 +8,7 @@
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="index, follow">
   <meta name="description"
-    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+    content="Présentation d'Un Col ou un Pic, une agence spécialisée dans les stages d'escalade en mobilité douce à vélo. - Velogrimpe.fr">
   <meta property="og:locale" content="fr_FR">
   <meta property="og:title" content="Velogrimpe.fr x Un Col ou Un Pic">
   <meta property="og:type" content="website">
@@ -17,13 +17,13 @@
   <meta property="og:image"
     content="https://velogrimpe.fr/images/articles/2025-10-29-presentation-un-col-ou-un-pic/velogrimpe-x-uncolunpic.webp">
   <meta property="og:description"
-    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+    content="Présentation d'Un Col ou un Pic, une agence spécialisée dans les stages d'escalade en mobilité douce à vélo. - Velogrimpe.fr">
   <meta name="twitter:image"
     content="https://velogrimpe.fr/images/articles/2025-10-29-presentation-un-col-ou-un-pic/velogrimpe-x-uncolunpic.webp">
   <meta name="twitter:title"
     content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
-    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+    content="Présentation d'Un Col ou un Pic, une agence spécialisée dans les stages d'escalade en mobilité douce à vélo. - Velogrimpe.fr">
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <!-- Pageviews -->
