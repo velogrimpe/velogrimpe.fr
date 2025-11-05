@@ -179,7 +179,6 @@ while ($dataC = $resC->fetch_assoc()) {
 $stmtC->close();
 
 ?>
-
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -208,7 +207,6 @@ $stmtC->close();
     content="Escalade à <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
     content="Escalade à <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?>. Découvrez les accès en vélo et en train, les topos et les informations pratiques pour une sortie vélo-grimpe en mobilité douce.">
-
   <!-- Carte -->
   <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
   <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
@@ -237,13 +235,11 @@ $stmtC->close();
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <link rel="stylesheet" href="/global.css">
   <link rel="stylesheet" href="falaise.css">
   <!-- Rose des vents -->
   <script src="js/rose-des-vents.js"></script>
-  <style type="text/tailwindcss">
-    @tailwind base;
+  <style type="text/tailwindcss"> @tailwind base;
     @tailwind components;
     @tailwind utilities;
     @layer base {
@@ -252,16 +248,12 @@ $stmtC->close();
       }
   }
   </style>
-
 </head>
-
-
 
 <body>
   <?php include "./components/header.html"; ?>
   <main class="max-w-screen-lg w-full mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
     <section class="flex flex-col items-center gap-4 w-full">
-
       <div class="flex justify-between items-center w-full">
         <a class="text-primary font-bold" href="/carte.php">← Retour à la carte</a>
         <div class="flex flex-row items-center gap-2">
@@ -274,9 +266,8 @@ $stmtC->close();
               </svg>
             </div>
             <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
-              <button class="btn btn-primary btn-outline btn-sm py-1 h-fit" onclick="newComment()">
-                Raconter ma sortie vélogrimpe
-              </button>
+              <button class="btn btn-primary btn-outline btn-sm py-1 h-fit" onclick="newComment()"> Raconter ma sortie
+                vélogrimpe </button>
             </div>
           </div>
           <div class="dropdown dropdown-end w-fit">
@@ -289,51 +280,37 @@ $stmtC->close();
             </div>
             <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout/ajout_falaise.php?falaise_id=<?= $falaise_id ?>">
-                Modifier la fiche falaise
-              </a>
+                href="/ajout/ajout_falaise.php?falaise_id=<?= $falaise_id ?>"> Modifier la fiche falaise </a>
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>">
-                Ajouter un accès vélo
-              </a>
+                href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>"> Ajouter un accès vélo </a>
               <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>">
-                Modifier un accès vélo
-              </a>
+                href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>"> Modifier un accès vélo </a>
               <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout/ajout_train.php?falaise_id=<?= $falaise_id ?>">
-                Demander l'ajout d'un accès train depuis une nouvelle ville
-              </a>
+                href="/ajout/ajout_train.php?falaise_id=<?= $falaise_id ?>"> Demander l'ajout d'un accès train depuis
+                une nouvelle ville </a>
             </div>
           </div>
         </div>
       </div>
-
       <!-- Message si la falaise est interdite -->
       <?php if (!empty($falaise_fermee)): ?>
         <div class="alert text-center flex flex-col items-center">
-          <div class="text-error font-bold text-2xl">
-            FALAISE INTERDITE !
-          </div>
+          <div class="text-error font-bold text-2xl"> FALAISE INTERDITE ! </div>
           <div class="text-error">
             <?= nl2br($falaise_fermee) ?>
           </div>
         </div>
       <?php endif; ?>
-
       <div class="flex flex-col items-center mb-10 gap-4">
         <h1 class="inline-flex flex-col text-[48px] font-bold text-center leading-none text-primary">
           <?= htmlspecialchars($falaise_nom) ?>
           <?php if ($ville_id_get): ?>
             <br>
-            <span class="text-base font-normal">au départ de
-              <?= htmlspecialchars($selected_ville_nom) ?></span>
+            <span class="text-base font-normal">au départ de <?= htmlspecialchars($selected_ville_nom) ?></span>
           <?php endif; ?>
         </h1>
-
         <button class="drawer-button btn btn-neutral btn-sm rounded-full btn-outline" onclick="meteoModal.showModal()">
-          Météo
-          <span class="flex items-center gap-1">
+          Météo <span class="flex items-center gap-1">
             <svg class="w-4 h-4 fill-[gold]">
               <use xlink:href="/symbols/icons.svg#ri-sun-foggy-fill"></use>
             </svg>
@@ -349,11 +326,9 @@ $stmtC->close();
               <button tabindex="-1" class="btn btn-circle btn-ghost absolute right-2 top-2">✕</button>
             </form>
             <div class="p-4 w-[240px] font-bold mx-auto">
-              <span class="text-lg font-bold">
-                Météo par <a class="text-primary font-bold"
+              <span class="text-lg font-bold"> Météo par <a class="text-primary font-bold"
                   href="https://www.meteoblue.com/fr/meteo/semaine/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?utm_source=daily_widget&utm_medium=linkus&utm_content=daily&utm_campaign=Weather%2BWidget"
-                  target="_blank" rel="noopener">meteoblue
-                </a>
+                  target="_blank" rel="noopener">meteoblue </a>
               </span>
               <iframe
                 src="https://www.meteoblue.com/fr/meteo/widget/daily/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?geoloc=fixed&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&precipunit=MILLIMETER&coloured=coloured&pictoicon=1&maxtemperature=1&mintemperature=1&windspeed=1&windgust=0&winddirection=1&uv=0&humidity=0&precipitation=1&precipitationprobability=1&spot=1&pressure=0&layout=light"
@@ -367,10 +342,7 @@ $stmtC->close();
           </form>
         </dialog>
       </div>
-
-
       <div class="flex flex-col items-center gap-4 w-full md:flex-row md:items-start">
-
         <!-- TABLEAU STATIQUE DESCRIPTION FALAISE -->
         <div class="vg-a-primary flex flex-col gap-4 md:gap-10 w-full items-center md:my-auto max-w-[600px] mx-auto">
           <div class="flex flex-row gap-2 items-start justify-around w-full">
@@ -385,7 +357,6 @@ $stmtC->close();
               </div>
             </div>
           </div>
-
           <div class="flex flex-row gap-2 items-center justify-center mx-auto">
             <div class='w-full grid grid-cols-[auto_auto] gap-4 md:gap-y-6 items-center'>
               <img src="/images/icons/rock-climbing_color.png" alt=" Voies" class="h-12 w-12 mx-auto" />
@@ -406,9 +377,8 @@ $stmtC->close();
                   <div class="dropdown w-fit">
                     <a tabindex="0" role="button"
                       class="font-normal text-nowrap focus:pointer-events-none flex items-center gap-1"
-                      id="approcheFilterBtn">
-                      Fiches Oblyk
-                      <span class="badge badge-sm badge-primary"><?= count($liensOblyk) ?></span>
+                      id="approcheFilterBtn"> Fiches Oblyk <span
+                        class="badge badge-sm badge-primary"><?= count($liensOblyk) ?></span>
                     </a>
                     <div
                       class="dropdown-content menu bg-base-200 rounded-box z-10 m-1 p-2 shadow-lg w-60 max-h-[250px] flex-nowrap overflow-auto"
@@ -425,15 +395,13 @@ $stmtC->close();
                   </div>
                 <?php elseif (count($liensOblyk) == 1): ?>
                   <a target="_blank" href="<?= htmlspecialchars($liensOblyk[0]['url']) ?>"
-                    class="text-primary font-bold hover:underline cursor-pointer">
-                    Fiche Oblyk
-                  </a>
+                    class="text-primary font-bold hover:underline cursor-pointer"> Fiche Oblyk </a>
                 <?php endif ?>
               </div>
               <img src="/images/icons/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
               <!-- <div class="font-bold  ">Approche</div> -->
-              <div class="">Approche
-                : <?= nl2br(mb_strtolower(substr($falaise_matxt, 0, 1))) . nl2br(substr($falaise_matxt, 1)) ?></div>
+              <div class="">Approche :
+                <?= nl2br(mb_strtolower(substr($falaise_matxt, 0, 1))) . nl2br(substr($falaise_matxt, 1)) ?></div>
               <?php if (!empty($falaise_gvtxt)): ?>
                 <img src="/images/icons/mountain_color.png" alt=" Grande voies" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Grandes voies</div> -->
@@ -446,7 +414,6 @@ $stmtC->close();
                 <!-- <div class="font-bold ">Remarques</div> -->
                 <div class=""><?= nl2br($falaise_rq) ?></div>
               <?php endif; ?>
-
               <!-- <img src="/images/icons/expo.png" alt="Exposition" class="h-12 w-12 mx-auto" /> -->
               <div id="rose-des-vents"></div>
               <!-- <div id="rose-mini" class="sm:hidden"></div> -->
@@ -457,16 +424,13 @@ $stmtC->close();
             </div>
           </div>
         </div>
-
       </div>
-
       <!-- Texte optionnel 2 (juste après le tableau descriptif) -->
       <?php if (!empty($falaise_txt2)): ?>
         <div>
           <?= nl2br($falaise_txt2) ?>
         </div>
       <?php endif; ?>
-
       <!-- Menu déroulant pour choisir la ville de départ -->
       <form id="dropdown_menu" class="flex flex-col md:flex-row items-center justify-center gap-2 w-full">
         <?php
@@ -489,8 +453,6 @@ $stmtC->close();
           </select>
         <?php endif; ?>
       </form>
-
-
       <?php
       // Fonction pour formater le temps en h'm
       
@@ -610,32 +572,26 @@ $stmtC->close();
         $stmtVelo->close();
         $shortest_velo_time = min(array_column($velo_itineraires, 'velo_tpsa_calculated'));
         ?>
-
         <div class="collapse collapse-arrow rounded-xl shadow-lg overflow-hidden w-full bg-base-100">
           <input type="checkbox" />
           <div
             class='collapse-title bg-base-200 text-base-content cursor-pointer min-h-0 flex gap-2 items-center justify-between'>
-            <div class="text-lg">
-              Accès via la gare de <span class="font-bold capitalize">
+            <div class="text-lg"> Accès via la gare de <span class="font-bold capitalize">
                 <?php echo htmlspecialchars($gare['gare_nom']) ?>
               </span>
-              <?php if ($selected_ville_nom && $train_descr): ?>
-                : <span class="font-bold text-primary">
+              <?php if ($selected_ville_nom && $train_descr): ?> : <span class="font-bold text-primary">
                   <?= format_time($shortest_velo_time + $train_temps + $falaise_maa) ?>
                 </span>
                 <span class="text-base" title="Temps total (Train + Velo + Approche)">(🚃+🚲+🥾)</span>
               <?php endif ?>
             </div>
             <div class="hidden md:block">
-              <div class="text-sm text-slate-400">
-                🚲 - <?= format_time($shortest_velo_time) ?>
+              <div class="text-sm text-slate-400"> 🚲 - <?= format_time($shortest_velo_time) ?>
                 (<?= htmlspecialchars($velo_itineraires[0]['velo_km']) ?> km,
-                <?= htmlspecialchars($velo_itineraires[0]['velo_dplus']) ?> D+)
-              </div>
+                <?= htmlspecialchars($velo_itineraires[0]['velo_dplus']) ?> D+) </div>
               <?php if ($train_temps): ?>
                 <div class="text-sm text-slate-400">🚆 - <?= format_time($train_temps) ?>
-                  (<?= $train_correspmin > 0 ? $train_correspmin . ' Corresp.' : 'Direct' ?>)
-                </div>
+                  (<?= $train_correspmin > 0 ? $train_correspmin . ' Corresp.' : 'Direct' ?>) </div>
               <?php endif ?>
             </div>
           </div>
@@ -646,7 +602,6 @@ $stmtC->close();
                 <col style='width: 30%;'>
                 <col style='width: 70%;'>
               </colgroup>
-
               <!-- // LIGNE 1 "ACCES DEPUIS LA GARE..." -->
               <!-- <thead>
             <tr>
@@ -658,7 +613,6 @@ $stmtC->close();
               </td>
             </tr>
           </thead> -->
-
               <!-- // LIGNE 2 TRAIN : -->
               <tr>
                 <td class="justify-center border-t border-r border-b border-1 border-base-300">
@@ -667,12 +621,10 @@ $stmtC->close();
                     <div>
                       <?php if ($selected_ville_nom): ?>
                         <b><?= htmlspecialchars($selected_ville_nom) . " → " . htmlspecialchars($gare["gare_nom"]) ?></b>
-                      <?php else: ?>
-                        Rejoindre la gare de : <b><?= htmlspecialchars($gare["gare_nom"]) ?></b>
+                      <?php else: ?> Rejoindre la gare de : <b><?= htmlspecialchars($gare["gare_nom"]) ?></b>
                       <?php endif; ?>
-
-                      <?php if (!empty($formatted_time)): ?>
-                        : <span class="text-lg font-bold"><?= $formatted_time ?></span>
+                      <?php if (!empty($formatted_time)): ?> : <span
+                          class="text-lg font-bold"><?= $formatted_time ?></span>
                       <?php endif ?>
                       <?php if (!empty($corresp_text)): ?>
                         <br>
@@ -695,19 +647,15 @@ $stmtC->close();
                     </div>
                   </div>
                 </td>
-
                 <td class='border-t border-b border-1 border-base-300'>
                   <?php if ($ville_id_get): ?>
                     <?php if ($train_descr): ?>
                       <?= nl2br($train_descr) ?>
-                    <?php else: ?>
-                      Itinéraire non décrit (soit il est peu pertinent, soit j'ai pas eu le temps !).
+                    <?php else: ?> Itinéraire non décrit (soit il est peu pertinent, soit j'ai pas eu le temps !).
                     <?php endif ?>
                   <?php else: ?>
                     <div>
-                      <?php if (count($villesFrom) > 0): ?>
-                        Accès décrits depuis:
-                        <ul class="list-disc pl-6">
+                      <?php if (count($villesFrom) > 0): ?> Accès décrits depuis: <ul class="list-disc pl-6">
                           <?php foreach ($villesFrom as $villeFrom): ?>
                             <li>
                               <a class="text-primary font-bold hover:underline cursor-pointer"
@@ -717,9 +665,7 @@ $stmtC->close();
                             </li>
                           <?php endforeach; ?>
                         </ul>
-                      <?php else: ?>
-                        Pas d'accès train décrits depuis cette gare.
-                        <a class="btn btn-primary btn-xs"
+                      <?php else: ?> Pas d'accès train décrits depuis cette gare. <a class="btn btn-primary btn-xs"
                           href="/ajout/ajout_train.php?falaise_id=<?= htmlspecialchars($falaise_id) ?>&gare_id=<?= htmlspecialchars($gare['gare_id']) ?>">Proposer
                           un accès train</a>
                       <?php endif ?>
@@ -727,19 +673,16 @@ $stmtC->close();
                   <?php endif ?>
                 </td>
               </tr>
-
               <!-- // LIGNES VELO -->
               <?php foreach ($velo_itineraires as $velo): ?>
                 <tr>
                   <td class='justify-center border-t border-r border-b border-1 border-base-300'>
                     <div class='flex flex-col md:flex-row gap-4 items-center'>
-
                       <?php if (isset($velo['velo_apieduniquement']) && $velo['velo_apieduniquement'] == 1): ?>
                         <img src="/images/icons/hiking_color.png" alt="Logo À Pied" class="h-auto w-10">
                       <?php else: ?>
                         <img src="/images/icons/bicycle_color.png" alt="Logo Vélo" class="h-auto w-10">
                       <?php endif ?>
-
                       <div class='flex flex-col items-start'>
                         <?php if (!empty($velo['velo_variante'])): ?>
                           <div class='text-slate-400'><?= htmlspecialchars($velo['velo_variante']) ?></div>
@@ -753,7 +696,6 @@ $stmtC->close();
                       </div>
                     </div>
                   </td>
-
                   <td class='border-t border-b border-1 border-base-300'>
                     <?= htmlspecialchars($velo['velo_km']) . " km, " . htmlspecialchars($velo['velo_dplus']) . " D+, " . htmlspecialchars($velo['velo_dmoins']) . " D-." ?>
                     <br>
@@ -763,28 +705,22 @@ $stmtC->close();
                       <!-- Desktop : ouvre juste en dessous -->
                       <a class="font-bold text-primary hidden md:inline" href='#'
                         onclick="document.getElementById('profil_<?= $velo['velo_id'] ?>').classList.toggle('hidden'); return false;">
-                        Profil altimétrique
-                      </a>
+                        Profil altimétrique </a>
                       <!-- Mobile : ouvre dans un dialog -->
                       <a class="text-primary font-bold hover:underline cursor-pointer inline md:hidden"
-                        onclick="document.getElementById('profil_<?= $velo['velo_id'] ?>_modal').showModal()">
-                        Profil altimétrique
-                      </a>
+                        onclick="document.getElementById('profil_<?= $velo['velo_id'] ?>_modal').showModal()"> Profil
+                        altimétrique </a>
                     <?php endif; ?>
                     <?php
                     $gpx_path = "./bdd/gpx/" . $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . ".gpx";
                     $exists = file_exists($gpx_path);
-                    if ($velo['velo_openrunner'] && $exists): ?>
-                      |
-                    <?php endif; ?>
+                    if ($velo['velo_openrunner'] && $exists): ?> | <?php endif; ?>
                     <?php
                     if ($exists):
                       ?>
                       <a class="font-bold text-primary" href="<?= htmlspecialchars($gpx_path) ?>" target='_blank'>Trace
                         GPS</a>
                     <?php endif; ?>
-
-
                     <!-- Desktop : div en dessous -->
                     <div id="profil_<?= $velo['velo_id'] ?>" class="hidden mt-2">
                       <iframe width="100%" height="650" loading="lazy" src="<?= $velo['velo_openrunner'] ?>"
@@ -796,12 +732,10 @@ $stmtC->close();
                         <form method="dialog">
                           <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                         </form>
-
                         <iframe width="100%" height="650" loading="lazy" src="<?= $velo['velo_openrunner'] ?>"
                           style="border: none;"></iframe>
                       </div>
                     </dialog>
-
                   </td>
                 </tr>
               <?php endforeach ?>
@@ -809,14 +743,12 @@ $stmtC->close();
           </div>
         </div>
       <?php } ?>
-
       <!-- Remarque entre tableaux dynamique et tableau descriptif (rq générale sur l'accès) -->
       <?php if (!empty($falaise_txt1)): ?>
         <div>
           <?= nl2br($falaise_txt1) ?>
         </div>
       <?php endif; ?>
-
       <!-- Remarque spécifique pour l'accès entre une ville V et la falaise F (table rqvillefalaise, champ rqvillefalaise_txt) -->
       <?php if ($ville_id_get): ?>
         <?php
@@ -841,13 +773,9 @@ $stmtC->close();
           </div>
         <?php endif; ?>
       <?php endif; ?>
-
-
-
       <div class="flex flex-col items-center gap-2 w-full mb-4">
         <div id="map" class="h-[600px] w-full bg-black rounded-lg"></div>
       </div>
-
       <!-- Image optionnelle 1 -->
       <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img1.webp"; ?>
       <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
@@ -858,15 +786,11 @@ $stmtC->close();
           <?php endif; ?>
         </div>
       <?php endif; ?>
-
-
       <?php if (!empty($falaise_txt3)): ?>
         <div>
           <?= nl2br($falaise_txt3) ?>
         </div>
       <?php endif; ?>
-
-
       <!-- Image optionnelle 2 -->
       <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img2.webp"; ?>
       <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
@@ -877,16 +801,12 @@ $stmtC->close();
           <?php endif; ?>
         </div>
       <?php endif; ?>
-
-
-
       <!-- Texte optionnel numéro 4 -->
       <?php if (!empty($falaise_txt4)): ?>
         <div>
           <?= nl2br($falaise_txt4) ?>
         </div>
       <?php endif; ?>
-
       <!-- Image optionnelle 3 -->
       <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img3.webp"; ?>
       <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
@@ -897,12 +817,10 @@ $stmtC->close();
           <?php endif; ?>
         </div>
       <?php endif; ?>
-
-      <div class="text-center text-slate-600 text-sm italic opacity-60">
-        Falaise ajoutée par <?= $falaise_contrib_name ?>
+      <div class="text-center text-slate-600 text-sm italic opacity-60"> Falaise ajoutée par
+        <?= $falaise_contrib_name ?>
       </div>
     </section>
-
     <section id="commentaires" class="w-full">
       <?php
       $formatter = new IntlDateFormatter(
@@ -975,7 +893,6 @@ $stmtC->close();
           <button class="btn btn-primary" onclick="newComment()">Raconter ma sortie / mon itinéraire</button>
         </div>
       </div>
-
       <dialog id="commentFormModal" class="modal modal-bottom sm:modal-middle">
         <div class="modal-box w-screen sm:max-w-screen-md">
           <form method="dialog">
@@ -994,8 +911,7 @@ $stmtC->close();
             </div>
             <div class="form-control w-full">
               <label class="label" for="email">
-                <span class="label-text">Email<span class="text-red-500">*</span>
-                  (n'apparaitra pas sur le site)</span>
+                <span class="label-text">Email<span class="text-red-500">*</span> (n'apparaitra pas sur le site)</span>
               </label>
               <input type="email" id="email" name="email" class="input input-primary w-full" required>
             </div>
@@ -1068,16 +984,13 @@ $stmtC->close();
           <button>close</button>
         </form>
       </dialog>
-
       <dialog id="emailPromptDialog" class="modal modal-bottom sm:modal-middle">
         <div class="modal-box w-screen sm:max-w-screen-md">
           <form method="dialog">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
           <h3 class="font-bold text-xl">Modifier le récit</h3>
-          <div>
-            Veuillez confirmer l'adresse mail utilisée pour écrire le récit afin d'autoriser la modification.
-          </div>
+          <div> Veuillez confirmer l'adresse mail utilisée pour écrire le récit afin d'autoriser la modification. </div>
           <form id="emailPromptForm" class="flex flex-col gap-1">
             <input type="hidden" name="emailPromptCommentId" id="emailPromptCommentId" value="">
             <div class="form-control w-full">
@@ -1099,7 +1012,6 @@ $stmtC->close();
       </dialog>
     </section>
   </main>
-
   <datalist id="gares">
     <?php foreach ($allGares as $gare): ?>
       <option value="<?= htmlspecialchars($gare['gare_nom']) ?>"></option>
@@ -1110,7 +1022,6 @@ $stmtC->close();
       <option value="<?= htmlspecialchars($ville['ville_nom']) ?>"></option>
     <?php endforeach; ?>
   </datalist>
-
   <script>
     const ignTiles = L.tileLayer(
       "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
@@ -1191,7 +1102,7 @@ $stmtC->close();
     trainLayer.addTo(map);
 
     // --- Ajout de la falaise et itinéraires vélos ---
-    const falaiseObject = new Falaise(map, falaise);
+    const falaiseObject = new Falaise(map, falaise, { visibility: { to: 12 } });
     const veloObjects = itineraires.map((velo, index) => new Velo(map, velo, { index }));
     const gareObjects = (
       itineraires
