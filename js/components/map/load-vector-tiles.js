@@ -1,7 +1,7 @@
 //  --- Ajout des lignes de train ---
 const paintRules = [
   {
-    dataLayer: "fr",
+    dataLayer: "ter",
     symbolizer: new protomapsL.LineSymbolizer({
       color: "#000",
       width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5),
