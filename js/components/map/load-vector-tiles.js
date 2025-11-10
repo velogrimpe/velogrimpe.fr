@@ -9,7 +9,7 @@ const paintRules = [
   },
 ];
 const trainlinesLayer = protomapsL.leafletLayer({
-  url: "/bdd/trains/trainlines.pmtiles",
+  url: "/bdd/trains/ter.pmtiles",
   paintRules,
   maxDataZoom: 16,
   pane: "overlayPane",
