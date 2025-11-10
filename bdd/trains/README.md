@@ -22,7 +22,7 @@ La partie importante est le nom du fichier `fr.geojson` à changer si besoin
 ```js
 const paintRules = [
   {
-    dataLayer: "fr", // NOTE: Nom du fichier GeoJSON
+    dataLayer: "ter", // NOTE: Nom du fichier GeoJSON
     symbolizer: new protomapsL.LineSymbolizer({
       color: "#000",
       width: 1.5,
@@ -30,7 +30,7 @@ const paintRules = [
   },
 ];
 var layer = protomapsL.leafletLayer({
-  url: "/bdd/trains/rff_florent.pmtiles",
+  url: "/bdd/trains/ter.pmtiles",
   paintRules,
 }); // NOTE: Path vers le fichier PMTiles
 layer.addTo(map);
