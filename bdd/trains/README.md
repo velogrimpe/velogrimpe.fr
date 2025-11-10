@@ -8,10 +8,11 @@
 brew install tippecanoe
 ```
 
-### Conversion GeoJSON --> MBTiles
+### Conversion GeoJSON --> PMTiles
 
 ```
-tippecanoe -z13 -o rff_florent.pmtiles --drop-densest-as-needed --extend-zooms-if-still-dropping --force fr.geojson
+tippecanoe -z16 -o tgv.pmtiles --drop-densest-as-needed --extend-zooms-if-still-dropping --force tgv.geojson
+tippecanoe -z16 -o ter.pmtiles --drop-densest-as-needed --extend-zooms-if-still-dropping --force ter.geojson
 ```
 
 La partie importante est le nom du fichier `fr.geojson` à changer si besoin
