@@ -22,7 +22,7 @@ $stmtF->close();
 $stmtIt = $mysqli->prepare("
   SELECT *, concat(gares.gare_nom, ' → ', f.falaise_nom, ' (', velo.velo_variante, ')') as velo_nom
   FROM velo
-  LEFT JOIN gares ON velo.gare_id = gares.gare_id
+  LEFT JOIN gares ON velo.gare_id = gares.gare_id AND gares.deleted = 0
   LEFT JOIN falaises f ON velo.falaise_id = f.falaise_id
   WHERE velo.falaise_id = ?");
 $stmtIt->bind_param("i", $falaise_id);
@@ -54,7 +54,7 @@ if (!$dataF) {
   exit;
 }
 
-$stmtAllGares = $mysqli->prepare("SELECT gare_id, gare_nom FROM gares ORDER BY gare_nom");
+$stmtAllGares = $mysqli->prepare("SELECT gare_id, gare_nom FROM gares WHERE deleted = 0 ORDER BY gare_nom");
 $stmtAllGares->execute();
 $result = $stmtAllGares->get_result();
 $allGares = [];
@@ -160,7 +160,7 @@ $stmtC = $mysqli->prepare("
     concat(gares.gare_nom, ' → ', f.falaise_nom, ' (', velo.velo_variante, ')') as velo_nom
   FROM commentaires_falaises cf
   left join velo on cf.velo_id = velo.velo_id
-  left join gares on velo.gare_id = gares.gare_id
+  left join gares on velo.gare_id = gares.gare_id AND gares.deleted = 0
   left join falaises f on velo.falaise_id = f.falaise_id
   WHERE cf.falaise_id = ? 
   ORDER BY date_creation DESC

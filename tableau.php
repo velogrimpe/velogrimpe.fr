@@ -62,7 +62,7 @@ $stmt = $mysqli->prepare("
       z.zone_nom
   FROM `falaises` f
   left join velo v on v.falaise_id = f.falaise_id
-  left join gares g on g.gare_id = v.gare_id
+  left join gares g on g.gare_id = v.gare_id AND g.deleted = 0
   left join train t on t.gare_id = g.gare_id
   left join villes on villes.ville_id = t.ville_id
   left join zones z on z.zone_id = f.falaise_zone

@@ -44,7 +44,7 @@ $stmtF->close();
 $stmtIt = $mysqli->prepare("
   SELECT *
   FROM velo
-  LEFT JOIN gares ON velo.gare_id = gares.gare_id
+  LEFT JOIN gares ON velo.gare_id = gares.gare_id AND gares.deleted = 0
   WHERE velo.falaise_id = ?");
 $stmtIt->bind_param("i", $falaise_id);
 $stmtIt->execute();
@@ -75,10 +75,8 @@ $stmtIt->close();
   <script src="/js/vendor/leaflet-textpath.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
   <link rel="stylesheet" href="/index.css" />
@@ -124,15 +122,13 @@ $stmtIt->close();
           </option>
         <?php endforeach; ?>
       </select>
-      <a class="btn btn-sm" href="/falaise.php?falaise_id=<?php echo $falaise['falaise_id']; ?>">Voir la
-        falaise</a>
+      <a class="btn btn-sm" href="/falaise.php?falaise_id=<?php echo $falaise['falaise_id']; ?>">Voir la falaise</a>
       <input type="file" hidden accept=".geojson" id="uploadGeoJSONInput"
         class="file-input file-input-sm file-input-bordered w-24" />
       <button class="btn btn-sm" id="uploadGeoJSONButton">
         <svg class="w-5 h-5 fill-current">
           <use xlink:href="/symbols/icons.svg#ri-file-upload-line"></use>
-        </svg> Import
-      </button>
+        </svg> Import </button>
       <button class="btn btn-sm" id="downloadGeoJSON">Télécharger le GeoJSON</button>
       <div class="tooltip tooltip-left" data-tip="Cmd/Ctrl + S">
         <button class="btn btn-primary btn-sm" id="saveGeoJSON">Enregistrer</button>
@@ -153,9 +149,8 @@ $stmtIt->close();
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
           <h3 class="font-bold text-xl">Tableau récapitulatif</h3>
-          <p class="text-error text-sm">
-            N'oubliez pas de sauvegarder le GeoJSON après avoir modifié les données dans le tableau.
-          </p>
+          <p class="text-error text-sm"> N'oubliez pas de sauvegarder le GeoJSON après avoir modifié les données dans le
+            tableau. </p>
           <div id="tableauRecap" class="flex flex-col gap-1">
           </div>
         </div>
@@ -202,7 +197,6 @@ $stmtIt->close();
   };
 
 </script>
-
 <script type="module">
   import Falaise from "/js/components/map/falaise.js";
   import Velo from "/js/components/map/velo.js";
@@ -918,6 +912,5 @@ $stmtIt->close();
     });
   }
 </script>
-
 
 </html>

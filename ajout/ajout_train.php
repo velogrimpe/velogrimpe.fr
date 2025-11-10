@@ -13,7 +13,7 @@ while ($row = $result_villes->fetch_assoc()) {
 }
 
 // Récupération des gares
-$result_gares = $mysqli->query("SELECT gare_id, gare_nom, gare_codeuic FROM gares ORDER BY gare_nom");
+$result_gares = $mysqli->query("SELECT gare_id, gare_nom, gare_codeuic FROM gares WHERE deleted = 0 ORDER BY gare_nom");
 $gares = [];
 while ($row = $result_gares->fetch_assoc()) {
   $gares[$row['gare_id']] = [

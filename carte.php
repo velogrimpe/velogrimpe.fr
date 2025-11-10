@@ -8,6 +8,7 @@ $gares = $mysqli->query("SELECT
   GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin) SEPARATOR '=|=') AS villes
   FROM gares g
   LEFT JOIN train t ON t.gare_id = g.gare_id
+  WHERE g.deleted = 0
   GROUP BY g.gare_id;"
 )->fetch_all(MYSQLI_ASSOC);
 $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);

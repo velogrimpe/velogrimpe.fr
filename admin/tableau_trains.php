@@ -15,7 +15,7 @@ DISTINCT
   GROUP_CONCAT(DISTINCT evgf.ville_id SEPARATOR ',') AS excluded_falaise_gare_ville_ids
   FROM falaises f
   LEFT JOIN velo on velo.falaise_id = f.falaise_id
-  LEFT JOIN gares g ON g.gare_id = velo.gare_id
+  LEFT JOIN gares g ON g.gare_id = velo.gare_id and g.deleted = 0
   LEFT JOIN train t ON t.gare_id = g.gare_id
   LEFT JOIN villes v ON v.ville_id = t.ville_id
   LEFT JOIN exclusions_villes_gares evg ON evg.gare_id = g.gare_id
@@ -26,7 +26,7 @@ DISTINCT
   ORDER BY f.falaise_id DESC, g.gare_nom ASC;
 ")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
-$allGares = $mysqli->query("SELECT * FROM gares ORDER BY gare_nom")->fetch_all(MYSQLI_ASSOC);
+$allGares = $mysqli->query("SELECT * FROM gares WHERE deleted = 0 ORDER BY gare_nom")->fetch_all(MYSQLI_ASSOC);
 
 // Group falaises by falaise_nom
 $falaises = array_reduce($falaises, function ($carry, $item) {
@@ -44,15 +44,12 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
   <link rel="stylesheet" href="/index.css" />
   <link rel="manifest" href="/site.webmanifest" />
-
 </head>
 
 <body class="h-full">
@@ -63,8 +60,8 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
         <!-- head -->
         <thead>
           <tr class="border-top border-[black] bg-base-200 text-center">
-            <th class="border-left border-[1px] border-[black] w-48 bg-base-200 text-lg">Falaises
-              <button class="btn btn-ghost btn-sm px-0" title="Changer l'ordre de tri" onclick="toggleSortOrder()">
+            <th class="border-left border-[1px] border-[black] w-48 bg-base-200 text-lg">Falaises <button
+                class="btn btn-ghost btn-sm px-0" title="Changer l'ordre de tri" onclick="toggleSortOrder()">
                 <svg class="inline w-4 h-4 fill-current">
                   <use xlink:href="/symbols/icons.svg#ri-sort-desc"></use>
                 </svg>
@@ -115,9 +112,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                             <?php if (
                               in_array($ville['ville_id'], explode(',', $gare['excluded_falaise_gare_ville_ids']))
                               or in_array($ville['ville_id'], explode(',', $gare['excluded_gare_ville_ids']))
-                            ): ?>
-                              -
-                            <?php else: ?>
+                            ): ?> - <?php else: ?>
                               <?php if (in_array($ville['ville_id'], explode(',', $gare['ville_ids']))): ?>
                                 <span class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left">
                                   <?= $gare["gare_nom"] ?>
@@ -134,23 +129,19 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                                   class="badge badge-primary badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
                                   title="Ajouter ce triplet Gare - Ville - Falaise"
                                   onclick="addTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
-                                  +
-                                </button>
+                                  + </button>
                                 <button
                                   class="badge badge-error badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
                                   title="Exclure ce triplet Gare - Ville - Falaise"
                                   onclick="excludeTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
-                                  -
-                                </button>
+                                  - </button>
                               <?php endif; ?>
                               <?php if (in_array($ville['ville_id'], explode(',', $gare['ville_ids']))): ?>
                               <?php else: ?>
                                 <button
                                   class="badge badge-error badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
                                   title="Toujours exclure ce couple Gare - Ville"
-                                  onclick="excludeVilleGare(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, this)">
-                                  --
-                                </button>
+                                  onclick="excludeVilleGare(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, this)"> -- </button>
                               <?php endif; ?>
                             <?php endif; ?>
                           </div>
@@ -413,6 +404,5 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
 <script>
   setupAutocomplete("train_depart", "depart-search-list", "gares");
 </script>
-
 
 </html>

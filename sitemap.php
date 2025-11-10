@@ -45,7 +45,7 @@ $query = "SELECT DISTINCT
     villes.ville_id
 FROM falaises f
 LEFT JOIN velo v ON v.falaise_id = f.falaise_id
-LEFT JOIN gares g ON g.gare_id = v.gare_id
+LEFT JOIN gares g ON g.gare_id = v.gare_id AND g.deleted = 0
 LEFT JOIN train t ON t.gare_id = g.gare_id
 LEFT JOIN villes ON villes.ville_id = t.ville_id
 WHERE

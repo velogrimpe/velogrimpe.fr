@@ -20,6 +20,7 @@ $gares = $mysqli->query("SELECT
   GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin) SEPARATOR '=|=') AS villes
   FROM gares g
   LEFT JOIN train t ON t.gare_id = g.gare_id
+  where g.deleted = 0
   GROUP BY g.gare_id;"
 )->fetch_all(MYSQLI_ASSOC);
 $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);
@@ -39,15 +40,12 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     rel='stylesheet' />
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
   <link rel="stylesheet" href="/index.css" />
   <link rel="manifest" href="/site.webmanifest" />
-
 </head>
 
 <body>
@@ -276,7 +274,6 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     initMarker();
   }
 </script>
-
 <script>
   const center = [45.391, 5.420]
   const zoom = 6.5;
@@ -366,7 +363,6 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   });
 
 </script>
-
 <script>
   // ============================================ RECHERCHE ============================================
 
@@ -386,7 +382,6 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
     }
   }
 </script>
-
 <script src="/js/autocomplete.js"></script>
 <script>
   // setupAutocomplete("search", "search-list", "falaises", searchByNameHandler);

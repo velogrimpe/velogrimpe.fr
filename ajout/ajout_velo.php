@@ -5,7 +5,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 // Récupération des gares
-$result_gares = $mysqli->query("SELECT gare_id, gare_nom, gare_nomformate FROM gares ORDER BY gare_nom");
+$result_gares = $mysqli->query("SELECT gare_id, gare_nom, gare_nomformate FROM gares WHERE deleted = 0 ORDER BY gare_nom");
 $gares = [];
 while ($row = $result_gares->fetch_assoc()) {
   $gares[$row['gare_id']] = [
