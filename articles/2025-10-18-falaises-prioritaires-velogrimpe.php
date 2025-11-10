@@ -9,7 +9,7 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
 <head>
   <meta charset="UTF-8" />
   <meta name="description"
-    content="Falaises proches d'une gare en france. 1134 falaises à moins de 10km d'une gare SNCF. - Velogrimpe.fr">
+    content="Falaises proches d'une gare en france. 1134 falaises à moins de 6km d'une gare SNCF. - Velogrimpe.fr">
   <meta property="og:locale" content="fr_FR">
   <meta property="og:title" content="Velogrimpe.fr - Falaises prioritaires">
   <meta property="og:type" content="website">
@@ -18,13 +18,13 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
   <meta property="og:image"
     content="https://velogrimpe.fr/images/articles/2025-10-18-falaises-prioritaires-velogrimpe/falaises-prioritaires.webp">
   <meta property="og:description"
-    content="Falaises proches d'une gare en france. 1134 falaises à moins de 10km d'une gare SNCF. - Velogrimpe.fr">
+    content="Falaises proches d'une gare en france. 1134 falaises à moins de 6km d'une gare SNCF. - Velogrimpe.fr">
   <meta name="twitter:image"
     content="https://velogrimpe.fr/images/articles/2025-10-18-falaises-prioritaires-velogrimpe/falaises-prioritaires.webp">
   <meta name="twitter:title"
     content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
-    content="Falaises proches d'une gare en france. 1134 falaises à moins de 10km d'une gare SNCF. - Velogrimpe.fr">
+    content="Falaises proches d'une gare en france. 1134 falaises à moins de 6km d'une gare SNCF. - Velogrimpe.fr">
   <title>Falaises prioritaires - Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
@@ -74,10 +74,17 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
       </div>
     </div>
     <div class="bg-base-100 p-8 max-w-2xl mx-auto mt-4">
-      <div class="prose"></div>
-      <p class="mx-auto max-w-4xl">Voici une carte des falaises prioritaires, situées à moins de 10 km d'une gare. Elles
+      <p class="mx-auto max-w-4xl">Voici une carte des falaises prioritaires, situées à moins de 6 km d'une gare. Elles
         peuvent être de sérieuses candidates pour être ajoutées dans la base de données de Velogrimpe. Attention tout de
         même aux doublons.</p>
+      <div class="font-bold underline">Légende</div>
+      <div>
+        <ul class="list-disc list-inside">
+          <li><span class="text-[forestgreen] font-bold">Vert</span> : &leq; 2 km</li>
+          <li><span class="text-[orange] font-bold">Orange</span> : &leq; 4 km</li>
+          <li><span class="text-[tomato] font-bold">Rouge</span> : &leq; 6 km</li>
+        </ul>
+      </div>
       <div class="flex flex-col gap-1 p-2">
         <div id="map" class="w-full h-[calc(100dvh-260px)]"></div>
       </div>
@@ -103,10 +110,10 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
 
   function distanceToColor(distance) {
     // Define color thresholds based on distance (in meters)
-    if (distance < 1000) return "#00ff00"; // Green for < 500m
-    if (distance < 4000) return "#88ff00"; // Yellow for 500m - 1km
-    if (distance < 7000) return "#ffa500"; // Orange for 1km - 5km
-    return "#ff4400"; // Red for > 5km
+    if (distance < 2000) return "forestgreen"; // Green for < 500m
+    if (distance < 4000) return "orange"; // Yellow for 500m - 1km
+    if (distance < 6000) return "tomato"; // Orange for 1km - 5km
+    return undefined; // Red for > 5km
   }
   function distanceToSize(distance) {
     // 0 = 6 --> 10000 = 2
@@ -123,7 +130,7 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
       .then(response => response.json())
       .catch(error => console.error('Error fetching data:', error));
   }
-  fetchData('/bdd/ca/10km.geojson').then(data => {
+  fetchData('/bdd/ca/6km.geojson').then(data => {
     /**
      * Format example
      * { "type": "Feature", "properties": { "falaise_nom": "L'horloge", "falaise_caid": 6296, "falaise_latlng": "44.79125061350171,6.554983556270599", "lat": 44.79125061350171, "lng": 6.554983556270599, "gares": "", "gare_loc": "44.7909832093243,6.556249737151198", "gare_dist": 104.51012306 }, "geometry": { "type": "Point", "coordinates": [6.554983556270599, 44.79125061350171] } }
@@ -143,13 +150,15 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
         }));
       },
       pointToLayer: function (feature, latlng) {
+        const fillColor = distanceToColor(parseFloat(feature.properties.gare_dist));
+        if (!fillColor) return null;
         return L.circleMarker(latlng, {
           radius: distanceToSize(parseFloat(feature.properties.gare_dist)),
-          fillColor: distanceToColor(parseFloat(feature.properties.gare_dist)),
+          fillColor,
           color: "#000",
           weight: 1,
           opacity: 1,
-          fillOpacity: 0.8
+          fillOpacity: 0.8,
         })
           .bindPopup(
             `<div class="p-2 bg-base-200 rounded-box shadow-md w-96 max-w-xs flex flex-col gap-1">`
@@ -166,8 +175,8 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
     gares.forEach(gare => {
       const latlng = gare.latlng.split(',').map(Number);
       L.circleMarker([latlng[0], latlng[1]], {
-        radius: 4,
-        fillColor: "#0000ff",
+        radius: 2,
+        fillColor: "#000",
         color: "#000",
         weight: 1,
         opacity: 0.8,
@@ -193,10 +202,16 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
         iconSize: [0, 0],
         iconAnchor: [0, 0]
       })
-    }))
-    return new Falaise(map, falaise, { visibility: { from: 11, to: 20 } })
+    }));
+    return new Falaise(map, falaise, { visibility: { from: 11, to: 20 } });
   }
-  );
+  ).map(falaise => falaise.layer.bindPopup(
+    `<div class="flex flex-col gap-1 bg-base-100 p-4 rounded-box shadow-md max-w-xs">`
+    + `<div class="text-sm font-bold">${falaise.falaise.falaise_nom}</div>`
+    + `<a class="btn btn-xs btn-primary" href="/falaise.php?falaise_id=${falaise.falaise.falaise_id}">voir la fiche falaise</a>`
+    + `</div>`,
+    { offset: [0, -10] }
+  ));
 
   map.on('zoomend', function () {
     const currentZoom = map.getZoom();

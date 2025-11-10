@@ -98,10 +98,10 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
 
   function distanceToColor(distance) {
     // Define color thresholds based on distance (in meters)
-    if (distance < 1000) return "#00ff00"; // Green for < 500m
-    if (distance < 4000) return "#88ff00"; // Yellow for 500m - 1km
-    if (distance < 7000) return "#ffa500"; // Orange for 1km - 5km
-    return "#ff4400"; // Red for > 5km
+    if (distance < 2000) return "forestgreen"; // Green for < 500m
+    if (distance < 4000) return "orange"; // Yellow for 500m - 1km
+    if (distance < 6000) return "tomato"; // Orange for 1km - 5km
+    return undefined; // Red for > 5km
   }
   function distanceToSize(distance) {
     // 0 = 6 --> 10000 = 2
@@ -138,9 +138,11 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
         }));
       },
       pointToLayer: function (feature, latlng) {
+        const fillColor = distanceToColor(parseFloat(feature.properties.gare_dist));
+        if (!fillColor) return null;
         return L.circleMarker(latlng, {
           radius: distanceToSize(parseFloat(feature.properties.gare_dist)),
-          fillColor: distanceToColor(parseFloat(feature.properties.gare_dist)),
+          fillColor,
           color: "#000",
           weight: 1,
           opacity: 1,

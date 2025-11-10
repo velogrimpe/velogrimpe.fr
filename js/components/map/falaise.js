@@ -5,6 +5,7 @@ export default class Falaise extends Element {
     const visibility = options.visibility || { to: 14 };
     const layer = buildFalaiseMarker(falaise, options);
     super(map, layer, "falaise", { ...options, visibility });
+    this.falaise = falaise;
   }
 
   static iconSize = 24;
