@@ -1098,7 +1098,7 @@ $stmtC->close();
         })
       }
     ]
-    var trainLayer = protomapsL.leafletLayer({ url: '/bdd/trains/trainlines.pmtiles', paintRules, maxDataZoom: 16, pane: "overlayPane" })
+    var trainLayer = protomapsL.leafletLayer({ url: '/bdd/trains/ter.pmtiles', paintRules, maxDataZoom: 16, pane: "overlayPane" })
     trainLayer.addTo(map);
 
     // --- Ajout de la falaise et itinéraires vélos ---
