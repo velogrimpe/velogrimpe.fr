@@ -1174,27 +1174,7 @@ $highlight = $_GET['h'] ?? '';
   layerControl.addOverlay(tgvLayer, 'Lignes et Gares TGV');
   layerControl.addOverlay(campingLayer, 'Campings');
   layerControl.addOverlay(giteLayer, 'Gîtes');
-  // layerControl.addOverlay(trainlinesLayer, 'Lignes de train');
   layerControl.addOverlay(biodivLayer, 'Aires de protections de la biodiversité (escalade réglementée ou interdite)');
-  // fetch("/bdd/datatourisme/camping.geojson").then(res => res.json()).then(data => {
-  //   L.geoJSON(data, {
-  //     pointToLayer: function (feature, latlng) {
-  //       return L.circleMarker(latlng, {
-  //         radius: 5,
-  //         fillColor: "#32d47a",
-  //         color: "#ffffff",
-  //         weight: 2,
-  //         opacity: 1,
-  //         fillOpacity: 0.8,
-  //       }).bindPopup(
-  //         `<div class="flex flex-col gap-1">`
-  //         + `<div class="text-xl font-bold">${feature.properties.name}</div>`
-  //         + `</div>`,
-  //         { offset: [0, -10] }
-  //       );
-  //     }
-  //   }).addTo(map);
-  // });
 </script>
 <script>
   // ============================================ RECHERCHE ============================================

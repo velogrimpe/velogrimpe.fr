@@ -246,6 +246,9 @@ $stmtC->close();
       .vg-a-primary a {
         @apply text-[#2e8b57] font-bold;
       }
+      .vg-a-primary a:hover {
+        @apply underline;
+      }
   }
   </style>
 </head>
@@ -650,7 +653,7 @@ $stmtC->close();
                 <td class='border-t border-b border-1 border-base-300'>
                   <?php if ($ville_id_get): ?>
                     <?php if ($train_descr): ?>
-                      <?= nl2br($train_descr) ?>
+                      <span class="vg-a-primary"><?= nl2br($train_descr) ?></span>
                     <?php else: ?> Itinéraire non décrit (soit il est peu pertinent, soit j'ai pas eu le temps !).
                     <?php endif ?>
                   <?php else: ?>
@@ -699,7 +702,7 @@ $stmtC->close();
                   <td class='border-t border-b border-1 border-base-300'>
                     <?= htmlspecialchars($velo['velo_km']) . " km, " . htmlspecialchars($velo['velo_dplus']) . " D+, " . htmlspecialchars($velo['velo_dmoins']) . " D-." ?>
                     <br>
-                    <?= nl2br($velo['velo_descr']) ?>
+                    <span class="vg-a-primary"><?= nl2br($velo['velo_descr']) ?></span>
                     <br>
                     <?php if ($velo['velo_openrunner']): ?>
                       <!-- Desktop : ouvre juste en dessous -->
@@ -745,7 +748,7 @@ $stmtC->close();
       <?php } ?>
       <!-- Remarque entre tableaux dynamique et tableau descriptif (rq générale sur l'accès) -->
       <?php if (!empty($falaise_txt1)): ?>
-        <div>
+        <div class="vg-a-primary">
           <?= nl2br($falaise_txt1) ?>
         </div>
       <?php endif; ?>
@@ -1088,19 +1091,6 @@ $stmtC->close();
     map.fitBounds(bounds, { maxZoom: 15 });
     var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
 
-    //  --- Ajout des lignes de train ---
-    const paintRules = [
-      {
-        dataLayer: "ter",
-        symbolizer: new protomapsL.LineSymbolizer({
-          color: "#000",
-          width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5),
-        })
-      }
-    ]
-    var trainLayer = protomapsL.leafletLayer({ url: '/bdd/trains/ter.pmtiles', paintRules, maxDataZoom: 16, pane: "overlayPane" })
-    trainLayer.addTo(map);
-
     // --- Ajout de la falaise et itinéraires vélos ---
     const falaiseObject = new Falaise(map, falaise, { visibility: { to: 12 } });
     const veloObjects = itineraires.map((velo, index) => new Velo(map, velo, { index }));
@@ -1165,6 +1155,15 @@ $stmtC->close();
       });
     window.map = map; // Pour debug
 
+  </script>
+  <script type="module">
+    import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
+    campingLayer.addTo(map);
+    trainlinesLayer.addTo(map);
+    layerControl.addOverlay(tgvLayer, 'Lignes et Gares TGV');
+    layerControl.addOverlay(campingLayer, 'Campings');
+    layerControl.addOverlay(giteLayer, 'Gîtes');
+    layerControl.addOverlay(biodivLayer, 'Aires de protections de la biodiversité (escalade réglementée ou interdite)');
   </script>
   <script src="/js/autocomplete.js"></script>
   <script>
