@@ -1115,7 +1115,6 @@ $highlight = $_GET['h'] ?? '';
     if (selected) {
       teardown();
       info.update();
-      map.setZoom(Math.max(7, map.getZoom() - 3), { animate: true, duration: 0.5 });
     }
   });
 
