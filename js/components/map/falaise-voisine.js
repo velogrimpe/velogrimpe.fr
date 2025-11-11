@@ -15,8 +15,8 @@ export default class FalaiseVoisine extends Element {
    * @param {Object} [options={}] - Optional parameters for the object.
    */
   constructor(map, zoneFeature, options = {}) {
-    const visibility = options.visibility || { from: 13 };
-    const labelVisibility = options.labelVisibility || { from: 13 };
+    const visibility = options.visibility || { from: 10 };
+    const labelVisibility = options.labelVisibility || { from: 10 };
     const layer = buildLayer(zoneFeature, options);
     layer.properties = zoneFeature.properties;
     super(map, layer, "falaise_voisine", { ...options, visibility });
