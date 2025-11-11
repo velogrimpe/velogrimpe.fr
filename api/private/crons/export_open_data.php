@@ -105,3 +105,9 @@ foreach ($falaises as $falaise) {
 $file = $_SERVER['DOCUMENT_ROOT'] . '/open-data/falaises.geojson';
 file_put_contents($file, json_encode($geojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
+// Respond with success
+http_response_code(200);
+echo json_encode([
+  'status' => 'success',
+  'message' => 'Open data exported successfully',
+]);
