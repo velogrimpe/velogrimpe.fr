@@ -1084,6 +1084,7 @@ $stmtC->close();
       itineraires.map(it => it.gare_latlng.split(",").map(parseFloat))
     ];
     var map = L.map("map", { layers: [landscapeTiles], center, zoom, fullscreenControl: true });
+    L.control.scale({ position: "bottomleft", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
     L.control.locate().addTo(map);
     trainlinesLayer.addTo(map);
     campingLayer.addTo(map);
