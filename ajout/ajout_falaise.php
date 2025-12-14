@@ -739,11 +739,19 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         </label>
       </div>
       <hr class="my-4">
-      <h3 class="text-center">Validation de l'ajout de données</h3>
+      <?php if ($falaise_id): ?>
+        <h3 class="text-center">Validation de la modification</h3>
+      <?php else: ?>
+        <h3 class="text-center">Validation de l'ajout de données</h3>
+      <?php endif; ?>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
         <div class="flex flex-col md:flex-row gap-4">
           <div class="form-control flex-grow">
-            <b>Falaise ajoutée par</b>
+            <?php if ($falaise_id): ?>
+              <div><b>Modification par :</b><i class="text-sm text-slate-400">(ne figurera pas sur la fiche)</i></div>
+            <?php else: ?>
+              <b>Falaise ajoutée par</b>
+            <?php endif; ?>
             <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
               <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
                 placeholder="Prénom (et/ou nom, surnom...)" required>
