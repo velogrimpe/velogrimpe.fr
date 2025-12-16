@@ -37,7 +37,7 @@ if (!$authHeader || $authHeader !== $validToken) {
 
 // add a pageview
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/pv.php';
-sendEvent($_SERVER['REQUEST_URI'], "vg", "vg-crons", 'export-open-data');
+sendEvent($_SERVER['REQUEST_URI'], "vg", "vg-crons", 'event: export-open-data');
 
 // Cron logic
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
