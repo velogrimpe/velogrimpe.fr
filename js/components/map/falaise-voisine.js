@@ -44,14 +44,14 @@ export default class FalaiseVoisine extends Element {
   }
 
   static style = {
-    color: "#2e8b57",
-    dashArray: "5, 5",
-    weight: 1,
-  };
-  static highlightStyle = {
-    color: "darkgreen",
+    color: "oklch(64.79% 0.1726 249.75)",
     dashArray: "5, 5",
     weight: 2,
+  };
+  static highlightStyle = {
+    color: "oklch(64.79% 0.1726 249.75)",
+    dashArray: "5, 5",
+    weight: 3,
   };
 
   cleanUp() {
@@ -142,7 +142,7 @@ const buildPopupContent = (zoneFeature) => {
   return `
     <a href="${url}" class="btn btn-sm btn-primary flex flex-row items-center gap-1">
       <span>Voir la fiche falaise
-      <svg class="inline-block w-4 h-4 fill-current" aria-hidden="true" focusable="false">
+      <svg class="inline-block w-3 h-3 fill-current" aria-hidden="true" focusable="false">
         <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
       </svg></span>
     </a>
