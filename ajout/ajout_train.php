@@ -144,11 +144,18 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             value="<?= $preset_gare_id ?? '' ?>" readonly required>
         </div>
       </div>
+      <label class="form-control" for="train_tgv">
+        <div class="flex flex-row items-center gap-2">
+          <span>TER uniquement</span>
+          <input type="checkbox" class="toggle toggle-primary toggle-sm" id="train_tgv" name="train_tgv">
+          <span>TGV autorisé</span>
+        </div>
+      </label>
       <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
         <svg class="w-4 h-4 mb-1 fill-current inline-block">
           <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
-        </svg> Un itinéraire existe déjà entre cette ville et cette gare. Si vous avez besoin de modifier les
-        informations, contactez nous par mail à l'addresse <a
+        </svg> Un itinéraire <span id="itineraireExistsType">train</span> existe déjà entre cette ville et cette gare.
+        Si vous avez besoin de modifier les informations, contactez nous par mail à l'addresse <a
           href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>.
       </div>
       <div class="flex flex-col gap-4">
@@ -195,22 +202,24 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </ul>
         </div>
       </details>
-      <div class="flex flex-row gap-4">
+      <div class="flex flex-col gap-4 flex-wrap">
         <label class="form-control" for="train_temps">
           <b>Temps minimal de trajet (en minutes) :</b>
           <input type="number" class="input input-primary input-sm" id="train_temps" name="train_temps" placeholder="52"
             min="0" required>
         </label>
-        <label class="form-control" for="train_correspmin">
-          <b>Nombre minimal de correspondances :</b>
-          <input type="number" class="input input-primary input-sm" id="train_correspmin" name="train_correspmin"
-            placeholder="0" min="0" required>
-        </label>
-        <label class="form-control" for="train_correspmax">
-          <b>Nombre maximal de correspondances :</b>
-          <input type="number" class="input input-primary input-sm" id="train_correspmax" name="train_correspmax"
-            placeholder="1" min="0" required>
-        </label>
+        <div class="flex flex-row gap-4 items-end flex-wrap">
+          <label class="form-control flex-grow" for="train_correspmin">
+            <b>Nombre minimal de correspondances :</b>
+            <input type="number" class="input input-primary input-sm" id="train_correspmin" name="train_correspmin"
+              placeholder="0" min="0" required>
+          </label>
+          <label class="form-control flex-grow" for="train_correspmax">
+            <b>Nombre maximal de correspondances :</b>
+            <input type="number" class="input input-primary input-sm" id="train_correspmax" name="train_correspmax"
+              placeholder="1" min="0" required>
+          </label>
+        </div>
       </div>
       <label class="form-control" for="train_descr">
         <b>Description de l'itinéraire train :</b>
@@ -268,15 +277,20 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   const verifierExistenceItineraire = () => {
     const gareId = document.getElementById('gare_id').value;
     const villeId = document.getElementById('ville_id').value;
+    const isTgv = document.getElementById('train_tgv')?.checked ?? false;
     if (!gareId || !villeId) {
       document.getElementById("itineraireExistsAlert").classList.add("hidden");
       return;
     }
-    fetch(`/api/verify_train_dup.php?gare_id=${gareId}&ville_id=${villeId}`)
+    fetch(`/api/verify_train_dup.php?gare_id=${gareId}&ville_id=${villeId}&train_tgv=${isTgv ? 1 : 0}`)
       .then(response => response.json())
       .then(exists => {
         if (exists) {
           document.getElementById("itineraireExistsAlert").classList.remove("hidden");
+          const typeSpan = document.getElementById("itineraireExistsType");
+          if (typeSpan) {
+            typeSpan.textContent = isTgv ? "TGV" : "TER";
+          }
           document.getElementById("submitBtn").disabled = true;
         } else {
           document.getElementById("itineraireExistsAlert").classList.add("hidden");
@@ -298,6 +312,9 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     // document.getElementById('train_depart_uic').value = gare.codeuic;
   };
   document.getElementById('ville_id').addEventListener('change', () => {
+    verifierExistenceItineraire();
+  });
+  document.getElementById('train_tgv').addEventListener('change', () => {
     verifierExistenceItineraire();
   });
 

@@ -27,24 +27,36 @@ $message = "";
 $nom_prenom = trim($input['user'] ?? '');
 $train_contrib = trim("'" . $nom_prenom . "','" . $email . "'");
 $train_public = 1; //train_public always 1 for admin insert
+$train_tgv = isset($input['train_tgv']) && $input['train_tgv'] !== '' ? (int) $input['train_tgv'] : 0;
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 // Ensure not a duplicate
-$stmt = $mysqli->prepare("SELECT train_id FROM train WHERE ville_id = ? AND gare_id = ?");
-$stmt->execute([$input['ville_id'], $input['gare_id']]);
-$train = $stmt->fetch();
+$stmt = $mysqli->prepare("SELECT train_id FROM train WHERE ville_id = ? AND gare_id = ? AND train_tgv = ?");
+if (!$stmt) {
+  http_response_code(500);
+  echo json_encode(['success' => false, 'error' => $mysqli->error]);
+  die();
+}
+$stmt->bind_param("iii", $input['ville_id'], $input['gare_id'], $train_tgv);
+$stmt->execute();
+$res = $stmt->get_result();
+$train = $res ? $res->fetch_assoc() : null;
+$stmt->close();
 
 if ($train) {
   http_response_code(500);
-  echo json_encode(['success' => false, 'error' => "Un itinéraire existe déjà entre cette ville et cette gare."]);
+  echo json_encode([
+    'success' => false,
+    'error' => "Un itinéraire " . ($train_tgv ? "TGV" : "TER") . " existe déjà entre cette ville et cette gare."
+  ]);
   die();
 }
 
 $stmt = $mysqli->prepare("INSERT INTO train
         (ville_id, gare_id, train_temps, train_correspmin, train_correspmax, train_public,
-        train_descr, train_depart, train_arrivee, train_contrib)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        train_descr, train_depart, train_arrivee, train_contrib, train_tgv)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 if (!$stmt) {
   http_response_code(500);
   echo json_encode(['success' => false, 'error' => $mysqli->error]);
@@ -53,7 +65,7 @@ if (!$stmt) {
 
 // Bind des paramètres avec les valeurs, les valeurs null sont gérées comme NULL dans la base de données
 $stmt->bind_param(
-  "iiiiiissss",
+  "iiiiiissssi",
   $input['ville_id'],
   $input['gare_id'],
   $input['train_temps'],
@@ -63,7 +75,8 @@ $stmt->bind_param(
   $input['train_descr'],
   $input['train_depart'],
   $input['train_arrivee'],
-  $train_contrib
+  $train_contrib,
+  $train_tgv
 );
 if (!$stmt->execute()) {
   http_response_code(500);

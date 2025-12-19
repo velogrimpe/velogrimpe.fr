@@ -12,15 +12,16 @@ DISTINCT
   GROUP_CONCAT(DISTINCT v.ville_id SEPARATOR ',') AS ville_ids,
   GROUP_CONCAT(DISTINCT evg.ville_id SEPARATOR ',') AS excluded_gare_ville_ids,
   GROUP_CONCAT(DISTINCT evf.ville_id SEPARATOR ',') AS excluded_falaise_ville_ids,
-  GROUP_CONCAT(DISTINCT evgf.ville_id SEPARATOR ',') AS excluded_falaise_gare_ville_ids
+  GROUP_CONCAT(DISTINCT evgf.ville_id SEPARATOR ',') AS excluded_falaise_gare_ville_ids,
+  MAX(COALESCE(t.train_tgv, 0)) AS has_tgv
   FROM falaises f
-  LEFT JOIN velo on velo.falaise_id = f.falaise_id
-  LEFT JOIN gares g ON g.gare_id = velo.gare_id and g.deleted = 0
+  LEFT JOIN velo ON velo.falaise_id = f.falaise_id
+  LEFT JOIN gares g ON g.gare_id = velo.gare_id AND g.deleted = 0
   LEFT JOIN train t ON t.gare_id = g.gare_id
   LEFT JOIN villes v ON v.ville_id = t.ville_id
   LEFT JOIN exclusions_villes_gares evg ON evg.gare_id = g.gare_id
-  LEFT JOIN exclusions_villes_falaises evf on evf.falaise_id = f.falaise_id
-  LEFT JOIN exclusions_villes_gares_falaises evgf on evgf.falaise_id = f.falaise_id and evgf.gare_id = g.gare_id
+  LEFT JOIN exclusions_villes_falaises evf ON evf.falaise_id = f.falaise_id
+  LEFT JOIN exclusions_villes_gares_falaises evgf ON evgf.falaise_id = f.falaise_id AND evgf.gare_id = g.gare_id
   WHERE velo.velo_id IS NOT NULL
   GROUP BY f.falaise_id, g.gare_id
   ORDER BY f.falaise_id DESC, g.gare_nom ASC;
@@ -84,7 +85,13 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                   href="/falaise.php?falaise_id=<?= $gares[0]['falaise_id'] ?>"><?= $falaise_nom ?></a><br>(<?= $gares[0]['falaise_id'] ?>)
               </th>
               <td class="border-left border-[1px] border-[black] w-48">
-                <?= join("<br />", array_map(fn($gare) => $gare["gare_nom"], $gares)) ?>
+                <?= join(
+                  "<br />",
+                  array_map(
+                    fn($gare) => $gare["gare_nom"] . (!empty($gare["has_tgv"]) ? " (TGV)" : ""),
+                    $gares
+                  )
+                ) ?>
               </td>
               <?php foreach ($villes as $ville): ?>
                 <td class="border-left border-[1px] border-[black] w-48">
@@ -161,7 +168,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
   <dialog id="addTripletModal" class="modal" onclose="cleanAddTripletDialog()">
     <div class="modal-box">
       <h3 class="text-lg font-bold">Sélectionnez la gare de départ</h3>
-      <div class="flex flex-row gap-2 items-end">
+      <div class="flex flex-col gap-2 items-start">
         <div class="relative">
           <datalist id="gares">
             <?php foreach ($allGares as $gare_id => $gare): ?>
@@ -184,6 +191,13 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
             class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
           </ul>
         </div>
+        <label class="form-control" for="train_tgv">
+          <div class="flex flex-row items-center gap-2">
+            <span>TER uniquement</span>
+            <input type="checkbox" class="toggle toggle-primary toggle-sm" id="train_tgv" name="train_tgv">
+            <span>TGV autorisé</span>
+          </div>
+        </label>
         <button class="btn btn-sm btn-primary" onClick="searchRoutes()">OK</button>
       </div>
       <hr class="my-4" />
@@ -260,6 +274,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
     const train_correspmax = document.getElementById("train_correspmax").value;
     const train_nbtrains = document.getElementById("train_nbtrains").value;
     const train_descr = document.getElementById("train_descr").value;
+    const train_tgv = document.getElementById("train_tgv").checked ? 1 : 0;
 
     // validate values
     if (!ville_id || !gare_id || !train_depart || !train_arrivee || !train_temps || !train_correspmin || !train_correspmax || !train_nbtrains || !train_descr) {
@@ -284,6 +299,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
         train_correspmax,
         train_nbtrains,
         train_descr,
+        train_tgv,
         user: "<?= isset($_SERVER["REMOTE_USER"]) ? $_SERVER["REMOTE_USER"] : "admin" ?>",
       })
     })
