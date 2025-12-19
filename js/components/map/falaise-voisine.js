@@ -1,4 +1,3 @@
-import { parseList } from "/js/components/utils/lists.js";
 import Element from "/js/components/map/element.js";
 import FalaiseVoisineLabel from "/js/components/map/falaise-voisine-label.js";
 
@@ -19,7 +18,21 @@ export default class FalaiseVoisine extends Element {
     const labelVisibility = options.labelVisibility || { from: 10 };
     const layer = buildLayer(zoneFeature, options);
     layer.properties = zoneFeature.properties;
-    super(map, layer, "falaise_voisine", { ...options, visibility });
+    const popupContent = buildPopupContent(zoneFeature);
+    const basePopupOptions = options.popupOptions || {};
+    const popupOptions = {
+      ...basePopupOptions,
+      closeButton: false,
+      className: `${
+        basePopupOptions.className ? `${basePopupOptions.className} ` : ""
+      }vg-popup`,
+    };
+    super(map, layer, "falaise_voisine", {
+      ...options,
+      visibility,
+      popupContent,
+      popupOptions,
+    });
     this.options = options;
     if (zoneFeature.properties.name) {
       this.label = new FalaiseVoisineLabel(map, zoneFeature, this, {
@@ -114,4 +127,24 @@ const buildLayer = (zoneFeature, options = {}) => {
   );
   // layer = layer.setText(textPathText, textPathOptions);
   return layer;
+};
+
+const buildPopupContent = (zoneFeature) => {
+  const properties = zoneFeature.properties || {};
+  const falaiseId = properties.falaise_id;
+
+  if (!falaiseId) {
+    return undefined;
+  }
+
+  const url = `/falaise.php?falaise_id=${encodeURIComponent(falaiseId)}`;
+
+  return `
+    <a href="${url}" class="btn btn-sm btn-primary flex flex-row items-center gap-1">
+      <span>Voir la fiche falaise
+      <svg class="inline-block w-4 h-4 fill-current" aria-hidden="true" focusable="false">
+        <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
+      </svg></span>
+    </a>
+  `;
 };

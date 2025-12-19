@@ -173,6 +173,22 @@ input[type="number"] {
   color: #fff;
 }
 
+/* Popup pour les polygones de falaises voisines */
+.vg-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  background-color: oklch(var(--p));
+  box-shadow: none;
+  border: none;
+  width: fit-content;
+}
+.vg-popup .leaflet-popup-content {
+  margin: 0;
+}
+.vg-popup .leaflet-popup-tip {
+  background-color: oklch(var(--p));
+  box-shadow: none;
+}
+
 /* Prevent iOS Zoom on inputs */
 @media (max-width: 600px) {
   input,
