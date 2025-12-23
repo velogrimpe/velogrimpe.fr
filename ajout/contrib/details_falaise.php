@@ -265,17 +265,50 @@ $stmtIt->close();
     block: "draw",
     title: "Ajouter un accès vélo",
     className: "vg-icon vg-draw-velo",
-    toggle: false,
-    onClick: () => {
-      map.pm.enableDraw("Line", {
-        snappable: true,
-        snapDistance: 10,
-        pathOptions: AccesVelo.style,
-        templineStyle: AccesVelo.style,
-        hintlineStyle: AccesVelo.style,
-        type: "acces_velo",
-      });
-    },
+    // toggle: false,
+    // onClick: () => {
+    //   map.pm.enableDraw("Line", {
+    //     snappable: true,
+    //     snapDistance: 10,
+    //     pathOptions: AccesVelo.style,
+    //     templineStyle: AccesVelo.style,
+    //     hintlineStyle: AccesVelo.style,
+    //     type: "acces_velo",
+    //   });
+    // },
+    actions: [
+      "cancel",
+      {
+        text: "Point à Point",
+        title: "Point à point : Ligne droite d'un point à l'autre",
+        name: "line",
+        onClick: () => {
+          map.pm.enableDraw("Line", {
+            snappable: true,
+            snapDistance: 10,
+            pathOptions: AccesVelo.style,
+            templineStyle: { ...AccesVelo.style, type: "acces_velo" },
+            hintlineStyle: AccesVelo.style,
+            type: "acces_velo",
+          });
+        }
+      },
+      {
+        text: "Semi-auto (beta)",
+        title: "Points de passages : Routage d'un point à l'autre",
+        name: "line-auto",
+        onClick: () => {
+          map.pm.enableDraw("Line", {
+            snappable: true,
+            snapDistance: 10,
+            pathOptions: AccesVelo.style,
+            templineStyle: { ...AccesVelo.style, type: "acces_velo-auto" },
+            hintlineStyle: AccesVelo.style,
+            type: "acces_velo",
+          });
+        }
+      },
+    ]
   });
 
   let currentRoute = []
@@ -323,7 +356,7 @@ $stmtIt->close();
   map.on("pm:drawstart", ({ shape, workingLayer }) => {
     currentRoute = [];
     currentRoutingPoints = [];
-    if (workingLayer.options.type === "approche-auto") {
+    if (workingLayer.options.type === "approche-auto" || workingLayer.options.type === "acces_velo-auto") {
       workingLayer.on("pm:vertexadded", (e) => {
         // if clicked on existing routing point stop tracing
         if (currentRoutingPoints.includes([e.latlng.lat, e.latlng.lng])) {
