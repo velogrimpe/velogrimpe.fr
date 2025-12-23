@@ -54,7 +54,6 @@ while ($row = $result->fetch_assoc()) {
   $velos[] = $row;
 }
 $stmtIt->close();
-
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -321,6 +320,93 @@ $stmtIt->close();
 
   let currentRoute = []
   let currentRoutingPoints = []
+  // Holds the currently edited multi-linestring Secteur (if any)
+  let currentMultiSecteur = null;
+  let awaitingMultiSecteurSelection = false;
+  const multiAppendClickHandlers = new Map(); // Map<L.Layer, handler>
+  let multiAppendInfoControl = null; // Info/tooltip control displayed during selection
+
+  const clearMultiSecteurAppendHandlers = () => {
+    for (const [layer, handler] of multiAppendClickHandlers.entries()) {
+      try { layer.off('click', handler); } catch (e) { }
+    }
+    multiAppendClickHandlers.clear();
+  };
+
+  const showMultiSecteurInfo = () => {
+    if (multiAppendInfoControl) return;
+    const InfoControl = L.Control.extend({
+      onAdd: function (map) {
+        const div = L.DomUtil.create('div', 'leaflet-bar');
+        div.style.padding = '6px 8px';
+        div.style.background = 'white';
+        div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
+        div.style.borderRadius = '4px';
+        div.innerHTML = '<strong>Multibarres :</strong><br/>Cliquez sur un secteur existant pour y ajouter une nouvelle barre.';
+        return div;
+      },
+      onRemove: function (map) { }
+    });
+    multiAppendInfoControl = new InfoControl({ position: 'topright' });
+    map.addControl(multiAppendInfoControl);
+  };
+
+  const hideMultiSecteurInfo = () => {
+    if (multiAppendInfoControl) {
+      try { map.removeControl(multiAppendInfoControl); } catch (e) { }
+      multiAppendInfoControl = null;
+    }
+  };
+
+  const stopMultiSecteurAppend = () => {
+    awaitingMultiSecteurSelection = false;
+    currentMultiSecteur = null;
+    clearMultiSecteurAppendHandlers();
+    hideMultiSecteurInfo();
+  };
+
+  const startMultiSecteurAppend = () => {
+    awaitingMultiSecteurSelection = true;
+    currentMultiSecteur = null;
+    clearMultiSecteurAppendHandlers();
+    showMultiSecteurInfo();
+    // Attach a one-time click handler on existing Secteur polylines (and their labels) to pick the target
+    Object.values(featureMap).forEach(f => {
+      const isSecteur = (f.layer?.properties?.type === 'secteur' || f.layer?.properties?.type === undefined);
+      const isLine = f.layer instanceof L.Polyline;
+      if (!isSecteur || !isLine) return;
+      const handler = (e) => {
+        // Prevent popup opening while selecting the target secteur
+        try {
+          if (e?.originalEvent) {
+            e.originalEvent.preventDefault();
+            e.originalEvent.stopPropagation();
+          }
+        } catch (_) { }
+        try { f.layer.closePopup?.(); } catch (_) { }
+        try { f.label?.layer?.closePopup?.(); } catch (_) { }
+        // Select this secteur as the target and move to drawing the appended line
+        currentMultiSecteur = f;
+        awaitingMultiSecteurSelection = false;
+        clearMultiSecteurAppendHandlers();
+        hideMultiSecteurInfo();
+        map.pm.enableDraw("Line", {
+          snappable: true,
+          snapDistance: 10,
+          pathOptions: Secteur.lineStyle,
+          templineStyle: Secteur.lineStyle,
+          hintlineStyle: Secteur.lineStyle,
+          type: "secteur-multi-append",
+        });
+      };
+      f.layer.on('click', handler);
+      multiAppendClickHandlers.set(f.layer, handler);
+      if (f.label?.layer) {
+        f.label.layer.on('click', handler);
+        multiAppendClickHandlers.set(f.label.layer, handler);
+      }
+    });
+  };
   map.pm.Toolbar.createCustomControl({
     name: "Approche auto",
     block: "draw",
@@ -415,12 +501,20 @@ $stmtIt->close();
     title: "Ajouter un secteur",
     className: "vg-icon vg-draw-secteur",
     actions: [
-      "cancel",
+      {
+        text: "Annuler",
+        name: "annuler",
+        onClick: () => {
+          stopMultiSecteurAppend();
+          try { map.pm.disableDraw('Line'); } catch (_) { }
+        }
+      },
       {
         text: "Secteur Linéaire",
         title: "Secteur linéaire : Le vide est à droite dans le sens du tracé",
         name: "line",
         onClick: () => {
+          stopMultiSecteurAppend();
           map.pm.enableDraw("Line", {
             snappable: true,
             snapDistance: 10,
@@ -432,9 +526,16 @@ $stmtIt->close();
         },
       },
       {
+        text: "Ajout barre",
+        title: "Sélectionnez un secteur existant, puis tracez une nouvelle barre à y ajouter",
+        name: "line-multi",
+        onClick: startMultiSecteurAppend,
+      },
+      {
         text: "Secteur Polygonal",
         name: "polygon",
         onClick: () => {
+          stopMultiSecteurAppend();
           map.pm.enableDraw("Polygon", {
             snappable: true,
             snapDistance: 10,
@@ -477,7 +578,39 @@ $stmtIt->close();
     const type = layer.pm.options.type;
     layer.properties = { type };
     let obj;
-    if ((type === "secteur" || type === undefined)) {
+    // Special case: appending a new line to an existing Secteur (multi-barres)
+    if (type === "secteur-multi-append") {
+      // If a target secteur was selected, append the new segment to it
+      if (currentMultiSecteur && currentMultiSecteur.layer instanceof L.Polyline) {
+        const target = currentMultiSecteur;
+        const newSegment = layer.getLatLngs(); // Array<LatLng>
+        let existing = target.layer.getLatLngs();
+        // Convert single line into multi-lines if needed, else append to existing multi-lines
+        if (existing.length > 0 && existing[0] instanceof L.LatLng) {
+          existing = [existing, newSegment];
+        } else {
+          existing = [...existing, newSegment];
+        }
+        target.layer.setLatLngs(existing);
+        // Remove the transient drawing layer
+        try { map.removeLayer(layer); } catch (_) { }
+        // Refresh popup/tooltip on the existing secteur
+        createAndBindPopup(target.layer, target._element_id);
+        if (target.label) {
+          createAndBindPopup(target.label.layer, target._element_id, target.layer);
+        }
+        // Disable draw mode and exit multi-append UX
+        try { map.pm.disableDraw('Line'); } catch (_) { }
+        hideMultiSecteurInfo();
+        currentMultiSecteur = null;
+        // Avoid opening popup during append completion
+        // End handling here to avoid creating a new feature entry
+        return;
+      } else {
+        // Fallback: if no target secteur was selected, create a new one
+        obj = Secteur.fromLayer(map, layer);
+      }
+    } else if ((type === "secteur" || type === undefined)) {
       obj = Secteur.fromLayer(map, layer);
     } else if (type === "approche") {
       obj = Approche.fromLayer(map, layer);
@@ -496,6 +629,16 @@ $stmtIt->close();
     obj.layer.openPopup();
     featureMap[obj._element_id] = obj;
   })
+
+  // If the global draw mode gets disabled, ensure we exit multi mode
+  map.on('pm:globaldrawmodetoggled', ({ enabled }) => {
+    if (!enabled) {
+      currentMultiSecteur = null;
+      awaitingMultiSecteurSelection = false;
+      clearMultiSecteurAppendHandlers();
+      hideMultiSecteurInfo();
+    }
+  });
 
   window.editLayer = function (id) {
     map.eachLayer((layer) => {
