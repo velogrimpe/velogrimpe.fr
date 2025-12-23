@@ -332,6 +332,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     const fromValue = document.getElementById('train_depart').value;
     const toValue = document.getElementById('train_arrivee').value;
     const { stats, fields } = await horairesTrains.fetchRoute(fromValue, toValue);
+    console.log(stats.uniqueTrips);
     updateFields(fields);
     document.querySelector("#fetchTrains .loading").classList.add("hidden");
     document.getElementById("fetchTrains").disabled = false;

@@ -17,6 +17,8 @@ const transitModes = [
   "LONG_DISTANCE",
   "REGIONAL_FAST_RAIL",
   "REGIONAL_RAIL",
+  "HIGHSPEED_RAIL",
+  "SUBURBAN",
 ].join(",");
 
 const toMinutes = (seconds) => Math.round(seconds / 60);
@@ -93,6 +95,7 @@ function computeStats(data) {
       : 0;
 
   return {
+    uniqueTrips,
     minDuration: toMinutes(minDuration),
     maxDuration: toMinutes(maxDuration),
     minTransfers,
@@ -148,7 +151,9 @@ async function fetchRoute(fromValue, toValue) {
     name: fromName,
     lat: fromLat,
     lon: fromLon,
-  } = fromRes.find((r) => r.type === "STOP") || fromRes[0];
+  } = fromRes.find((r) => r.type === "STOP") ||
+  fromRes.find((r) => r.type === "PLACE") ||
+  fromRes[0];
   const toRes = await fetch(`${url}${geocodeEndpoint}?text=${to}, France`, {
     headers: { "X-Client-Identification": ua },
   }).then((res) => res.json());
@@ -156,7 +161,9 @@ async function fetchRoute(fromValue, toValue) {
     name: toName,
     lat: toLat,
     lon: toLon,
-  } = toRes.find((r) => r.type === "STOP") || toRes[0];
+  } = toRes.find((r) => r.type === "STOP") ||
+  toRes.find((r) => r.type === "PLACE") ||
+  toRes[0];
   const fromPlace = `${fromLat},${fromLon}`;
   const toPlace = `${toLat},${toLon}`;
   const fullUrl =
@@ -179,7 +186,7 @@ async function fetchRoute(fromValue, toValue) {
     const data = await response.json();
     const stats = computeStats(data);
     const fields = transformToTrainFields(stats);
-    return { stats, fields };
+    return { stats, fields, data };
   } catch (error) {
     console.error("Error fetching route:", error);
   }
