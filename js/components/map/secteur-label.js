@@ -19,19 +19,17 @@ export default class SecteurLabel extends Element {
     opacity: 1,
   };
   highlight(e, propagate = true) {
-    document
-      .getElementById(this.id)
-      .classList.add("bg-[darkred]", "text-white");
-    document.getElementById(this.id).classList.remove("bg-white", "text-black");
+    const el = document.getElementById(this.id);
+    el?.classList.add("bg-[darkred]", "text-white");
+    el?.classList.remove("bg-white", "text-black");
     if (propagate) {
       this.secteur.highlight(e, propagate, false);
     }
   }
   unhighlight(propagate = true) {
-    document
-      .getElementById(this.id)
-      .classList.remove("bg-[darkred]", "text-white");
-    document.getElementById(this.id).classList.add("bg-white", "text-black");
+    const el = document.getElementById(this.id);
+    el?.classList.remove("bg-[darkred]", "text-white");
+    el?.classList.add("bg-white", "text-black");
     if (propagate) {
       this.secteur.unhighlight(propagate, false);
     }
