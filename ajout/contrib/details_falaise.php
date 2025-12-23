@@ -125,10 +125,18 @@ $stmtIt->close();
       <a class="btn btn-sm" href="/falaise.php?falaise_id=<?php echo $falaise['falaise_id']; ?>">Voir la falaise</a>
       <input type="file" hidden accept=".geojson" id="uploadGeoJSONInput"
         class="file-input file-input-sm file-input-bordered w-24" />
-      <button class="btn btn-sm" id="uploadGeoJSONButton">
+      <button class="btn btn-sm" id="uploadGeoJSONButton"
+        title="Importer un fichier GeoJSON et remplacer la carte actuelle par le contenu du fichier.">
         <svg class="w-5 h-5 fill-current">
           <use xlink:href="/symbols/icons.svg#ri-file-upload-line"></use>
-        </svg> Import </button>
+        </svg> Import</button>
+      <input type="file" hidden accept=".geojson" id="uploadAddGeoJSONInput"
+        class="file-input file-input-sm file-input-bordered w-24" />
+      <button class="btn btn-sm" id="uploadAddGeoJSONButton"
+        title="Importer un fichier GeoJSON et ajouter son contenu à la carte actuelle.">
+        <svg class="w-5 h-5 fill-current">
+          <use xlink:href="/symbols/icons.svg#ri-file-upload-line"></use>
+        </svg> Ajouter</button>
       <button class="btn btn-sm" id="downloadGeoJSON">Télécharger le GeoJSON</button>
       <div class="tooltip tooltip-left" data-tip="Cmd/Ctrl + S">
         <button class="btn btn-primary btn-sm" id="saveGeoJSON">Enregistrer</button>
@@ -663,24 +671,30 @@ $stmtIt->close();
   document.getElementById('uploadGeoJSONButton').addEventListener('click', () => {
     uploadInput.click();
   });
-  uploadInput.addEventListener('change', function (event) {
+  const uploadAddInput = document.getElementById('uploadAddGeoJSONInput');
+  document.getElementById('uploadAddGeoJSONButton').addEventListener('click', () => {
+    uploadAddInput.click();
+  });
+  const uploadGeoJSON = (isAdd) => function (event) {
     const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-
     reader.onload = function (e) {
       try {
         const geojson = JSON.parse(e.target.result);
         if (!geojson.type || !geojson.features) {
           throw new Error("This doesn't look like a valid GeoJSON file.");
         }
-        Object.keys(featureMap).forEach(key => {
-          const feature = featureMap[key];
-          map.removeLayer(feature.layer);
-          feature.cleanUp();
-          delete featureMap[key];
-        });
+        if (isAdd === false) {
+          // Clear existing features
+          Object.keys(featureMap).forEach(key => {
+            const feature = featureMap[key];
+            map.removeLayer(feature.layer);
+            feature.cleanUp();
+            delete featureMap[key];
+          });
+        }
         importData(geojson);
 
         // You can call a displayGeoJSON(geojson) here if you're using Leaflet
@@ -689,8 +703,10 @@ $stmtIt->close();
       }
     };
     reader.readAsText(file);
+  }
+  uploadInput.addEventListener('change', uploadGeoJSON(false));
+  uploadAddInput.addEventListener('change', uploadGeoJSON(true));
 
-  });
 
   const toGeoJSON = () => ({
     type: "FeatureCollection",
