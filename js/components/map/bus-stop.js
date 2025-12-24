@@ -18,7 +18,17 @@ export default class BusStop extends Element {
     const visibility = options.visibility || { from: 12 };
     const layer = buildBusStopMarker(busStopFeature, options);
     layer.properties = busStopFeature.properties;
-    super(map, layer, "bus_stop", { ...options, visibility });
+    const name = layer.properties?.name || "Arrêt de bus";
+    const desc = layer.properties?.description || "";
+    const html = `<div class=\"min-w-[180px] max-w-[260px]\">\n                      <div class=\"font-bold\">${name}</div>\n                      ${
+      desc ? `<div class=\"text-sm\">${desc}</div>` : ""
+    }\n                    </div>`;
+    super(map, layer, "bus_stop", {
+      ...options,
+      visibility,
+      popupContent: html,
+      popupOptions: { minWidth: 160, maxWidth: 280 },
+    });
     this.setupHighlight();
     this.approches = [];
     this.secteurs = [];
@@ -59,22 +69,25 @@ export default class BusStop extends Element {
   }
 
   updateAssociations(features) {
-    const name = this.layer.properties.name;
-      const busName = this.layer.properties.name;
-      // Approaches that reference this bus stop via their 'bus_stop' list
-      this.approches = features.filter(
-        (feature) =>
-          feature.type === "approche" &&
-          parseList(feature.layer.properties.bus_stop).includes(busName)
-      );
-      // Sectors linked to those approaches (sectors list approach names)
-      const approcheNames = this.approches.map((ap) => ap.layer.properties.name).filter(Boolean);
-      this.secteurs = features.filter(
-        (feature) =>
-          feature.type === "secteur" &&
-          approcheNames.some((n) => parseList(feature.layer.properties.approche).includes(n))
-      );
-      // No bicycle access associations for bus stops.
+    const busName = this.layer.properties.name;
+    // Approaches that reference this bus stop via their 'bus_stop' list
+    this.approches = features.filter(
+      (feature) =>
+        feature.type === "approche" &&
+        parseList(feature.layer.properties.bus_stop).includes(busName)
+    );
+    // Sectors linked to those approaches (sectors list approach names)
+    const approcheNames = this.approches
+      .map((ap) => ap.layer.properties.name)
+      .filter(Boolean);
+    this.secteurs = features.filter(
+      (feature) =>
+        feature.type === "secteur" &&
+        approcheNames.some((n) =>
+          parseList(feature.layer.properties.approche).includes(n)
+        )
+    );
+    // No bicycle access associations for bus stops.
   }
 }
 
