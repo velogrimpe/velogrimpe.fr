@@ -651,6 +651,7 @@ $stmtIt->close();
       obj = FalaiseVoisine.fromLayer(map, layer);
     }
     obj._element_id = layer._leaflet_id || `feature_${id++}`;
+    attachInvertIndexHandler(obj.layer);
     createAndBindPopup(obj.layer, obj._element_id);
     if (obj.label) {
       createAndBindPopup(obj.label.layer, obj._element_id, obj.layer);
@@ -693,6 +694,36 @@ $stmtIt->close();
   });
 
 
+  // Determine which sub-line of a MultiLineString was clicked and store the index on the layer
+  const getClosestSublineIndex = (polylineLayer, latlng) => {
+    const all = polylineLayer.getLatLngs();
+    if (all.length > 0 && all[0] instanceof L.LatLng) return 0; // Single line
+    if (!(all.length > 0 && all[0] instanceof Array)) return null;
+    const p = map.latLngToLayerPoint(latlng);
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < all.length; i++) {
+      const line = all[i];
+      const pts = line.map((ll) => map.latLngToLayerPoint(ll));
+      for (let j = 0; j < pts.length - 1; j++) {
+        const d = L.LineUtil.pointToSegmentDistance(p, pts[j], pts[j + 1]);
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = i;
+        }
+      }
+    }
+    return bestIdx;
+  };
+
+  const attachInvertIndexHandler = (layer) => {
+    if (!(layer instanceof L.Polyline)) return;
+    layer.on("click", (e) => {
+      layer._invertTargetIndex = getClosestSublineIndex(layer, e.latlng);
+    });
+  };
+
+
   // Save function in global scope for simplicity
   window.updateLayer = function (id) {
     const feature = featureMap[id];
@@ -724,13 +755,21 @@ $stmtIt->close();
     const feature = featureMap[id];
     const layer = feature.layer;
     const coords = layer.getLatLngs();
-    if (coords.length > 1) {
+    if (coords.length > 0) {
+      // Single LineString: reverse whole line
       if (coords[0] instanceof L.LatLng) {
         coords.reverse();
-      } else if (coords[0] instanceof Array) {
-        coords.forEach((c) => c.reverse());
+        layer.setLatLngs(coords);
+        return;
       }
-      layer.setLatLngs(coords);
+      // MultiLineString: reverse only the clicked sub-line
+      if (coords[0] instanceof Array) {
+        const idx = layer._invertTargetIndex;
+        if (typeof idx === "number" && coords[idx]) {
+          coords[idx].reverse();
+          layer.setLatLngs(coords);
+        }
+      }
     }
   }
 
@@ -778,7 +817,7 @@ $stmtIt->close();
     popupHtml += `<div class="flex flex-row gap-1 justify-between">`;
     popupHtml += `<button class="flex-1 btn btn-xs btn-error text-base-100" onclick="deleteFeature(${id})">Suppr.</button>`;
     popupHtml += `<button class="flex-1 btn btn-xs btn-accent" onclick="editLayer(${id})">${targetLayer.pm.enabled() ? "OK" : "Modif."}</button>`
-    if ((targetLayer.properties.type === "secteur" || targetLayer.properties.type === undefined) && targetLayer instanceof L.Polyline) {
+    if ((targetLayer.properties.type === "secteur" || targetLayer.properties.type === undefined) && layer instanceof L.Polyline) {
       popupHtml += `<button class="flex-1 btn btn-xs btn-secondary" onclick="invertLine(${id})">Inverser</button>`;
     }
     popupHtml += `<button class="flex-1 btn btn-xs btn-primary" onclick="updateLayer(${id})">Enreg.</button>`
@@ -820,6 +859,7 @@ $stmtIt->close();
         obj._element_id = id++;
         if (obj) {
           featureMap[obj._element_id] = obj;
+          attachInvertIndexHandler(obj.layer);
           createAndBindPopup(obj.layer, obj._element_id);
           if (obj.label) {
             createAndBindPopup(obj.label.layer, obj._element_id, obj.layer);
