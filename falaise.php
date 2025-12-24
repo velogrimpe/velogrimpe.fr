@@ -1070,6 +1070,7 @@ $stmtC->close();
     import Secteur from "/js/components/map/secteur.js";
     import Approche from "/js/components/map/approche.js";
     import Parking from "/js/components/map/parking.js";
+    import BusStop from "/js/components/map/bus-stop.js";
     import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
     import Gare from "/js/components/map/gare.js";
     import { campingLayer, trainlinesLayer } from "/js/components/map/load-vector-tiles.js";
@@ -1138,6 +1139,8 @@ $stmtC->close();
               obj = new AccesVelo(map, feature);
             } else if (feature.properties.type === "parking") {
               obj = new Parking(map, feature);
+            } else if (feature.properties.type === "bus_stop") {
+              obj = new BusStop(map, feature);
             } else if (feature.properties.type === "falaise_voisine") {
               obj = new FalaiseVoisine(map, feature);
             }

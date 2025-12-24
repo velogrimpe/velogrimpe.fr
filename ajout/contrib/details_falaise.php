@@ -106,6 +106,10 @@ $stmtIt->close();
     .vg-draw-velo {
       background-image: url('/images/map/pm/pm_bicycle.png');
     }
+
+    .vg-draw-bus-stop {
+      background-image: url('/images/map/pm/pm_bus.png');
+    }
   </style>
 </head>
 
@@ -211,6 +215,7 @@ $stmtIt->close();
   import Secteur from "/js/components/map/secteur.js";
   import Approche from "/js/components/map/approche.js";
   import Parking from "/js/components/map/parking.js";
+  import BusStop from "/js/components/map/bus-stop.js";
   import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
   import { getValhallaRoute } from "/js/services/valhalla.js";
 
@@ -496,6 +501,28 @@ $stmtIt->close();
     }],
   });
   map.pm.Toolbar.createCustomControl({
+    name: "Arrêt de bus",
+    block: "draw",
+    title: "Ajouter un arrêt de bus",
+    className: "vg-icon vg-draw-bus-stop",
+    actions: ["cancel", {
+      text: "Nouvel arrêt",
+      name: "marker",
+      onClick: () => {
+        map.pm.enableDraw("Marker", {
+          snappable: true,
+          snapDistance: 10,
+          continueDrawing: false,
+          markerStyle: {
+            draggable: true,
+            icon: BusStop.busStopIcon(BusStop.iconSize),
+          },
+          type: "bus_stop",
+        });
+      },
+    }],
+  });
+  map.pm.Toolbar.createCustomControl({
     name: "Secteur",
     block: "draw",
     title: "Ajouter un secteur",
@@ -616,6 +643,8 @@ $stmtIt->close();
       obj = Approche.fromLayer(map, layer);
     } else if (type === "parking") {
       obj = Parking.fromLayer(map, layer);
+    } else if (type === "bus_stop") {
+      obj = BusStop.fromLayer(map, layer);
     } else if (type === "acces_velo") {
       obj = AccesVelo.fromLayer(map, layer);
     } else if (type === "falaise_voisine") {
@@ -739,6 +768,7 @@ $stmtIt->close();
       popupHtml += field("gv", "Grandes Voies", "0 = non, 1 = uniq. GV, 2 = mixte");
     } else if (targetLayer.properties.type === "approche") {
       popupHtml += field("parking", "Parkings", "p1, p2, ...");
+      popupHtml += field("bus_stop", "Arrêts Bus", "b1, b2, ...");
     } else if (targetLayer.properties.type === "parking") {
       popupHtml += field("itineraire_acces", "Accès vélo", "v1, ...");
     } else if (targetLayer.properties.type === "acces_velo") {
@@ -782,6 +812,8 @@ $stmtIt->close();
           obj = new AccesVelo(map, feature);
         } else if (feature.properties.type === "parking") {
           obj = new Parking(map, feature);
+        } else if (feature.properties.type === "bus_stop") {
+          obj = new BusStop(map, feature);
         } else if (feature.properties.type === "falaise_voisine") {
           obj = new FalaiseVoisine(map, feature);
         }
@@ -979,10 +1011,11 @@ $stmtIt->close();
             break;
           case "approche":
             tableauRecap.innerHTML += `
-            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_48px] items-center gap-2">
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_48px] items-center gap-2">
               <div class="text-sm">Nom</div>
               <div class="text-sm">Description</div>
               <div class="text-sm">Parkings</div>
+              <div class="text-sm">Arrêts Bus</div>
               <div class="text-sm">Type</div>
               <div></div>
             </div>
@@ -994,6 +1027,16 @@ $stmtIt->close();
               <div class="text-sm">Nom</div>
               <div class="text-sm">Description</div>
               <div class="text-sm">Accès Vélo</div>
+              <div class="text-sm">Type</div>
+              <div></div>
+            </div>
+            `;
+            break;
+          case "bus_stop":
+            tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_48px] items-center gap-2">
+              <div class="text-sm">Nom</div>
+              <div class="text-sm">Description</div>
               <div class="text-sm">Type</div>
               <div></div>
             </div>
@@ -1043,10 +1086,11 @@ $stmtIt->close();
           break;
         case "approche":
           tableauRecap.innerHTML += `
-            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_48px] items-center gap-2">
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_48px] items-center gap-2">
               ${field("name", "Nom")}
               ${field("description", "Description")}
               ${field("parking", "Parkings")}
+              ${field("bus_stop", "Arrêts Bus")}
               ${field("type", "Type")}
               <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature._element_id})">
                 <svg class="w-5 h-5 fill-current">
@@ -1062,6 +1106,20 @@ $stmtIt->close();
               ${field("name", "Nom")}
               ${field("description", "Description")}
               ${field("itineraire_acces", "Accès Vélo")}
+              ${field("type", "Type")}
+              <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature._element_id})">
+                <svg class="w-5 h-5 fill-current">
+                  <use xlink:href="/symbols/icons.svg#ri-save-3-fill"></use>
+                </svg>
+              </button>
+            </div>
+            `;
+          break;
+        case "bus_stop":
+          tableauRecap.innerHTML += `
+            <div class="grid grid-cols-[1fr_1fr_1fr_48px] items-center gap-2">
+              ${field("name", "Nom")}
+              ${field("description", "Description")}
               ${field("type", "Type")}
               <button class="btn btn-xs btn-primary" onclick="updateLayer(${feature._element_id})">
                 <svg class="w-5 h-5 fill-current">

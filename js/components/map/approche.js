@@ -36,6 +36,7 @@ export default class Approche extends Element {
     this.setupHighlight();
     this.secteurs = [];
     this.parkings = [];
+    this.busStops = [];
     this.accesVelos = [];
   }
 
@@ -49,7 +50,7 @@ export default class Approche extends Element {
   }
 
   getDependencies() {
-    return [this.secteurs, this.parkings, this.accesVelos];
+    return [this.secteurs, this.parkings, this.busStops, this.accesVelos];
   }
 
   updateAssociations(features) {
@@ -64,6 +65,10 @@ export default class Approche extends Element {
       (feature) =>
         feature.type === "parking" &&
         parkings.includes(feature.layer.properties.name)
+    );
+    const busStops = parseList(this.layer.properties.bus_stop);
+    this.busStops = features.filter(
+      (feature) => feature.type === "bus_stop" && busStops.includes(feature.layer.properties.name)
     );
     const accesVelos = this.parkings.flatMap((pk) =>
       parseList(pk.layer.properties.itineraire_acces)

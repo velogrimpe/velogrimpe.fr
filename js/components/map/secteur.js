@@ -33,6 +33,7 @@ export default class Secteur extends Element {
     this.approches = [];
     this.parkings = [];
     this.accesVelos = [];
+    this.busStops = [];
   }
 
   static lineStyle = {
@@ -89,7 +90,7 @@ export default class Secteur extends Element {
   }
 
   getDependencies() {
-    return [this.approches, this.parkings, this.accesVelos];
+    return [this.approches, this.parkings, this.accesVelos, this.busStops];
   }
 
   updateLabel() {
@@ -133,6 +134,15 @@ export default class Secteur extends Element {
       (feature) =>
         feature.type === "approche" &&
         approches.includes(feature.layer.properties.name)
+    );
+    // Bus stops inferred via linked approaches
+    const busStopNames = this.approches.flatMap((ap) =>
+      parseList(ap.layer.properties.bus_stop)
+    );
+    this.busStops = features.filter(
+      (feature) =>
+        feature.type === "bus_stop" &&
+        busStopNames.includes(feature.layer.properties.name)
     );
   }
 
