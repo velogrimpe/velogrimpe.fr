@@ -177,7 +177,6 @@ while ($dataC = $resC->fetch_assoc()) {
   $comments[] = $dataC;
 }
 $stmtC->close();
-
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -514,16 +513,32 @@ $stmtC->close();
 
       foreach ($gares as $gare) {
         $stmtT = $mysqli->prepare("
-          SELECT t.train_temps, t.train_descr, t.train_correspmin, t.train_correspmax
-          FROM train t
-          WHERE t.ville_id = ? AND t.gare_id = ?
-      ");
+          SELECT
+            t.train_temps, t.train_descr, t.train_correspmin,
+            t.train_correspmax, COALESCE(t.train_tgv, 0) AS train_tgv
+            FROM train t
+            WHERE t.ville_id = ? AND t.gare_id = ?
+            ORDER BY COALESCE(t.train_tgv, 0) ASC
+          ");
         $stmtT->bind_param("ii", $ville_id_get, $gare['gare_id']);
         $stmtT->execute();
         $resT = $stmtT->get_result();
-        $dataT = $resT->fetch_assoc();
+        $train_itineraires = [];
+        while ($row = $resT->fetch_assoc()) {
+          $train_itineraires[] = $row;
+        }
         $stmtT->close();
-
+        //   $stmtT = $mysqli->prepare("
+        //     SELECT t.train_temps, t.train_descr, t.train_correspmin, t.train_correspmax
+        //     FROM train t
+        //     WHERE t.ville_id = ? AND t.gare_id = ?
+        // ");
+        //   $stmtT->bind_param("ii", $ville_id_get, $gare['gare_id']);
+        //   $stmtT->execute();
+        //   $resT = $stmtT->get_result();
+        //   $dataT = $resT->fetch_assoc();
+        //   $stmtT->close();
+      
         $stmtVG = $mysqli->prepare("
           SELECT v.ville_id, v.ville_nom
           FROM villes v
@@ -539,19 +554,7 @@ $stmtC->close();
         }
         $stmtVG->close();
 
-        $train_temps = $dataT['train_temps'] ?? null;
-
-        $train_descr = $dataT['train_descr'] ?? null;
-        $train_correspmin = $dataT['train_correspmin'] ?? null;
-        $train_correspmax = $dataT['train_correspmax'] ?? null;
-
-        $formatted_time = $train_temps !== null ? format_time($train_temps) : null;
-        $corresp_text = null;
-        if ($train_correspmin !== null && $train_correspmax !== null) {
-          $corresp_text = ($train_correspmin === $train_correspmax)
-            ? "Nb. corresp. : $train_correspmin"
-            : "Nb.  corresp. : de $train_correspmin à $train_correspmax";
-        }
+        $best_train_temps = count($train_itineraires) > 0 ? min(array_column($train_itineraires, 'train_temps')) : null;
 
         $stmtVelo = $mysqli->prepare("
           SELECT
@@ -582,8 +585,8 @@ $stmtC->close();
             <div class="text-lg"> Accès via la gare de <span class="font-bold capitalize">
                 <?php echo htmlspecialchars($gare['gare_nom']) ?>
               </span>
-              <?php if ($selected_ville_nom && $train_descr): ?> : <span class="font-bold text-primary">
-                  <?= format_time($shortest_velo_time + $train_temps + $falaise_maa) ?>
+              <?php if ($selected_ville_nom && count($train_itineraires) > 0): ?> : <span class="font-bold text-primary">
+                  <?= format_time($shortest_velo_time + $best_train_temps + $falaise_maa) ?>
                 </span>
                 <span class="text-base" title="Temps total (Train + Velo + Approche)">(🚃+🚲+🥾)</span>
               <?php endif ?>
@@ -592,9 +595,19 @@ $stmtC->close();
               <div class="text-sm text-slate-400"> 🚲 - <?= format_time($shortest_velo_time) ?>
                 (<?= htmlspecialchars($velo_itineraires[0]['velo_km']) ?> km,
                 <?= htmlspecialchars($velo_itineraires[0]['velo_dplus']) ?> D+) </div>
-              <?php if ($train_temps): ?>
-                <div class="text-sm text-slate-400">🚆 - <?= format_time($train_temps) ?>
-                  (<?= $train_correspmin > 0 ? $train_correspmin . ' Corresp.' : 'Direct' ?>) </div>
+              <?php if (count($train_itineraires) > 0): ?>
+                <div class="text-sm text-slate-400">
+                  <?php foreach ($train_itineraires as $t): ?>
+                    <div> 🚆 - <?= format_time($t['train_temps']) ?> (<?= ($t['train_correspmin'] ?? 0) > 0
+                         ? (($t['train_correspmin'] === $t['train_correspmax'])
+                           ? $t['train_correspmin'] . ' Corresp.'
+                           : 'de ' . $t['train_correspmin'] . ' à ' . $t['train_correspmax'] . ' Corresp.')
+                         : 'Direct' ?>)<?php if (!empty($t['train_tgv'])): ?>
+                        <span class="badge badge-accent badge-sm" title="Trajet empruntant un segment TGV"> TGV </span>
+                      <?php endif; ?>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
               <?php endif ?>
             </div>
           </div>
@@ -611,7 +624,7 @@ $stmtC->close();
               <td class='rounded-t-xl text-center text-lg font-bold bg-base-200 text-base-content text-wrap' colspan='2'>
                 Accès depuis la gare de : <?php echo htmlspecialchars(mb_strtoupper($gare['gare_nom'], 'UTF-8')) ?>
                 <?php if ($selected_ville_nom): ?>
-                  Total : <?php echo format_time($shortest_velo_time + $train_temps + $falaise_maa) ?>
+                  Total : <?php echo format_time($shortest_velo_time + ($best_train_temps ?? 0) + $falaise_maa) ?>
                 <?php endif ?>
               </td>
             </tr>
@@ -626,12 +639,20 @@ $stmtC->close();
                         <b><?= htmlspecialchars($selected_ville_nom) . " → " . htmlspecialchars($gare["gare_nom"]) ?></b>
                       <?php else: ?> Rejoindre la gare de : <b><?= htmlspecialchars($gare["gare_nom"]) ?></b>
                       <?php endif; ?>
-                      <?php if (!empty($formatted_time)): ?> : <span
-                          class="text-lg font-bold"><?= $formatted_time ?></span>
-                      <?php endif ?>
-                      <?php if (!empty($corresp_text)): ?>
-                        <br>
-                        <?= nl2br($corresp_text) ?>
+                      <?php if (count($train_itineraires) > 0): ?>
+                        <div class="mt-1 flex flex-col gap-1">
+                          <?php foreach ($train_itineraires as $t): ?>
+                            <div class="text-sm">
+                              <span class="text-lg font-bold ml-1"><?= format_time($t['train_temps']) ?></span> (<?= ($t['train_correspmin'] ?? 0) > 0
+                                  ? (($t['train_correspmin'] === $t['train_correspmax'])
+                                    ? $t['train_correspmin'] . ' Corresp.'
+                                    : 'de ' . $t['train_correspmin'] . ' à ' . $t['train_correspmax'] . ' Corresp.')
+                                  : 'Direct' ?>) <?php if (!empty($t['train_tgv'])): ?>
+                                <span class="badge badge-accent badge-sm" title="Trajet empruntant un segment TGV">TGV</span>
+                              <?php endif; ?>
+                            </div>
+                          <?php endforeach; ?>
+                        </div>
                       <?php endif ?>
                       <!-- <button class="btn btn-xs btn-outline btn-accent" onclick="gare<?= $gare["gare_id"] ?>.showModal()">
                       <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
@@ -652,8 +673,25 @@ $stmtC->close();
                 </td>
                 <td class='border-t border-b border-1 border-base-300'>
                   <?php if ($ville_id_get): ?>
-                    <?php if ($train_descr): ?>
-                      <span class="vg-a-primary"><?= nl2br($train_descr) ?></span>
+                    <?php if (count($train_itineraires) > 0): ?>
+                      <?php foreach ($train_itineraires as $t): ?>
+                        <!-- If index > 0 add a <hr element> -->
+                        <?php if ($t !== reset($train_itineraires)): ?>
+                          <hr class="my-4">
+                        <?php endif; ?>
+                        <?php if (!empty($t['train_tgv'])): ?>
+                          <span class="badge badge-accent badge-sm" title="Trajet empruntant un segment TGV">Option avec
+                            TGV</span>
+                        <?php endif; ?>
+                        <div class="mb-2">
+                          <?php if (!empty($t['train_descr'])): ?>
+                            <span class="vg-a-primary"><?= nl2br($t['train_descr']) ?></span>
+                          <?php else: ?>
+                            <span class="ml-2">Itinéraire non décrit (soit il est peu pertinent, soit pas encore
+                              renseigné).</span>
+                          <?php endif; ?>
+                        </div>
+                      <?php endforeach; ?>
                     <?php else: ?> Itinéraire non décrit (soit il est peu pertinent, soit j'ai pas eu le temps !).
                     <?php endif ?>
                   <?php else: ?>
