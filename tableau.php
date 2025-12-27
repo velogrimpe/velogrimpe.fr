@@ -56,7 +56,7 @@ $stmt = $mysqli->prepare("
   SELECT
     f.*,
     g.gare_nom,
-    t.train_depart, t.train_arrivee, t.train_temps, t.train_correspmin, t.train_correspmax, t.train_descr,
+    t.train_depart, t.train_arrivee, t.train_temps, t.train_correspmin, t.train_correspmax, t.train_descr, COALESCE(t.train_tgv, 0) AS train_tgv,
       v.velo_depart, v.velo_arrivee, v.velo_km, v.velo_dplus, v.velo_dmoins, v.velo_descr, v.velo_variante, v.velo_apieduniquement, velo_apiedpossible,
       villes.ville_nom,
       z.zone_nom
@@ -415,6 +415,14 @@ $stmt->close();
                     </label>
                   </div>
                 </div>
+                <div class="divider my-1"></div>
+                <label class="form-control cursor-pointer">
+                  <div class="label gap-2 p-0 justify-start">
+                    <span class="label-text text-sm">TGV OK</span>
+                    <input type="checkbox" id="terOnly" class="toggle toggle-primary toggle-sm" />
+                    <span class="label-text text-sm">TER uniquement</span>
+                  </div>
+                </label>
               </div>
             </div>
           </div>
@@ -489,7 +497,7 @@ $stmt->close();
                 </div>
               </div>
             </div>
-            <button id="resetButton" class="btn btn-xs btn-ghost px-1 text-nowrap disabled:hidden" type="reset"
+            <button id="resetButton" class="btn btn-xs btn-ghost px-1 text-nowrap disabled:opacity-0" type="reset"
               title="Réinitialiser les filtres">
               <svg class="w-4 h-4 fill-current">
                 <use xlink:href="/symbols/icons.svg#ri-close-circle-line"></use>
@@ -552,7 +560,10 @@ $stmt->close();
               <ul class="list-disc list-inside">
                 <?php foreach ($acces as $row): ?>
                   <li>
-                    <?php if ($row["train_temps"] > 0): ?> Train pour <?php echo $row["train_arrivee"] ?>
+                    <?php if ($row["train_temps"] > 0): ?>
+                      <?php if (!empty($row['train_tgv'])): ?>
+                        <span class="badge badge-accent badge-sm" title="Trajet empruntant un segment TGV">TGV</span>
+                      <?php endif; ?> Train pour <?php echo $row["train_arrivee"] ?>
                       (<?php echo format_time($row["train_temps"]) ?>, <span title='D=Direct / C=Correspondances'>
                         <?php echo ($row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C")
                           . ($row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C")
@@ -620,17 +631,16 @@ $stmt->close();
           <?php foreach ($acces as $row): ?>
             <div class="self-stretch flex flex-col justify-center py-2 px-2">
               <div class="text-base font-bold">
-                <?php
-                if ($row["train_temps"] > 0) {
-                  echo format_time($row["train_temps"])
-                    . " <span title='D=Direct / C=Correspondances'>("
-                    . ($row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C")
-                    . ($row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C")
-                    . ")</span>";
-                } else {
-                  echo "Pas de train à prendre";
-                }
-                ?>
+                <?php if ($row["train_temps"] > 0): ?>
+                  <?php if (!empty($row['train_tgv'])): ?>
+                    <span class="badge badge-accent badge-sm" title="Trajet empruntant un segment TGV">TGV</span>
+                  <?php endif; ?>
+                  <?= format_time($row["train_temps"]) ?>
+                  <span
+                    title='D=Direct / C=Correspondances'>(<?= $row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C" ?>
+                    <?= $row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C" ?>
+                    )</span>
+                <?php else: ?> Pas de train à prendre <?php endif; ?>
               </div>
               <div class="text-nowrap"><?php echo $row["train_arrivee"] ?></div>
             </div>
@@ -787,6 +797,7 @@ $stmt->close();
     const distMaxVelo = document.getElementById("distMaxVelo").value;
     const denivMaxVelo = document.getElementById("denivMaxVelo").value;
     const tempsMaxTrain = document.getElementById("tempsMaxTrain").value;
+    const terOnly = document.getElementById("terOnly").checked;
     const nbCorrespMax0 = document.getElementById("nbCorrespMax0").checked;
     const nbCorrespMax1 = document.getElementById("nbCorrespMax1").checked;
     const nbCorrespMax = nbCorrespMax0 ? 0 : nbCorrespMax1 ? 1 : 10;
@@ -809,7 +820,7 @@ $stmt->close();
     } else {
       voiesFilterBtn.classList.remove("btn-primary");
     }
-    if (tempsMaxTrain !== "" || nbCorrespMax !== 10) {
+    if (tempsMaxTrain !== "" || nbCorrespMax !== 10 || terOnly) {
       trainFilterBtn.classList.add("btn-primary");
     } else {
       trainFilterBtn.classList.remove("btn-primary");
@@ -845,6 +856,7 @@ $stmt->close();
       && tempsMaxTVA === ""
       && nbCorrespMax === 10
       && tempsMaxTrain === ""
+      && !terOnly
     ) {
       resetFalaises();
       resetButton.disabled = true;
@@ -875,8 +887,10 @@ $stmt->close();
         const estTrainCompatible = (
           falaiseItineraires.some(it => {
             const duration = calculate_time(it);
+            const isTerOk = (!terOnly) || parseInt(it.train_tgv || 0) === 0;
             return (
-              (tempsMaxTrain === "" || parseInt(it.train_temps) <= parseInt(tempsMaxTrain))
+              isTerOk
+              && (tempsMaxTrain === "" || parseInt(it.train_temps) <= parseInt(tempsMaxTrain))
               && (nbCorrespMax === 10 || parseInt(it.train_correspmax) <= nbCorrespMax)
               && (tempsMaxTV === "" || parseInt(it.train_temps) + duration <= parseInt(tempsMaxTV))
               && (tempsMaxTVA === "" || parseInt(it.temps_total) <= parseInt(tempsMaxTVA))
