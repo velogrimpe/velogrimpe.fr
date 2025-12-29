@@ -110,8 +110,8 @@ a:hover {
 .bgwhite {
   background-color: white;
 }
-.bgblue {
-  background-color: white;
+.bgred {
+  background-color: #a00;
 }
 .leaflet-control-layers-toggle {
   width: 30px !important;

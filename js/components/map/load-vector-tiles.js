@@ -20,7 +20,7 @@ const tgvPaintRules = [
   {
     dataLayer: "tgv",
     symbolizer: new protomapsL.LineSymbolizer({
-      color: "#800",
+      color: "#a00",
       width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5),
     }),
   },
@@ -32,13 +32,13 @@ const tgvLabelRules = [
     symbolizer: new protomapsL.GroupSymbolizer([
       new protomapsL.CircleSymbolizer({
         radius: 3,
-        fill: "#800",
+        fill: "#a00",
         stroke: "#fff",
         width: 1,
       }),
       new protomapsL.OffsetTextSymbolizer({
         label_props: ["name"],
-        fill: (z, f) => (z < tgvShowLabelFromZoom ? "transparent" : "#800"),
+        fill: (z, f) => (z < tgvShowLabelFromZoom ? "transparent" : "#a00"),
         stroke: "white",
         width: (z, f) => (z < tgvShowLabelFromZoom ? 0 : 2),
         maxLineChars: 15,

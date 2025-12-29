@@ -5,7 +5,7 @@ $falaises = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")->
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 $gares = $mysqli->query("SELECT
   g.*,
-  GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin) SEPARATOR '=|=') AS villes
+  GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin, '|', COALESCE(t.train_tgv, 0)) SEPARATOR '=|=') AS villes
   FROM gares g
   LEFT JOIN train t ON t.gare_id = g.gare_id
   WHERE g.deleted = 0
@@ -305,6 +305,11 @@ $highlight = $_GET['h'] ?? '';
                         </label>
                       </div>
                     </div>
+                    <div class="flex flex-row gap-2 items-center ml-2 villeRequired opacity-30">
+                      <div>TER + TGV</div>
+                      <input type="checkbox" id="terOnly" class="toggle toggle-sm toggle-primary" />
+                      <div>TER uniquement</div>
+                    </div>
                     <div class="flex flex-row gap-2 items-center">
                       <div class="font-bold">&bull; Vélo (V)</div>
                       <div class="flex flex-row gap-6 items-center ml-4">
@@ -443,10 +448,10 @@ $highlight = $_GET['h'] ?? '';
       iconSize: [size, size],
       iconAnchor: [size / 2, size],
     });
-  const trainIcon = (size = 24) => {
+  const trainIcon = (tgv, size = 24) => {
     return L.icon({
       iconUrl: "/images/map/icone_train_carte.png",
-      className: "train-icon" + (size === 24 ? " bgwhite" : " bgblue"),
+      className: "train-icon bgwhite" + (tgv ? " filterred" : ""),
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
     });
@@ -534,7 +539,7 @@ $highlight = $_GET['h'] ?? '';
     // Restore normal tooltips for gares and falaises
     gares.forEach((gare) => {
       if (gare.type === "gare") {
-        gare.marker?.setIcon(trainIcon());
+        gare.marker?.setIcon(trainIcon(gare.gare_tgv === "1", 24));
         // gare.marker?.closeTooltip();
         gare.marker?.unbindTooltip();
         gare.marker?.bindTooltip(gare.gare_nom, {
@@ -811,7 +816,7 @@ $highlight = $_GET['h'] ?? '';
     const marker = L.marker(
       gare.gare_latlng.split(","),
       {
-        icon: trainIcon(),
+        icon: trainIcon(gare.gare_tgv === "1", 24),
         riseOnHover: true,
         autoPanOnFocus: true,
       }
@@ -837,7 +842,7 @@ $highlight = $_GET['h'] ?? '';
         ...gare.access.map(it => it.falaise.falaise_latlng.split(",").map(parseFloat))
       ];
       map.flyToBounds(bounds, { maxZoom: 12, paddingTopLeft: [0, 50], paddingBottomRight: [50, 0], duration: 0.5 });
-      e.target.setIcon(trainIcon(selectedGareSize));
+      e.target.setIcon(trainIcon(gare.gare_tgv === "1", selectedGareSize));
 
       setTimeout(() => gare.access.map((it, i) => {
         const c = itinerairesColors[i % itinerairesColors.length];
@@ -902,7 +907,7 @@ $highlight = $_GET['h'] ?? '';
         color: "#fff",
         weight: 1,
         fill: true,
-        fillColor: "black",
+        fillColor: gare.gare_tgv === "0" ? "black" : "#a00",
         fillOpacity: 1,
       }
     ).addTo(map);
@@ -923,7 +928,7 @@ $highlight = $_GET['h'] ?? '';
     g.villes = (g.villes || "")
       .split("=|=")
       .map(v => {
-        const [ville_id, ville, durStr, nCorresp] = v.split("|"); return { ville_id, ville, temps: parseInt(durStr), nCorresp: parseInt(nCorresp) }
+        const [ville_id, ville, durStr, nCorresp, tgv] = v.split("|"); return { ville_id, ville, temps: parseInt(durStr), nCorresp: parseInt(nCorresp), train_tgv: parseInt(tgv) }
       });
     return g;
   });
@@ -1148,7 +1153,7 @@ $highlight = $_GET['h'] ?? '';
           if (!gare.marker || gare.displayMode === "hidden") {
             setGareMarker(gare, map, "normal");
           } else {
-            gare.marker?.setIcon(trainIcon());
+            gare.marker?.setIcon(trainIcon(gare.gare_tgv === "1", 24));
           }
         }
       }
@@ -1171,6 +1176,7 @@ $highlight = $_GET['h'] ?? '';
   import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
   campingLayer.addTo(map);
   trainlinesLayer.addTo(map);
+  tgvLayer.addTo(map);
   layerControl.addOverlay(tgvLayer, 'Lignes et Gares TGV');
   layerControl.addOverlay(campingLayer, 'Campings');
   layerControl.addOverlay(giteLayer, 'Gîtes');
@@ -1248,6 +1254,7 @@ $highlight = $_GET['h'] ?? '';
     const nbCorrespMax0 = document.getElementById("nbCorrespMax0").checked;
     const nbCorrespMax1 = document.getElementById("nbCorrespMax1").checked;
     const nbCorrespMax = nbCorrespMax0 ? 0 : nbCorrespMax1 ? 1 : 10;
+    const terOnly = document.getElementById("terOnly").checked;
     const tempsMaxMA = document.getElementById("tempsMaxMA").value;
     const tempsMaxTV = document.getElementById("tempsMaxTV").value;
     const tempsMaxTVA = document.getElementById("tempsMaxTVA").value;
@@ -1300,6 +1307,7 @@ $highlight = $_GET['h'] ?? '';
             return train && (
               (tempsMaxTrain === "" || train.temps <= parseInt(tempsMaxTrain))
               && (nbCorrespMax === 10 || train.nCorresp <= nbCorrespMax)
+              && (!terOnly || parseInt(train.train_tgv || 0) === 0)
               && (tempsMaxTV === "" || train.tempsTrainVelo <= parseInt(tempsMaxTV))
               && (tempsMaxTVA === "" || train.tempsTotal <= parseInt(tempsMaxTVA))
             )
