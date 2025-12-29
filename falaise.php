@@ -1111,7 +1111,7 @@ $stmtC->close();
     import BusStop from "/js/components/map/bus-stop.js";
     import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
     import Gare from "/js/components/map/gare.js";
-    import { campingLayer, trainlinesLayer } from "/js/components/map/load-vector-tiles.js";
+    import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
 
     const falaise = <?php echo json_encode($dataF); ?>;
     const itineraires = <?php echo json_encode($itineraires); ?>;
@@ -1125,8 +1125,6 @@ $stmtC->close();
     var map = L.map("map", { layers: [landscapeTiles], center, zoom, fullscreenControl: true });
     L.control.scale({ position: "bottomleft", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
     L.control.locate().addTo(map);
-    trainlinesLayer.addTo(map);
-    campingLayer.addTo(map);
 
     map.fitBounds(bounds, { maxZoom: 15 });
     var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
@@ -1197,9 +1195,6 @@ $stmtC->close();
       });
     window.map = map; // Pour debug
 
-  </script>
-  <script type="module">
-    import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
     campingLayer.addTo(map);
     trainlinesLayer.addTo(map);
     layerControl.addOverlay(tgvLayer, 'Lignes et Gares TGV');

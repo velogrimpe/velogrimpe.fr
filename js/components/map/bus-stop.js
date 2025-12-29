@@ -20,14 +20,21 @@ export default class BusStop extends Element {
     layer.properties = busStopFeature.properties;
     const name = layer.properties?.name || "Arrêt de bus";
     const desc = layer.properties?.description || "";
-    const html = `<div class=\"min-w-[180px] max-w-[260px]\">\n                      <div class=\"font-bold\">${name}</div>\n                      ${
-      desc ? `<div class=\"text-sm\">${desc}</div>` : ""
-    }\n                    </div>`;
+    const html =
+      `<div class=\"max-w-[260px]\">` +
+      `  <div class=\"font-bold\">${name}</div>` +
+      `  ${desc ? `<div class=\"text-sm\">${desc}</div>` : ""}` +
+      `</div>`;
     super(map, layer, "bus_stop", {
       ...options,
       visibility,
-      popupContent: html,
-      popupOptions: { minWidth: 160, maxWidth: 280 },
+      tooltipContent: html,
+      tooltipOptions: {
+        direction: "right",
+        offset: [BusStop.iconSize / 2, BusStop.iconSize / 2],
+        maxWidth: 260,
+        className: "vg-tooltip vg-bus-stop-tooltip",
+      },
     });
     this.setupHighlight();
     this.approches = [];

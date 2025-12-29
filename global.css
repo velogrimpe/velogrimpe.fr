@@ -189,6 +189,15 @@ input[type="number"] {
   box-shadow: none;
 }
 
+.vg-tooltip {
+  padding: 6px 8px;
+  font: 14px/16px Arial, Helvetica, sans-serif;
+  border: 2px solid #e8cd51;
+  width: fit-content;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+}
+
 /* Prevent iOS Zoom on inputs */
 @media (max-width: 600px) {
   input,
