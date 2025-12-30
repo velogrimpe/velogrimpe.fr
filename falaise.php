@@ -1197,6 +1197,7 @@ $stmtC->close();
 
     campingLayer.addTo(map);
     trainlinesLayer.addTo(map);
+    tgvLayer.addTo(map);
     layerControl.addOverlay(tgvLayer, 'Lignes et Gares TGV');
     layerControl.addOverlay(campingLayer, 'Campings');
     layerControl.addOverlay(giteLayer, 'Gîtes');
