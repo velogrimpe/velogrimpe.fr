@@ -585,21 +585,38 @@ $stmt->close();
         correspond aux filtres. </div>
     </div>
     <!-- VERSION DESKTOP -->
-    <div class="hidden
+    <div id="desktopGrid" class="hidden
                 md:grid grid-cols-[1.5fr_60px_1fr_2fr_2fr] gap-[1px] 
                 bg-base-300 shadow-xl rounded-lg overflow-hidden
                 text-center items-center text-sm">
-      <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center"></div>
-      <div class="bg-base-100 px-1 py-1 self-stretch flex items-center justify-center font-bold text-xs"> Temps total
-        (T+V+A) </div>
-      <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
+      <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center vg-desktop-header">
+        <label class="label gap-2 p-0 justify-center">
+          <span class="label-text text-xs">Trier par</span>
+          <select id="sort-select" class="select select-xs border-base-300 focus:outline-base-300">
+            <option value="total-asc" selected>Temps total ↗</option>
+            <option value="total-desc">Temps total ↘</option>
+            <option value="train-asc">Temps Train ↗</option>
+            <option value="train-desc">Temps Train ↘</option>
+            <option value="velo-asc">Temps Vélo ↗</option>
+            <option value="velo-desc">Temps Vélo ↘</option>
+            <option value="voies-asc">Nb voies ↗</option>
+            <option value="voies-desc">Nb voies ↘</option>
+            <option value="approche-asc">Approche ↗</option>
+            <option value="approche-desc">Approche ↘</option>
+          </select>
+        </label>
+      </div>
+      <div
+        class="bg-base-100 px-1 py-1 self-stretch flex items-center justify-center font-bold text-xs vg-desktop-header">
+        Temps total (T+V+A)</div>
+      <div class="bg-base-100 px-2 py-1 self-stretch flex flex-col items-center justify-center vg-desktop-header">
         <img class="h-12" alt="Train" src="/images/icons/train-station_color.png" />
       </div>
-      <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
-        <img class="h-12" alt="Velo" src="/images/icons/bicycle_color.png" />
+      <div class="bg-base-100 px-2 py-1 self-stretch flex flex-col items-center justify-center vg-desktop-header">
+        <img class="h-12" alt="Vélo" src="/images/icons/bicycle_color.png" />
       </div>
-      <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center">
-        <img class="h-12" alt="Corde" src="/images/icons/rock-climbing_color.png" />
+      <div class="bg-base-100 px-2 py-1 self-stretch flex flex-col items-center justify-center vg-desktop-header">
+        <img class="h-12" alt="Escalade" src="/images/icons/rock-climbing_color.png" />
       </div>
       <!-- <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center font-bold">Zone</div> -->
       <?php foreach ($falaises as $falaise_id => $acces): ?>
@@ -722,6 +739,69 @@ $stmt->close();
     const time_in_minutes = Math.round(time_in_hours * 60);
     return time_in_minutes;
   }
+
+  // ============================================ TRI (DESKTOP) ============================================
+  const sortState = { key: 'total', dir: 'asc' }; // tri par défaut : Temps total asc (déjà côté serveur)
+
+  function metricsForFalaise(f) {
+    // f: tableau des itinéraires pour une falaise
+    const minTotal = Math.min.apply(null, f.map(it => parseInt(it.temps_total || 0)));
+    const minTrain = Math.min.apply(null, f.map(it => parseInt(it.train_temps || 0)));
+    const minVelo = Math.min.apply(null, f.map(it => calculate_time(it)));
+    const nbVoies = parseInt(f[0].falaise_nbvoies || 0);
+    const approche = parseInt(f[0].falaise_maa || 0);
+    return { minTotal, minTrain, minVelo, nbVoies, approche };
+  }
+
+  function applySort() {
+    falaises.sort((a, b) => {
+      const ma = metricsForFalaise(a);
+      const mb = metricsForFalaise(b);
+      let va = 0, vb = 0;
+      switch (sortState.key) {
+        case 'total': va = ma.minTotal; vb = mb.minTotal; break;
+        case 'train': va = ma.minTrain; vb = mb.minTrain; break;
+        case 'velo': va = ma.minVelo; vb = mb.minVelo; break;
+        case 'voies': va = ma.nbVoies; vb = mb.nbVoies; break;
+        case 'approche': va = ma.approche; vb = mb.approche; break;
+      }
+      const cmp = (va === vb) ? 0 : (va < vb ? -1 : 1);
+      return sortState.dir === 'asc' ? cmp : -cmp;
+    });
+    reorderDesktopGrid();
+  }
+
+  function reorderDesktopGrid() {
+    const grid = document.getElementById('desktopGrid');
+    if (!grid) return;
+    const nomatchEl = document.getElementById('nomatch');
+    // Move each falaise group (5 cellules avec la classe falaise-<id>-desktop) avant #nomatch selon l'ordre courant
+    falaises.forEach(f => {
+      const id = f[0].falaise_id;
+      const nodes = Array.from(document.getElementsByClassName(`falaise-${id}-desktop`));
+      nodes.forEach(n => {
+        // Insert before nomatch to keep header cells at top and preserve end marker
+        if (nomatchEl) grid.insertBefore(n, nomatchEl);
+        else grid.appendChild(n);
+      });
+    });
+  }
+
+  // Bind sort via dropdown (desktop)
+  document.addEventListener('DOMContentLoaded', () => {
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+      sortSelect.value = `${sortState.key}-${sortState.dir}`;
+      sortSelect.addEventListener('change', (e) => {
+        const [key, dir] = e.target.value.split("-");
+        sortState.key = key;
+        sortState.dir = dir;
+        applySort();
+      });
+      // Apply default sort immediately to normalize order and future reorders
+      applySort();
+    }
+  });
 
   // ============================================ FILTRES ============================================
   const falaises = <?php echo json_encode($falaises); ?>;
@@ -931,6 +1011,8 @@ $stmt->close();
     const nbInFilter = falaises.filter(f => !f[0].filteredOut).length;
     renderFalaises();
     updateInfo();
+    // Keep current sort order reflected in DOM after filtering
+    reorderDesktopGrid();
   }
   document.querySelectorAll("#filtersForm input").forEach(i => i.addEventListener("change", filterHandler));
   document.querySelectorAll("#filtersForm select").forEach(i => i.addEventListener("change", filterHandler));
