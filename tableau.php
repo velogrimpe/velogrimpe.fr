@@ -497,6 +497,28 @@ $stmt->close();
                 </div>
               </div>
             </div>
+            <!-- TRI MOBILE dans la liste des filtres -->
+            <div class="dropdown dropdown-end w-fit md:hidden">
+              <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
+                id="sortMobileBtn">Tri ↕️</div>
+              <div id="sortMobileDropdown"
+                class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-48 p-2 shadow-lg items-start"
+                tabindex="1">
+                <div class="font-bold">Trier par</div>
+                <ul>
+                  <li><a class="p-1 justify-start" data-sort="total-asc">Temps total ↗</a></li>
+                  <li><a class="p-1 justify-start" data-sort="total-desc">Temps total ↘</a></li>
+                  <li><a class="p-1 justify-start" data-sort="train-asc">Temps Train ↗</a></li>
+                  <li><a class="p-1 justify-start" data-sort="train-desc">Temps Train ↘</a></li>
+                  <li><a class="p-1 justify-start" data-sort="velo-asc">Temps Vélo ↗</a></li>
+                  <li><a class="p-1 justify-start" data-sort="velo-desc">Temps Vélo ↘</a></li>
+                  <li><a class="p-1 justify-start" data-sort="voies-asc">Nb voies ↗</a></li>
+                  <li><a class="p-1 justify-start" data-sort="voies-desc">Nb voies ↘</a></li>
+                  <li><a class="p-1 justify-start" data-sort="approche-asc">Approche ↗</a></li>
+                  <li><a class="p-1 justify-start" data-sort="approche-desc">Approche ↘</a></li>
+                </ul>
+              </div>
+            </div>
             <button id="resetButton" class="btn btn-xs btn-ghost px-1 text-nowrap disabled:opacity-0" type="reset"
               title="Réinitialiser les filtres">
               <svg class="w-4 h-4 fill-current">
@@ -508,7 +530,7 @@ $stmt->close();
       </div>
     </div>
     <!-- VERSION MOBILE -->
-    <div class="flex flex-col gap-4 md:hidden">
+    <div id="mobileList" class="flex flex-col gap-4 md:hidden">
       <?php foreach ($falaises as $falaise_id => $acces): ?>
         <?php $common = $acces[0]; ?>
         <a href="<?php echo '/falaise.php?falaise_id=' . $common['falaise_id'] . "&ville_id=" . $ville_id ?>"
@@ -769,6 +791,7 @@ $stmt->close();
       return sortState.dir === 'asc' ? cmp : -cmp;
     });
     reorderDesktopGrid();
+    reorderMobileList();
   }
 
   function reorderDesktopGrid() {
@@ -787,20 +810,68 @@ $stmt->close();
     });
   }
 
-  // Bind sort via dropdown (desktop)
+  function updateSortControls() {
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) sortSelect.value = `${sortState.key}-${sortState.dir}`;
+    const sortMobileDropdown = document.getElementById('sortMobileDropdown');
+    if (sortMobileDropdown) {
+      const links = Array.from(sortMobileDropdown.querySelectorAll('[data-sort]'));
+      links.forEach(l => {
+        l.classList.remove('font-bold', 'text-primary');
+        l.classList.add('font-normal', 'text-base-content');
+      });
+      const current = sortMobileDropdown.querySelector(`[data-sort="${sortState.key}-${sortState.dir}"]`);
+      if (current) {
+        current.classList.remove('font-normal', 'text-base-content');
+        current.classList.add('font-bold', 'text-primary');
+      };
+    }
+  }
+
+  function reorderMobileList() {
+    const list = document.getElementById('mobileList');
+    if (!list) return;
+    const nomatchMobileEl = document.getElementById('nomatch-mobile');
+    falaises.forEach(f => {
+      const id = f[0].falaise_id;
+      const el = document.getElementById(`falaise-${id}-mobile`);
+      if (el) {
+        if (nomatchMobileEl) list.insertBefore(el, nomatchMobileEl);
+        else list.appendChild(el);
+      }
+    });
+  }
+
+  // Bind sort via dropdown (desktop + mobile)
   document.addEventListener('DOMContentLoaded', () => {
     const sortSelect = document.getElementById('sort-select');
+    const sortMobileDropdown = document.getElementById('sortMobileDropdown');
     if (sortSelect) {
       sortSelect.value = `${sortState.key}-${sortState.dir}`;
       sortSelect.addEventListener('change', (e) => {
         const [key, dir] = e.target.value.split("-");
         sortState.key = key;
         sortState.dir = dir;
+        updateSortControls();
         applySort();
       });
-      // Apply default sort immediately to normalize order and future reorders
-      applySort();
     }
+    if (sortMobileDropdown) {
+      Array.from(sortMobileDropdown.querySelectorAll('[data-sort]')).forEach(link => {
+        link.addEventListener('click', (e) => {
+          const value = e.currentTarget.getAttribute('data-sort');
+          const [key, dir] = value.split('-');
+          sortState.key = key;
+          sortState.dir = dir;
+          // keep desktop select in sync if present
+          updateSortControls();
+          applySort();
+        });
+      });
+    }
+    // Initialize controls and apply default sort to normalize order
+    updateSortControls();
+    applySort();
   });
 
   // ============================================ FILTRES ============================================
@@ -1013,6 +1084,7 @@ $stmt->close();
     updateInfo();
     // Keep current sort order reflected in DOM after filtering
     reorderDesktopGrid();
+    reorderMobileList();
   }
   document.querySelectorAll("#filtersForm input").forEach(i => i.addEventListener("change", filterHandler));
   document.querySelectorAll("#filtersForm select").forEach(i => i.addEventListener("change", filterHandler));
