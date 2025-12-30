@@ -57,6 +57,7 @@ function computeStats(data) {
         tgv:
           stopId.includes("TGV INOUI") ||
           stopId.includes("TGVINOUI") ||
+          stopId.includes("OCELyria") ||
           stopId.includes("OUIGO") ||
           leg.agencyName === "Trenitalia" ||
           (leg.agencyName || "").includes("RENFE") ||
