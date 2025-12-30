@@ -88,40 +88,21 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <option value="<?= $gare['nom']; ?>"></option>
         <?php endforeach; ?>
       </datalist>
-      <!-- Menu déroulant des villes -->
-      <div class="flex flex-col gap-1 w-1/2">
-        <label class="form-control" for="ville_id">
-          <b>Ville de départ :</b>
-          <select class="select select-primary select-sm" id="ville_id" name="ville_id" required
-            value="<?= $preset_ville_id ?? '' ?>">
-            <option value="">Sélectionnez une ville</option>
-            <?php foreach ($villes as $ville_id => $ville_nom): ?>
-              <option value="<?= $ville_id; ?>" <?= (isset($preset_ville_id) && $preset_ville_id == $ville_id) ? 'selected' : '' ?>>
-                <?= $ville_nom; ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-      </div>
       <div class="flex flex-row gap-4 items-center">
-        <!-- Menu déroulant des gares -->
+        <!-- Menu déroulant des villes -->
         <div class="flex flex-col gap-1 w-1/2">
-          <div class="relative not-prose">
-            <label class="form-control" for="train_depart">
-              <b>Gare de départ :</b>
-              <div class="input input-primary input-sm flex items-center gap-2 w-full">
-                <input class="grow" type="text" id="train_depart" name="train_depart" required autocomplete="off" />
-                <svg class="w-4 h-4 fill-current">
-                  <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
-                </svg>
-              </div>
-            </label>
-            <ul id="depart-search-list"
-              class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-            </ul>
-          </div>
-          <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_depart_id"
-            name="train_depart_id" readonly required>
+          <label class="form-control" for="ville_id">
+            <b>Ville de départ :</b>
+            <select class="select select-primary select-sm" id="ville_id" name="ville_id" required
+              value="<?= $preset_ville_id ?? '' ?>">
+              <option value="">Sélectionnez une ville</option>
+              <?php foreach ($villes as $ville_id => $ville_nom): ?>
+                <option value="<?= $ville_id; ?>" <?= (isset($preset_ville_id) && $preset_ville_id == $ville_id) ? 'selected' : '' ?>>
+                  <?= $ville_nom; ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </label>
         </div>
         <!-- Menu déroulant des gares -->
         <div class="flex flex-col gap-1 w-1/2">
@@ -144,11 +125,32 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             value="<?= $preset_gare_id ?? '' ?>" readonly required>
         </div>
       </div>
+      <!-- <div class="flex flex-row gap-4 items-center"> -->
+      <!-- Menu déroulant des gares -->
+      <!-- <div class="flex flex-col gap-1 w-1/2">
+          <div class="relative not-prose">
+            <label class="form-control" for="train_depart">
+              <b>Gare de départ :</b>
+              <div class="input input-primary input-sm flex items-center gap-2 w-full">
+                <input class="grow" type="text" id="train_depart" name="train_depart" required autocomplete="off" />
+                <svg class="w-4 h-4 fill-current">
+                  <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
+                </svg>
+              </div>
+            </label>
+            <ul id="depart-search-list"
+              class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
+            </ul>
+          </div>
+          <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="train_depart_id"
+            name="train_depart_id" readonly required>
+        </div> -->
+      <!-- </div> -->
       <label class="form-control" for="train_tgv">
         <div class="flex flex-row items-center gap-2">
           <span>TER uniquement</span>
           <input type="checkbox" class="toggle toggle-primary toggle-sm" id="train_tgv" name="train_tgv">
-          <span>TGV autorisé</span>
+          <span>Itinéraire TGV</span>
         </div>
       </label>
       <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
@@ -158,7 +160,26 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         Si vous avez besoin de modifier les informations, contactez nous par mail à l'addresse <a
           href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>.
       </div>
-      <div class="flex flex-col gap-4">
+      <!-- Champs libres pour la recherche d'horaires (non envoyés au serveur) -->
+      <div class="flex flex-col gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label class="form-control" for="horaires_depart">
+            <b>Recherche horaires — Gare de départ (libre)</b>
+            <input type="text" class="input input-bordered input-sm" id="horaires_depart"
+              placeholder="ex: Lyon Part-Dieu" autocomplete="off">
+            <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
+              l'envoi.</span>
+          </label>
+          <label class="form-control" for="horaires_arrivee">
+            <b>Recherche horaires — Gare d'arrivée (libre)</b>
+            <input type="text" class="input input-bordered input-sm" id="horaires_arrivee" placeholder="ex: Dijon Ville"
+              autocomplete="off">
+            <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
+              l'envoi.</span>
+          </label>
+        </div>
+      </div>
+      <div class="flex flex-col gap-4 mt-2">
         <div class="flex flex-row justify-start">
           <button class="btn btn-secondary btn-sm" type="button" id="fetchTrains">Consulter les horaires <div
               class="hidden loading loading-spinner"></div>
@@ -426,8 +447,9 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     // Add loader in the button and disable it
     document.querySelector("#fetchTrains .loading").classList.remove("hidden");
     document.getElementById("fetchTrains").disabled = true;
-    const fromValue = document.getElementById('train_depart').value;
-    const toValue = document.getElementById('train_arrivee').value;
+    // Use decoupled free-text fields for schedule lookup; fallback to velogrimpe fields if empty
+    const fromValue = (document.getElementById('horaires_depart')?.value || '').trim() || document.getElementById('train_depart').value;
+    const toValue = (document.getElementById('horaires_arrivee')?.value || '').trim() || document.getElementById('train_arrivee').value;
     const { stats, fields } = await horairesTrains.fetchRoute(fromValue, toValue);
     renderItineraries(stats.uniqueTrips || []);
     // Update only description from fields; numeric fields already derived from selected trips
@@ -438,7 +460,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 </script>
 <script src="/js/autocomplete.js"></script>
 <script>
-  setupAutocomplete("train_depart", "depart-search-list", "gares", departCallback);
+  // setupAutocomplete("train_depart", "depart-search-list", "gares", departCallback);
   setupAutocomplete("train_arrivee", "arrivee-search-list", "gares", arriveeCallback);
 </script>
 

@@ -43,6 +43,7 @@ function computeStats(data) {
     const duration =
       (new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000;
     const segments = transitLegs.map((leg) => {
+      const stopId = leg.from.stopId || "";
       return {
         from: leg.from.name,
         to: leg.to.name,
@@ -54,11 +55,11 @@ function computeStats(data) {
         agency: leg.agencyName,
         mode: leg.mode,
         tgv:
-          leg.from.stopId.includes("TGV INOUI") ||
-          leg.from.stopId.includes("TGVINOUI") ||
-          leg.from.stopId.includes("OUIGO") ||
+          stopId.includes("TGV INOUI") ||
+          stopId.includes("TGVINOUI") ||
+          stopId.includes("OUIGO") ||
           leg.agencyName === "Trenitalia" ||
-          leg.agencyName.includes("RENFE") ||
+          (leg.agencyName || "").includes("RENFE") ||
           leg.mode === "HIGHSPEED_RAIL",
       };
     });
@@ -167,23 +168,11 @@ async function fetchRoute(fromValue, toValue) {
   const fromRes = await fetch(`${url}${geocodeEndpoint}?text=${from}`, {
     headers: { "X-Client-Identification": ua },
   }).then((res) => res.json());
-  const {
-    name: fromName,
-    lat: fromLat,
-    lon: fromLon,
-  } = fromRes.find((r) => r.type === "STOP") ||
-  fromRes.find((r) => r.type === "PLACE") ||
-  fromRes[0];
+  const { name: fromName, lat: fromLat, lon: fromLon } = fromRes[0];
   const toRes = await fetch(`${url}${geocodeEndpoint}?text=${to}`, {
     headers: { "X-Client-Identification": ua },
   }).then((res) => res.json());
-  const {
-    name: toName,
-    lat: toLat,
-    lon: toLon,
-  } = toRes.find((r) => r.type === "STOP") ||
-  toRes.find((r) => r.type === "PLACE") ||
-  toRes[0];
+  const { name: toName, lat: toLat, lon: toLon } = toRes[0];
   const fromPlace = `${fromLat},${fromLon}`;
   const toPlace = `${toLat},${toLon}`;
   const fullUrl =
@@ -194,9 +183,9 @@ async function fetchRoute(fromValue, toValue) {
     `&time=${nextSaturday.toISOString()}` +
     `&withFares=${true}` +
     `&passengers=${1}` +
+    // `&preTransitModes=${"BIKE,WALK"}` +
+    // `&maxPreTransitTime=${3600}` + // returns too many duplicated results, requires to dedup
     `&searchWindow=${86400}`;
-  // + `&preTransitModes=${"BIKE"}`
-  // + `&maxPreTransitTime=${3600}` // returns too many duplicated results, requires to dedup
 
   try {
     const response = await fetch(fullUrl, {

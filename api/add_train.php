@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $train_public = isset($_POST['train_public']) && $_POST['train_public'] !== '' ? (int) $_POST['train_public'] : null;
 
   $train_descr = trim($_POST['train_descr'] ?? '');
-  $train_depart = trim($_POST['train_depart'] ?? '');
+  $train_depart = trim($_POST['horaires_depart'] ?? '');
   $train_arrivee = trim($_POST['train_arrivee'] ?? '');
 
   $nom_prenom = trim($_POST['nom_prenom'] ?? '');
