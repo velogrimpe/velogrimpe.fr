@@ -33,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     'train_correspmax' => $train_correspmax,
     'train_public' => $train_public,
     'train_descr' => $train_descr,
-    'train_depart' => $train_depart,
     'train_arrivee' => $train_arrivee
   ];
 
@@ -61,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   $stmt = $mysqli->prepare("INSERT INTO train
-    (ville_id, gare_id, train_temps, train_tempsmax, train_correspmin, train_correspmax, train_nbtrains, train_public,
+    (ville_id, gare_id, train_temps, train_tempsmax, train_correspmin, train_correspmax, train_nbparjour, train_public,
     train_descr, train_depart, train_arrivee, train_contrib, train_tgv)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   if (!$stmt) {

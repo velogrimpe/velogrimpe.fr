@@ -160,64 +160,52 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         Si vous avez besoin de modifier les informations, contactez nous par mail à l'addresse <a
           href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>.
       </div>
-      <!-- Champs libres pour la recherche d'horaires (non envoyés au serveur) -->
-      <div class="flex flex-col gap-2">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label class="form-control" for="horaires_depart">
-            <b>Recherche horaires — Gare de départ (libre)</b>
-            <input type="text" class="input input-bordered input-sm" id="horaires_depart"
-              placeholder="ex: Lyon Part-Dieu" autocomplete="off">
-            <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
-              l'envoi.</span>
-          </label>
-          <label class="form-control" for="horaires_arrivee">
-            <b>Recherche horaires — Gare d'arrivée (libre)</b>
-            <input type="text" class="input input-bordered input-sm" id="horaires_arrivee" placeholder="ex: Dijon Ville"
-              autocomplete="off">
-            <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
-              l'envoi.</span>
-          </label>
+      <div class="p-4 border-2 border-secondary rounded-lg pt-2">
+        <div class="text-center font-bold text-lg mb-2 text-secondary">Recherche itinéraires</div>
+        <!-- Champs libres pour la recherche d'horaires (non envoyés au serveur) -->
+        <div class="flex flex-col gap-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="form-control" for="horaires_depart">
+              <b>Gare de départ</b>
+              <input type="text" class="input input-bordered input-sm" id="horaires_depart"
+                placeholder="ex: Lyon Part-Dieu" autocomplete="off">
+              <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
+                l'envoi.</span>
+            </label>
+            <label class="form-control" for="horaires_arrivee">
+              <b>Gare d'arrivée</b>
+              <input type="text" class="input input-bordered input-sm" id="horaires_arrivee"
+                placeholder="ex: Dijon Ville" autocomplete="off">
+              <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
+                l'envoi.</span>
+            </label>
+          </div>
+        </div>
+        <div class="flex flex-col gap-4 mt-2">
+          <div class="flex flex-row justify-end">
+            <button class="btn btn-secondary btn-sm" type="button" id="fetchTrains">Consulter les horaires <div
+                class="hidden loading loading-spinner"></div>
+            </button>
+          </div>
+          <div class="border rounded-lg border-slate-400 hidden p-4 shadow-lg bg-base-100 max-h-[400px] overflow-y-auto"
+            id="tableTrains">
+            <table class="table table-xs table-zebra table-nowrap my-0">
+              <thead>
+                <tr>
+                  <td>Départ</td>
+                  <td>Durée</td>
+                  <td>Nb Corresp.</td>
+                  <td>N° Trains</td>
+                  <td>Détails Trains</td>
+                  <td>Inclure ?</td>
+                </tr>
+              </thead>
+              <tbody id="tableTrainsBody">
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div class="flex flex-col gap-4 mt-2">
-        <div class="flex flex-row justify-start">
-          <button class="btn btn-secondary btn-sm" type="button" id="fetchTrains">Consulter les horaires <div
-              class="hidden loading loading-spinner"></div>
-          </button>
-        </div>
-        <div class="border rounded-lg border-slate-400 hidden p-4 shadow-lg bg-base-100 max-h-[400px] overflow-y-auto"
-          id="tableTrains">
-          <table class="table table-xs table-zebra table-nowrap my-0">
-            <thead>
-              <tr>
-                <td>Départ</td>
-                <td>Durée</td>
-                <td>Nb Corresp.</td>
-                <td>N° Trains</td>
-                <td>Détails Trains</td>
-                <td>Inclure ?</td>
-              </tr>
-            </thead>
-            <tbody id="tableTrainsBody">
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <details>
-        <summary>Ancien protocole de relevé de données <i>(cliquez pour développer)</i></summary>
-        <div class="prose-p:mb-0 prose-p:mt-0">
-          <p> Pour la suite, suivez le protocole ci-dessous ; c'est galère, mais on n'a pas trouvé mieux pour l'instant
-            ! </p>
-          <ul>
-            <li>Allez sur <a href="https://www.b-europe.com/FR">le site de la SNCB.</a></li>
-            <li>Lancez une recherche AVANCÉE entre votre ville de départ et la gare d'arrivée, et dans les options,
-              cochez "pas de trains à grande vitesse".</li>
-            <li>Affichez tous les trains sur une période de Samedi à Lundi (on fait ça car les fréquences varient entre
-              la semaine, le Samedi et le Dimanche).</li>
-            <li>Synthétisez les résultats obtenus dans les champs ci-dessous.</li>
-          </ul>
-        </div>
-      </details>
       <div class="flex flex-col gap-2 flex-wrap">
         <div class="grid grid-cols-1 gap-4 items-end flex-wrap md:grid-cols-3">
           <label class="form-control" for="train_temps">
