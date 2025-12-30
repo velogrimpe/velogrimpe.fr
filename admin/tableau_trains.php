@@ -133,15 +133,10 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                                 <span class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left text-error">
                                   <?= $gare["gare_nom"] ?>
                                 </span>
-                                <!-- <a class="badge badge-primary badge-outline badge-xs h-5 w-5 rounded-full text-sm shrink-0"
-                                  href="/ajout/ajout_train.php?gare_id=<?= $gare["gare_id"] ?>&ville_id=<?= $ville["ville_id"] ?>&admin=<?= $token ?>">
-                                  +
-                                </a> -->
-                                <button
-                                  class="badge badge-primary badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
-                                  title="Ajouter ce triplet Gare - Ville - Falaise"
-                                  onclick="addTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
-                                  + </button>
+                                <a class="badge badge-primary badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
+                                  title="Ajouter l'itinéraire train (Ville → Gare)"
+                                  href="/ajout/ajout_train.php?gare_id=<?= $gare['gare_id'] ?>&ville_id=<?= $ville['ville_id'] ?>&admin=<?= $token ?>"
+                                  target="_blank" rel="noopener"> + </a>
                                 <button
                                   class="badge badge-error badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
                                   title="Exclure ce triplet Gare - Ville - Falaise"
@@ -170,162 +165,9 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
       </table>
     </div>
   </main>
-  <dialog id="addTripletModal" class="modal" onclose="cleanAddTripletDialog()">
-    <div class="modal-box">
-      <h3 class="text-lg font-bold">Sélectionnez la gare de départ</h3>
-      <div class="flex flex-col gap-2 items-start">
-        <div class="relative">
-          <datalist id="gares">
-            <?php foreach ($allGares as $gare_id => $gare): ?>
-              <option value="<?= $gare['gare_nom']; ?>"></option>
-            <?php endforeach; ?>
-          </datalist>
-          <input type="hidden" id="train_arrivee" name="train_arrivee" required autocomplete="off" />
-          <input type="hidden" id="train_arrivee_id" name="train_arrivee_id" required autocomplete="off" />
-          <input type="hidden" id="ville_id" name="ville_id" required autocomplete="off" />
-          <label class="form-control" for="train_depart">
-            <b>Gare de départ :</b>
-            <div class="input input-primary input-sm flex items-center gap-2 w-full">
-              <input class="grow" type="text" id="train_depart" name="train_depart" required autocomplete="off" />
-              <svg class="w-4 h-4 fill-current">
-                <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
-              </svg>
-            </div>
-          </label>
-          <ul id="depart-search-list"
-            class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-          </ul>
-        </div>
-        <label class="form-control" for="train_tgv">
-          <div class="flex flex-row items-center gap-2">
-            <span>TER uniquement</span>
-            <input type="checkbox" class="toggle toggle-primary toggle-sm" id="train_tgv" name="train_tgv">
-            <span>TGV autorisé</span>
-          </div>
-        </label>
-        <button class="btn btn-sm btn-primary" onClick="searchRoutes()">OK</button>
-      </div>
-      <hr class="my-4" />
-      <h3 class="text-lg font-bold">Résultats</h3>
-      <div class="flex flex-col">
-        <label class="label p-1"><b>Temps min.</b><input class="input input-bordered input-xs" type="text"
-            id="train_temps" /></label>
-        <label class="label p-1"><b>Corresp min.</b><input class="input input-bordered input-xs" type="text"
-            id="train_correspmin" /></label>
-        <label class="label p-1"><b>Corresp max.</b><input class="input input-bordered input-xs" type="text"
-            id="train_correspmax" /></label>
-        <label class="label p-1"><b>Nb. Trains/jour</b><input class="input input-bordered input-xs" type="text"
-            id="train_nbtrains" /></label>
-        <label class="label p-1 gap-2"><b>Description</b><textarea rows="6"
-            class="grow textarea textarea-bordered textarea-xs" id="train_descr"></textarea></label>
-      </div>
-      <div class="modal-action">
-        <button class="btn btn-sm btn-primary" id="addTrainButton" onclick="addTrain()">Ajouter</button>
-        <form method="dialog">
-          <button class="btn btn-sm" onClick="cleanAddTripletDialog()">Close</button>
-        </form>
-      </div>
-    </div>
-  </dialog>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
 </body>
-<script src="/js/services/horaires-trains.js"></script>
 <script>
-  const villes = <?= json_encode($villes) ?>;
-  const gares = <?= json_encode($allGares) ?>;
-  function cleanAddTripletDialog() {
-    document.getElementById("train_temps").value = "";
-    document.getElementById("train_correspmin").value = "";
-    document.getElementById("train_correspmax").value = "";
-    document.getElementById("train_nbtrains").value = "";
-    document.getElementById("train_descr").value = "";
-    document.getElementById("train_arrivee").value = "";
-    document.getElementById("train_depart").value = "";
-    document.getElementById("train_arrivee_id").value = "";
-    document.getElementById("ville_id").value = "";
-  }
-
-  function addTriplet(villeId, gareId, falaiseId, thisElement) {
-    document.getElementById("addTripletModal").showModal();
-    document.getElementById("train_arrivee").value = gares.find(gare => gare.gare_id === String(gareId))?.gare_nom || "";
-    document.getElementById("train_arrivee_id").value = gareId;
-    document.getElementById("ville_id").value = villeId;
-  }
-  async function searchRoutes() {
-    const depart = document.getElementById("train_depart").value;
-    const arrivee = document.getElementById("train_arrivee").value;
-    if (!depart || !arrivee) {
-      alert(`Veuillez saisir une gare de départ et une gare d'arrivée. ${!depart ? "Gare de départ manquante." : ""} ${!arrivee ? "Gare d'arrivée manquante." : ""}`);
-      return;
-    }
-    const { stats, fields } = await horairesTrains.fetchRoute(depart, arrivee);
-    // display results in the modal
-    document.getElementById("train_temps").value = fields.train_temps;
-    document.getElementById("train_correspmin").value = fields.train_correspmin;
-    document.getElementById("train_correspmax").value = fields.train_correspmax;
-    document.getElementById("train_nbtrains").value = fields.train_nbtrains;
-    document.getElementById("train_descr").value = fields.train_descr;
-    document.getElementById("addTrainButton").disabled = false;
-  }
-
-  function addTrain() {
-    // get values from the modal
-    const ville_id = document.getElementById("ville_id").value;
-    const gare_id = document.getElementById("train_arrivee_id").value;
-    const train_depart = document.getElementById("train_depart").value;
-    const train_arrivee = document.getElementById("train_arrivee").value;
-    const train_temps = document.getElementById("train_temps").value;
-    const train_correspmin = document.getElementById("train_correspmin").value;
-    const train_correspmax = document.getElementById("train_correspmax").value;
-    const train_nbtrains = document.getElementById("train_nbtrains").value;
-    const train_descr = document.getElementById("train_descr").value;
-    const train_tgv = document.getElementById("train_tgv").checked ? 1 : 0;
-
-    // validate values
-    if (!ville_id || !gare_id || !train_depart || !train_arrivee || !train_temps || !train_correspmin || !train_correspmax || !train_nbtrains || !train_descr) {
-      alert("Veuillez remplir tous les champs.");
-      return;
-    }
-
-    // send to api
-    fetch("/api/private/add_train.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer <?= $token ?>"
-      },
-      body: JSON.stringify({
-        ville_id,
-        gare_id,
-        train_depart,
-        train_arrivee,
-        train_temps,
-        train_correspmin,
-        train_correspmax,
-        train_nbtrains,
-        train_descr,
-        train_tgv,
-        user: "<?= isset($_SERVER["REMOTE_USER"]) ? $_SERVER["REMOTE_USER"] : "admin" ?>",
-      })
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-        if (data.success) {
-          alert("Train ajouté avec succès.");
-          cleanAddTripletDialog();
-          document.getElementById("addTripletModal").close();
-          // Optionally, refresh the page or update the table to reflect the new train
-        } else {
-          alert("Erreur lors de l'ajout du train : " + data.message);
-        }
-      })
-      .catch(error => {
-        console.error("Erreur:", error);
-        alert("Erreur lors de l'ajout du train.");
-      });
-  }
-
   function excludeVilleGare(villeId, gareId, thisElement) {
     fetch("/api/private/exclude_train.php", {
       method: "POST",
@@ -420,10 +262,6 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
     rows.forEach(row => table.querySelector('tbody').appendChild(row));
 
   }
-</script>
-<script src="/js/autocomplete.js"></script>
-<script>
-  setupAutocomplete("train_depart", "depart-search-list", "gares");
 </script>
 
 </html>
