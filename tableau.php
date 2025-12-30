@@ -662,8 +662,7 @@ $stmt->close();
                   <?php endif; ?>
                   <?= format_time($row["train_temps"]) ?>
                   <span
-                    title='D=Direct / C=Correspondances'>(<?= $row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C" ?>
-                    <?= $row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C" ?>)</span>
+                    title='D=Direct / C=Correspondances'>(<?= $row["train_correspmin"] == 0 ? "D" : $row["train_correspmin"] . "C" ?><?= $row["train_correspmax"] == 0 || $row["train_correspmax"] == $row["train_correspmin"] ? "" : "/" . $row["train_correspmax"] . "C" ?>)</span>
                 <?php else: ?> Pas de train à prendre <?php endif; ?>
               </div>
               <div class="text-nowrap"><?php echo $row["train_arrivee"] ?></div>
