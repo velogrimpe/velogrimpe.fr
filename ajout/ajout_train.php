@@ -170,14 +170,14 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
               <input type="text" class="input input-bordered input-sm" id="horaires_depart"
                 placeholder="ex: Lyon Part-Dieu" autocomplete="off">
               <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
-                l'envoi.</span>
+                l'envoi. Soyez précis pour éviter les erreurs de noms.</span>
             </label>
             <label class="form-control" for="horaires_arrivee">
               <b>Gare d'arrivée</b>
               <input type="text" class="input input-bordered input-sm" id="horaires_arrivee"
                 placeholder="ex: Dijon Ville" autocomplete="off">
               <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
-                l'envoi.</span>
+                l'envoi. Soyez précis pour éviter les erreurs de noms.</span>
             </label>
           </div>
         </div>
