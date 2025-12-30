@@ -498,13 +498,14 @@ $stmt->close();
               </div>
             </div>
             <!-- TRI MOBILE dans la liste des filtres -->
-            <div class="dropdown dropdown-end w-fit md:hidden">
+            <div class="dropdown dropdown-end w-fit">
               <div tabindex="0" role="button" class="btn btn-sm text-nowrap focus:pointer-events-none"
                 id="sortMobileBtn">Tri ↕️</div>
               <div id="sortMobileDropdown"
                 class="dropdown-content menu bg-base-200 rounded-box z-[1] m-1 w-48 p-2 shadow-lg items-start"
                 tabindex="1">
                 <div class="font-bold">Trier par</div>
+                <hr class="w-1/2 bg-base-300 mb-1 mt-2 mx-auto" />
                 <ul>
                   <li><a class="p-1 justify-start" data-sort="total-asc">Temps total ↗</a></li>
                   <li><a class="p-1 justify-start" data-sort="total-desc">Temps total ↘</a></li>
@@ -612,21 +613,6 @@ $stmt->close();
                 bg-base-300 shadow-xl rounded-lg overflow-hidden
                 text-center items-center text-sm">
       <div class="bg-base-100 px-2 py-1 self-stretch flex items-center justify-center vg-desktop-header">
-        <label class="label gap-2 p-0 justify-center">
-          <span class="label-text text-xs">Trier par</span>
-          <select id="sort-select" class="select select-xs border-base-300 focus:outline-base-300">
-            <option value="total-asc" selected>Temps total ↗</option>
-            <option value="total-desc">Temps total ↘</option>
-            <option value="train-asc">Temps Train ↗</option>
-            <option value="train-desc">Temps Train ↘</option>
-            <option value="velo-asc">Temps Vélo ↗</option>
-            <option value="velo-desc">Temps Vélo ↘</option>
-            <option value="voies-asc">Nb voies ↗</option>
-            <option value="voies-desc">Nb voies ↘</option>
-            <option value="approche-asc">Approche ↗</option>
-            <option value="approche-desc">Approche ↘</option>
-          </select>
-        </label>
       </div>
       <div
         class="bg-base-100 px-1 py-1 self-stretch flex items-center justify-center font-bold text-xs vg-desktop-header">
@@ -811,8 +797,6 @@ $stmt->close();
   }
 
   function updateSortControls() {
-    const sortSelect = document.getElementById('sort-select');
-    if (sortSelect) sortSelect.value = `${sortState.key}-${sortState.dir}`;
     const sortMobileDropdown = document.getElementById('sortMobileDropdown');
     if (sortMobileDropdown) {
       const links = Array.from(sortMobileDropdown.querySelectorAll('[data-sort]'));
@@ -844,18 +828,7 @@ $stmt->close();
 
   // Bind sort via dropdown (desktop + mobile)
   document.addEventListener('DOMContentLoaded', () => {
-    const sortSelect = document.getElementById('sort-select');
     const sortMobileDropdown = document.getElementById('sortMobileDropdown');
-    if (sortSelect) {
-      sortSelect.value = `${sortState.key}-${sortState.dir}`;
-      sortSelect.addEventListener('change', (e) => {
-        const [key, dir] = e.target.value.split("-");
-        sortState.key = key;
-        sortState.dir = dir;
-        updateSortControls();
-        applySort();
-      });
-    }
     if (sortMobileDropdown) {
       Array.from(sortMobileDropdown.querySelectorAll('[data-sort]')).forEach(link => {
         link.addEventListener('click', (e) => {
