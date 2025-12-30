@@ -61,15 +61,13 @@ $email = $config['contact_mail'];
         <a href="/ajout/ajout_velo.php">ajouter un itinéraire vélo/à pied d'une gare à une falaise.</a><br /> Prérequis
         : avoir déjà ajouté la falaise, et avoir une trace GPS entre une gare et la falaise.
       </li>
-      <li>
-        <b>Etape 3 :</b>
-        <a href="/ajout/ajout_train.php">ajouter une description d'un itinéraire en train.</a>
-      </li>
     </ul>
     <p> Si seule l'étape 1 est réalisée, c'est déjà bien mais la falaise n'apparaitra pas sur le site.<br /> Pour
       qu'elle apparaisse sur la carte, il faut connecter la falaise à au moins une gare, en réalisant l'étape 2.<br />
-      Et si tu veux être complet, réalise l'étape 3 pour connecter la falaise à une "ville de départ", et elle
-      apparaitra aussi dans le tableau "falaises proches de ...". </p>
+    </p>
+    <p>Pour faire apparaître la falaise dans le tableau "falaises proches de ...", il est nécessaire de renseigner
+      également un itinéraire train. Nous avons fermé la contribution sur cette partie pour le moment, donc envoie nous
+      un message sur <a href="mailto:<?= $email ?>">contact@velogrimpe.fr</a> et on l'ajoutera rapidement.</p>
     <h3>Falaises prioritaires</h3>
     <p>Les falaises très proches des gares sont particulièrement intéressantes car avec un court trajet à vélo, voire à
       pied, la falaise devient accessible à un plus grand public. Nous avons réalisé une carte interactive qui localise
@@ -79,12 +77,16 @@ $email = $config['contact_mail'];
     <a class="btn btn-sm btn-primary not-prose" href="/ajout/falaises_accessibles_a_pied.php"> Carte des falaises
       prioritaires </a>
     <h2>AUTRES CONTRIBUTIONS</h2>
-    <p> - Si vous voulez corriger des informations, ou que vous avez des suggestions, envoyez-nous un mail à <a
-        href="mailto:<?= $email ?>">contact@velogrimpe.fr</a>.<br>
-    </p>
+    <p> - Si vous voulez corriger des informations sur une falaise, vous pouvez le faire depuis la fiche falaise en
+      question.</p>
+    <p> - Pour les itinéraires vélo, vous pouvez laisser un commentaire de sortie sur la fiche falaise concernée ou nous
+      contacter par mail</p>
+    <p> - Enfin, si vous avez des suggestions, envoyez-nous un mail à <a
+        href="mailto:<?= $email ?>">contact@velogrimpe.fr</a>.</p>
     <p> - Vous connaissez bien les falaises d'une certaine zone, et voudriez bien vérifier les informations déjà en
       ligne, répondre à nos questions, et nous tenir au courant de l'actualité locale (falaises fermées, nouveaux
-      secteurs...) ? Nous cherchons des <b>référents locaux</b> pour jouer ce rôle, écrivez-nous ! </p>
+      secteurs...) ? Nous cherchons des <b>référents locaux</b> pour jouer ce rôle, écrivez-nous ! Nous avons déjà des
+      groupes pour Paris, Les Calanques, Annecy, ... n'hésitez pas à les rejoindre en nous contactant !</p>
     <p>- Si vous avez des talents d'artiste et que vous pouvez nous créer un logo, une affiche...ça serait super !</p>
     <p>- Si vous avez envie de contribuer au code de ce site, signaler des erreurs ou suggérer des évolutions, ça se
       passe sur Github : <a href="https://github.com/velogrimpe/velogrimpe.fr" target="_blank">code source</a></p>
