@@ -10,6 +10,7 @@ DISTINCT
   g.gare_nom,
   g.gare_id,
   GROUP_CONCAT(DISTINCT v.ville_id SEPARATOR ',') AS ville_ids,
+  GROUP_CONCAT(DISTINCT IF(t.train_tgv = 1, v.ville_id, NULL) SEPARATOR ',') AS tgv_ville_ids,
   GROUP_CONCAT(DISTINCT evg.ville_id SEPARATOR ',') AS excluded_gare_ville_ids,
   GROUP_CONCAT(DISTINCT evf.ville_id SEPARATOR ',') AS excluded_falaise_ville_ids,
   GROUP_CONCAT(DISTINCT evgf.ville_id SEPARATOR ',') AS excluded_falaise_gare_ville_ids,
@@ -88,7 +89,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                 <?= join(
                   "<br />",
                   array_map(
-                    fn($gare) => $gare["gare_nom"] . (!empty($gare["has_tgv"]) ? " (TGV)" : ""),
+                    fn($gare) => (!empty($gare["has_tgv"]) ? '<span class="badge badge-accent badge-xs mr-1">TGV</span>' : '') . $gare["gare_nom"],
                     $gares
                   )
                 ) ?>
@@ -121,8 +122,12 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                               or in_array($ville['ville_id'], explode(',', $gare['excluded_gare_ville_ids']))
                             ): ?> - <?php else: ?>
                               <?php if (in_array($ville['ville_id'], explode(',', $gare['ville_ids']))): ?>
-                                <span class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left">
-                                  <?= $gare["gare_nom"] ?>
+                                <span
+                                  class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left flex items-center gap-1">
+                                  <?php if (in_array($ville['ville_id'], array_filter(explode(',', $gare['tgv_ville_ids'] ?? '')))): ?>
+                                    <span class="badge badge-accent badge-xs">TGV</span>
+                                  <?php endif; ?>
+                                  <span><?= $gare["gare_nom"] ?></span>
                                 </span>
                               <?php else: ?>
                                 <span class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left text-error">
