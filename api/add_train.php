@@ -10,6 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $train_tgv = isset($_POST['train_tgv']) && $_POST['train_tgv'] !== '' ? (int) $_POST['train_tgv'] : 0;
   $train_correspmin = isset($_POST['train_correspmin']) && $_POST['train_correspmin'] !== '' ? (int) $_POST['train_correspmin'] : null;
   $train_correspmax = isset($_POST['train_correspmax']) && $_POST['train_correspmax'] !== '' ? (int) $_POST['train_correspmax'] : null;
+  $train_nbtrains = isset($_POST['train_nbtrains']) && $_POST['train_nbtrains'] !== '' ? (int) $_POST['train_nbtrains'] : null;
+  $train_tempsmax = isset($_POST['train_tempsmax']) && $_POST['train_tempsmax'] !== '' ? (int) $_POST['train_tempsmax'] : null;
   $train_public = isset($_POST['train_public']) && $_POST['train_public'] !== '' ? (int) $_POST['train_public'] : null;
 
   $train_descr = trim($_POST['train_descr'] ?? '');
@@ -59,21 +61,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   $stmt = $mysqli->prepare("INSERT INTO train
-        (ville_id, gare_id, train_temps, train_correspmin, train_correspmax, train_public,
-        train_descr, train_depart, train_arrivee, train_contrib, train_tgv)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    (ville_id, gare_id, train_temps, train_tempsmax, train_correspmin, train_correspmax, train_nbtrains, train_public,
+    train_descr, train_depart, train_arrivee, train_contrib, train_tgv)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   if (!$stmt) {
     die("Problème de préparation de la requête : " . $mysqli->error);
   }
 
   // Bind des paramètres avec les valeurs, les valeurs null sont gérées comme NULL dans la base de données
   $stmt->bind_param(
-    "iiiiiissssi",
+    "iiiiiiiissssi",
     $ville_id,
     $gare_id,
     $train_temps,
+    $train_tempsmax,
     $train_correspmin,
     $train_correspmax,
+    $train_nbtrains,
     $train_public,
     $train_descr,
     $train_depart,
@@ -105,8 +109,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     "gare_id" => $gare_id,
     "train_tgv" => $train_tgv,
     "train_temps" => $train_temps,
+    "train_tempsmax" => $train_tempsmax,
     "train_correspmin" => $train_correspmin,
     "train_correspmax" => $train_correspmax,
+    "train_nbtrains" => $train_nbtrains,
     "train_public" => $train_public,
     "train_descr" => $train_descr,
     "train_depart" => $train_depart,
@@ -143,9 +149,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $html .= "<li><b>Ville</b>: $ville ($ville_id)</li>";
     $html .= "<li><b>Départ</b>: $train_depart</li>";
     $html .= "<li><b>Arrivée</b>: $train_arrivee</li>";
-    $html .= "<li><b>Temps</b>: $train_temps min</li>";
+    $html .= "<li><b>Temps min</b>: $train_temps min</li>";
+    $html .= "<li><b>Temps max</b>: $train_tempsmax min</li>";
     $html .= "<li><b>Correspondance min</b>: $train_correspmin</li>";
     $html .= "<li><b>Correspondance max</b>: $train_correspmax</li>";
+    $html .= "<li><b>Nb de trains / jour</b>: $train_nbtrains</li>";
     $html .= "<li><b>Type</b>: " . ($train_tgv ? "TGV (trajet nécessitant un TGV)" : "TER / trains régionaux") . "</li>";
     $html .= "<li><b>Public</b>: " . ($train_public ? 'Oui' : 'Non') . "</li>";
     $html .= "<li><b>Description</b>: " . htmlspecialchars(nl2br(trim($train_descr))) . "</li>";

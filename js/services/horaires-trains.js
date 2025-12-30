@@ -13,7 +13,7 @@ const ua =
 const routingEndpoint = "v3/plan";
 const geocodeEndpoint = "v1/geocode";
 const transitModes = [
-  "RAIL",
+  // "RAIL",
   "LONG_DISTANCE",
   "REGIONAL_FAST_RAIL",
   "REGIONAL_RAIL",
@@ -36,17 +36,37 @@ function computeStats(data) {
   }
 
   const brief = itineraries.map((it) => {
-    const { fareTransfers, transfers, legs } = it;
+    const { transfers, legs } = it;
     const transitLegs = legs.filter((leg) => leg.mode !== "WALK");
     const startTime = transitLegs[0]?.startTime || it.startTime;
     const endTime = transitLegs[transitLegs.length - 1]?.endTime || it.endTime;
     const duration =
       (new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000;
-    const geoms = transitLegs.map((leg) => {
-      const geom = leg.legGeometry.points; // TODO add a map to display all routes
-      return geom;
+    const segments = transitLegs.map((leg) => {
+      return {
+        from: leg.from.name,
+        to: leg.to.name,
+        duration:
+          (new Date(leg.endTime).getTime() -
+            new Date(leg.startTime).getTime()) /
+          1000,
+        line: leg.routeId,
+        agency: leg.agencyName,
+        mode: leg.mode,
+        tgv:
+          leg.from.stopId.includes("TGV INOUI") ||
+          leg.from.stopId.includes("TGVINOUI") ||
+          leg.from.stopId.includes("OUIGO") ||
+          leg.agencyName === "Trenitalia" ||
+          leg.agencyName.includes("RENFE") ||
+          leg.mode === "HIGHSPEED_RAIL",
+      };
     });
-    return { duration, transfers, startTime, endTime, geoms };
+    // const geoms = transitLegs.map((leg) => {
+    //   const geom = leg.legGeometry.points; // TODO add a map to display all routes
+    //   return geom;
+    // });
+    return { duration, transfers, startTime, endTime, segments };
   });
   // dedup trips on start and end times
   const uniqueTrips = Array.from(
@@ -95,7 +115,7 @@ function computeStats(data) {
       : 0;
 
   return {
-    uniqueTrips,
+    uniqueTrips: filteredTrips,
     minDuration: toMinutes(minDuration),
     maxDuration: toMinutes(maxDuration),
     minTransfers,
@@ -144,7 +164,7 @@ async function fetchRoute(fromValue, toValue) {
     nextSaturday.getDate() + ((6 - nextSaturday.getDay()) % 7)
   );
   nextSaturday.setHours(0, 0, 0, 0);
-  const fromRes = await fetch(`${url}${geocodeEndpoint}?text=${from}, France`, {
+  const fromRes = await fetch(`${url}${geocodeEndpoint}?text=${from}`, {
     headers: { "X-Client-Identification": ua },
   }).then((res) => res.json());
   const {
@@ -154,7 +174,7 @@ async function fetchRoute(fromValue, toValue) {
   } = fromRes.find((r) => r.type === "STOP") ||
   fromRes.find((r) => r.type === "PLACE") ||
   fromRes[0];
-  const toRes = await fetch(`${url}${geocodeEndpoint}?text=${to}, France`, {
+  const toRes = await fetch(`${url}${geocodeEndpoint}?text=${to}`, {
     headers: { "X-Client-Identification": ua },
   }).then((res) => res.json());
   const {
@@ -189,6 +209,7 @@ async function fetchRoute(fromValue, toValue) {
     return { stats, fields, data };
   } catch (error) {
     console.error("Error fetching route:", error);
+    return { stats: {}, fields: {}, data: { uniqueTrips: [] } };
   }
 }
 horairesTrains.fetchRoute = fetchRoute;

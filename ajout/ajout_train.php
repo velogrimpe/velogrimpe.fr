@@ -170,16 +170,11 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             <thead>
               <tr>
                 <td>Départ</td>
-                <td>Arrivée</td>
-                <td>Via (durée Cor.)</td>
                 <td>Durée</td>
-                <td>Lu</td>
-                <td>Ma</td>
-                <td>Me</td>
-                <td>Je</td>
-                <td>Ve</td>
-                <td>Sa</td>
-                <td>Di</td>
+                <td>Nb Corresp.</td>
+                <td>N° Trains</td>
+                <td>Détails Trains</td>
+                <td>Inclure ?</td>
               </tr>
             </thead>
             <tbody id="tableTrainsBody">
@@ -202,20 +197,32 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </ul>
         </div>
       </details>
-      <div class="flex flex-col gap-4 flex-wrap">
-        <label class="form-control" for="train_temps">
-          <b>Temps minimal de trajet (en minutes) :</b>
-          <input type="number" class="input input-primary input-sm" id="train_temps" name="train_temps" placeholder="52"
-            min="0" required>
-        </label>
-        <div class="flex flex-row gap-4 items-end flex-wrap">
-          <label class="form-control flex-grow" for="train_correspmin">
-            <b>Nombre minimal de correspondances :</b>
+      <div class="flex flex-col gap-2 flex-wrap">
+        <div class="grid grid-cols-1 gap-4 items-end flex-wrap md:grid-cols-3">
+          <label class="form-control" for="train_temps">
+            <b>Temps de trajet min. (min)</b>
+            <input type="number" class="input input-primary input-sm" id="train_temps" name="train_temps"
+              placeholder="52" min="0" required>
+          </label>
+          <label class="form-control" for="train_tempsmax">
+            <b>Temps de trajet max. (min)</b>
+            <input type="number" class="input input-primary input-sm" id="train_tempsmax" name="train_tempsmax"
+              placeholder="125" min="0" required>
+          </label>
+          <label class="form-control" for="train_nbtrains">
+            <b>Nb de trains par jour</b>
+            <input type="number" class="input input-primary input-sm" id="train_nbtrains" name="train_nbtrains"
+              placeholder="10" min="0" required>
+          </label>
+        </div>
+        <div class="grid grid-cols-1 gap-x-4 items-end flex-wrap md:grid-cols-3">
+          <label class="form-control flex-grow-0" for="train_correspmin">
+            <b>Nb min de corresp.</b>
             <input type="number" class="input input-primary input-sm" id="train_correspmin" name="train_correspmin"
               placeholder="0" min="0" required>
           </label>
-          <label class="form-control flex-grow" for="train_correspmax">
-            <b>Nombre maximal de correspondances :</b>
+          <label class="form-control flex-grow-0" for="train_correspmax">
+            <b>Nb max de corresp.</b>
             <input type="number" class="input input-primary input-sm" id="train_correspmax" name="train_correspmax"
               placeholder="1" min="0" required>
           </label>
@@ -303,13 +310,11 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   const arriveeCallback = (gareNom) => {
     const gare = gareNom ? Object.values(gares).find(g => g.nom === gareNom) : {};
     document.getElementById('gare_id').value = gare.id;
-    // document.getElementById('train_arrivee_uic').value = gare.codeuic;
     verifierExistenceItineraire();
   };
   const departCallback = (gareNom) => {
     const gare = gareNom ? Object.values(gares).find(g => g.nom === gareNom) : {};
     document.getElementById('train_depart_id').value = gare.id;
-    // document.getElementById('train_depart_uic').value = gare.codeuic;
   };
   document.getElementById('ville_id').addEventListener('change', () => {
     verifierExistenceItineraire();
@@ -318,12 +323,104 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     verifierExistenceItineraire();
   });
 
+  // Update only the description from API-provided fields; numeric fields are derived from selected trips
   const updateFields = (fields) => {
-    document.getElementById("train_temps").value = fields.train_temps;
-    document.getElementById("train_correspmin").value = fields.train_correspmin;
-    document.getElementById("train_correspmax").value = fields.train_correspmax;
-    document.getElementById("train_descr").value = fields.train_descr;
+    if (fields?.train_descr !== undefined) {
+      document.getElementById("train_descr").value = fields.train_descr;
+    }
   }
+
+  // Format helpers for table rendering
+  const pad2 = (n) => (n < 10 ? `0${n}` : `${n}`);
+  const formatDepartureTime = (startTime) => {
+    const d = new Date(startTime);
+    return `${d.getHours()}h${pad2(d.getMinutes())}`;
+  };
+  const toHMShort = (seconds) => {
+    const minutes = Math.round(seconds / 60);
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h > 0 && m > 0) return `${h}h${pad2(m)}`;
+    if (h > 0 && m === 0) return `${h}h`;
+    return `${m} min`;
+  };
+  let currentTrips = [];
+  const computeSelectionDerivedFields = () => {
+    const checkboxes = Array.from(document.querySelectorAll('input[name="include_train"]'));
+    const selectedIndexes = checkboxes
+      .map(cb => ({ checked: cb.checked, idx: parseInt(cb.getAttribute('data-trip-index')) }))
+      .filter(x => x.checked)
+      .map(x => x.idx);
+    const selectedTrips = selectedIndexes.map(i => currentTrips[i]).filter(Boolean);
+    if (selectedTrips.length === 0) {
+      // No selection: set minimal values to 0 to keep required fields valid
+      document.getElementById("train_temps").value = 0;
+      document.getElementById("train_correspmin").value = 0;
+      document.getElementById("train_correspmax").value = 0;
+      const nbTrainsInput = document.getElementById("train_nbtrains");
+      if (nbTrainsInput) nbTrainsInput.value = 0;
+      const tempsMaxInput = document.getElementById("train_tempsmax");
+      if (tempsMaxInput) tempsMaxInput.value = 0;
+      return;
+    }
+    const durationsMin = Math.min(...selectedTrips.map(t => Math.round(t.duration / 60)));
+    const durationsMax = Math.max(...selectedTrips.map(t => Math.round(t.duration / 60)));
+    const transfersMin = Math.min(...selectedTrips.map(t => t.transfers ?? 0));
+    const transfersMax = Math.max(...selectedTrips.map(t => t.transfers ?? 0));
+    document.getElementById("train_temps").value = durationsMin;
+    document.getElementById("train_correspmin").value = transfersMin;
+    document.getElementById("train_correspmax").value = transfersMax;
+    const nbTrainsInput = document.getElementById("train_nbtrains");
+    if (nbTrainsInput) nbTrainsInput.value = selectedTrips.length;
+    const tempsMaxInput = document.getElementById("train_tempsmax");
+    if (tempsMaxInput) tempsMaxInput.value = durationsMax;
+  };
+
+  const renderItineraries = (uniqueTrips = []) => {
+    const tbody = document.getElementById("tableTrainsBody");
+    tbody.innerHTML = "";
+    currentTrips = uniqueTrips;
+    uniqueTrips.forEach((trip, idx) => {
+      const dep = formatDepartureTime(trip.startTime);
+      const dur = toHMShort(trip.duration);
+      const nbCorresp = trip.transfers ?? 0;
+      const lineNamesHtml = `<div class="flex flex-col gap-1">${(trip.segments || [])
+        .map(seg => {
+          const badge = seg.tgv ? '<span class=\"badge badge-accent badge-xs text-[8px]\">TGV</span>' : '';
+          return `<div class=\"flex items-center gap-1\">${badge}<span>${seg.mode || ''}</span></div>`
+        })
+        .join("")}</div>`;
+      const detailsHtml = `<div class="flex flex-col gap-1">${(trip.segments || [])
+        .map(seg => {
+          return `<span>${seg.from} - ${seg.to} (${toHMShort(seg.duration)})</span>`;
+        })
+        .join("")}</div>`;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${dep}</td>
+        <td>${dur}</td>
+        <td>${nbCorresp}</td>
+        <td>${lineNamesHtml}</td>
+        <td>${detailsHtml}</td>
+        <td><input type="checkbox" class="checkbox checkbox-primary checkbox-sm" name="include_train" data-trip-index="${idx}" checked /></td>
+      `;
+      tbody.appendChild(tr);
+    });
+    // Attach change listeners to update numeric fields when selection changes
+    Array.from(document.querySelectorAll('input[name="include_train"]')).forEach(cb => {
+      cb.addEventListener('change', () => computeSelectionDerivedFields());
+    });
+    // reveal table container if we have content
+    const tableWrapper = document.getElementById("tableTrains");
+    if (uniqueTrips.length > 0) {
+      tableWrapper.classList.remove("hidden");
+    } else {
+      tableWrapper.classList.add("hidden");
+    }
+    // Initialize numeric fields from the default (all checked) selection
+    computeSelectionDerivedFields();
+  };
 
   document.getElementById("fetchTrains").addEventListener('click', async () => {
     // Add loader in the button and disable it
@@ -332,81 +429,11 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     const fromValue = document.getElementById('train_depart').value;
     const toValue = document.getElementById('train_arrivee').value;
     const { stats, fields } = await horairesTrains.fetchRoute(fromValue, toValue);
-    console.log(stats.uniqueTrips);
+    renderItineraries(stats.uniqueTrips || []);
+    // Update only description from fields; numeric fields already derived from selected trips
     updateFields(fields);
     document.querySelector("#fetchTrains .loading").classList.add("hidden");
     document.getElementById("fetchTrains").disabled = false;
-
-    // ======================================================================================
-
-    // if (!gareDepart || !gareArrivee) {
-    //   alert("Veuillez sélectionner une gare de départ et une gare d'arrivée.");
-    //   return;
-    // }
-    // fetch(`/api/fetch_trains.php?depart_uic=${gareDepart}&arrivee_uic=${gareArrivee}`)
-    //   .then(response => response.json())
-    //   .then(data => {
-    //     const tableBody = document.getElementById('tableTrainsBody');
-    //     tableBody.innerHTML = '';
-    //     data.forEach(row => {
-    //       const tr = document.createElement('tr');
-    //       tr.innerHTML = `
-    //         <td>${row.depart.replace(/:00$/g, "")}</td>
-    //         <td>${row.arrivee.replace(/:00$/g, "")}</td>
-    //         <td>${row.via === "Direct" ? row.via : row.via + " (" + row.co_dur + ")"}</td>
-    //         <td>${row.duree} min</td>
-    //         <td class="w-12">${row.lundi}</td>
-    //         <td class="w-12">${row.mardi}</td>
-    //         <td class="w-12">${row.mercredi}</td>
-    //         <td class="w-12">${row.jeudi}</td>
-    //         <td class="w-12">${row.vendredi}</td>
-    //         <td class="w-12">${row.samedi}</td>
-    //         <td class="w-12">${row.dimanche}</td>
-    //       `;
-    //       tableBody.appendChild(tr);
-    //     });
-    //     const tempsMin = Math.min(...data.map(row => row.duree));
-    //     const minCorresp = data.find(row => row.via === 'Direct') ? 0 : 1;
-    //     const nbTrainsPerDay = data.reduce((acc, row) => {
-    //       acc.lundi += (row.lundi === '✅' || row.lundi >= "50") ? 1 : 0;
-    //       acc.mardi += (row.mardi === '✅' || row.mardi >= "50") ? 1 : 0;
-    //       acc.mercredi += (row.mercredi === '✅' || row.mercredi >= "50") ? 1 : 0;
-    //       acc.jeudi += (row.jeudi === '✅' || row.jeudi >= "50") ? 1 : 0;
-    //       acc.vendredi += (row.vendredi === '✅' || row.vendredi >= "50") ? 1 : 0;
-    //       acc.samedi += (row.samedi === '✅' || row.samedi >= "50") ? 1 : 0;
-    //       acc.dimanche += (row.dimanche === '✅' || row.dimanche >= "50") ? 1 : 0;
-    //       return acc;
-    //     }, { lundi: 0, mardi: 0, mercredi: 0, jeudi: 0, vendredi: 0, samedi: 0, dimanche: 0 });
-    //     const avgWeekDay = (nbTrainsPerDay.lundi + nbTrainsPerDay.mardi + nbTrainsPerDay.mercredi + nbTrainsPerDay.jeudi + nbTrainsPerDay.vendredi) / 5;
-    //     const nDirects = data.filter(row => row.via === 'Direct').length;
-    //     const nCorresp = data.length - nDirects;
-    //     const ratioDirects = nDirects > 15
-    //       ? `<i>Les trajets directs étant suffisament nombreux, les trajets avec correspondance n'ont pas été vérifiés</i>`
-    //       : nDirects > 2 * nCorresp
-    //         ? 'Une grande majorité de directs'
-    //         : nDirects > nCorresp
-    //           ? "Une majorité de directs"
-    //           : nDirects === 0
-    //             ? "Aucun trajet direct"
-    //             : "Une majorité de trains avec correspondance";
-    //     const maxCoDur = data.filter(r => r.via !== "Direct").reduce((acc, row) => Math.max(acc, row.co_dur), 0);
-    //     const minCoDur = data.filter(r => r.via !== "Direct").reduce((acc, row) => Math.min(acc, row.co_dur), 1000);
-    //     const maxDur = Math.max(...data.map(row => row.duree));
-    //     const minDur = Math.min(...data.map(row => row.duree));
-    //     const comment = (
-    //       `De ${minDur} à ${maxDur} minutes de trajet.\n`
-    //       + `En moyenne, ${nbTrainsPerDay.samedi} TER/jour le Samedi, ${nbTrainsPerDay.dimanche} TER/jour`
-    //       + ` le Dimanche et ${Math.round(avgWeekDay)} TER/jour en semaine.\n`
-    //       + `${ratioDirects}.\n`
-    //       + `${nCorresp > 0 ? `Durée de correspondance : ${minCoDur} à ${maxCoDur} minutes.` : ''}`
-    //     );
-    //     document.getElementById('train_descr').value = comment;
-    //     document.getElementById('train_temps').value = tempsMin;
-    //     document.getElementById('train_correspmin').value = minCorresp;
-    //     document.querySelector("#fetchTrains .loading").classList.add("hidden");
-    //     document.getElementById("fetchTrains").disabled = false;
-    //     document.getElementById("tableTrains").classList.remove("hidden");
-    //   });
   });
 </script>
 <script src="/js/autocomplete.js"></script>
