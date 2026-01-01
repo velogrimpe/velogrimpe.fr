@@ -912,8 +912,9 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
     } else {
       document.getElementById("falaiseExistsAlert").classList.add("hidden");
       document.getElementById("falaiseEditInfo").classList.add("hidden");
-      document.getElementById("form").reset();
+      // document.getElementById("form").reset();
       updateMarker();
+      formatNomFalaise(falaiseNom);
     }
   }
   setupAutocomplete("falaise_nom", "falaise-list", "falaises", falaiseCallback, true);
