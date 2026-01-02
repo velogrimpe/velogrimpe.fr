@@ -48,7 +48,7 @@ if (!$zones || !$depts) {
 }
 
 // Fetch falaises to process
-$sql = "SELECT falaise_id, falaise_latlng FROM falaises WHERE falaise_latlng IS NOT NULL AND falaise_latlng <> ''";
+$sql = "SELECT falaise_id, falaise_nom, falaise_latlng FROM falaises WHERE falaise_latlng IS NOT NULL AND falaise_latlng <> ''";
 $res = $mysqli->query($sql);
 if (!$res) {
   http_response_code(500);
@@ -65,7 +65,8 @@ if (!$updateStmt) {
 
 $processed = 0;
 $updated = 0;
-$skipped = 0;
+$skipped = [];
+$nozone = [];
 $errors = [];
 
 while ($row = $res->fetch_assoc()) {
@@ -73,14 +74,14 @@ while ($row = $res->fetch_assoc()) {
   $latlngStr = trim($row['falaise_latlng']);
   $parts = array_map('trim', explode(',', $latlngStr));
   if (count($parts) !== 2) {
-    $skipped++;
+    $skipped[] = ['falaise_id' => $row['falaise_id'], 'falaise_nom' => $row['falaise_nom']];
     $errors[] = ['falaise_id' => $row['falaise_id'], 'error' => 'Invalid latlng format'];
     continue;
   }
   $lat = floatval($parts[0]);
   $lng = floatval($parts[1]);
   if (!is_finite($lat) || !is_finite($lng)) {
-    $skipped++;
+    $skipped[] = ['falaise_id' => $row['falaise_id'], 'falaise_nom' => $row['falaise_nom']];
     $errors[] = ['falaise_id' => $row['falaise_id'], 'error' => 'Non-finite lat/lng'];
     continue;
   }
@@ -92,6 +93,8 @@ while ($row = $res->fetch_assoc()) {
   $zFeat = geo_find_containing_feature($zones, $lng, $lat);
   if ($zFeat) {
     $zoneLabel = geo_extract_zone_label($zFeat);
+  } else {
+    $nozone[] = ['falaise_id' => $row['falaise_id'], 'falaise_nom' => $row['falaise_nom']];
   }
 
   $dFeat = geo_find_containing_feature($depts, $lng, $lat);
@@ -102,7 +105,7 @@ while ($row = $res->fetch_assoc()) {
   }
 
   if ($zoneLabel === null && $deptCode === null && $deptName === null) {
-    $skipped++;
+    $skipped[] = ['falaise_id' => $row['falaise_id'], 'falaise_nom' => $row['falaise_nom']];
     continue;
   }
 
@@ -121,6 +124,7 @@ echo json_encode([
   'processed' => $processed,
   'updated' => $updated,
   'skipped' => $skipped,
+  'nozone' => $nozone,
   'errors' => $errors,
 ]);
 

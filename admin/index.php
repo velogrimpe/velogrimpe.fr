@@ -33,7 +33,6 @@ $falaises_topo = array_values(array_filter(
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
-
   <link rel="stylesheet" href="/global.css" />
   <link rel="manifest" href="/site.webmanifest" />
 </head>
@@ -44,16 +43,14 @@ $falaises_topo = array_values(array_filter(
     <h1 class="text-4xl font-bold text-wrap text-center">
       <span class="text-red-900">PANNEAU D'ADMINISTRATION</span>
     </h1>
-    <h2 class="text-4xl font-bold text-wrap text-center">
-      Ajouter des données
-    </h2>
+    <h2 class="text-4xl font-bold text-wrap text-center">Ajouter des données</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_ville.php?admin=<?= $token ?>">Ajouter une ville de
         départ</a>
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_zone.php?admin=<?= $token ?>">Ajouter une zone</a>
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_falaise.php?admin=<?= $token ?>">Ajouter une falaise</a>
-      <a class="btn btn-primary btn-lg" href="/ajout/ajout_train.php?admin=<?= $token ?>">Ajouter un itinéraire
-        train (ville - gare)</a>
+      <a class="btn btn-primary btn-lg" href="/ajout/ajout_train.php?admin=<?= $token ?>">Ajouter un itinéraire train
+        (ville - gare)</a>
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_velo.php?admin=<?= $token ?>">Ajouter un itinéraire vélo
         (gare - falaise)</a>
       <a class="btn btn-primary btn-lg" href="/admin/oblyk.php?admin=<?= $token ?>">Créer les liens Oblyk</a>
@@ -61,10 +58,7 @@ $falaises_topo = array_values(array_filter(
       <a class="btn btn-primary btn-lg" href="/ajout/contrib/details_falaise.php?falaise_id=247">Éditeur Falaises</a>
       <a class="btn btn-primary btn-lg" href="/admin/edit_logs.php">Historique des modifications</a>
     </div>
-
-    <h2 class="text-4xl font-bold text-wrap text-center">
-      Modifier des données
-    </h2>
+    <h2 class="text-4xl font-bold text-wrap text-center">Modifier des données</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <label class="flex flex-col gap-1 items-center bg-base-100 p-2 rounded-lg bg-primary" for="selectFalaise1">
         <b class="text-base-100 text-lg">⚠️ Falaises à vérifier</b>
@@ -80,7 +74,6 @@ $falaises_topo = array_values(array_filter(
           </select>
         <?php endif; ?>
       </label>
-
       <label class="flex flex-col gap-1 items-center bg-base-100 p-2 rounded-lg bg-primary" for="selectFalaise3">
         <b class="text-base-100 text-lg">✅ Falaises du Topo</b>
         <select id="selectFalaise3" name="selectFalaise3" class="select select-primary select-sm"
@@ -91,7 +84,6 @@ $falaises_topo = array_values(array_filter(
           <?php endforeach; ?>
         </select>
       </label>
-
       <label class="flex flex-col gap-1 items-center bg-base-100 p-2 rounded-lg bg-primary" for="selectFalaise2">
         <b class="text-base-100 text-lg">❌ Falaises Hors Topo</b>
         <select id="selectFalaise2" name="selectFalaise2" class="select select-primary select-sm"
@@ -103,8 +95,64 @@ $falaises_topo = array_values(array_filter(
         </select>
       </label>
     </div>
+    <h2 class="text-4xl font-bold text-wrap text-center">Actions</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <button id="batchGeocodeBtn" class="btn btn-outline btn-lg" type="button">Affectation zones aux falaises</button>
+    </div>
+    <dialog id="batchGeocodeModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Affectation zones aux falaises</h3>
+        <div id="batchGeocodeModalContent" class="py-2 text-sm"></div>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn btn-primary">OK</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <script>
+    const btn = document.getElementById('batchGeocodeBtn');
+    const modal = document.getElementById('batchGeocodeModal');
+    const modalContent = document.getElementById('batchGeocodeModalContent');
+    if (btn) {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = 'Exécution en cours…';
+        try {
+          const res = await fetch('/api/private/batch-geocode.php?admin=<?= $token ?>');
+          const isJson = res.headers.get('content-type')?.includes('application/json');
+          if (!res.ok) {
+            const errTxt = isJson ? JSON.stringify(await res.json()) : await res.text();
+            throw new Error(errTxt || `Erreur HTTP ${res.status}`);
+          }
+          const data = isJson ? await res.json() : {};
+          const processed = data.processed ?? '?';
+          const updated = data.updated ?? '?';
+          const skippedNum = typeof data.skipped === 'number' ? data.skipped : (data.skipped?.length ?? '?');
+          const noZoneList = Array.isArray(data.nozone) ? data.nozone.map(s => `${s.falaise_nom} (${s.falaise_id})`).join(', ') : '';
+          const skippedList = Array.isArray(data.skipped) ? data.skipped.map(s => `${s.falaise_nom} (${s.falaise_id})`).join(', ') : '';
+
+          let html = `Traitement terminé: <b>${processed}</b> traités, <b>${updated}</b> mis à jour, <b>${skippedNum}</b> ignorés.`;
+          if (noZoneList) {
+            html += `<br/><b>Sans zone :</b> ${noZoneList}`;
+          }
+          if (skippedList) {
+            html += `<br/><b>Ignorés :</b> ${skippedList}`;
+          }
+          modalContent.innerHTML = html;
+          modal?.showModal();
+        } catch (e) {
+          alert(`Erreur: ${e.message}`);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+    }
+  </script>
 </body>
 
 </html>
