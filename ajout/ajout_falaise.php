@@ -1,11 +1,6 @@
 <?php require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT']
   . '/../config.php';
-$res_z = $mysqli->query("SELECT * FROM zones ORDER BY zone_nom");
-$zones = [];
-while ($zone = $res_z->fetch_assoc()) {
-  $zones[] = $zone;
-}
 // Read the admin search parameter
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 $falaise_id = $_GET['falaise_id'] ?? null;
@@ -228,9 +223,7 @@ if ($falaise_id) {
           <i class="text-slate-400 text-sm"> Cliquez sur la carte pour placer la position. Les coordonnées doivent être
             sous la forme "45.1234,6.2355" par exemple (au moins 4 décimales).<br> Pour trouver les coordonnées GPS :
             sur la fiche Climbing Away de la falaise (bas de page, "plus de coordonnées", degrés décimaux), ou clic
-            droit sur Google Maps, puis cliquer sur les coordonnées qui s'affichent pour les copier.<br> Il est
-            conseillé de vérifier que les coordonnées correspondent bien à la falaise (par exemple en les copiant dans
-            Google Maps, avec la couche "photos satellites"). </i>
+            droit sur Google Maps, puis cliquer sur les coordonnées qui s'affichent pour les copier.</i>
         </div>
         <script>
 
@@ -273,8 +266,28 @@ if ($falaise_id) {
             layers: [landscapeTiles], center: [45.1234, 3.2355], zoom: 5, fullscreenControl: true, zoomSnap: 0.5
           });
           L.control.locate().addTo(map);
-          var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
+          var layerControl = L.control.layers(baseMaps, undefined, { position: "topright", size: 22 }).addTo(map);
           L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
+          fetch("/bdd/zones/zones.geojson")
+            .then(r => r.ok ? r.json() : Promise.reject(new Error('zones load failed')))
+            .then(zonesData => {
+              const zonesLayer = L.geoJSON(zonesData, {
+                style: {
+                  color: "#ff7800",
+                  dashArray: '3',
+                  weight: 1,
+                  opacity: 0.35,
+                  fillOpacity: 0.2
+                },
+              });
+              zonesLayer.eachLayer(function (layer) {
+                if (layer.feature && layer.feature.properties && layer.feature.properties.name) {
+                  layer.bindTooltip(`<b>${layer.feature.properties.name}</b>`, { sticky: true });
+                }
+              });
+              layerControl.addOverlay(zonesLayer, "Zones");
+            })
+            .catch(() => { /* silent */ });
           <?= json_encode($falaises) ?>.map(f => {
             const coords = f.latlng.split(',');
             if (coords.length === 2) {
@@ -310,6 +323,24 @@ if ($falaise_id) {
             }).addTo(map);
           }
 
+          function updateZoneAndDepartment(lat, lng) {
+            fetch(`/api/geocode.php?lat=${lat}&lng=${lng}`)
+              .then(r => r.ok ? r.json() : Promise.reject(new Error('geocode failed')))
+              .then(data => {
+                if (!data) return;
+                const z = (data.zone || '').trim();
+                const dn = (data.dept_name || '').trim();
+                const dc = (data.dept_code || '').trim();
+                const zHidden = document.getElementById('falaise_zonename');
+                if (z && zHidden) zHidden.value = z;
+                const dnHidden = document.getElementById('falaise_deptname');
+                if (dn && dnHidden) dnHidden.value = dn;
+                const dcHidden = document.getElementById('falaise_deptcode');
+                if (dc && dcHidden) dcHidden.value = dc;
+              })
+              .catch(() => { /* silent */ });
+          }
+
           function updateMarker() {
             const coords = document.getElementById("falaise_latlng").value.split(',');
             if (coords.length === 2) {
@@ -318,6 +349,8 @@ if ($falaise_id) {
               if (!isNaN(lat) && !isNaN(lng)) {
                 createMarker(lat, lng);
                 map.setView([lat, lng], 11);
+                // Auto-fill zone and department via geocoding
+                updateZoneAndDepartment(lat, lng);
               }
             } else {
               if (marker) {
@@ -329,6 +362,7 @@ if ($falaise_id) {
           }
           map.on("click", function (e) {
             createMarker(e.latlng.lat, e.latlng.lng);
+            updateZoneAndDepartment(e.latlng.lat, e.latlng.lng);
             document.getElementById("falaise_latlng").value = String(e.latlng.lat).slice(0, 8) + "," + String(e.latlng.lng).slice(0, 8);
           });
 
@@ -345,15 +379,24 @@ if ($falaise_id) {
             }
           });
         </script>
-        <label class="form-control admin" for="falaise_zone">
-          <b>Zone de la falaise</b>
-          <select class="select select-primary select-sm" name="falaise_zone" id="falaise_zone">
-            <option value="-1" disabled selected>Choisis une zone</option>
-            <?php foreach ($zones as $zone): ?>
-              <option value="<?= $zone['zone_id'] ?>"><?= $zone['zone_nom'] ?></option>
-            <?php endforeach; ?>
-          </select>
-        </label>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <label class="form-control" for="falaise_zonename">
+            <b class="text-sm">Zone de la falaise (nom)</b>
+            <input class="input input-primary input-sm" type="text" id="falaise_zonename" name="falaise_zonename"
+              disabled />
+            <i class="text-slate-400 text-sm">Renseigné automatiquement à partir des coordonnées GPS.</i>
+          </label>
+          <label class="form-control" for="falaise_deptcode">
+            <b class="text-sm">Département (code)</b>
+            <input class="input input-primary input-sm" type="text" id="falaise_deptcode" name="falaise_deptcode"
+              disabled />
+          </label>
+          <label class="form-control" for="falaise_deptname">
+            <b class="text-sm">Département (nom)</b>
+            <input class="input input-primary input-sm" type="text" id="falaise_deptname" name="falaise_deptname"
+              disabled />
+          </label>
+        </div>
       </div>
       <!-- Partie Cotation / Nombre de voies -->
       <div class="relative flex items-center">
@@ -790,7 +833,13 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
     fetch(`/api/fetch_falaise.php?falaise_id=${id}`)
       .then(response => response.json())
       .then(falaise => {
-        document.getElementById("falaise_zone").value = falaise.falaise_zone;
+        // Prefill zone and department when editing an existing falaise
+        const zHidden = document.getElementById("falaise_zonename");
+        if (zHidden) zHidden.value = falaise.falaise_zonename || '';
+        const dnHidden = document.getElementById("falaise_deptname");
+        if (dnHidden) dnHidden.value = falaise.falaise_deptname || '';
+        const dcHidden = document.getElementById("falaise_deptcode");
+        if (dcHidden) dcHidden.value = falaise.falaise_deptcode || '';
         document.getElementById("falaise_cottxt").value = falaise.falaise_cottxt;
         document.getElementById("falaise_cotmin").value = falaise.falaise_cotmin;
         document.getElementById("falaise_cotmax").value = falaise.falaise_cotmax;

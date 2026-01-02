@@ -59,13 +59,12 @@ $stmt = $mysqli->prepare("
     t.train_depart, t.train_arrivee, t.train_temps, t.train_correspmin, t.train_correspmax, t.train_descr, COALESCE(t.train_tgv, 0) AS train_tgv,
       v.velo_depart, v.velo_arrivee, v.velo_km, v.velo_dplus, v.velo_dmoins, v.velo_descr, v.velo_variante, v.velo_apieduniquement, velo_apiedpossible,
       villes.ville_nom,
-      z.zone_nom
+      f.falaise_zonename AS zone_nom
   FROM `falaises` f
   left join velo v on v.falaise_id = f.falaise_id
   left join gares g on g.gare_id = v.gare_id AND g.deleted = 0
   left join train t on t.gare_id = g.gare_id
   left join villes on villes.ville_id = t.ville_id
-  left join zones z on z.zone_id = f.falaise_zone
   where
     f.falaise_fermee = ''
     and villes.ville_id = ?
