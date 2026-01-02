@@ -70,6 +70,8 @@ $falaises = $mysqli->query("SELECT
   from falaises")->fetch_all(MYSQLI_ASSOC);
 $geojson = [
   'type' => 'FeatureCollection',
+  'license' => 'CC BY-NC-SA 4.0',
+  'license_url' => 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
   'features' => [],
 ];
 foreach ($falaises as $falaise) {
