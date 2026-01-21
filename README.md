@@ -50,13 +50,13 @@ return [
 
 ```bash
 export ROOTPARENT=/chemin/vers/dossier/velo-grimpe
-docker run --platform linux/x86_64 --name myXampp -p 4001:22 -p 4000:80 -d -v $ROOTPARENT/velo-grimpe/public_html:/opt/lampp/htdocs --mount type=bind,source=$ROOTPARENT$/velo-grimpe/config.php,target=/opt/lampp/config.php,readonly tomsik68/xampp:8
+docker run --platform linux/x86_64 --name myXampp -p 4003:22 -p 4002:80 -d -v $ROOTPARENT/velo-grimpe/public_html:/opt/lampp/htdocs --mount type=bind,source=$ROOTPARENT$/velo-grimpe/config.php,target=/opt/lampp/config.php,readonly tomsik68/xampp:8
 ```
 
 Une fois lancé, ce conteneur est synchronisé avec votre dossier local et sert :
 
-- Sur le port 4000, le site déployé en local (http://localhost:4000)
-- Sur http://localhost:4000/phpmyadmin l'interface pour administrer la base de donnée locale (éphémère, supprimée à chaque re-création du conteneur)
+- Sur le port 4002, le site déployé en local (http://localhost:4002)
+- Sur http://localhost:4002/phpmyadmin l'interface pour administrer la base de donnée locale (éphémère, supprimée à chaque re-création du conteneur)
 
 À partir de là, tout ce que vous changez dans votre éditeur de code est répecuté sur le serveur local (pas de refresh automatique, il faut faire un Cmd/Ctrl+R pour voir les changements).
 

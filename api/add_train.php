@@ -167,10 +167,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 
     sendMail($data);
-    header("Location: /contribuer.php");
-    exit;
-  } else {
-    header("Location: /admin/");
-    exit;
   }
+
+  // Rediriger vers la page de confirmation
+  $redirect_params = http_build_query([
+    'ville_id' => $ville_id,
+    'gare_id' => $gare_id,
+    'admin' => $admin ? $config["admin_token"] : ''
+  ]);
+  header("Location: /ajout/confirmation_train.php?$redirect_params");
+  exit;
 }

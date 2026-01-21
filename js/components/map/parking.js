@@ -44,10 +44,8 @@ export default class Parking extends Element {
       pmignore: true,
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
-      className: "bg-none flex flex-row justify-center items-start",
-      html: `<div class="text-white bg-blue-600 text-[${
-        size / 2 + 1
-      }px] rounded-full aspect-square w-[${size}px] h-[${size}px] flex justify-center items-center font-bold border border-white uppercase">${
+      className: "",
+      html: `<div class="vg-parking-icon" style="width:${size}px;height:${size}px;font-size:${size / 2 + 1}px">${
         pname || "P"
       }</div>`,
     });

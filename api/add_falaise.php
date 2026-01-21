@@ -404,10 +404,16 @@ if ($admin == 0) {
   sendMail($data);
 
   // mail($to, $subject, $body, $headers);
-  header("Location: /contribuer.php");
-} else {
-  header("Location: /admin/");
 }
+
+// Redirect vers la page de confirmation
+$params = http_build_query([
+  'falaise_id' => $falaise_id,
+  'type' => $isEdition ? 'update' : 'insert',
+  'step' => 1,
+  'admin' => $admin ? 1 : 0
+]);
+header("Location: /ajout/confirmation_falaise.php?" . $params);
 exit;
 
 

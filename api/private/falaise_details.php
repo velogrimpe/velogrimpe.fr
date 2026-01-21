@@ -2,7 +2,7 @@
 // Check that Authorization header is and equal to config["admin_token"]
 
 // Allow CORS from all origins
-header('Access-Control-Allow-Origin: localhost:4000, https://velogrimpe.fr, https://www.velogrimpe.fr');
+header('Access-Control-Allow-Origin: localhost:4002, https://velogrimpe.fr, https://www.velogrimpe.fr');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 
 // Handle preflight requests
@@ -93,6 +93,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid JSON']);
     exit;
+  }
+
+  // Create backup of existing file before saving
+  if (file_exists($geojson_file)) {
+    $backup_dir = $_SERVER['DOCUMENT_ROOT'] . "/bdd/barres-historique";
+    if (!is_dir($backup_dir)) {
+      mkdir($backup_dir, 0755, true);
+    }
+    $date_suffix = date('Y-m-d-H\Hi');
+    $base_name = $falaise["falaise_id"] . "_" . $falaise["falaise_nomformate"];
+    $backup_file = $backup_dir . "/" . $base_name . "-" . $date_suffix . ".geojson";
+    copy($geojson_file, $backup_file);
   }
 
   // Save the updated geojson content

@@ -162,12 +162,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       ];
 
       sendMail($data);
-      header("Location: /contribuer.php");
-      exit;
-    } else {
-      header("Location: /admin/");
-      exit;
     }
+
+    // Rediriger vers la page de confirmation
+    $redirect_params = http_build_query([
+      'falaise_id' => $falaise_id,
+      'gare_id' => $gare_id,
+      'admin' => $admin ? $config["admin_token"] : ''
+    ]);
+    header("Location: /ajout/confirmation_velo.php?$redirect_params");
+    exit;
 
   } else {
     die("Erreur lors de l'insertion : " . $mysqli->error);

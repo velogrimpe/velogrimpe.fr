@@ -1,3 +1,4 @@
+<?php require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php'; ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -20,8 +21,7 @@
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Histoire du projet, initiatives liées.">
   <title>À propos - Vélogrimpe.fr</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="stylesheet" href="/global.css" />
@@ -31,17 +31,15 @@
 
 <body class="min-h-screen">
   <?php include "./components/header.html"; ?>
-  <div class="hero min-h-[400px] bg-top" style="background-image: url(/images/mw/032-chaussons-10.webp);">
-    <div class="hero-overlay bg-opacity-60"></div>
+  <div class="hero min-h-100 bg-top" style="background-image: url(/images/mw/032-chaussons-10.webp);">
+    <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">
       <div class="max-w-md">
         <h1 class="text-5xl font-bold">À propos</h1>
       </div>
     </div>
   </div>
-  <div class="max-w-screen-lg mx-auto prose p-4
-              prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
-              hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]">
+  <div class="max-w-(--breakpoint-lg) mx-auto prose p-4">
     <p>"Tiens, c'est quoi les falaises les plus accessibles en train+vélo depuis Lyon ?".</p>
     <p>C'est par cette question que Florent a commencé le projet vélogrimpe, en mai 2024. D'un document Word perso à un
       PDF en libre accès, nous voici maintenant avec un site web dont le but est de donner envie de réaliser des sorties

@@ -7,7 +7,7 @@ $h1Style = "color: #2c3e50; text-align: center;";
 
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $host = $config['base_url'] ?? 'http://localhost';
-$hostWithPort = strpos($host, 'localhost') !== false ? "$host:4000" : $host;
+$hostWithPort = strpos($host, 'localhost') !== false ? "$host:4002" : $host;
 $utm = "source=newsletter-subscription";
 
 ?>

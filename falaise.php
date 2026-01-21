@@ -7,6 +7,7 @@ if (empty($falaise_id)) {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 
 $stmtF = $mysqli->prepare("SELECT * FROM falaises WHERE falaise_id = ?");
 if (!$stmtF) {
@@ -206,55 +207,25 @@ $stmtC->close();
     content="Escalade à <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
     content="Escalade à <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?>. Découvrez les accès en vélo et en train, les topos et les informations pratiques pour une sortie vélo-grimpe en mobilité douce.">
-  <!-- Carte -->
-  <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
-  <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
-  <!-- Carte : traces gpx -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js"></script>
-  <!-- Carte : fullscreen -->
-  <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
-  <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
-    rel='stylesheet' />
-  <!-- Carte : locate -->
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.js"
-    charset="utf-8"></script>
+  <!-- Map libraries bundle (Leaflet, GPX, Fullscreen, Locate, Turf) -->
+  <script src="/dist/map.js"></script>
+  <link rel="stylesheet" href="/dist/map.css" />
   <!-- Carte : Lignes de train-->
   <!-- <script src="https://unpkg.com/protomaps-leaflet@5.1.0/dist/protomaps-leaflet.js"></script> -->
   <script src="/js/vendor/protomaps-leaflet.js"></script>
   <!-- Carte : Pour les détails falaise-->
   <script src="/js/vendor/leaflet-textpath.js"></script>
   <!-- Styles -->
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Barycentre -->
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
-  <!-- Rose des vents -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="stylesheet" href="/global.css">
   <link rel="stylesheet" href="falaise.css">
-  <!-- Rose des vents -->
-  <script src="js/rose-des-vents.js"></script>
-  <style type="text/tailwindcss"> @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
-    @layer base {
-      .vg-a-primary a {
-        @apply text-[#2e8b57] font-bold;
-      }
-      .vg-a-primary a:hover {
-        @apply underline;
-      }
-  }
-  </style>
 </head>
 
 <body>
   <?php include "./components/header.html"; ?>
-  <main class="max-w-screen-lg w-full mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
+  <main class="max-w-(--breakpoint-lg) w-full mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
     <section class="flex flex-col items-center gap-4 w-full">
       <div class="flex justify-between items-center w-full">
         <a class="text-primary font-bold" href="/carte.php">← Retour à la carte</a>
@@ -264,10 +235,10 @@ $stmtC->close();
               class="btn btn-sm md:btn-md btn-circle btn-outline btn-primary focus:pointer-events-none"
               title="J'y ai été">
               <svg class="w-4 md:w-6 h-4 md:h-6 fill-current">
-                <use xlink:href="/symbols/icons.svg#ri-chat-4-line"></use>
+                <use xlink:href="/symbols/icons.svg#chat"></use>
               </svg>
             </div>
-            <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
+            <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-1 m-1 w-64 p-2 shadow-lg" tabindex="1">
               <button class="btn btn-primary btn-outline btn-sm py-1 h-fit" onclick="newComment()"> Raconter ma sortie
                 vélogrimpe </button>
             </div>
@@ -277,10 +248,10 @@ $stmtC->close();
               class="btn btn-sm md:btn-md btn-circle btn-outline focus:pointer-events-none"
               title="Proposer des modifications">
               <svg class="w-4 md:w-6 h-4 md:h-6 fill-current">
-                <use xlink:href="/symbols/icons.svg#ri-pencil-line"></use>
+                <use xlink:href="/symbols/icons.svg#pencil"></use>
               </svg>
             </div>
-            <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-[1] m-1 w-64 p-2 shadow-lg" tabindex="1">
+            <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-1 m-1 w-64 p-2 shadow-lg" tabindex="1">
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
                 href="/ajout/ajout_falaise.php?falaise_id=<?= $falaise_id ?>"> Modifier la fiche falaise </a>
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
@@ -303,6 +274,16 @@ $stmtC->close();
           </div>
         </div>
       <?php endif; ?>
+      <!-- Message si la falaise n'est reliée à aucune gare (pas visible sur la carte ni dans les tableaux) -->
+      <?php if (count($itineraires) === 0): ?>
+        <div class="alert alert-warning alert-soft text-center flex flex-col items-center">
+          <div class="font-bold text-lg">Falaise non reliée au réseau</div>
+          <div> Cette falaise n'a pas encore d'itinéraire vélo depuis une gare. Elle n'apparaît donc pas sur la carte ni
+            dans les tableaux. </div>
+          <a class="btn btn-primary btn-sm mt-2" href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>">Proposer un
+            accès vélo</a>
+        </div>
+      <?php endif; ?>
       <div class="flex flex-col items-center mb-10 gap-4">
         <h1 class="inline-flex flex-col text-[48px] font-bold text-center leading-none text-primary">
           <?= htmlspecialchars($falaise_nom) ?>
@@ -314,20 +295,20 @@ $stmtC->close();
         <button class="drawer-button btn btn-neutral btn-sm rounded-full btn-outline" onclick="meteoModal.showModal()">
           Météo <span class="flex items-center gap-1">
             <svg class="w-4 h-4 fill-[gold]">
-              <use xlink:href="/symbols/icons.svg#ri-sun-foggy-fill"></use>
+              <use xlink:href="/symbols/icons.svg#sun-foggy"></use>
             </svg>
             <span class="font-normal">/</span>
             <svg class="w-4 h-4 fill-[LightSlateGray]">
-              <use xlink:href="/symbols/icons.svg#ri-sun-cloudy-fill"></use>
+              <use xlink:href="/symbols/icons.svg#sun-cloudy"></use>
             </svg>
           </span>
         </button>
         <dialog id="meteoModal" class="modal modal-bottom sm:modal-middle">
-          <div class="modal-box md:w-fit max-w-screen-xl">
+          <div class="modal-box md:w-fit max-w-(--breakpoint-xl)">
             <form method="dialog">
               <button tabindex="-1" class="btn btn-circle btn-ghost absolute right-2 top-2">✕</button>
             </form>
-            <div class="p-4 w-[240px] font-bold mx-auto">
+            <div class="p-4 w-60 font-bold mx-auto">
               <span class="text-lg font-bold"> Météo par <a class="text-primary font-bold"
                   href="https://www.meteoblue.com/fr/meteo/semaine/<?= $lat ?>N<?= $lng ?>E391_Europe%2FParis?utm_source=daily_widget&utm_medium=linkus&utm_content=daily&utm_campaign=Weather%2BWidget"
                   target="_blank" rel="noopener">meteoblue </a>
@@ -346,7 +327,7 @@ $stmtC->close();
       </div>
       <div class="flex flex-col items-center gap-4 w-full md:flex-row md:items-start">
         <!-- TABLEAU STATIQUE DESCRIPTION FALAISE -->
-        <div class="vg-a-primary flex flex-col gap-4 md:gap-10 w-full items-center md:my-auto max-w-[600px] mx-auto">
+        <div class="vg-a-primary flex flex-col gap-4 md:gap-10 w-full items-center md:my-auto max-w-150 mx-auto">
           <div class="flex flex-row gap-2 items-start justify-around w-full">
             <div class="flex flex-col items-center justify-start gap-2">
               <img src="/images/icons/abacus_color.png" alt=" Logo Nb voies" class="h-12 w-12 mx-auto" />
@@ -383,13 +364,13 @@ $stmtC->close();
                         class="badge badge-sm badge-primary"><?= count($liensOblyk) ?></span>
                     </a>
                     <div
-                      class="dropdown-content menu bg-base-200 rounded-box z-10 m-1 p-2 shadow-lg w-60 max-h-[250px] flex-nowrap overflow-auto"
+                      class="dropdown-content menu bg-base-200 rounded-box z-10 m-1 p-2 shadow-lg w-60 max-h-62.5 flex-nowrap overflow-auto"
                       tabindex="1">
                       <?php foreach ($liensOblyk as $lien): ?>
                         <a target="_blank" href="<?= htmlspecialchars($lien['url']) ?>"
                           class="text-primary font-bold hover:underline cursor-pointer">
                           <span><?= htmlspecialchars($lien['name']) ?></span>&nbsp;<svg class="w-3 h-3 fill-current inline">
-                            <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
+                            <use xlink:href="/symbols/icons.svg#external-link"></use>
                           </svg>
                         </a>
                       <?php endforeach; ?>
@@ -416,10 +397,9 @@ $stmtC->close();
                 <!-- <div class="font-bold ">Remarques</div> -->
                 <div class=""><?= nl2br($falaise_rq) ?></div>
               <?php endif; ?>
-              <!-- <img src="/images/icons/expo.png" alt="Exposition" class="h-12 w-12 mx-auto" /> -->
-              <div id="rose-des-vents"></div>
-              <!-- <div id="rose-mini" class="sm:hidden"></div> -->
-              <!-- <div class="font-bold self-stretch flex items-center">Exposition</div> -->
+              <!-- Rose des vents (Vue component) -->
+              <div id="vue-rose-des-vents" data-expo1="<?= htmlspecialchars($falaise_exposhort1) ?>"
+                data-expo2="<?= htmlspecialchars($falaise_exposhort2) ?>" data-size="60"></div>
               <div class=" flex flex-row gap-2 items-center">
                 <?= nl2br($falaise_expotxt) ?>
               </div>
@@ -631,7 +611,7 @@ $stmtC->close();
           </thead> -->
               <!-- // LIGNE 2 TRAIN : -->
               <tr>
-                <td class="justify-center border-t border-r border-b border-1 border-base-300">
+                <td class="justify-center border-t border-r border-b border border-base-300">
                   <div class="flex flex-col md:flex-row gap-4 items-center">
                     <img src="/images/icons/train-station_color.png" alt="Logo Train" class="h-10 w-auto">
                     <div>
@@ -656,12 +636,12 @@ $stmtC->close();
                       <?php endif ?>
                       <!-- <button class="btn btn-xs btn-outline btn-accent" onclick="gare<?= $gare["gare_id"] ?>.showModal()">
                       <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#ri-ticket-line"></use>
+                        <use xlink:href="/symbols/icons.svg#ticket"></use>
                       </svg>
                       Acheter un billet
                     </button>
                     <dialog id="gare<?= $gare["gare_id"] ?>" class="modal">
-                      <div class="modal-box p-0 max-w-screen-lg w-full bg-transparent"
+                      <div class="modal-box p-0 max-w-(--breakpoint-lg) w-full bg-transparent"
                         id="container__booking__gare_<?= $gare["gare_id"] ?>">
                       </div>
                       <form method="dialog" class="modal-backdrop">
@@ -671,7 +651,7 @@ $stmtC->close();
                     </div>
                   </div>
                 </td>
-                <td class='border-t border-b border-1 border-base-300'>
+                <td class='border-t border-b border border-base-300'>
                   <?php if ($ville_id_get): ?>
                     <?php if (count($train_itineraires) > 0): ?>
                       <?php foreach ($train_itineraires as $t): ?>
@@ -717,7 +697,7 @@ $stmtC->close();
               <!-- // LIGNES VELO -->
               <?php foreach ($velo_itineraires as $velo): ?>
                 <tr>
-                  <td class='justify-center border-t border-r border-b border-1 border-base-300'>
+                  <td class='justify-center border-t border-r border-b border border-base-300'>
                     <div class='flex flex-col md:flex-row gap-4 items-center'>
                       <?php if (isset($velo['velo_apieduniquement']) && $velo['velo_apieduniquement'] == 1): ?>
                         <img src="/images/icons/hiking_color.png" alt="Logo À Pied" class="h-auto w-10">
@@ -737,7 +717,7 @@ $stmtC->close();
                       </div>
                     </div>
                   </td>
-                  <td class='border-t border-b border-1 border-base-300'>
+                  <td class='border-t border-b border border-base-300'>
                     <?= htmlspecialchars($velo['velo_km']) . " km, " . htmlspecialchars($velo['velo_dplus']) . " D+, " . htmlspecialchars($velo['velo_dmoins']) . " D-." ?>
                     <br>
                     <span class="vg-a-primary"><?= nl2br($velo['velo_descr']) ?></span>
@@ -815,13 +795,13 @@ $stmtC->close();
         <?php endif; ?>
       <?php endif; ?>
       <div class="flex flex-col items-center gap-2 w-full mb-4">
-        <div id="map" class="h-[600px] w-full bg-black rounded-lg"></div>
+        <div id="map" class="h-150 w-full bg-black rounded-lg"></div>
       </div>
       <!-- Image optionnelle 1 -->
       <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img1.webp"; ?>
       <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
         <div class="flex flex-col items-center gap-1">
-          <img src="<?= $path ?>" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg1)): ?>
             <div class="text-base-content"><?= nl2br($falaise_leg1) ?></div>
           <?php endif; ?>
@@ -836,7 +816,7 @@ $stmtC->close();
       <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img2.webp"; ?>
       <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
         <div class="flex flex-col items-center gap-1">
-          <img src="<?= $path ?>" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg2)): ?>
             <div class="text-base-content"><?= nl2br($falaise_leg2) ?></div>
           <?php endif; ?>
@@ -852,7 +832,7 @@ $stmtC->close();
       <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img3.webp"; ?>
       <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
         <div class="flex flex-col items-center gap-1">
-          <img src="<?= $path ?>" class="border-1 border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg3)): ?>
             <div class="text-base-content"><?= nl2br($falaise_leg3) ?></div>
           <?php endif; ?>
@@ -887,7 +867,7 @@ $stmtC->close();
                 <button title="Modifier le commentaire" class="btn btn-xs btn-ghost btn-circle"
                   onclick="editComment(<?= $comment['id'] ?>)">
                   <svg class="w-3 md:w-4 h-3 md:h-4 fill-current">
-                    <use xlink:href="/symbols/icons.svg#ri-pencil-line"></use>
+                    <use xlink:href="/symbols/icons.svg#pencil"></use>
                   </svg>
                 </button>
               </div>
@@ -896,28 +876,28 @@ $stmtC->close();
                   <?php if (!empty($comment['ville_nom'])): ?>
                     <div class="flex gap-1 items-center">
                       <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#ri-building-2-line"></use>
+                        <use xlink:href="/symbols/icons.svg#building"></use>
                       </svg> <?= htmlspecialchars($comment['ville_nom']) ?>
                     </div>
                   <?php endif; ?>
                   <?php if (!empty($comment['gare_depart'])): ?>
                     <div class="flex gap-1 items-center">
                       <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#ri-logout-circle-r-line"></use>
+                        <use xlink:href="/symbols/icons.svg#logout"></use>
                       </svg> <?= htmlspecialchars($comment['gare_depart']) ?>
                     </div>
                   <?php endif; ?>
                   <?php if (!empty($comment['gare_arrivee'])): ?>
                     <div class="flex gap-1 items-center">
                       <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#ri-login-circle-line"></use>
+                        <use xlink:href="/symbols/icons.svg#login"></use>
                       </svg> <?= htmlspecialchars($comment['gare_arrivee']) ?>
                     </div>
                   <?php endif; ?>
                   <?php if (!empty($comment['velo_id']) || $comment['velo_id'] === 0): ?>
                     <div class="flex gap-1 items-center">
                       <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#ri-riding-line"></use>
+                        <use xlink:href="/symbols/icons.svg#riding"></use>
                       </svg>
                       <?= $comment['velo_id'] === 0 ? 'Autre' : str_replace(" ()", "", htmlspecialchars($comment['velo_nom'])) ?>
                     </div>
@@ -935,7 +915,7 @@ $stmtC->close();
         </div>
       </div>
       <dialog id="commentFormModal" class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box w-screen sm:max-w-screen-md">
+        <div class="modal-box w-screen sm:max-w-(--breakpoint-md)">
           <form method="dialog">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
@@ -956,39 +936,11 @@ $stmtC->close();
               </label>
               <input type="email" id="email" name="email" class="input input-primary w-full" required>
             </div>
-            <div class="relative">
-              <div class="form-control w-full">
-                <label class="label" for="ville_nom">
-                  <span class="label-text">Ville de départ</span>
-                </label>
-                <input type="text" id="ville_nom" name="ville_nom" class="input input-bordered w-full"
-                  autocomplete="off">
-              </div>
-              <ul id="ville-list" class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-              </ul>
-            </div>
-            <div class="relative">
-              <div class="form-control w-full">
-                <label class="label" for="gare_depart">
-                  <span class="label-text">Gare de départ</span>
-                </label>
-                <input type="text" id="gare_depart" name="gare_depart" class="input input-bordered w-full"
-                  autocomplete="off">
-              </div>
-              <ul id="depart-list" class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-              </ul>
-            </div>
-            <div class="relative">
-              <div class="form-control w-full">
-                <label class="label" for="gare_arrivee">
-                  <span class="label-text">Gare d'arrivée</span>
-                </label>
-                <input type="text" id="gare_arrivee" name="gare_arrivee" class="input input-bordered w-full"
-                  autocomplete="off">
-              </div>
-              <ul id="arrivee-list"
-                class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-              </ul>
+            <div id="vue-falaise-comment" data-villes='<?= htmlspecialchars(json_encode(array_map(function ($v) {
+              return ["id" => $v["ville_nom"], "nom" => $v["ville_nom"]];
+            }, $allVilles)), ENT_QUOTES, 'UTF-8') ?>' data-gares='<?= htmlspecialchars(json_encode(array_map(function ($g) {
+                  return ["id" => $g["gare_id"], "nom" => $g["gare_nom"]];
+                }, $allGares)), ENT_QUOTES, 'UTF-8') ?>'>
             </div>
             <div class="form-control w-full">
               <label class="label" for="velo_id">
@@ -1026,7 +978,7 @@ $stmtC->close();
         </form>
       </dialog>
       <dialog id="emailPromptDialog" class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box w-screen sm:max-w-screen-md">
+        <div class="modal-box w-screen sm:max-w-(--breakpoint-md)">
           <form method="dialog">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
@@ -1053,16 +1005,6 @@ $stmtC->close();
       </dialog>
     </section>
   </main>
-  <datalist id="gares">
-    <?php foreach ($allGares as $gare): ?>
-      <option value="<?= htmlspecialchars($gare['gare_nom']) ?>"></option>
-    <?php endforeach; ?>
-  </datalist>
-  <datalist id="villes">
-    <?php foreach ($allVilles as $ville): ?>
-      <option value="<?= htmlspecialchars($ville['ville_nom']) ?>"></option>
-    <?php endforeach; ?>
-  </datalist>
   <script>
     const ignTiles = L.tileLayer(
       "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
@@ -1203,7 +1145,8 @@ $stmtC->close();
     layerControl.addOverlay(giteLayer, 'Gîtes');
     layerControl.addOverlay(biodivLayer, 'Aires de protections de la biodiversité (escalade réglementée ou interdite)');
   </script>
-  <script src="/js/autocomplete.js"></script>
+  <script type="module" src="/dist/falaise-comment.js"></script>
+  <script type="module" src="/dist/falaise-rose.js"></script>
   <script>
     const comments = <?= json_encode($comments) ?>;
     function editComment(commentId) {
@@ -1242,9 +1185,14 @@ $stmtC->close();
             document.getElementById('commentaire_id').value = comment.id;
             document.getElementById('nom').value = comment.nom;
             document.getElementById('email').value = email;
-            document.getElementById('ville_nom').value = comment.ville_nom || '';
-            document.getElementById('gare_depart').value = comment.gare_depart || '';
-            document.getElementById('gare_arrivee').value = comment.gare_arrivee || '';
+            // Update Vue autocomplete values
+            if (window.setCommentFormValues) {
+              window.setCommentFormValues({
+                ville_nom: comment.ville_nom || '',
+                gare_depart: comment.gare_depart || '',
+                gare_arrivee: comment.gare_arrivee || ''
+              });
+            }
             document.getElementById('velo_id').value = comment.velo_id || '';
             document.getElementById('commentaire').value = comment.commentaire;
 
@@ -1331,31 +1279,8 @@ $stmtC->close();
         });
     }
 
-    // Autocomplete in input fields in form
-    const departCallback = (gareNom) => document.getElementById('gare_depart').value = gareNom;
-    const arriveeCallback = (gareNom) => document.getElementById('gare_arrivee').value = gareNom;
-    const villeCallback = (villeNom) => document.getElementById('ville_nom').value = villeNom;
-    setupAutocomplete("ville_nom", "ville-list", "villes", villeCallback, true);
-    setupAutocomplete("gare_depart", "depart-list", "gares", departCallback, true);
-    setupAutocomplete("gare_arrivee", "arrivee-list", "gares", arriveeCallback, true);
+    // Autocomplete is now handled by Vue component in /dist/falaise-comment.js
 
-  </script>
-  <script>
-    window.addEventListener("DOMContentLoaded", function () {
-      roseFromExpo("rose-des-vents", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 60, 60);
-      // # SOMEDAY
-      // const quill = new Quill('#editor', {
-      //   modules: {
-      //     toolbar: [
-      //       ['bold', 'italic', 'underline'],
-      //       ['image', 'link'],
-      //     ],
-      //   },
-      //   placeholder: 'Compose an epic...',
-      //   theme: 'snow', // or 'bubble'
-      // });
-      // roseFromExpo("rose-mini", "<?php echo $falaise_exposhort1 ?>", "<?php echo $falaise_exposhort2 ?>", 36, 36);
-    });
   </script>
   <?php include "./components/footer.html"; ?>
 </body>

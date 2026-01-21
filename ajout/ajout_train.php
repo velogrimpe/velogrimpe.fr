@@ -1,6 +1,7 @@
 <?php
 // Connexion à la base de données
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $preset_ville_id = isset($_GET['ville_id']) ? (int) $_GET['ville_id'] : null;
 $preset_gare_id = isset($_GET['gare_id']) ? (int) $_GET['gare_id'] : null;
@@ -35,8 +36,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ajouter un itinéraire train - Vélogrimpe.fr</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="manifest" href="/site.webmanifest" />
@@ -68,14 +68,12 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
 <body class="min-h-screen flex flex-col">
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-  <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
-              prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-              prose-li:mt-0 prose-li:mb-0 prose-ul:mt-0 prose-ul:mb-0
-              hover:prose-a:text-[oklch(var(--pf)/1)]">
+  <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4
+              prose-li:mt-0 prose-li:mb-0 prose-ul:mt-0 prose-ul:mb-0">
     <h1 class="text-4xl font-bold text-wrap text-center"> Ajouter un itinéraire train<span class="admin text-red-900">
         (version admin)</span>
     </h1>
-    <div class="rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-sm text-base-content">
+    <div class="rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-xs text-base-content">
       <b>Vous vous apprêtez à décrire un itinéraire Ville &rarr; Gare.</b><br> Commencez par vérifier que votre ville de
       départ est dans le menu déroulant ci-dessous. Si ce n'est pas le cas, l'ajout de données n'est pas possible :
       envoyez-nous un mail.
@@ -83,11 +81,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     <form method="POST" action="/api/add_train.php" enctype="multipart/form-data" class="flex flex-col gap-4">
       <input type="hidden" class="input input-primary input-sm" id="train_public" name="train_public" value="2">
       <input class="input input-primary input-sm" type="hidden" id="admin" name="admin" value="0">
-      <datalist id="gares">
-        <?php foreach ($gares as $gare_id => $gare): ?>
-          <option value="<?= $gare['nom']; ?>"></option>
-        <?php endforeach; ?>
-      </datalist>
       <div class="flex flex-row gap-4 items-center">
         <!-- Menu déroulant des villes -->
         <div class="flex flex-col gap-1 w-1/2">
@@ -106,23 +99,16 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         </div>
         <!-- Menu déroulant des gares -->
         <div class="flex flex-col gap-1 w-1/2">
-          <div class="relative not-prose">
-            <label class="form-control" for="train_arrivee">
-              <b>Gare d'arrivée :</b>
-              <div class="input input-primary input-sm flex items-center gap-2 w-full">
-                <input class="grow" type="text" id="train_arrivee" name="train_arrivee" required autocomplete="off"
-                  value="<?= $preset_gare_nom ?? '' ?>" />
-                <svg class="w-4 h-4 fill-current">
-                  <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
-                </svg>
-              </div>
-            </label>
-            <ul id="arrivee-search-list"
-              class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-            </ul>
-          </div>
+          <label class="form-control" for="train_arrivee">
+            <b>Gare d'arrivée :</b>
+            <div id="vue-ajout-train"
+              data-gares='<?= htmlspecialchars(json_encode(array_values($gares)), ENT_QUOTES, 'UTF-8') ?>'
+              <?php if ($preset_gare_nom): ?>data-preset-gare-nom="<?= htmlspecialchars($preset_gare_nom) ?>"<?php endif; ?>>
+            </div>
+          </label>
           <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="gare_id" name="gare_id"
             value="<?= $preset_gare_id ?? '' ?>" readonly required>
+          <input type="hidden" id="train_arrivee" name="train_arrivee" value="<?= $preset_gare_nom ?? '' ?>">
         </div>
       </div>
       <!-- <div class="flex flex-row gap-4 items-center"> -->
@@ -134,7 +120,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
               <div class="input input-primary input-sm flex items-center gap-2 w-full">
                 <input class="grow" type="text" id="train_depart" name="train_depart" required autocomplete="off" />
                 <svg class="w-4 h-4 fill-current">
-                  <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
+                  <use xlink:href="/symbols/icons.svg#search"></use>
                 </svg>
               </div>
             </label>
@@ -155,7 +141,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       </label>
       <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
         <svg class="w-4 h-4 mb-1 fill-current inline-block">
-          <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
+          <use xlink:href="/symbols/icons.svg#error-warning-fill"></use>
         </svg> Un itinéraire <span id="itineraireExistsType">train</span> existe déjà entre cette ville et cette gare.
         Si vous avez besoin de modifier les informations, contactez nous par mail à l'addresse <a
           href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>.
@@ -165,20 +151,16 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         <!-- Champs libres pour la recherche d'horaires (non envoyés au serveur) -->
         <div class="flex flex-col gap-2">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label class="form-control" for="horaires_depart">
+            <div class="form-control">
               <b>Gare de départ</b>
-              <input type="text" class="input input-bordered input-sm" id="horaires_depart"
-                placeholder="ex: Lyon Part-Dieu" autocomplete="off">
-              <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
-                l'envoi. Soyez précis pour éviter les erreurs de noms.</span>
-            </label>
-            <label class="form-control" for="horaires_arrivee">
+              <div id="vue-station-depart"></div>
+              <span class="text-xs opacity-70">Recherche via Transitous. Non transmis lors de l'envoi.</span>
+            </div>
+            <div class="form-control">
               <b>Gare d'arrivée</b>
-              <input type="text" class="input input-bordered input-sm" id="horaires_arrivee"
-                placeholder="ex: Dijon Ville" autocomplete="off">
-              <span class="text-xs opacity-70">Utilisé uniquement pour consulter les horaires. Non transmis lors de
-                l'envoi. Soyez précis pour éviter les erreurs de noms.</span>
-            </label>
+              <div id="vue-station-arrivee"></div>
+              <span class="text-xs opacity-70">Recherche via Transitous. Non transmis lors de l'envoi.</span>
+            </div>
           </div>
         </div>
         <div class="flex flex-col gap-4 mt-2">
@@ -187,7 +169,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
                 class="hidden loading loading-spinner"></div>
             </button>
           </div>
-          <div class="border rounded-lg border-slate-400 hidden p-4 shadow-lg bg-base-100 max-h-[400px] overflow-y-auto"
+          <div class="border rounded-lg border-slate-400 hidden p-4 shadow-lg bg-base-100 max-h-100 overflow-y-auto"
             id="tableTrains">
             <table class="table table-xs table-zebra table-nowrap my-0">
               <thead>
@@ -225,12 +207,12 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </label>
         </div>
         <div class="grid grid-cols-1 gap-x-4 items-end flex-wrap md:grid-cols-3">
-          <label class="form-control flex-grow-0" for="train_correspmin">
+          <label class="form-control grow-0" for="train_correspmin">
             <b>Nb min de corresp.</b>
             <input type="number" class="input input-primary input-sm" id="train_correspmin" name="train_correspmin"
               placeholder="0" min="0" required>
           </label>
-          <label class="form-control flex-grow-0" for="train_correspmax">
+          <label class="form-control grow-0" for="train_correspmax">
             <b>Nb max de corresp.</b>
             <input type="number" class="input input-primary input-sm" id="train_correspmax" name="train_correspmax"
               placeholder="1" min="0" required>
@@ -249,24 +231,24 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       </label>
       <hr class="my-4">
       <h3 class="text-center">Validation de l'ajout de données</h3>
-      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-sm">
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
         <div class="flex flex-col md:flex-row gap-4">
-          <div class="form-control flex-grow">
+          <div class="form-control grow">
             <b>Itinéraire ajouté par : </b>
             <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
               <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
                 placeholder="Prénom (et/ou nom, surnom...)" required>
               <svg class="w-4 h-4 fill-current">
-                <use xlink:href="/symbols/icons.svg#ri-user-line"></use>
+                <use xlink:href="/symbols/icons.svg#user"></use>
               </svg>
             </label>
           </div>
-          <div class="form-control flex-grow">
+          <div class="form-control grow">
             <b>Mail :</b>
             <label for="email" class="input input-primary input-sm flex items-center gap-2 w-full">
               <input class="grow" type="email" id="email" name="email" required>
               <svg class="w-4 h-4 fill-current">
-                <use xlink:href="/symbols/icons.svg#ri-mail-line"></use>
+                <use xlink:href="/symbols/icons.svg#mail"></use>
               </svg>
             </label>
           </div>
@@ -276,7 +258,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             <b>Message <span class="text-accent opacity-50">(optionnel)</span> :</b>
             <i>(si vous voulez commenter votre ajout de données)</i>
           </span>
-          <textarea class="textarea textarea-bordered textarea-sm leading-6" id="message" name="message"
+          <textarea class="textarea textarea-sm leading-6" id="message" name="message"
             rows="4"></textarea>
         </label>
         <button type="submit" class="btn btn-primary" id="submitBtn">Ajouter l'itinéraire train</button>
@@ -316,21 +298,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   };
 
 
-  const arriveeCallback = (gareNom) => {
-    const gare = gareNom ? Object.values(gares).find(g => g.nom === gareNom) : {};
-    document.getElementById('gare_id').value = gare.id;
-    verifierExistenceItineraire();
-  };
-  const departCallback = (gareNom) => {
-    const gare = gareNom ? Object.values(gares).find(g => g.nom === gareNom) : {};
-    document.getElementById('train_depart_id').value = gare.id;
-  };
-  document.getElementById('ville_id').addEventListener('change', () => {
-    verifierExistenceItineraire();
-  });
-  document.getElementById('train_tgv').addEventListener('change', () => {
-    verifierExistenceItineraire();
-  });
+  // Callbacks are now handled by Vue component in /dist/ajout-train.js
 
   // Update only the description from API-provided fields; numeric fields are derived from selected trips
   const updateFields = (fields) => {
@@ -432,13 +400,22 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   };
 
   document.getElementById("fetchTrains").addEventListener('click', async () => {
+    // Check if stations are selected from Vue
+    const stations = window.__transitousStations__;
+    if (!stations?.depart || !stations?.arrivee) {
+      alert('Veuillez sélectionner une gare de départ et une gare d\'arrivée dans les listes.');
+      return;
+    }
+
     // Add loader in the button and disable it
     document.querySelector("#fetchTrains .loading").classList.remove("hidden");
     document.getElementById("fetchTrains").disabled = true;
-    // Use decoupled free-text fields for schedule lookup; fallback to velogrimpe fields if empty
-    const fromValue = (document.getElementById('horaires_depart')?.value || '').trim() || document.getElementById('train_depart').value;
-    const toValue = (document.getElementById('horaires_arrivee')?.value || '').trim() || document.getElementById('train_arrivee').value;
-    const { stats, fields } = await horairesTrains.fetchRoute(fromValue, toValue);
+
+    // Use coordinates from selected stations (already geocoded)
+    const { stats, fields } = await horairesTrains.fetchRouteByCoords(
+      stations.depart.lat, stations.depart.lon,
+      stations.arrivee.lat, stations.arrivee.lon
+    );
     renderItineraries(stats.uniqueTrips || []);
     // Update only description from fields; numeric fields already derived from selected trips
     updateFields(fields);
@@ -446,10 +423,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
     document.getElementById("fetchTrains").disabled = false;
   });
 </script>
-<script src="/js/autocomplete.js"></script>
-<script>
-  // setupAutocomplete("train_depart", "depart-search-list", "gares", departCallback);
-  setupAutocomplete("train_arrivee", "arrivee-search-list", "gares", arriveeCallback);
-</script>
+<script type="module" src="/dist/ajout-train.js"></script>
 
 </html>

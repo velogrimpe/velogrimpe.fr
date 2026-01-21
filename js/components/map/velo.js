@@ -72,7 +72,7 @@ function renderGpx(velo, options = {}) {
             ? '<svg class="w-4 h-4 fill-current inline"><use xlink:href="/symbols/icons.svg#ri-footprint-fill"></use></svg>'
             : ""),
         {
-          className: `p-[1px] bg-[${color}] text-white border-[${color}] font-bold`,
+          className: `vg-velo-tooltip vg-color-${color}`,
           permanent: true,
           direction: "center",
         }

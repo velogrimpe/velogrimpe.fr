@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 $result_villes = $mysqli->query("SELECT ville_nom FROM villes ORDER BY ville_nom");
@@ -20,8 +21,7 @@ if (!$admin) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ajouter une ville (admin)</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="manifest" href="/site.webmanifest" />
@@ -39,10 +39,7 @@ if (!$admin) {
 
 <body class="min-h-screen flex flex-col">
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-  <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
-    prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-    hover:prose-a:text-[oklch(var(--pf)/1)] prose-pre:my-0
-    prose-pre:text-center">
+  <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4 prose-pre:my-0 prose-pre:text-center">
     <h1 class="text-4xl font-bold text-wrap text-center"> AJOUTER UNE VILLE (ADMIN) </h1>
     <form method="post" action="/api/add_ville.php" class="flex flex-col gap-4">
       <input type="hidden" id="admin" name="admin" value="0" />
@@ -57,7 +54,7 @@ if (!$admin) {
       </label>
       <div id="villeExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
         <svg class="w-4 h-4 mb-1 fill-current inline-block">
-          <use xlink:href="/symbols/icons.svg#ri-error-warning-fill"></use>
+          <use xlink:href="/symbols/icons.svg#error-warning-fill"></use>
         </svg> Une ville avec ce nom existe déjà dans la base de données. Vérifiez que vous ne faites pas de doublon.
       </div>
       <button class="btn btn-primary" type="submit">AJOUTER LA VILLE</button>

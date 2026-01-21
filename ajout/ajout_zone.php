@@ -1,4 +1,5 @@
 <?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 
@@ -13,8 +14,7 @@ if (!$admin) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ajouter une zone (admin)</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="manifest" href="/site.webmanifest" />
@@ -32,10 +32,7 @@ if (!$admin) {
 
 <body class="min-h-screen flex flex-col">
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-  <main class="w-full flex-grow max-w-screen-md mx-auto prose p-4 prose-a:text-[oklch(var(--p)/1)]
-    prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-    hover:prose-a:text-[oklch(var(--pf)/1)] prose-pre:my-0
-    prose-pre:text-center">
+  <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4 prose-pre:my-0 prose-pre:text-center">
     <h1 class="text-4xl font-bold text-wrap text-center"> AJOUTER UNE ZONE (ADMIN) </h1>
     <form method="post" action="/api/add_zone.php" class="flex flex-col gap-4">
       <input type="hidden" id="admin" name="admin" value="0" />

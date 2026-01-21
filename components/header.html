@@ -1,11 +1,10 @@
 <header>
-  <nav class="z-[10000]">
-    <!-- VERSION MOBILE -->
-    <div class="drawer text-base-100 text-primary z-[10000]">
+  <nav class="z-10000">
+    <div class="drawer z-10000">
       <input id="my-drawer-3" type="checkbox" class="drawer-toggle" />
       <div class="drawer-content flex flex-col">
         <!-- Navbar -->
-        <div class="navbar py-0 w-full shadow-lg bg-primary text-base-100">
+        <div class="navbar bg-primary text-base-100 w-full shadow-lg py-0">
           <div class="flex-none lg:hidden">
             <label
               for="my-drawer-3"
@@ -27,122 +26,101 @@
               </svg>
             </label>
           </div>
-          <div class="gap-2 px-2 font-bold text-xl">
-            <a
-              class="text-lg w-8 h-8 lg:w-9 lg:h-9 shadow-xl bg-white p-[3px] rounded-full"
-              href="/"
-            >
-              <img
-                alt="Velogrimpe.fr"
-                src="/images/logo_no_bg.png"
-                class="h-full object-cover w-auto"
-              />
+          <div class="flex-none px-2">
+            <a class="flex items-center gap-2 font-bold text-xl" href="/">
+              <span
+                class="w-8 h-8 lg:w-9 lg:h-9 shadow-xl bg-white p-0.75 rounded-full"
+              >
+                <img
+                  alt="Velogrimpe.fr"
+                  src="/images/logo_no_bg.png"
+                  class="h-full object-cover w-auto"
+                />
+              </span>
+              <span>Vélogrimpe.fr</span>
             </a>
-            <span> Vélogrimpe.fr</span>
           </div>
-          <div class="hidden lg:block flex-1">
-            <ul
-              class="menu menu-horizontal w-full flex-row justify-center text-lg"
-            >
-              <!-- Navbar menu content here -->
+          <div class="flex-1 hidden lg:flex justify-center">
+            <ul class="menu menu-horizontal text-lg">
               <li>
-                <a
-                  class="hover:text-base-100 text-base-100 focus:text-base-100"
-                  href="/carte.php"
-                  >Carte</a
-                >
+                <a class="text-base-100 font-bold" href="/carte.php">Carte</a>
               </li>
               <li class="dropdown dropdown-bottom">
-                <a
-                  class="hover:text-base-100 text-base-100 focus:text-base-100"
-                  tabindex="0"
-                  role="button"
-                  class="font-bold"
+                <a class="text-base-100 font-bold" tabindex="0" role="button"
+                  >Falaises proches de...</a
                 >
-                  Falaises proches de...
-                </a>
                 <ul
                   tabindex="0"
-                  class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-xl"
+                  class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-xl"
                 >
                   <li>
-                    <a class="text-primary" href="/tableau.php?ville_id=13">
-                      Annecy
-                    </a>
+                    <a class="text-primary" href="/tableau.php?ville_id=13"
+                      >Annecy</a
+                    >
                   </li>
                   <li>
-                    <a class="text-primary" href="/tableau.php?ville_id=7">
-                      Chambéry
-                    </a>
+                    <a class="text-primary" href="/tableau.php?ville_id=7"
+                      >Chambéry</a
+                    >
                   </li>
                   <li>
-                    <a class="text-primary" href="/tableau.php?ville_id=11">
-                      Grenoble
-                    </a>
+                    <a class="text-primary" href="/tableau.php?ville_id=11"
+                      >Grenoble</a
+                    >
                   </li>
                   <li>
-                    <a class="text-primary" href="/tableau.php?ville_id=6">
-                      Lyon
-                    </a>
+                    <a class="text-primary" href="/tableau.php?ville_id=6"
+                      >Lyon</a
+                    >
                   </li>
                   <li>
-                    <a class="text-primary" href="/tableau.php?ville_id=15">
-                      Marseille
-                    </a>
+                    <a class="text-primary" href="/tableau.php?ville_id=15"
+                      >Marseille</a
+                    >
                   </li>
                   <li>
-                    <a class="text-primary" href="/tableau.php?ville_id=19">
-                      Montpellier
-                    </a>
+                    <a class="text-primary" href="/tableau.php?ville_id=19"
+                      >Montpellier</a
+                    >
                   </li>
                   <li>
-                    <a class="text-primary" href="/tableau.php?ville_id=18">
-                      Paris
-                    </a>
+                    <a class="text-primary" href="/tableau.php?ville_id=18"
+                      >Paris</a
+                    >
                   </li>
                   <li>
-                    <a class="text-primary" href="/tableau.php?ville_id=12">
-                      Valence
-                    </a>
+                    <a class="text-primary" href="/tableau.php?ville_id=12"
+                      >Valence</a
+                    >
                   </li>
                 </ul>
               </li>
               <li>
-                <a
-                  class="hover:text-base-100 text-base-100 focus:text-base-100"
-                  href="/logistique.php"
+                <a class="text-base-100 font-bold" href="/logistique.php"
                   >Logistique</a
                 >
               </li>
             </ul>
           </div>
-          <div class="hidden lg:block">
-            <ul class="menu menu-horizontal flex-row text-base text-base-100">
+          <div class="flex-none hidden lg:flex">
+            <ul class="menu menu-horizontal text-base">
               <li>
-                <a
-                  class="hover:text-base-100 text-base-100 focus:text-base-100 font-normal"
-                  href="/communaute.php"
+                <a class="text-base-100 font-normal" href="/communaute.php"
                   >Communauté</a
                 >
               </li>
               <li>
-                <a
-                  class="hover:text-base-100 text-base-100 focus:text-base-100 font-normal"
-                  href="/contribuer.php"
+                <a class="text-base-100 font-normal" href="/contribuer.php"
                   >Contribuer</a
                 >
               </li>
               <li>
-                <a
-                  class="hover:text-base-100 text-base-100 focus:text-base-100 font-normal"
-                  href="/actualites"
+                <a class="text-base-100 font-normal" href="/actualites"
                   >Actus</a
                 >
               </li>
               <li>
-                <a
-                  class="hover:text-base-100 text-base-100 focus:text-base-100 font-normal"
-                  href="/infos.php"
+                <a class="text-base-100 font-normal" href="/infos.php"
                   >Plus d'infos</a
                 >
               </li>
@@ -150,29 +128,13 @@
           </div>
         </div>
       </div>
-      <div class="drawer-side z-[10000]">
+      <div class="drawer-side z-10000">
         <label
           for="my-drawer-3"
           aria-label="close sidebar"
           class="drawer-overlay"
         ></label>
-        <ul
-          class="menu bg-base-200 h-[calc(100%-64px)] w-80 p-4 text-xl gap-4 mt-16 flex-nowrap overflow-scroll max-h-[calc(100vh-64px)]"
-        >
-          <!-- <div class="pl-14 h-12 flex flex-row gap-2 font-bold text-xl">
-            <a
-              class="text-lg w-8 h-8 lg:w-9 lg:h-9 shadow-xl border-2 border-white rounded-full"
-              href="/"
-            >
-              <img
-                alt="Velogrimpe.fr"
-                src="/images/logo_no_bg.png"
-                class="h-full object-fill w-auto"
-              />
-            </a>
-            <span> Vélogrimpe.fr</span>
-          </div> -->
-          <!-- Sidebar content here -->
+        <ul class="menu bg-base-200 min-h-full w-80 p-4 pt-20 text-xl gap-2">
           <li><a href="/carte.php">Carte</a></li>
           <li>
             <details>
@@ -180,49 +142,23 @@
                 Falaises proches de...
               </summary>
               <ul class="bg-base-100 rounded-t-none p-2">
-                <li>
-                  <a href="/tableau.php?ville_id=13">Annecy</a>
-                </li>
-                <li>
-                  <a href="/tableau.php?ville_id=7">Chambéry</a>
-                </li>
-                <li>
-                  <a href="/tableau.php?ville_id=11">Grenoble</a>
-                </li>
-                <li>
-                  <a href="/tableau.php?ville_id=6">Lyon</a>
-                </li>
-                <li>
-                  <a href="/tableau.php?ville_id=15">Marseille</a>
-                </li>
-                <li>
-                  <a href="/tableau.php?ville_id=19">Montpellier</a>
-                </li>
-                <li>
-                  <a href="/tableau.php?ville_id=18">Paris</a>
-                </li>
-                <li>
-                  <a href="/tableau.php?ville_id=12">Valence</a>
-                </li>
+                <li><a href="/tableau.php?ville_id=13">Annecy</a></li>
+                <li><a href="/tableau.php?ville_id=7">Chambéry</a></li>
+                <li><a href="/tableau.php?ville_id=11">Grenoble</a></li>
+                <li><a href="/tableau.php?ville_id=6">Lyon</a></li>
+                <li><a href="/tableau.php?ville_id=15">Marseille</a></li>
+                <li><a href="/tableau.php?ville_id=19">Montpellier</a></li>
+                <li><a href="/tableau.php?ville_id=18">Paris</a></li>
+                <li><a href="/tableau.php?ville_id=12">Valence</a></li>
               </ul>
             </details>
           </li>
-          <li>
-            <a href="/logistique.php">Logistique</a>
-          </li>
-          <li></li>
-          <li>
-            <a class="text-base-content" href="/communaute.php">Communauté</a>
-          </li>
-          <li>
-            <a class="text-base-content" href="/contribuer.php">Contribuer</a>
-          </li>
-          <li>
-            <a class="text-base-content" href="/actualites">Actualités</a>
-          </li>
-          <li>
-            <a class="text-base-content" href="/infos.php">Plus d'infos</a>
-          </li>
+          <li><a href="/logistique.php">Logistique</a></li>
+          <li class="mt-4"></li>
+          <li><a href="/communaute.php">Communauté</a></li>
+          <li><a href="/contribuer.php">Contribuer</a></li>
+          <li><a href="/actualites">Actualités</a></li>
+          <li><a href="/infos.php">Plus d'infos</a></li>
         </ul>
       </div>
     </div>

@@ -1,6 +1,7 @@
 <?php
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/fetch_mail_template.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 
 $articleDateFormatter = new IntlDateFormatter(
   'fr_FR',                // Locale française
@@ -42,8 +43,7 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
     content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <!-- Velogrimpe Styles -->
@@ -55,8 +55,8 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
 <body>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="pb-4">
-    <div class="hero min-h-[400px] bg-center" style="background-image: url(/images/mw/075-matos-5.webp);">
-      <div class="hero-overlay bg-opacity-60"></div>
+    <div class="hero min-h-100 bg-center" style="background-image: url(/images/mw/075-matos-5.webp);">
+      <div class="hero-overlay bg-slate-600/70"></div>
       <div class="hero-content text-center text-base-100">
         <div class="max-w-md">
           <h1 class="text-5xl font-bold">Actualités Vélogrimpe</h1>
@@ -101,34 +101,34 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
         });
         ?>
         <?php foreach ($articles as $article): ?>
-          <?php
-          $title = htmlspecialchars($article['title']);
-          $url = htmlspecialchars($article['url']);
-          $typeLabel = $article['type'] === 'actualites' ? 'Actualité' : 'Article';
-          $dateFormatted = $article['type'] === "actualites" ? ucfirst($newsletterDateFormatter->format($article['date'])) : $articleDateFormatter->format($article['date']);
-          ?>
-          <a href="<?= $url ?>" class="block hover:no-underline font-normal">
-            <div
-              class="flex flex-col-reverse sm:flex-row items-center sm:justify-between gap-2 shadow-xl hover:shadow-lg hover:bg-base-200 rounded-md transition border p-2">
-              <div class="text-center sm:text-left">
-                <h3 class="text-xl font-bold mb-1">
-                  <?php if ($article['type'] === 'actualites'): ?>
-                    <svg class="w-5 h-5 fill-current inline pb-1">
-                      <use xlink:href="/symbols/icons.svg#ri-mail-fill"></use>
-                    </svg>
-                  <?php endif; ?>
-                  <?= $title ?>
-                </h3>
-                <p class="text-sm text-slate-600 mb-2"><?= $dateFormatted ?></p>
-                <p class="text-normal text-slate-800 mb-4"><?= htmlspecialchars($article['description']) ?></p>
-                <div class="text-primary font-bold sm:text-xs text-normal">Lire la suite</div>
-              </div>
-              <div class="flex-shrink-0 pt-2 sm:pt-0">
-                <img src="<?= htmlspecialchars($article['image']) ?>" alt="<?= $title ?>"
-                  class="w-auto h-48 sm:w-36 sm:h-36 rounded-md object-contain" />
-              </div>
-            </div>
-          </a>
+              <?php
+              $title = htmlspecialchars($article['title']);
+              $url = htmlspecialchars($article['url']);
+              $typeLabel = $article['type'] === 'actualites' ? 'Actualité' : 'Article';
+              $dateFormatted = $article['type'] === "actualites" ? ucfirst($newsletterDateFormatter->format($article['date'])) : $articleDateFormatter->format($article['date']);
+              ?>
+              <a href="<?= $url ?>" class="card-link block font-normal">
+                <div
+                  class="flex flex-col-reverse sm:flex-row items-center sm:justify-between gap-2 shadow-xl hover:shadow-lg hover:bg-base-200 rounded-md transition border p-2">
+                  <div class="text-center sm:text-left">
+                    <h3 class="text-xl font-bold mb-1">
+                      <?php if ($article['type'] === 'actualites'): ?>
+                            <svg class="w-5 h-5 fill-current inline pb-1">
+                              <use xlink:href="/symbols/icons.svg#mail-fill"></use>
+                            </svg>
+                      <?php endif; ?>
+                      <?= $title ?>
+                    </h3>
+                    <p class="text-sm text-slate-600 mb-2"><?= $dateFormatted ?></p>
+                    <p class="text-normal text-slate-800 mb-4"><?= htmlspecialchars($article['description']) ?></p>
+                    <div class="text-primary font-bold sm:text-xs text-normal">Lire la suite</div>
+                  </div>
+                  <div class="shrink-0 pt-2 sm:pt-0">
+                    <img src="<?= htmlspecialchars($article['image']) ?>" alt="<?= $title ?>"
+                      class="w-auto h-48 sm:w-36 sm:h-36 rounded-md object-contain" />
+                  </div>
+                </div>
+              </a>
         <?php endforeach; ?>
       </div>
       <hr class="mt-8 mb-2" />

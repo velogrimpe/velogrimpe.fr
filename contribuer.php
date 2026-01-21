@@ -1,6 +1,7 @@
 <?php
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $email = $config['contact_mail'];
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -24,8 +25,7 @@ $email = $config['contact_mail'];
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Contribuez au topos d'accès vélo + train pour se rendre en falaise. Partagez vos bon plans et expérience, traces et falaises accessibles à vélo.">
   <title>Contribuer - Vélogrimpe.fr</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="manifest" href="/site.webmanifest" />
@@ -34,17 +34,15 @@ $email = $config['contact_mail'];
 
 <body class="min-h-screen">
   <?php include "./components/header.html"; ?>
-  <div class="hero min-h-[400px] bg-bottom" style="background-image: url(/images/mw/078-groupe-5.webp);">
-    <div class="hero-overlay bg-opacity-60"></div>
+  <div class="hero min-h-100 bg-bottom" style="background-image: url(/images/mw/078-groupe-5.webp);">
+    <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">
       <div class="max-w-md">
         <h1 class="text-5xl font-bold">Contribuer</h1>
       </div>
     </div>
   </div>
-  <div class="max-w-screen-lg mx-auto prose p-4
-              prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
-              hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]">
+  <div class="max-w-(--breakpoint-lg) mx-auto prose p-4">
     <p> Comme vous l'imaginez, ce projet de site Vélogrimpe nécessite du temps et de l'énergie : si vous voulez nous
       aider, vous êtes les bienvenus ! </p>
     <h2>AJOUTER DES DONNÉES</h2>

@@ -161,19 +161,24 @@ horairesTrains.fetchGares = fetchGares;
 async function fetchRoute(fromValue, toValue) {
   const from = encodeURIComponent(fromValue);
   const to = encodeURIComponent(toValue);
+  const fromRes = await fetch(`${url}${geocodeEndpoint}?text=${from}`, {
+    headers: { "X-Client-Identification": ua },
+  }).then((res) => res.json());
+  const { lat: fromLat, lon: fromLon } = fromRes[0];
+  const toRes = await fetch(`${url}${geocodeEndpoint}?text=${to}`, {
+    headers: { "X-Client-Identification": ua },
+  }).then((res) => res.json());
+  const { lat: toLat, lon: toLon } = toRes[0];
+  return fetchRouteByCoords(fromLat, fromLon, toLat, toLon);
+}
+horairesTrains.fetchRoute = fetchRoute;
+
+async function fetchRouteByCoords(fromLat, fromLon, toLat, toLon) {
   const nextSaturday = new Date();
   nextSaturday.setDate(
     nextSaturday.getDate() + ((6 - nextSaturday.getDay()) % 7)
   );
   nextSaturday.setHours(0, 0, 0, 0);
-  const fromRes = await fetch(`${url}${geocodeEndpoint}?text=${from}`, {
-    headers: { "X-Client-Identification": ua },
-  }).then((res) => res.json());
-  const { name: fromName, lat: fromLat, lon: fromLon } = fromRes[0];
-  const toRes = await fetch(`${url}${geocodeEndpoint}?text=${to}`, {
-    headers: { "X-Client-Identification": ua },
-  }).then((res) => res.json());
-  const { name: toName, lat: toLat, lon: toLon } = toRes[0];
   const fromPlace = `${fromLat},${fromLon}`;
   const toPlace = `${toLat},${toLon}`;
   const fullUrl =
@@ -202,7 +207,7 @@ async function fetchRoute(fromValue, toValue) {
     return { stats: {}, fields: {}, data: { uniqueTrips: [] } };
   }
 }
-horairesTrains.fetchRoute = fetchRoute;
+horairesTrains.fetchRouteByCoords = fetchRouteByCoords;
 
 if (typeof module === "object" && module.exports) {
   module.exports = horairesTrains;

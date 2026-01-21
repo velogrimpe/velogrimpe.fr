@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
@@ -29,8 +30,7 @@ $falaises_topo = array_values(array_filter(
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ajouter des données (admin)</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="stylesheet" href="/global.css" />
@@ -39,7 +39,7 @@ $falaises_topo = array_values(array_filter(
 
 <body class="flex flex-col min-h-screen">
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-  <main class="w-full flex-grow max-w-screen-md mx-auto p-10 flex flex-col gap-8">
+  <main class="w-full grow max-w-(--breakpoint-md) mx-auto p-10 flex flex-col gap-8">
     <h1 class="text-4xl font-bold text-wrap text-center">
       <span class="text-red-900">PANNEAU D'ADMINISTRATION</span>
     </h1>
@@ -47,7 +47,6 @@ $falaises_topo = array_values(array_filter(
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_ville.php?admin=<?= $token ?>">Ajouter une ville de
         départ</a>
-      <a class="btn btn-primary btn-lg" href="/ajout/ajout_zone.php?admin=<?= $token ?>">Ajouter une zone</a>
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_falaise.php?admin=<?= $token ?>">Ajouter une falaise</a>
       <a class="btn btn-primary btn-lg" href="/ajout/ajout_train.php?admin=<?= $token ?>">Ajouter un itinéraire train
         (ville - gare)</a>
@@ -60,7 +59,7 @@ $falaises_topo = array_values(array_filter(
     </div>
     <h2 class="text-4xl font-bold text-wrap text-center">Modifier des données</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <label class="flex flex-col gap-1 items-center bg-base-100 p-2 rounded-lg bg-primary" for="selectFalaise1">
+      <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectFalaise1">
         <b class="text-base-100 text-lg">⚠️ Falaises à vérifier</b>
         <?php if (count($falaises_contrib) === 0): ?>
           <p class="text-base-100 text-lg">Aucune falaise à vérifier 💪</p>
@@ -74,7 +73,7 @@ $falaises_topo = array_values(array_filter(
           </select>
         <?php endif; ?>
       </label>
-      <label class="flex flex-col gap-1 items-center bg-base-100 p-2 rounded-lg bg-primary" for="selectFalaise3">
+      <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectFalaise3">
         <b class="text-base-100 text-lg">✅ Falaises du Topo</b>
         <select id="selectFalaise3" name="selectFalaise3" class="select select-primary select-sm"
           onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
@@ -84,7 +83,7 @@ $falaises_topo = array_values(array_filter(
           <?php endforeach; ?>
         </select>
       </label>
-      <label class="flex flex-col gap-1 items-center bg-base-100 p-2 rounded-lg bg-primary" for="selectFalaise2">
+      <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectFalaise2">
         <b class="text-base-100 text-lg">❌ Falaises Hors Topo</b>
         <select id="selectFalaise2" name="selectFalaise2" class="select select-primary select-sm"
           onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">

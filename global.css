@@ -1,7 +1,16 @@
 /* Base styling */
 body {
-  font-family: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+  font-family:
+    Arial,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
     "Segoe UI Symbol";
   color: #333;
   background-color: #f4f4f9;
@@ -9,48 +18,22 @@ body {
   padding: 0;
 }
 
-/* Links styling */
-a {
+/* Links styling - exclude navbar, menu, card links */
+a:not(.navbar a):not(.menu a):not(.btn):not(#map a):not(.editor-map a):not(
+    .card-link
+  ):not(.link) {
   color: #2e8b57;
   text-decoration: none;
   font-weight: bold;
 }
-a:hover {
+a:not(.navbar a):not(.menu a):not(.btn):not(#map a):not(.editor-map a):not(
+    .card-link
+  ):hover:not(.link) {
   /* color: #1e5d3e; */
   text-decoration: underline;
 }
 
-[data-theme="velogrimpe"] {
-  --p: 56.85% 0.1187 154.95;
-  --pf: 42.91% 0.0826 158.31;
-  --pc: 100% 0 0;
-  --s: 76.87% 0.1234 184.97;
-  --sf: 65.73% 0.1053 185.22;
-  --sc: 100% 0 0;
-  --a: 64.79% 0.1726 249.75;
-  --af: 60.03% 0.1719 251.22;
-  --ac: 100% 0 0;
-  --n: 37.74% 0.0226 261.23;
-  --nf: 30.1% 0.0173 266.38;
-  --nc: 100% 0 0;
-  --b1: 100% 0 0;
-  --b2: 98.46% 0.0017 247.84;
-  --b3: 86.48% 0.0099 252.82;
-  --bc: 27.02% 0.0275 257.53;
-  --in: 64.79% 0.1726 249.75;
-  --su: 59.82% 0.1068 182.47;
-  --wa: 77.2% 0.1737 64.55;
-  --er: 52.94% 0.2121 36.25;
-  --border-color: var(--b3);
-  --rounded-box: 1rem;
-  --rounded-btn: 0.5rem;
-  --rounded-badge: 1.9rem;
-  --animation-btn: 0.25s;
-  --animation-input: 0.2s;
-  --btn-text-case: uppercase;
-  --navbar-padding: 0.5rem;
-  --border-btn: 1px;
-}
+/* velogrimpe theme is now defined in frontend/tailwind.config.js */
 
 .indianRed {
   border-bottom: indianRed inset 4px;
@@ -94,7 +77,10 @@ a:hover {
 
 .info {
   padding: 6px 8px;
-  font: 14px/16px Arial, Helvetica, sans-serif;
+  font:
+    14px/16px Arial,
+    Helvetica,
+    sans-serif;
   background: white;
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
@@ -119,35 +105,119 @@ a:hover {
   background-size: 22px 22px !important;
 }
 
-/* Links styling */
-#map a:not(.link):not(.btn):not(.leaflet-pm-action) {
+/* Links styling for maps */
+#map a:not(.link):not(.btn):not(.leaflet-pm-action),
+.editor-map a:not(.link):not(.btn):not(.leaflet-pm-action) {
   margin-top: unset;
   text-decoration: unset;
   color: unset;
 }
-#map a:not(.link):not(.btn):not(.leaflet-pm-action):hover {
+#map a:not(.link):not(.btn):not(.leaflet-pm-action):hover,
+.editor-map a:not(.link):not(.btn):not(.leaflet-pm-action):hover {
   color: unset;
   text-decoration: unset;
 }
-#map a.link {
+#map a.link,
+.editor-map a.link {
   display: inline-block;
   color: #2e8b57;
   text-decoration: none;
   font-weight: bold;
 }
-#map a.link:hover {
+#map a.link:hover,
+.editor-map a.link:hover {
   /* color: #1e5d3e; */
   text-decoration: underline;
 }
 
-#map a.btn {
-  color: oklch(var(--b1));
+#map a.btn,
+.editor-map a.btn {
+  color: var(--color-base-100);
   text-decoration: none;
   font-weight: bold;
 }
-#map a.btn:hover {
+#map a.btn:hover,
+.editor-map a.btn:hover {
   /* color: #1e5d3e; */
   text-decoration: underline;
+}
+
+/* Secteur label highlight (used dynamically by JS) */
+.secteur-label-highlight {
+  background-color: darkred !important;
+  color: white !important;
+}
+
+/* Map marker icons (used dynamically by JS) */
+.vg-parking-icon {
+  background-color: #2563eb; /* blue-600 */
+  color: white;
+  border-radius: 9999px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  border: 1px solid white;
+  text-transform: uppercase;
+}
+
+/* Map color palette - defines --vg-color variable */
+.vg-color-indianRed {
+  --vg-color: indianRed;
+}
+.vg-color-tomato {
+  --vg-color: tomato;
+}
+.vg-color-teal {
+  --vg-color: teal;
+}
+.vg-color-paleVioletRed {
+  --vg-color: paleVioletRed;
+}
+.vg-color-mediumSlateBlue {
+  --vg-color: mediumSlateBlue;
+}
+.vg-color-lightSalmon {
+  --vg-color: lightSalmon;
+}
+.vg-color-fireBrick {
+  --vg-color: fireBrick;
+}
+.vg-color-crimson {
+  --vg-color: crimson;
+}
+.vg-color-purple {
+  --vg-color: purple;
+}
+.vg-color-hotPink {
+  --vg-color: hotPink;
+}
+.vg-color-mediumOrchid {
+  --vg-color: mediumOrchid;
+}
+.vg-color-black {
+  --vg-color: black;
+}
+
+/* Velo tooltip - uses --vg-color */
+.vg-velo-tooltip {
+  padding: 1px;
+  color: white;
+  font-weight: bold;
+  background-color: var(--vg-color);
+  border-color: var(--vg-color);
+}
+
+/* Station/Falaise tooltip - uses --vg-color */
+.vg-station-tooltip {
+  padding: 1px 2px;
+  color: white;
+  border-radius: 0.375rem;
+  background-color: var(--vg-color);
+  border-color: var(--vg-color);
+}
+.vg-station-tooltip::before {
+  border-right-color: var(--vg-color);
 }
 
 /* Remove input type number default up/down arrows */
@@ -176,7 +246,7 @@ input[type="number"] {
 /* Popup pour les polygones de falaises voisines */
 .vg-popup .leaflet-popup-content-wrapper {
   padding: 0;
-  background-color: oklch(var(--p));
+  background-color: var(--color-primary);
   box-shadow: none;
   border: none;
   width: fit-content;
@@ -185,13 +255,16 @@ input[type="number"] {
   margin: 0;
 }
 .vg-popup .leaflet-popup-tip {
-  background-color: oklch(var(--p));
+  background-color: var(--color-primary);
   box-shadow: none;
 }
 
 .vg-tooltip {
   padding: 6px 8px;
-  font: 14px/16px Arial, Helvetica, sans-serif;
+  font:
+    14px/16px Arial,
+    Helvetica,
+    sans-serif;
   border: 2px solid #e8cd51;
   width: fit-content;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);

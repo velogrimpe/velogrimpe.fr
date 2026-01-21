@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 
 $falaises = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
@@ -41,25 +42,20 @@ $highlight = $_GET['h'] ?? '';
     content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
-  <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
-  <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js" defer></script>
-  <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
-  <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
-    rel='stylesheet' />
-  <!-- Carte : locate -->
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.84.2/dist/L.Control.Locate.min.js"
-    charset="utf-8"></script>
+  <!-- Map libraries bundle (Leaflet, GPX, Fullscreen, Locate) -->
+  <script src="/dist/map.js"></script>
+  <link rel="stylesheet" href="/dist/map.css" />
   <!-- <script src="https://unpkg.com/protomaps-leaflet@5.1.0/dist/protomaps-leaflet.js"></script> -->
   <script src="/js/vendor/protomaps-leaflet.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
+  <!-- Shared utilities -->
+  <script src="/js/utils-global.js"></script>
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
+  <!-- Vue Component Styles -->
+  <?php vite_css('carte-info'); ?>
   <link rel="stylesheet" href="./index.css" />
   <link rel="manifest" href="./site.webmanifest" />
   <style>
@@ -85,296 +81,26 @@ $highlight = $_GET['h'] ?? '';
     <div class="flex flex-col gap-1">
       <div class="flex flex-row gap-4">
         <div
-          class="hidden md:flex w-[17rem] bg-base-100 rounded-lg p-4 shadow-lg text-sm flex-col gap-6 h-[calc(100dvh-115px)] overflow-y-auto">
+          class="hidden md:flex w-68 bg-base-100 rounded-lg p-4 shadow-lg text-sm flex-col gap-6 h-[calc(100dvh-115px)] overflow-y-auto">
           <div class="flex flex-col gap-2">
             <div id="searchFormPanelContainer">
               <div class="text-lg font-bold">Recherche</div>
-              <div id="searchForm" class="relative">
-                <label class="input input-primary input-sm flex items-center gap-2 w-full">
-                  <input tabindex="0" type="search" id="search" class="w-full" placeholder="falaise/gare"
-                    autocomplete="off" />
-                  <svg class="w-4 h-4 fill-current">
-                    <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
-                  </svg>
-                </label>
-                <ul id="search-list"
-                  class="autocomplete-list absolute w-full bg-white border border-primary mt-1 hidden">
-                </ul>
-                <datalist id="garesetfalaises">
-                  <?php foreach ($falaises as $falaise): ?>
-                    <option value="<?= $falaise["falaise_nom"] ?> (falaise)"></option>
-                  <?php endforeach; ?>
-                  <?php foreach ($gares as $gare): ?>
-                    <option value="<?= $gare["gare_nom"] ?> (gare)"></option>
-                  <?php endforeach; ?>
-                </datalist>
+              <div id="searchForm">
+                <div id="vue-search"
+                  data-falaises='<?= htmlspecialchars(json_encode(array_map(fn($f) => ["falaise_id" => $f["falaise_id"], "falaise_nom" => $f["falaise_nom"]], $falaises)), ENT_QUOTES) ?>'
+                  data-gares='<?= htmlspecialchars(json_encode(array_map(fn($g) => ["gare_id" => $g["gare_id"], "gare_nom" => $g["gare_nom"]], $gares)), ENT_QUOTES) ?>'>
+                </div>
               </div>
             </div>
           </div>
           <div class="flex flex-col gap-2">
             <div class="flex flex-row items-center justify-between">
               <div class="text-lg font-bold">Filtres</div>
-              <button type="button" id="filtersFormReset" class="btn btn-xs btn-ghost text-primary">
-                <svg class="w-3 h-3 fill-current">
-                  <use xlink:href="/symbols/icons.svg#ri-repeat-line"></use>
-                </svg> Réinitialiser </button>
             </div>
             <div id="filtersFormPanelContainer">
-              <form class="flex flex-col gap-2 text-sm" id="filtersForm">
-                <div class="flex flex-col gap-2">
-                  <div><b class="text-primary text-base">Falaise</b></div>
-                  <div class="flex flex-col gap-2">
-                    <div class="flex flex-col gap-2">
-                      <div>&bull; Je veux une falaise exposée</div>
-                      <div class="flex flex-row gap-1 items-center ml-4">
-                        <div class="h-20 flex items-center w-3">
-                          <div class="h-full bg-base-300 rounded-full w-1 relative">
-                            <div class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 left-1/2
-                                        bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
-                                        flex items-center justify-center text-xs text-slate-600 font-bold">OU</div>
-                          </div>
-                        </div>
-                        <div class="max-w-96 grid grid-cols-[auto_auto] md:grid-cols-[auto] gap-x-2 md:gap-y-1">
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
-                            <input type="checkbox" id="filterExpoN" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Nord <br class="md:hidden">
-                              <span class="text-xs text-slate-400">(NO, N, NE)</span>
-                            </span>
-                          </label>
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
-                            <input type="checkbox" id="filterExpoE" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Est <br class="md:hidden">
-                              <span class="text-xs text-slate-400">(NE, E, SE)</span>
-                            </span>
-                          </label>
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
-                            <input type="checkbox" id="filterExpoS" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Sud <br class="md:hidden">
-                              <span class="text-xs text-slate-400">(SE, S, SO)</span>
-                            </span>
-                          </label>
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0">
-                            <input type="checkbox" id="filterExpoO" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Ouest <br class="md:hidden">
-                              <span class="text-xs text-slate-400">(SO, O, NO)</span>
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div>&bull; Nombre de voies</div>
-                      <div>
-                        <label for="" class="label cursor-pointer gap-2 p-0 pr-1 w-full justify-start">
-                          <select id="nbVoies" class="select select-xs select-primary focus:outline-base-300">
-                            <option value="0" selected>Pas de minimum</option>
-                            <option value="20">Plus de 20</option>
-                            <option value="50">Plus de 50</option>
-                            <option value="100">Plus de 100</option>
-                            <option value="200">Plus de 200</option>
-                          </select>
-                          <!-- <span class="label-text">Couenne</span> -->
-                        </label>
-                      </div>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div>&bull; Je veux des cotations dans le <br />
-                        <span class="italic text-base-300 text-sm">(5- = de 5a à 5b, 5+ = de 5b+ à 5c+)</span>
-                      </div>
-                      <div
-                        class="flex flex-row md:flex-col gap-3 items-center md:justify-center md:items-start ml-4 md:w-fit">
-                        <div class="flex items-center h-16 md:h-full md:w-full w-3">
-                          <div class="h-full md:w-full bg-base-300 rounded-full md:h-1 w-1 relative">
-                            <div class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 left-1/2
-                                        bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
-                                        flex items-center justify-center text-xs text-slate-600 font-bold">ET</div>
-                          </div>
-                        </div>
-                        <div
-                          class="max-w-96 md:flex flex-row grid grid-cols-[auto_auto_auto_auto] gap-x-[10px] gap-y-2 md:justify-between md:w-full">
-                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
-                            <input type="checkbox" id="filterCot40" value="40"
-                              class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">&le;4</span>
-                          </label>
-                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
-                            <input type="checkbox" id="filterCot50" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">5-</span>
-                          </label>
-                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
-                            <input type="checkbox" id="filterCot59" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">5+</span>
-                          </label>
-                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
-                            <input type="checkbox" id="filterCot60" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">6-</span>
-                          </label>
-                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
-                            <input type="checkbox" id="filterCot69" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">6+</span>
-                          </label>
-                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
-                            <input type="checkbox" id="filterCot70" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">7-</span>
-                          </label>
-                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
-                            <input type="checkbox" id="filterCot79" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">7+</span>
-                          </label>
-                          <label class="label cursor-pointer md:flex-col gap-y-2 w-12 md:w-4 py-0">
-                            <input type="checkbox" id="filterCot80" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">&ge;8</span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div>&bull; Pour faire :</div>
-                      <!-- <input type="checkbox" id="avecgv" class="checkbox checkbox-primary" /> -->
-                      <div class="flex flex-row gap-1 items-center ml-4">
-                        <div class="h-16 md:h-20 flex items-center w-3">
-                          <div class="h-full bg-base-300 rounded-full w-1 relative">
-                            <div class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 left-1/2
-                                        bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
-                                        flex items-center justify-center text-xs text-slate-600 font-bold">OU</div>
-                          </div>
-                        </div>
-                        <div class="max-w-96 grid grid-cols-[auto_auto] md:grid-cols-[auto] gap-x-2 gap-y-2 md:gap-y-1">
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0" for="couenne">
-                            <input type="checkbox" id="couenne" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Couenne </span>
-                          </label>
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0" for="avecgv">
-                            <input type="checkbox" id="avecgv" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Grande Voie </span>
-                          </label>
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0" for="bloc">
-                            <input type="checkbox" id="bloc" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Bloc </span>
-                          </label>
-                          <label class="label cursor-pointer justify-start gap-x-2 py-0" for="psychobloc">
-                            <input type="checkbox" id="psychobloc" class="checkbox checkbox-primary checkbox-sm" />
-                            <span class="label-text">Psychobloc </span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <hr class="border-t border-base-300 my-1" />
-                <div class="flex flex-col gap-2">
-                  <div class="md:mt-2 flex flex-row gap-1">
-                    <div><b class="text-primary text-base">Accès</b></div>
-                  </div>
-                  <div class="flex flex-row gap-2">
-                    <div class="font-bold">&bull; Au départ de</div>
-                    <select id="villeSelect" class="select select-primary select-xs w-32">
-                      <option value="-1">Choisir Ville</option>
-                      <?php foreach ($villes as $ville): ?>
-                        <option value="<?= $ville["ville_id"] ?>"><?= $ville["ville_nom"] ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <div class="flex flex-row gap-2 items-center villeRequired opacity-30">
-                      <div class="font-bold">&bull; Train (T)</div>
-                      <div class="text-normal font-bold">&le;</div>
-                      <input type="number" id="tempsMaxTrain" step="1" min="0"
-                        class="input input-primary input-xs w-10" />
-                      <div>minutes</div>
-                    </div>
-                    <div class="flex flex-row items-center gap-1 ml-2 villeRequired opacity-30">
-                      <div>Nb. Corresp.</div>
-                      <div class="flex flex-row gap-2 items-center">
-                        <label class="label cursor-pointer gap-1">
-                          <input value="0" type="radio" name="nbCorrespMax" id="nbCorrespMax0"
-                            class="radio radio-primary radio-xs" />
-                          <span class="label-text">0</span>
-                        </label>
-                        <label class="label cursor-pointer gap-1">
-                          <input value="1" type="radio" name="nbCorrespMax" id="nbCorrespMax1"
-                            class="radio radio-primary radio-xs" />
-                          <span class="label-text">&le;1</span>
-                        </label>
-                        <label class="label cursor-pointer gap-1">
-                          <input value="10" type="radio" name="nbCorrespMax" id="nbCorrespMax10"
-                            class="radio radio-primary radio-xs" checked hidden />
-                          <svg id="nbCorrespMax10Reset" class="w-3 h-3 fill-current hidden">
-                            <use xlink:href="/symbols/icons.svg#ri-repeat-line"></use>
-                          </svg>
-                        </label>
-                      </div>
-                    </div>
-                    <div class="flex flex-row gap-2 items-center ml-2 villeRequired opacity-30">
-                      <div>TER + TGV</div>
-                      <input type="checkbox" id="terOnly" class="toggle toggle-sm toggle-primary" />
-                      <div>TER uniquement</div>
-                    </div>
-                    <div class="flex flex-row gap-2 items-center">
-                      <div class="font-bold">&bull; Vélo (V)</div>
-                      <div class="flex flex-row gap-6 items-center ml-4">
-                        <div class="h-24 bg-base-300 rounded-full w-1 relative">
-                          <div class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 left-1/2
-                                        bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
-                                        flex items-center justify-center text-xs text-slate-600 font-bold">ET</div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                          <div class="flex flex-row gap-2 items-center">
-                            <div class="text-normal font-bold">&le;</div>
-                            <input type="number" id="tempsMaxVelo" step="1" min="0"
-                              class="input input-primary input-xs w-10" />
-                            <div>minutes</div>
-                          </div>
-                          <div class="flex flex-row gap-2 items-center">
-                            <div class="text-normal font-bold">&le;</div>
-                            <input type="number" id="distMaxVelo" step="1" min="0"
-                              class="input input-primary input-xs w-10" />
-                            <div>km</div>
-                          </div>
-                          <div class="flex flex-row gap-2 items-center">
-                            <div class="text-normal font-bold">&le;</div>
-                            <input type="number" id="denivMaxVelo" step="1" min="0"
-                              class="input input-primary input-xs w-10" />
-                            <div>D+</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="flex flex-row gap-2 items-center ml-2">
-                      <div class="bg-base-100 rounded-full w-6 h-6 border-2 border-base-300
-                                  flex items-center justify-center text-xs text-slate-600 font-bold">OU</div>
-                      <input type="checkbox" id="apieduniquement" class="checkbox checkbox-primary" />
-                      <div>Accessible à pied</div>
-                    </div>
-                    <div class="flex flex-row gap-2 items-center">
-                      <div class="font-bold">&bull; Approche (A)</div>
-                      <div class="text-normal font-bold">&le;</div>
-                      <input type="number" id="tempsMaxMA" step="1" min="0" class="input input-primary input-xs w-10" />
-                      <div>minutes</div>
-                    </div>
-                  </div>
-                  <div
-                    class="flex flex-row gap-2 items-center mt-2 border border-base-300 rounded-md p-2 villeRequired opacity-30">
-                    <div class="font-bold underline uppercase">Temps Total</div>
-                    <div class="flex flex-col gap-2 items-end">
-                      <div class="flex flex-row gap-1 items-center">
-                        <div class="">T+V</div>
-                        <div class="text-normal font-bold">&le;</div>
-                        <input type="number" id="tempsMaxTV" step="1" min="0"
-                          class="input input-primary input-xs w-10" />
-                        <div>minutes</div>
-                      </div>
-                      <div class="flex flex-row gap-1 items-center">
-                        <div class="">T+V+A</div>
-                        <div class="text-normal font-bold">&le;</div>
-                        <input type="number" id="tempsMaxTVA" step="1" min="0"
-                          class="input input-primary input-xs w-10" />
-                        <div>minutes</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </form>
+              <!-- Vue Filter Panel -->
+              <div id="vue-filters" data-villes='<?= htmlspecialchars(json_encode($villes), ENT_QUOTES) ?>'>
+              </div>
             </div>
           </div>
         </div>
@@ -386,7 +112,7 @@ $highlight = $_GET['h'] ?? '';
     <div class="flex flex-row gap-1 justify-end md:hidden" id="searchAndFilter">
       <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
         onclick="searchModal.showModal()"> Chercher <svg class="w-4 h-4 fill-current">
-          <use xlink:href="/symbols/icons.svg#ri-search-line"></use>
+          <use xlink:href="/symbols/icons.svg#search"></use>
         </svg>
       </button>
       <dialog id="searchModal" class="modal modal-bottom sm:modal-middle">
@@ -394,7 +120,7 @@ $highlight = $_GET['h'] ?? '';
           <form method="dialog">
             <button tabindex="-1" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
-          <div id="searchFormDialogContainer" class="min-h-[200px] mt-4"></div>
+          <div id="searchFormDialogContainer" class="min-h-50 mt-4"></div>
         </div>
         <form method="dialog" class="modal-backdrop">
           <button>close</button>
@@ -402,20 +128,21 @@ $highlight = $_GET['h'] ?? '';
       </dialog>
       <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
         onclick="document.getElementById('filtersModal').showModal()"> Filtrer <svg class="w-4 h-4 fill-current">
-          <use xlink:href="/symbols/icons.svg#ri-filter-line"></use>
+          <use xlink:href="/symbols/icons.svg#filter"></use>
         </svg>
       </button>
       <dialog id="filtersModal" class="modal modal-bottom sm:modal-middle">
         <div class="modal-box md:w-4/5 max-w-3xl m-0 p-4">
-          <form method="dialog">
-            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          </form>
-          <!-- <h3 class="font-bold text-xl">Je cherche...</h3> -->
+          <div class="flex justify-between items-center pb-3 border-b border-base-300 mb-4 ">
+            <div>
+              <span class="font-bold text-lg">Filtres</span>
+              <span class="text-sm text-base-content/70" id="mobile-filter-stats"></span>
+            </div>
+            <form method="dialog">
+              <button class="btn btn-sm btn-primary">OK</button>
+            </form>
+          </div>
           <div id="filtersFormDialogContainer"></div>
-          <form method="dialog" class="flex justify-end mt-4 gap-2">
-            <button class="btn btn-sm btn-primary" onclick="">Appliquer et Fermer</button>
-            <button class="btn btn-sm btn-error text-base-100" id="filtersFormResetMobile">Réinitialiser</button>
-          </form>
         </div>
         <form method="dialog" class="modal-backdrop">
           <button>close</button>
@@ -457,30 +184,7 @@ $highlight = $_GET['h'] ?? '';
     });
   };
 
-  function format_time(minutes) {
-    if (minutes === null) {
-      return "";
-    }
-    const hours = Math.floor(minutes / 60);
-    const remaining_minutes = minutes % 60;
-
-    if (hours > 0) {
-      return `${hours}h${remaining_minutes.toString().padStart(2, "0")}`;
-    } else {
-      return `${remaining_minutes}&apos;`;
-    }
-  }
-  const calculate_time = (it) => {
-    const { velo_km, velo_dplus, velo_apieduniquement } = it;
-    let time_in_hours;
-    if (velo_apieduniquement === "1") {
-      time_in_hours = parseFloat(velo_km) / 4 + parseInt(velo_dplus) / 500;
-    } else {
-      time_in_hours = parseFloat(velo_km) / 20 + parseInt(velo_dplus) / 500;
-    }
-    const time_in_minutes = Math.round(time_in_hours * 60);
-    return time_in_minutes;
-  }
+  // format_time and calculate_time are loaded from /js/utils-global.js
 
   const halo = "[text-shadow:-1px_-1px_0_#fff,1px_-1px_0_#fff,-1px_1px_0_#fff,1px_1px_0_#fff,0_1px_0_#fff,0_-1px_0_#fff,1px_0_0_#fff,-1px_0_0_#fff]";
 
@@ -543,7 +247,7 @@ $highlight = $_GET['h'] ?? '';
         // gare.marker?.closeTooltip();
         gare.marker?.unbindTooltip();
         gare.marker?.bindTooltip(gare.gare_nom, {
-          className: "p-[1px]",
+          className: "p-px",
           direction: "right",
           offset: [iconSize / 2, 0],
         });
@@ -554,7 +258,7 @@ $highlight = $_GET['h'] ?? '';
         // falaise.marker?.closeTooltip();
         falaise.marker?.unbindTooltip();
         falaise.marker?.bindTooltip(falaise.falaise_nom, {
-          className: "p-[1px]",
+          className: "p-px",
           direction: "right",
           offset: [iconSize / 2, 0],
         });
@@ -578,11 +282,11 @@ $highlight = $_GET['h'] ?? '';
         e.target.bindTooltip(
           format_time(calculate_time(it))
           + (it.velo_apieduniquement === "1"
-            ? '<svg class="w-4 h-4 fill-current inline"><use xlink:href="/symbols/icons.svg#ri-footprint-fill"></use></svg>'
+            ? '<svg class="w-4 h-4 fill-current inline"><use xlink:href="/symbols/icons.svg#footprint"></use></svg>'
             : ""
           ),
           {
-            className: `p-[1px] bg-[${c}] text-white border-[${c}] font-bold`,
+            className: `vg-velo-tooltip vg-color-${c}`,
             permanent: true,
             direction: "center",
           });
@@ -635,7 +339,7 @@ $highlight = $_GET['h'] ?? '';
               className: "relative",
               html: `<div
                 class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2
-                bg-gradient-to-r from-primary to-secondary border-2 border-white text-white text-xs p-[2px] leading-none rounded-md"
+                bg-linear-to-r from-primary to-secondary border-2 border-white text-white text-xs p-[2px] leading-none rounded-md"
                 >
               ${falaise.falaise_nom}
             </div>`,
@@ -647,7 +351,7 @@ $highlight = $_GET['h'] ?? '';
         falaise.hmarker = hmarker;
       }
       marker.bindTooltip(falaise.falaise_nom, {
-        className: "p-[1px]",
+        className: "p-px",
         direction: "right",
         offset: [iconSize / 2, -iconSize / 2],
       });
@@ -677,7 +381,7 @@ $highlight = $_GET['h'] ?? '';
               direction: "right",
               offset: [iconSize / 2, 0],
               permanent: true,
-              className: `rounded-md bg-[${c}] border-[${c}] text-white px-[1px] py-0 before:border-r-[${c}]`,
+              className: `vg-station-tooltip vg-color-${c}`,
             });
           }), 0.76 * 1000);
         } else {
@@ -688,7 +392,7 @@ $highlight = $_GET['h'] ?? '';
         }
         marker.unbindTooltip();
         marker.bindTooltip(falaise.falaise_nom, {
-          className: "p-[1px]",
+          className: "p-px",
           direction: "top",
           permanent: true,
           offset: [0, -iconSize],
@@ -711,7 +415,7 @@ $highlight = $_GET['h'] ?? '';
       falaise.marker.setIcon(falaiseIcon(size, falaise.falaise_fermee, falaise.falaise_bloc));
       falaise.marker.unbindTooltip();
       falaise.marker.bindTooltip(falaise.falaise_nom, {
-        className: "p-[1px]",
+        className: "p-px",
         direction,
         offset: direction === "right" ? [size / 4, -size / 2] : direction === "top" ? [0, -size] : [size / 2, 0],
         permanent,
@@ -823,7 +527,7 @@ $highlight = $_GET['h'] ?? '';
     ).addTo(map);
     marker.unbindTooltip();
     marker.bindTooltip(gare.gare_nom, {
-      className: "p-[1px]",
+      className: "p-px",
       direction: "right",
       offset: [iconSize / 2, 0],
     });
@@ -865,14 +569,14 @@ $highlight = $_GET['h'] ?? '';
           direction: "right",
           permanent: true,
           offset: [iconSize / 2, -iconSize / 2],
-          className: `rounded-md bg-[${c}] border-[${c}] text-white px-[1px] py-0 before:border-r-[${c}]`,
+          className: `vg-station-tooltip vg-color-${c}`,
         });
         const gpx = renderGpx(it, c);
         itinerairesLines.push(gpx);
       }), 0.76 * 1000);
       marker.unbindTooltip();
       marker.bindTooltip(gare.gare_nom, {
-        className: "p-[1px]",
+        className: "p-px",
         direction: "top",
         permanent: true,
         offset: [0, -iconSize / 2],
@@ -974,99 +678,41 @@ $highlight = $_GET['h'] ?? '';
   };
   searchAndFilter.addTo(map);
 
-  // PANNEAU D'INFORMATION SUR LA FALAISE/GARE SELECTIONNEE
+  // PANNEAU D'INFORMATION SUR LA FALAISE/GARE SELECTIONNEE (Vue.js)
   var info = L.control({ position: 'bottomright' });
   info.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'info w-[calc(100%-20px)]'); // create a div with a class "info"
-    this.top = "";
-    this.bot = "";
+    this._div = L.DomUtil.create('div', 'info w-[calc(100%-20px)]');
+    this._div.id = 'vue-info-panel';
     L.DomEvent.disableClickPropagation(this._div);
     L.DomEvent.disableScrollPropagation(this._div);
-    this.update();
     return this._div;
   };
-  // method that we will use to update the control based on feature properties passed
+  // Update Vue store instead of regenerating HTML
   info.update = function () {
-    const mode = selected === null ? undefined : selected.type;
     const nFalaises = falaises.filter(f => (f.type === "falaise")).length;
     const nFalaiseFiltered = falaises.filter(f => (f.type === "falaise") && !f.filteredOut).length;
-    const updateTop = () => {
-      if (selected === null) {
-        this.top = (`<div class="flex gap-1 items-center justify-center font-bold text-primary border-b border-base-300 pb-1 mb-1">`
-          + `<svg class="w-4 h-4 fill-current"><use xlink:href="/symbols/icons.svg#ri-filter-line"></use></svg>`
-          + ` ${nFalaises !== nFalaiseFiltered ? nFalaiseFiltered : nFalaises} falaises`
-          + (nFalaises !== nFalaiseFiltered ? ` correspondent aux filtres` : "")
-          + `</div>`)
-      } else {
-        this.top = "";
+
+    // Wait for Vue to be ready, then update
+    if (window.velogrimpe?.carteInfo) {
+      window.velogrimpe.carteInfo.updateStats(nFalaises, nFalaiseFiltered);
+      window.velogrimpe.carteInfo.setSelected(selected);
+    }
+
+    // Update mobile filter stats
+    const mobileStats = document.getElementById('mobile-filter-stats');
+    if (mobileStats) {
+      const hasFilters = nFalaises !== nFalaiseFiltered;
+      mobileStats.textContent = hasFilters
+        ? `${nFalaiseFiltered} / ${nFalaises} falaises`
+        : `${nFalaises} falaises`;
+    }
+
+    // Open details on desktop after Vue renders
+    setTimeout(() => {
+      if (window.innerWidth >= 768) {
+        this._div.querySelectorAll("details").forEach((details) => details.open = true);
       }
-    }
-    const updateBot = () => {
-      switch (mode) {
-        case undefined:
-          this.bot = (
-            `<div class="flex flex-col gap-1 items-center">`
-            + `<div>Cliquez sur une falaise pour voir ses informations</div>`
-            + (
-              isSamsungInternet() ? (
-                '<div>Vous utilisez Samsung Internet : '
-                + 'si vous êtes en mode sombre, désactivez-le ou changez de navigateur '
-                + 'pour un affichage correct de la carte.</div>')
-                : ""
-            )
-            + `</div>`
-          );
-          break;
-        case "falaise":
-          this.bot = `<div class="flex flex-col gap-1">`
-            + '<div class="flex flex-col md:flex-row justify-between items-center gap-4">'
-            + `<h3 class="text-xl font-bold"><a href="/falaise.php?falaise_id=${selected.falaise_id}">${selected.falaise_nom}</a></h3>`
-            + `<a class="btn btn-primary btn-xs text-base-100! hover:text-base-100!"
-          href="/falaise.php?falaise_id=${selected.falaise_id}">Voir la fiche falaise</a>`
-            + `</div>`
-            + (
-              selected.falaise_fermee
-                ? `<p class="text-wrap text-error">${selected.falaise_fermee.replace(/\n/g, "<br>") || ""}</p>`
-                : `<p class="text-wrap">${selected.falaise_voletcarto.replace(/\n/g, "<br>") || ""}</p>`
-            )
-            + `<details><summary><i>Liste des accès</i></summary>`
-            + "<ul>"
-            + selected.access.map((it, i) => (
-              `<li class="relative ml-8">` +
-              `<div class="absolute top-[6px] -left-2 w-6 h-1 -translate-x-full ${itinerairesColors[i % itinerairesColors.length]}"></div>` +
-              `<div><b>${it.gare.gare_nom} (${format_time(calculate_time(it))})</b> : ` +
-              `${it.velo_km} km, ${it.velo_dplus} D+${it.velo_apieduniquement === "1" ? " (à pied)" : ""}</div>` +
-              `</li>`)).join("")
-            + "</ul></details>"
-            + `</div>`;
-          break;
-        case "gare":
-          this.bot = `<div class="flex flex-col gap-1">`
-            + `<h3 class="text-xl font-bold">Gare de ${selected.gare_nom}</h3>`
-            + `<details><summary><i>Falaises accessibles depuis la gare</i></summary>`
-            + "<ul>"
-            + selected.access.map((it, i) => (
-              `<li class="relative ml-8">`
-              + `<div class="absolute top-2 -left-2 w-6 h-1 -translate-x-full ${itinerairesColors[i % itinerairesColors.length]}"></div>`
-              + `<div>`
-              + `<a class="link" href="/falaise.php?falaise_id=${it.falaise.falaise_id}">${it.falaise.falaise_nom}</a>`
-              + ` : <b>${format_time(calculate_time(it))}</b> ${it.velo_apieduniquement === "1" ? "à pied" : "à vélo"} (${it.velo_km}
-              km, ${it.velo_dplus} D+).`
-              + `</div>`
-              + `</li>`)
-            ).join("")
-            + "</ul></details>"
-            + `</div>`;
-          break;
-      }
-    }
-    updateTop();
-    updateBot();
-    this._div.innerHTML = this.top + this.bot;
-    if (window.innerWidth >= 768) {
-      // details should be open by default on desktop
-      this._div.querySelectorAll("details").forEach((details) => details.open = true);
-    }
+    }, 50);
   };
   info.addTo(map);
 
@@ -1183,109 +829,96 @@ $highlight = $_GET['h'] ?? '';
   layerControl.addOverlay(biodivLayer, 'Aires de protections de la biodiversité (escalade réglementée ou interdite)');
 </script>
 <script>
-  // ============================================ RECHERCHE ============================================
+  // ============================================ RECHERCHE (Vue.js) ============================================
 
-  const baseList = [
-    ...falaises.map(f => ({ id: f.falaise_id, type: "falaise", name: f.falaise_nom, item: f })),
-    ...gares.map(g => ({ id: g.gare_id, type: "gare", name: g.gare_nom, item: g }))
-  ];
-  const searchByNameHandler = (value) => {
-    document.getElementById("searchModal").close();
+  // Listen for Vue search selection event
+  window.addEventListener('velogrimpe:search-select', (e) => {
+    const { id, type, name } = e.detail;
+    document.getElementById("searchModal")?.close();
     document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "nearest" });
-    const q = value;
-    const filtered = baseList.find(item => (
-      item.name === q
-      || (q.includes(" (falaise)") && item.type === "falaise" && item.name === q.replace(" (falaise)", ""))
-      || (q.includes(" (gare)") && item.type === "gare" && item.name === q.replace(" (gare)", ""))
-    ));
-    if (filtered) {
-      if (filtered.item.type === "falaise_hors_topo") {
-        setFalaiseHTMarker(filtered.item, map, "normal");
-        map.flyTo(filtered.item.falaise_latlng.split(",").map(parseFloat), 12, { duration: 0.5 });
-        setTimeout(() => filtered.item.marker?.openPopup(), 600);
-        return;
-      }
-      else if (filtered.item.type === "gare_hors_topo") {
-        map.flyTo(filtered.item.gare_latlng.split(",").map(parseFloat), 11, { duration: 0.5 });
-        setTimeout(() => filtered.item.marker?.openPopup(), 600);
-        return;
-      }
-      filtered.item.marker?.fire("click");
-      setTimeout(() => filtered.item.marker?.openPopup(), 600);
 
+    let item = null;
+    if (type === "falaise") {
+      item = falaises.find(f => f.falaise_id === id);
+    } else if (type === "gare") {
+      item = gares.find(g => g.gare_id === id);
     }
-  }
 
-  // ============================================ FILTRES ============================================
-  const resetButton = document.getElementById("filtersFormReset");
-  const resetButtonMobile = document.getElementById("filtersFormResetMobile");
-  resetButton.addEventListener("click", (e) => {
-    document.querySelectorAll(".villeRequired").forEach(e => e.classList.add("opacity-30"));
-    document.querySelectorAll(".villeRequired input").forEach(e => e.disabled = true);
+    if (item) {
+      if (item.type === "falaise_hors_topo") {
+        setFalaiseHTMarker(item, map, "normal");
+        map.flyTo(item.falaise_latlng.split(",").map(parseFloat), 12, { duration: 0.5 });
+        setTimeout(() => item.marker?.openPopup(), 600);
+        return;
+      }
+      else if (item.type === "gare_hors_topo") {
+        map.flyTo(item.gare_latlng.split(",").map(parseFloat), 11, { duration: 0.5 });
+        setTimeout(() => item.marker?.openPopup(), 600);
+        return;
+      }
+      item.marker?.fire("click");
+      setTimeout(() => item.marker?.openPopup(), 600);
+    }
   });
-  resetButtonMobile.addEventListener("click", (e) => {
-    document.querySelectorAll(".villeRequired").forEach(e => e.classList.add("opacity-30"));
-    document.querySelectorAll(".villeRequired input").forEach(e => e.disabled = true);
-  });
+
+  // ============================================ FILTRES (Vue.js) ============================================
   const falaisesDuTopo = falaises.filter(f => f.access.length > 0);
   const falaisesHorsTopo = falaises.filter(f => f.access.length === 0);
-  const filterHandler = () => {
-    const expoN = document.getElementById("filterExpoN").checked;
-    const expoE = document.getElementById("filterExpoE").checked;
-    const expoS = document.getElementById("filterExpoS").checked;
-    const expoO = document.getElementById("filterExpoO").checked;
-    const cot40 = document.getElementById("filterCot40").checked;
-    const cot50 = document.getElementById("filterCot50").checked;
-    const cot59 = document.getElementById("filterCot59").checked;
-    const cot60 = document.getElementById("filterCot60").checked;
-    const cot69 = document.getElementById("filterCot69").checked;
-    const cot70 = document.getElementById("filterCot70").checked;
-    const cot79 = document.getElementById("filterCot79").checked;
-    const cot80 = document.getElementById("filterCot80").checked;
-    const couenne = document.getElementById("couenne").checked;
-    const avecgv = document.getElementById("avecgv").checked;
-    const bloc = document.getElementById("bloc").checked;
-    const psychobloc = document.getElementById("psychobloc").checked;
-    const apieduniquement = document.getElementById("apieduniquement").checked;
-    const tempsMaxVelo = document.getElementById("tempsMaxVelo").value;
-    const distMaxVelo = document.getElementById("distMaxVelo").value;
-    const denivMaxVelo = document.getElementById("denivMaxVelo").value;
-    const tempsMaxTrain = document.getElementById("tempsMaxTrain").value;
-    const nbCorrespMax0 = document.getElementById("nbCorrespMax0").checked;
-    const nbCorrespMax1 = document.getElementById("nbCorrespMax1").checked;
-    const nbCorrespMax = nbCorrespMax0 ? 0 : nbCorrespMax1 ? 1 : 10;
-    const terOnly = document.getElementById("terOnly").checked;
-    const tempsMaxMA = document.getElementById("tempsMaxMA").value;
-    const tempsMaxTV = document.getElementById("tempsMaxTV").value;
-    const tempsMaxTVA = document.getElementById("tempsMaxTVA").value;
-    const ville = document.getElementById("villeSelect").value;
-    const villeSelected = ville !== "-1";
-    const nbVoies = document.getElementById("nbVoies").value;
-    //
+
+  // Vue filter handler - receives filter state from Vue component
+  const applyVueFilters = (filters) => {
+    const expoN = filters.exposition.includes('N');
+    const expoE = filters.exposition.includes('E');
+    const expoS = filters.exposition.includes('S');
+    const expoO = filters.exposition.includes('O');
+    const cot40 = filters.cotations.includes('40');
+    const cot50 = filters.cotations.includes('50');
+    const cot59 = filters.cotations.includes('59');
+    const cot60 = filters.cotations.includes('60');
+    const cot69 = filters.cotations.includes('69');
+    const cot70 = filters.cotations.includes('70');
+    const cot79 = filters.cotations.includes('79');
+    const cot80 = filters.cotations.includes('80');
+    const couenne = filters.typeVoies.couenne;
+    const avecgv = filters.typeVoies.grandeVoie;
+    const bloc = filters.typeVoies.bloc;
+    const psychobloc = filters.typeVoies.psychobloc;
+    const apieduniquement = filters.velo.apiedPossible;
+    const tempsMaxVelo = filters.velo.tempsMax;
+    const distMaxVelo = filters.velo.distMax;
+    const denivMaxVelo = filters.velo.denivMax;
+    const tempsMaxTrain = filters.train.tempsMax;
+    const nbCorrespMax = filters.train.correspMax !== null ? filters.train.correspMax : 10;
+    const terOnly = filters.train.terOnly;
+    const tempsMaxMA = filters.approche.tempsMax;
+    const tempsMaxTV = filters.total.tempsTV;
+    const tempsMaxTVA = filters.total.tempsTVA;
+    const ville = filters.villeId;
+    const villeSelected = ville !== null;
+    const nbVoies = filters.nbVoiesMin;
+
     const expoFiltered = [expoN, expoE, expoS, expoO].some(e => e);
     const cotFiltered = [cot40, cot50, cot59, cot60, cot69, cot70, cot79, cot80].some(e => e);
     const typeVoiesFiltered = couenne || avecgv || bloc || psychobloc;
 
-    // Case 1 : all default values --> set all falaises visible (even hors topo)
+    // Case 1: all default values --> set all falaises visible
     if (
       !expoFiltered
       && !cotFiltered
       && !typeVoiesFiltered
-      && nbVoies === "0"
+      && nbVoies === 0
       && !apieduniquement
-      && tempsMaxVelo === ""
-      && denivMaxVelo === ""
-      && distMaxVelo === ""
-      && tempsMaxMA === ""
+      && tempsMaxVelo === null
+      && denivMaxVelo === null
+      && distMaxVelo === null
+      && tempsMaxMA === null
       && !villeSelected
     ) {
       falaises.forEach(falaise => {
         falaise.filteredOut = false;
       });
-      resetButtonMobile.disabled = true;
-      resetButton.disabled = true;
     }
-    // Case 2: At least one filter is set --> set falaises hors topo hidden and apply filters
+    // Case 2: At least one filter is set --> apply filters
     else {
       falaisesHorsTopo.forEach(falaise => {
         falaise.filteredOut = false;
@@ -1305,14 +938,14 @@ $highlight = $_GET['h'] ?? '';
           falaise.access.some(it => {
             const train = it.villes.find(v => v.ville_id === ville);
             return train && (
-              (tempsMaxTrain === "" || train.temps <= parseInt(tempsMaxTrain))
+              (tempsMaxTrain === null || train.temps <= tempsMaxTrain)
               && (nbCorrespMax === 10 || train.nCorresp <= nbCorrespMax)
               && (!terOnly || parseInt(train.train_tgv || 0) === 0)
-              && (tempsMaxTV === "" || train.tempsTrainVelo <= parseInt(tempsMaxTV))
-              && (tempsMaxTVA === "" || train.tempsTotal <= parseInt(tempsMaxTVA))
+              && (tempsMaxTV === null || train.tempsTrainVelo <= tempsMaxTV)
+              && (tempsMaxTVA === null || train.tempsTotal <= tempsMaxTVA)
             )
           }));
-        const estNbVoiesCompatible = (parseInt(falaise.falaise_nbvoies) >= parseInt(nbVoies)) || nbVoies === "0";
+        const estNbVoiesCompatible = (parseInt(falaise.falaise_nbvoies) >= nbVoies) || nbVoies === 0;
         const estTypeVoiesCompatible = (
           (couenne && !!!parseInt(falaise.falaise_bloc))
           || (avecgv && !!falaise.falaise_gvnb)
@@ -1329,84 +962,37 @@ $highlight = $_GET['h'] ?? '';
             || (expoO && (falaise.falaise_exposhort1.match(/('O|'NO'|'SO')/) || falaise.falaise_exposhort2.match(/('O|'NO'|'SO')/)))
           ))
           && (!cotFiltered || estCotationsCompatible)
-          && (tempsMaxMA === "" || parseInt(falaise.falaise_maa || 0) <= parseInt(tempsMaxMA))
+          && (tempsMaxMA === null || parseInt(falaise.falaise_maa || 0) <= tempsMaxMA)
           && estNbVoiesCompatible
           && (!typeVoiesFiltered || estTypeVoiesCompatible)
           && (!villeSelected || estTrainCompatible)
           && falaise.access.some(it => {
             const duration = calculate_time(it);
             return (
-              (tempsMaxVelo === "" || duration <= tempsMaxVelo)
-              && (denivMaxVelo === "" || parseInt(it.velo_dplus) <= denivMaxVelo)
-              && (distMaxVelo === "" || parseFloat(it.velo_km) <= distMaxVelo)
+              (tempsMaxVelo === null || duration <= tempsMaxVelo)
+              && (denivMaxVelo === null || parseInt(it.velo_dplus) <= denivMaxVelo)
+              && (distMaxVelo === null || parseFloat(it.velo_km) <= distMaxVelo)
               && (apieduniquement === false || it.velo_apieduniquement === "1" || it.velo_apiedpossible === "1")
             );
-          }
-          )
+          })
         ) {
           falaise.filteredOut = false;
         } else {
           falaise.filteredOut = true;
         }
       });
-      resetButton.disabled = false;
-      resetButtonMobile.disabled = false;
     }
-    // const nbInFilter = falaisesDuTopo.filter(f => !f.filteredOut).length;
-    // if (nbInFilter === 0) {
-    //   alert("Aucune falaise du topo ne correspond à vos critères de recherche.");
-    // }
-    info.update();
-    renderFalaises();
-
-  }
-  const villeChangeHandler = () => {
-    const ville = document.getElementById("villeSelect").value;
-    if (ville === "-1") {
-      // disable all fields that require a ville
-      document.querySelectorAll(".villeRequired").forEach(e => e.classList.add("opacity-30"));
-      document.querySelectorAll(".villeRequired input").forEach(e => e.disabled = true);
-    } else {
-      document.querySelectorAll(".villeRequired").forEach(e => e.classList.remove("opacity-30"));
-      document.querySelectorAll(".villeRequired input").forEach(e => e.disabled = false);
-    }
-
-  }
-  document.querySelectorAll("#filtersForm input").forEach(i => i.addEventListener("change", filterHandler));
-  document.querySelectorAll("#filtersForm select").forEach(i => i.addEventListener("change", filterHandler));
-  document.getElementById("villeSelect").addEventListener("change", villeChangeHandler);
-  document.querySelectorAll("input[type=radio][name=nbCorrespMax]").forEach(i => i.addEventListener("change", (e) => {
-    const resetIcon = document.getElementById("nbCorrespMax10Reset");
-    const defaultCheckbox = document.getElementById("nbCorrespMax10");
-    if (!defaultCheckbox.checked) {
-      resetIcon.classList.add("text-primary");
-      resetIcon.classList.remove("hidden");
-    } else {
-      resetIcon.classList.add("hidden");
-      resetIcon.classList.remove("text-primary");
-    }
-  }));
-  const resetAll = function (event) {
-    event.preventDefault();
-    document.getElementById("filtersForm").reset();
-    // close modal
-    document.getElementById("filtersModal").close();
-    falaises.forEach(falaise => {
-      falaise.filteredOut = false;
-    });
-    resetButton.disabled = true;
-    resetButtonMobile.disabled = true;
     info.update();
     renderFalaises();
   }
-  resetButton.addEventListener("click", resetAll);
-  resetButtonMobile.addEventListener("click", resetAll);
-  document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("filtersForm").reset();
-    resetButton.disabled = true;
-    resetButtonMobile.disabled = true;
-    filterHandler();
-    villeChangeHandler();
+
+  // Listen for Vue filter changes
+  window.addEventListener('velogrimpe:filters', (e) => {
+    applyVueFilters(e.detail);
+  });
+
+  // Initial render - wait for Vue info panel to be ready
+  window.addEventListener('velogrimpe:info-ready', function () {
     info.update();
   });
 
@@ -1414,7 +1000,7 @@ $highlight = $_GET['h'] ?? '';
 <script>
   // --------------------------------- MOVE FORM ACCORDING TO SCREEN SIZE ---------------------------------
   document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("filtersForm");
+    const form = document.getElementById("vue-filters");
     const searchForm = document.getElementById("searchForm");
     const dialog = document.getElementById("filtersModal");
     const searchdialog = document.getElementById("searchModal");
@@ -1438,9 +1024,11 @@ $highlight = $_GET['h'] ?? '';
     moveForm();
   });
 </script>
-<script src="/js/autocomplete.js"></script>
-<script>
-  setupAutocomplete("search", "search-list", "garesetfalaises", searchByNameHandler);
-</script>
+<!-- Vue.js Search Autocomplete -->
+<script type="module" src="/dist/carte-search.js"></script>
+<!-- Vue.js Filter Panel -->
+<script type="module" src="/dist/carte-filters.js"></script>
+<!-- Vue.js Info Panel -->
+<script type="module" src="/dist/carte-info.js"></script>
 
 </html>

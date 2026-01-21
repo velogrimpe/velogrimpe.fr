@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . "/database/velogrimpe.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 
 $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
 ?>
@@ -25,13 +26,10 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
     content="Falaises proches d'une gare en france. 1134 falaises à moins de 10km d'une gare SNCF.">
   <title>Falaises prioritaires - Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
-  <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
-  <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
-  <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
-    rel='stylesheet' />
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Map libraries bundle (Leaflet, Fullscreen) -->
+  <script src="/dist/map.js"></script>
+  <link rel="stylesheet" href="/dist/map.css" />
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <!-- Velogrimpe Styles -->
@@ -62,9 +60,9 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
 <body>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="">
-    <div class="hero min-h-[100px] bg-bottom"
+    <div class="hero min-h-25 bg-bottom"
       style="background-image: url(/images/mw/078-groupe-5.webp); background-position-y: 200px;">
-      <div class="hero-overlay bg-opacity-60"></div>
+      <div class="hero-overlay bg-slate-600/70"></div>
       <div class="hero-content text-center text-base-100">
         <div class="">
           <h1 class="text-5xl font-bold">Falaises prioritaires Vélogrimpe</h1>

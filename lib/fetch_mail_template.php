@@ -6,7 +6,7 @@ function fetchMailTemplate($url)
   $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
   $host = $config['base_url'] ?? 'http://localhost';
-  $hostWithPort = strpos($host, 'localhost') !== false ? "$host:4000" : $host;
+  $hostWithPort = strpos($host, 'localhost') !== false ? "$host:4002" : $host;
   $options = [
     CURLOPT_URL => "$host$url",
     CURLOPT_RETURNTRANSFER => true,

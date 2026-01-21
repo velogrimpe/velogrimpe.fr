@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
@@ -49,8 +50,7 @@ $formatter = new IntlDateFormatter(
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Logs d'éditions</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="stylesheet" href="/global.css" />
@@ -59,7 +59,7 @@ $formatter = new IntlDateFormatter(
 
 <body class="flex flex-col min-h-screen">
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-  <main class="w-full flex-grow max-w-screen-2xl mx-auto p-10 flex flex-col gap-8">
+  <main class="w-full grow max-w-(--breakpoint-2xl) mx-auto p-10 flex flex-col gap-8">
     <h1 class="text-4xl font-bold text-wrap text-center">
       <span class="text-red-900">Historique des changements</span>
     </h1>
@@ -83,7 +83,7 @@ $formatter = new IntlDateFormatter(
               <?= htmlspecialchars($log['author']) ?>
               <a class="" href="mailto:<?= htmlspecialchars($log['author_email']) ?>">
                 <svg class="w-3 h-3 fill-current inline">
-                  <use xlink:href="/symbols/icons.svg#ri-mail-fill"></use>
+                  <use xlink:href="/symbols/icons.svg#mail-fill"></use>
                 </svg>
               </a>
             </td>
@@ -94,7 +94,7 @@ $formatter = new IntlDateFormatter(
               <?php if ($log['falaise_id'] !== null): ?>
                 <a href="/falaise.php?falaise_id=<?= $log['falaise_id'] ?>">
                   <svg class="w-4 h-4 fill-current">
-                    <use xlink:href="/symbols/icons.svg#ri-eye-fill"></use>
+                    <use xlink:href="/symbols/icons.svg#eye"></use>
                   </svg>
                 </a>
               <?php endif; ?>

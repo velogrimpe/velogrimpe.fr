@@ -50,7 +50,7 @@ const buildIcon = (name) =>
     className: "relative",
     html: `<div
             id="marker-${name.replace(/"/g, "")}"
-            class="pointer-events-none absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 bg-accent text-white text-xs p-[2px] leading-none rounded-md opacity-80">
+            class="pointer-events-none absolute z-10 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2 bg-accent text-white text-xs p-[2px] leading-none rounded-md opacity-80">
               <span>Falaise : ${name}
               <svg class="inline-block w-2 h-2 fill-current" aria-hidden="true" focusable="false">
                 <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>

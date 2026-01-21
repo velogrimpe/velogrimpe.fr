@@ -20,16 +20,14 @@ export default class SecteurLabel extends Element {
   };
   highlight(e, propagate = true) {
     const el = document.getElementById(this.id);
-    el?.classList.add("bg-[darkred]", "text-white");
-    el?.classList.remove("bg-white", "text-black");
+    el?.classList.add("secteur-label-highlight");
     if (propagate) {
       this.secteur.highlight(e, propagate, false);
     }
   }
   unhighlight(propagate = true) {
     const el = document.getElementById(this.id);
-    el?.classList.remove("bg-[darkred]", "text-white");
-    el?.classList.add("bg-white", "text-black");
+    el?.classList.remove("secteur-label-highlight");
     if (propagate) {
       this.secteur.unhighlight(propagate, false);
     }
@@ -67,8 +65,8 @@ const buildIcon = (name, id) =>
     className: "relative",
     html: `<div
             id="${id}"
-            class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2
-                    text-black bg-white text-xs p-[1px] leading-none rounded-md opacity-80">
+            class="absolute z-10 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2
+                    text-black bg-white text-xs p-px leading-none rounded-md opacity-80">
               ${name}
             </div>`,
   });

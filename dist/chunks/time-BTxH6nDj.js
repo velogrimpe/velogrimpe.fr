@@ -1,0 +1,1 @@
+function a(t){if(t==null)return"";const e=Math.floor(t/60),n=t%60;return e>0?`${e}h${n.toString().padStart(2,"0")}`:`${n}'`}function u(t){const{velo_km:e,velo_dplus:n,velo_apieduniquement:r}=t,s=typeof e=="string"?parseFloat(e):e,i=typeof n=="string"?parseInt(n,10):n,l=r===1||r==="1";let o;return l?o=s/4+i/500:o=s/20+i/500,Math.round(o*60)}export{u as c,a as f};

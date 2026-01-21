@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
@@ -44,8 +45,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
   <meta charset="UTF-8" />
   <title>Tableau accès trains - Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <!-- Velogrimpe Styles -->
@@ -62,18 +62,18 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
         <!-- head -->
         <thead>
           <tr class="border-top border-[black] bg-base-200 text-center">
-            <th class="border-left border-[1px] border-[black] w-48 bg-base-200 text-lg">Falaises <button
+            <th class="border-left border border-[black] w-48 bg-base-200 text-lg">Falaises <button
                 class="btn btn-ghost btn-sm px-0" title="Changer l'ordre de tri" onclick="toggleSortOrder()">
                 <svg class="inline w-4 h-4 fill-current">
-                  <use xlink:href="/symbols/icons.svg#ri-sort-desc"></use>
+                  <use xlink:href="/symbols/icons.svg#sort-desc"></use>
                 </svg>
               </button>
             </th>
-            <td class="border-left border-[1px] border-[black] w-48 text-lg">Gares</td>
+            <td class="border-left border border-[black] w-48 text-lg">Gares</td>
             <?php foreach ($villes as $ville): ?>
-              <td class="border-left border-[1px] border-[black] w-48 text-lg"><?= $ville['ville_nom'] ?></td>
+              <td class="border-left border border-[black] w-48 text-lg"><?= $ville['ville_nom'] ?></td>
             <?php endforeach; ?>
-            <th class="border-left border-[1px] border-[black] w-0 p-0"></th>
+            <th class="border-left border border-[black] w-0 p-0"></th>
           </tr>
         </thead>
         <tbody>
@@ -81,11 +81,11 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
           <?php foreach ($falaises as $falaise_nom => $gares): ?>
             <tr class="border-top border-[black] text-center relative" data-id="<?= $gares[0]['falaise_id'] ?>"
               data-nom="<?= $falaise_nom ?>">
-              <th class="border-left border-[1px] border-[black] w-48 z-10000">
+              <th class="border-left border border-[black] w-48 z-10000">
                 <a
                   href="/falaise.php?falaise_id=<?= $gares[0]['falaise_id'] ?>"><?= $falaise_nom ?></a><br>(<?= $gares[0]['falaise_id'] ?>)
               </th>
-              <td class="border-left border-[1px] border-[black] w-48">
+              <td class="border-left border border-[black] w-48">
                 <?= join(
                   "<br />",
                   array_map(
@@ -95,12 +95,12 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                 ) ?>
               </td>
               <?php foreach ($villes as $ville): ?>
-                <td class="border-left border-[1px] border-[black] w-48">
+                <td class="border-left border border-[black] w-48">
                   <div class="flex flex-row items-stretch justify-start gap-2">
                     <?php if (in_array($ville['ville_id'], explode(',', $gares[0]['excluded_falaise_ville_ids']))): ?>
                       <div class="flex justify-center w-full">
                         <span><svg class="inline w-5 h-5 fill-current">
-                            <use xlink:href="/symbols/icons.svg#ri-close-line"></use>
+                            <use xlink:href="/symbols/icons.svg#close"></use>
                           </svg></span>
                       </div>
                     <?php else: ?>
@@ -109,7 +109,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                           onclick="excludeVilleFalaise(<?= $ville['ville_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
                           <!-- onclick="excludeTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)"> -->
                           <span><svg class="inline w-3 h-3 fill-current">
-                              <use xlink:href="/symbols/icons.svg#ri-close-line"></use>
+                              <use xlink:href="/symbols/icons.svg#close"></use>
                             </svg></span>
                         </button>
                       </div>
@@ -123,32 +123,35 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                             ): ?> - <?php else: ?>
                               <?php if (in_array($ville['ville_id'], explode(',', $gare['ville_ids']))): ?>
                                 <span
-                                  class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left flex items-center gap-1">
+                                  class="text-nowrap overflow-hidden text-ellipsis shrink grow text-left flex items-center gap-1">
                                   <?php if (in_array($ville['ville_id'], array_filter(explode(',', $gare['tgv_ville_ids'] ?? '')))): ?>
                                     <span class="badge badge-accent badge-xs">TGV</span>
                                   <?php endif; ?>
                                   <span><?= $gare["gare_nom"] ?></span>
                                 </span>
+                                <button class="badge badge-error badge-outline badge-xs h-5 w-5 rounded-full text-sm shrink-0"
+                                  title="Exclure ce triplet Gare - Ville - Falaise"
+                                  onclick="excludeTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)">-</button>
+                                <button class="badge badge-error badge-outline badge-xs h-5 w-7 rounded-full text-sm shrink-0"
+                                  title="Toujours exclure ce couple Gare - Ville"
+                                  onclick="excludeVilleGare(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, this)">--</button>
                               <?php else: ?>
-                                <span class="text-nowrap overflow-hidden text-ellipsis shrink-1 grow text-left text-error">
+                                <span class="text-nowrap overflow-hidden text-ellipsis shrink grow text-left text-error">
                                   <?= $gare["gare_nom"] ?>
                                 </span>
                                 <a class="badge badge-primary badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
                                   title="Ajouter l'itinéraire train (Ville → Gare)"
                                   href="/ajout/ajout_train.php?gare_id=<?= $gare['gare_id'] ?>&ville_id=<?= $ville['ville_id'] ?>&admin=<?= $token ?>"
                                   target="_blank" rel="noopener"> + </a>
-                                <button
-                                  class="badge badge-error badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
+                                <button class="badge badge-error badge-outline badge-xs h-5 w-5 rounded-full text-sm shrink-0"
                                   title="Exclure ce triplet Gare - Ville - Falaise"
-                                  onclick="excludeTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)">
-                                  - </button>
+                                  onclick="excludeTriplet(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, <?= $gare['falaise_id'] ?>, this)">-</button>
                               <?php endif; ?>
                               <?php if (in_array($ville['ville_id'], explode(',', $gare['ville_ids']))): ?>
                               <?php else: ?>
-                                <button
-                                  class="badge badge-error badge-outline text-base-100 badge-xs h-5 w-5 rounded-full text-sm shrink-0"
+                                <button class="badge badge-error badge-outline badge-xs h-5 w-7 rounded-full text-sm shrink-0"
                                   title="Toujours exclure ce couple Gare - Ville"
-                                  onclick="excludeVilleGare(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, this)"> -- </button>
+                                  onclick="excludeVilleGare(<?= $ville['ville_id'] ?>, <?= $gare['gare_id'] ?>, this)">--</button>
                               <?php endif; ?>
                             <?php endif; ?>
                           </div>
@@ -158,7 +161,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
                   </div>
                 </td>
               <?php endforeach; ?>
-              <th class="border-left border-[1px] border-[black] w-0 p-0"></th>
+              <th class="border-left border border-[black] w-0 p-0"></th>
             </tr>
           <?php endforeach; ?>
         </tbody>
@@ -200,7 +203,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
       .then(response => response.json())
       .then(data => {
         if (data === true) {
-          thisElement.closest('td').innerHTML = '<svg class="inline w-5 h-5 fill-current"><use xlink:href="/symbols/icons.svg#ri-close-line"></use></svg>';
+          thisElement.closest('td').innerHTML = '<svg class="inline w-5 h-5 fill-current"><use xlink:href="/symbols/icons.svg#close"></use></svg>';
         } else {
           alert("Erreur lors de l'exclusion de la falaise.");
         }

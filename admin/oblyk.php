@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
@@ -33,13 +34,10 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   <meta charset="UTF-8" />
   <title>Correspondances Oblyk - Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js "></script>
-  <link href=" https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css " rel="stylesheet">
-  <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
-  <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
-    rel='stylesheet' />
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Map libraries bundle (Leaflet, Fullscreen) -->
+  <script src="/dist/map.js"></script>
+  <link rel="stylesheet" href="/dist/map.css" />
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <!-- Velogrimpe Styles -->
@@ -157,17 +155,17 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
           falaise.latlng,
           {
             icon: L.divIcon({
-              className: "btn btn-accent btn-xs text-base-100! hover:text-base-100! p-[1px] rounded-full",
+              className: "btn btn-accent btn-xs text-base-100! hover:text-base-100! p-px rounded-full",
               iconSize: [24, 24],
               iconAnchor: [24 / 2, 0],
-              html: `<div id="linkFalaises_${selected.falaise_id}_${falaise.id}"><svg class="w-3 h-3 fill-current"><use xlink:href="/symbols/icons.svg#ri-link"></use></svg></div>`,
+              html: `<div id="linkFalaises_${selected.falaise_id}_${falaise.id}" class="flex items-center justify-center w-full h-full"><svg class="w-3 h-3 fill-current"><use xlink:href="/symbols/icons.svg#link"></use></svg></div>`,
             }),
             riseOnHover: true,
             autoPanOnFocus: true,
           }
         ).addTo(map);
         marker.bindTooltip(falaise.name, {
-          className: "p-[1px]",
+          className: "p-px",
           direction: "left",
           offset: [-iconSize / 2, -iconSize / 2],
           permanent: true,
@@ -205,7 +203,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
                     console.log("Falaise linked successfully:", data);
                     falaise.button.remove();
                     falaise.marker.setIcon(oblykIcon(iconSize, "invert"));
-                    selected.site_ids = selected.site_ids ? selected.site_ids + "," + falaise.id : falaise.id;
+                    selected.site_ids = selected.site_ids ? selected.site_ids + "," + falaise.id : String(falaise.id);
                     selected.marker.setIcon(falaiseIcon(iconSize, "sepia"));
                     info.update();
                   }
@@ -234,7 +232,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       ).addTo(map);
       falaise.marker = marker;
       marker.bindTooltip(falaise.falaise_nom, {
-        className: "p-[1px]",
+        className: "p-px",
         direction: "right",
         offset: [iconSize / 2, -iconSize / 2],
       });
@@ -307,13 +305,13 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       switch (mode) {
         case undefined:
           this.top = (
-            `<div class="flex flex-col gap-1 max-w-96 items-center border-b-1 border-b-base-300 mb-2">`
+            `<div class="flex flex-col gap-1 max-w-96 items-center border-b border-b-base-300 mb-2">`
             + `<div>Cliquez sur une falaise pour voir ses informations</div>`
             + `</div>`
           );
           break;
         case "falaise":
-          this.top = `<div class="flex flex-col gap-1 max-w-96 border-b-1 border-b-base-300 mb-2">`
+          this.top = `<div class="flex flex-col gap-1 max-w-96 border-b border-b-base-300 mb-2">`
             + '<div class="flex flex-col md:flex-row justify-between items-center gap-4">'
             + `<h3 class="text-normal text-primary font-bold">${selected.falaise_nom}</h3>`
             + `</div>`

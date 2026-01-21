@@ -1,3 +1,4 @@
+<?php require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php'; ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -20,8 +21,7 @@
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Détails logistiques et pratique pour aller en falaise en mobilité douce.">
   <title>Aspects pratiques - Vélogrimpe.fr</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="stylesheet" href="/global.css" />
@@ -31,17 +31,15 @@
 
 <body class="min-h-screen">
   <?php include "./components/header.html"; ?>
-  <div class="hero min-h-[400px] bg-center" style="background-image: url(/images/mw/075-matos-5.webp);">
-    <div class="hero-overlay bg-opacity-60"></div>
+  <div class="hero min-h-100 bg-center" style="background-image: url(/images/mw/075-matos-5.webp);">
+    <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">
       <div class="max-w-md">
         <h1 class="text-5xl font-bold">Aspects Pratiques</h1>
       </div>
     </div>
   </div>
-  <main class="max-w-screen-lg mx-auto prose p-4
-              prose-a:text-[oklch(var(--p)/1)] prose-a:font-bold prose-a:no-underline
-              hover:prose-a:underline hover:prose-a:text-[oklch(var(--pf)/1)]">
+  <main class="max-w-(--breakpoint-lg) mx-auto prose p-4">
     <p>
       <i> Le but de cette section est d’essayer de répondre aux questions que vous pourriez vous poser à propos du
         vélogrimpe : train, matériel, logistique, etc. </i>
