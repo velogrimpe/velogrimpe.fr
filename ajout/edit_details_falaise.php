@@ -10,6 +10,8 @@ $token = $config["contrib_token"];
 
 $falaise_id = isset($_GET['falaise_id']) ? (int) $_GET['falaise_id'] : null;
 $admin = isset($_GET['admin']) ? (int) $_GET['admin'] : 0;
+$nom_prenom = $_GET['nom_prenom'] ?? '';
+$email = $_GET['email'] ?? '';
 
 if (empty($falaise_id)) {
   header("Location: /ajout/ajout_falaise.php");
@@ -102,6 +104,8 @@ $nextUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
       'showNavigation' => true,
       'backUrl' => $backUrl,
       'nextUrl' => $nextUrl,
+      'contribNom' => $nom_prenom,
+      'contribEmail' => $email,
     ]);
     ?>
   </main>

@@ -82,6 +82,8 @@ if (!$falaise) {
     render_falaise_details_editor($falaise, $token, [
       'height' => 'calc(100vh - 220px)',
       'showToolbar' => true,
+      'contribNom' => '',
+      'contribEmail' => '',
     ]);
     ?>
   </main>

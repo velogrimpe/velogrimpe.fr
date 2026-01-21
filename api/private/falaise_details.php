@@ -1,6 +1,4 @@
 <?php
-// Check that Authorization header is and equal to config["admin_token"]
-
 // Allow CORS from all origins
 header('Access-Control-Allow-Origin: localhost:4002, https://velogrimpe.fr, https://www.velogrimpe.fr');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
@@ -24,9 +22,11 @@ if (empty($falaise_id)) {
 header('Content-Type: application/json');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
 // Prepare the SQL statement
 $stmt = $mysqli->prepare("SELECT
-falaise_id, falaise_nomformate
+falaise_id, falaise_nomformate, falaise_nom
 FROM falaises
 WHERE falaise_id = ?"
 );
@@ -95,6 +95,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
   }
 
+  // Extract and validate contributor info
+  $author = trim($data['author'] ?? '');
+  $author_email = trim($data['author_email'] ?? '');
+
+  if (empty($author) || empty($author_email)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing contributor information']);
+    exit;
+  }
+
+  // Remove author/author_email from GeoJSON before saving
+  unset($data['author'], $data['author_email']);
+
+  // Track if this is an update or new file
+  $isUpdate = file_exists($geojson_file);
+
   // Create backup of existing file before saving
   if (file_exists($geojson_file)) {
     $backup_dir = $_SERVER['DOCUMENT_ROOT'] . "/bdd/barres-historique";
@@ -109,6 +125,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
   // Save the updated geojson content
   if (file_put_contents($geojson_file, json_encode($data, JSON_PRETTY_PRINT))) {
+    // Log the modification
+    logChanges(
+      $author,
+      $author_email,
+      $isUpdate ? 'update' : 'insert',
+      'falaise_details',
+      $falaise['falaise_id'],
+      $falaise['falaise_id'],
+      ['geojson' => 'updated'],
+      []
+    );
+
+    // Send notification email
+    $falaise_nom = $falaise['falaise_nom'];
+    $subject = "🧗 Détails falaise '$falaise_nom' modifiés par $author";
+    $html = "<html><body>";
+    $html .= "<h1>Les détails de la falaise $falaise_nom ont été modifiés</h1>";
+    $html .= "<p>Contributeur : " . htmlspecialchars($author) . "</p>";
+    $html .= "<p>Email : <a href='mailto:" . htmlspecialchars($author_email) . "'>" . htmlspecialchars($author_email) . "</a></p>";
+    $html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=" . $falaise['falaise_id'] . "'>Voir la falaise</a></p>";
+    $html .= "</body></html>";
+
+    sendMail([
+      'to' => $config["contact_mail"],
+      'subject' => $subject,
+      'html' => $html,
+      'h:Reply-To' => $author_email
+    ]);
+
     echo json_encode(['success' => 'Falaise details updated successfully']);
   } else {
     http_response_code(500);

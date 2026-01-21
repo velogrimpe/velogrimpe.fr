@@ -91,6 +91,8 @@ export function initFalaiseDetailsEditor(containerId) {
   const falaise = JSON.parse(container.dataset.falaise || "{}");
   const token = container.dataset.token || "";
   const apiEndpoint = container.dataset.apiEndpoint || "/api/private/falaise_details.php";
+  let contribNom = container.dataset.contribNom || "";
+  let contribEmail = container.dataset.contribEmail || "";
 
   const mapEl = container.querySelector(".editor-map");
   const center = falaise.falaise_latlng.split(",").map(parseFloat);
@@ -861,12 +863,58 @@ export function initFalaiseDetailsEditor(containerId) {
     });
   }
 
-  // Save function
-  async function save() {
-    if (!confirm("Êtes-vous sûr de vouloir enregistrer les données ? Cela écrasera les données existantes.")) {
-      return false;
-    }
+  // Request contributor info via modal
+  function requestContribInfo() {
+    return new Promise((resolve) => {
+      const modal = container.querySelector(".contrib-modal");
+      const nomInput = modal.querySelector(".contrib-nom-input");
+      const emailInput = modal.querySelector(".contrib-email-input");
+      const confirmBtn = modal.querySelector(".contrib-confirm-btn");
+      const cancelBtn = modal.querySelector(".contrib-cancel-btn");
 
+      // Pre-fill if we have partial data
+      if (contribNom) nomInput.value = contribNom;
+      if (contribEmail) emailInput.value = contribEmail;
+
+      modal.showModal();
+
+      const cleanup = () => {
+        confirmBtn.removeEventListener("click", handleConfirm);
+        cancelBtn.removeEventListener("click", handleCancel);
+        modal.removeEventListener("close", handleClose);
+      };
+
+      const handleConfirm = () => {
+        if (!nomInput.value.trim() || !emailInput.value.trim()) {
+          alert("Veuillez remplir tous les champs");
+          return;
+        }
+        contribNom = nomInput.value.trim();
+        contribEmail = emailInput.value.trim();
+        modal.close();
+        cleanup();
+        resolve(true);
+      };
+
+      const handleCancel = () => {
+        modal.close();
+        cleanup();
+        resolve(false);
+      };
+
+      const handleClose = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      confirmBtn.addEventListener("click", handleConfirm);
+      cancelBtn.addEventListener("click", handleCancel);
+      modal.addEventListener("close", handleClose);
+    });
+  }
+
+  // Perform the actual save
+  async function doSave() {
     const saveBtn = container.querySelector(".save-geojson-btn");
     saveBtn?.classList.add("btn-disabled");
 
@@ -877,7 +925,11 @@ export function initFalaiseDetailsEditor(containerId) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(exportData()),
+        body: JSON.stringify({
+          ...exportData(),
+          author: contribNom,
+          author_email: contribEmail,
+        }),
       });
 
       if (!response.ok) throw new Error("Erreur lors de l'enregistrement");
@@ -899,6 +951,21 @@ export function initFalaiseDetailsEditor(containerId) {
       saveBtn?.classList.remove("btn-disabled");
       return false;
     }
+  }
+
+  // Save function - asks for contrib info if not available
+  async function save() {
+    // If no contrib info, request it via modal
+    if (!contribNom || !contribEmail) {
+      const confirmed = await requestContribInfo();
+      if (!confirmed) return false;
+    }
+
+    if (!confirm("Êtes-vous sûr de vouloir enregistrer les données ? Cela écrasera les données existantes.")) {
+      return false;
+    }
+
+    return doSave();
   }
 
   // Wire up UI buttons

@@ -411,7 +411,9 @@ $params = http_build_query([
   'falaise_id' => $falaise_id,
   'type' => $isEdition ? 'update' : 'insert',
   'step' => 1,
-  'admin' => $admin ? 1 : 0
+  'admin' => $admin ? 1 : 0,
+  'nom_prenom' => $nom_prenom,
+  'email' => $email
 ]);
 header("Location: /ajout/confirmation_falaise.php?" . $params);
 exit;

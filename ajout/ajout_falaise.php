@@ -310,16 +310,15 @@ if ($falaise_id) {
             fetch(`/api/geocode.php?lat=${lat}&lng=${lng}`)
               .then(r => r.ok ? r.json() : Promise.reject(new Error('geocode failed')))
               .then(data => {
-                if (!data) return;
-                const z = (data.zone || '').trim();
-                const dn = (data.dept_name || '').trim();
-                const dc = (data.dept_code || '').trim();
+                const z = (data?.zone || '').trim();
+                const dn = (data?.dept_name || '').trim();
+                const dc = (data?.dept_code || '').trim();
                 const zHidden = document.getElementById('falaise_zonename');
-                if (z && zHidden) zHidden.value = z;
+                if (zHidden) zHidden.value = z;
                 const dnHidden = document.getElementById('falaise_deptname');
-                if (dn && dnHidden) dnHidden.value = dn;
+                if (dnHidden) dnHidden.value = dn;
                 const dcHidden = document.getElementById('falaise_deptcode');
-                if (dc && dcHidden) dcHidden.value = dc;
+                if (dcHidden) dcHidden.value = dc;
               })
               .catch(() => { /* silent */ });
           }
@@ -363,22 +362,22 @@ if ($falaise_id) {
           });
         </script>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-          <label class="form-control" for="falaise_zonename">
+          <div class="form-control">
             <b class="text-sm">Zone de la falaise (nom)</b>
-            <input class="input input-primary input-sm" type="text" id="falaise_zonename" name="falaise_zonename"
-              disabled />
+            <input class="input input-disabled input-sm" type="text" id="falaise_zonename" name="falaise_zonename"
+              readonly tabindex="-1" placeholder=" " />
             <i class="text-slate-400 text-sm">Renseigné automatiquement à partir des coordonnées GPS.</i>
-          </label>
-          <label class="form-control" for="falaise_deptcode">
+          </div>
+          <div class="form-control">
             <b class="text-sm">Département (code)</b>
-            <input class="input input-primary input-sm" type="text" id="falaise_deptcode" name="falaise_deptcode"
-              disabled />
-          </label>
-          <label class="form-control" for="falaise_deptname">
+            <input class="input input-disabled input-sm" type="text" id="falaise_deptcode" name="falaise_deptcode"
+              readonly tabindex="-1" placeholder=" " />
+          </div>
+          <div class="form-control">
             <b class="text-sm">Département (nom)</b>
-            <input class="input input-primary input-sm" type="text" id="falaise_deptname" name="falaise_deptname"
-              disabled />
-          </label>
+            <input class="input input-disabled input-sm" type="text" id="falaise_deptname" name="falaise_deptname"
+              readonly tabindex="-1" placeholder=" " />
+          </div>
         </div>
       </div>
       <!-- Partie Cotation / Nombre de voies -->

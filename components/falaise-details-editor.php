@@ -26,6 +26,8 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
     'showNavigation' => false,
     'backUrl' => null,
     'nextUrl' => null,
+    'contribNom' => '',
+    'contribEmail' => '',
   ];
   $opts = array_merge($defaults, $options);
   $containerId = $opts['containerId'];
@@ -63,7 +65,9 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
     }
   </style>
   <div id="<?= $containerId ?>" class="falaise-details-editor flex flex-col gap-1" data-falaise="<?= $falaiseJson ?>"
-    data-token="<?= htmlspecialchars($token) ?>" data-api-endpoint="<?= htmlspecialchars($opts['apiEndpoint']) ?>">
+    data-token="<?= htmlspecialchars($token) ?>" data-api-endpoint="<?= htmlspecialchars($opts['apiEndpoint']) ?>"
+    data-contrib-nom="<?= htmlspecialchars($opts['contribNom']) ?>"
+    data-contrib-email="<?= htmlspecialchars($opts['contribEmail']) ?>">
     <?php if ($opts['showToolbar']): ?>
       <div class="flex gap-2 justify-end items-center">
         <?php if ($opts['showFalaiseSelect'] && !empty($opts['falaises'])): ?>
@@ -129,6 +133,26 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
         <p class="text-error text-sm">N'oubliez pas de sauvegarder le GeoJSON après avoir modifié les données dans le
           tableau.</p>
         <div class="tableau-recap flex flex-col gap-1"></div>
+      </div>
+    </dialog>
+    <dialog class="modal contrib-modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Informations contributeur</h3>
+        <p class="py-2">Merci d'indiquer vos coordonnées pour cette contribution.</p>
+        <div class="flex flex-col gap-3">
+          <label class="input input-primary flex items-center gap-2">
+            <svg class="w-4 h-4 fill-current"><use xlink:href="/symbols/icons.svg#user"></use></svg>
+            <input type="text" class="grow contrib-nom-input" placeholder="Prénom (et/ou nom)" required>
+          </label>
+          <label class="input input-primary flex items-center gap-2">
+            <svg class="w-4 h-4 fill-current"><use xlink:href="/symbols/icons.svg#mail"></use></svg>
+            <input type="email" class="grow contrib-email-input" placeholder="Email" required>
+          </label>
+        </div>
+        <div class="modal-action">
+          <button class="btn contrib-cancel-btn" type="button">Annuler</button>
+          <button class="btn btn-primary contrib-confirm-btn" type="button">Enregistrer</button>
+        </div>
       </div>
     </dialog>
   </div>
