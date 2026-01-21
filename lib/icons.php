@@ -10,11 +10,11 @@
  *   <?= icon('filter', 'w-4 h-4', ['title' => 'Filtrer']) ?>
  *
  * @param string $name Icon name (e.g., 'search', 'filter', 'close')
- * @param string $class CSS classes (default: 'w-4 h-4 fill-current')
+ * @param string $class CSS classes (default: 'w-4 h-4 fill-none stroke-current')
  * @param array $attrs Additional SVG attributes
  * @return string HTML string
  */
-function icon(string $name, string $class = 'w-4 h-4 fill-current', array $attrs = []): string
+function icon(string $name, string $class = 'w-4 h-4 fill-none stroke-current', array $attrs = []): string
 {
     $class = htmlspecialchars($class, ENT_QUOTES, 'UTF-8');
     $name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
@@ -28,7 +28,7 @@ function icon(string $name, string $class = 'w-4 h-4 fill-current', array $attrs
 
     return <<<HTML
 <svg class="{$class}" aria-hidden="true"{$attrStr}>
-    <use xlink:href="/symbols/icons.svg#{$name}"></use>
+    <use href="#{$name}"></use>
 </svg>
 HTML;
 }
@@ -44,7 +44,7 @@ function icon_migrate(string $oldName): string
         'filter' => 'filter',
         'close' => 'close',
         'mail' => 'mail',
-        'mail-fill' => 'mail-fill',
+        'mail-line' => 'mail-line',
         'phone' => 'phone',
         'user' => 'user',
         'pencil' => 'pencil',

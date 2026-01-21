@@ -43,7 +43,7 @@ const createBaseMaps = () => ({
       attribution:
         '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
       crossOrigin: true,
-    }
+    },
   ),
   IGNv2: L.tileLayer(
     "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
@@ -52,7 +52,7 @@ const createBaseMaps = () => ({
       minZoom: 0,
       attribution: "IGN-F/Geoportail",
       crossOrigin: true,
-    }
+    },
   ),
   Satellite: L.tileLayer(
     "https://data.geopf.fr/wmts?&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
@@ -62,7 +62,7 @@ const createBaseMaps = () => ({
       tileSize: 256,
       attribution: "IGN-F/Geoportail",
       crossOrigin: true,
-    }
+    },
   ),
   Outdoors: L.tileLayer(
     "https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6",
@@ -72,7 +72,7 @@ const createBaseMaps = () => ({
       attribution:
         '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
       crossOrigin: true,
-    }
+    },
   ),
 });
 
@@ -84,13 +84,16 @@ const createBaseMaps = () => ({
 export function initFalaiseDetailsEditor(containerId) {
   const container = document.getElementById(containerId);
   if (!container) {
-    console.error(`[falaise-details-editor] Container #${containerId} not found`);
+    console.error(
+      `[falaise-details-editor] Container #${containerId} not found`,
+    );
     return null;
   }
 
   const falaise = JSON.parse(container.dataset.falaise || "{}");
   const token = container.dataset.token || "";
-  const apiEndpoint = container.dataset.apiEndpoint || "/api/private/falaise_details.php";
+  const apiEndpoint =
+    container.dataset.apiEndpoint || "/api/private/falaise_details.php";
   let contribNom = container.dataset.contribNom || "";
   let contribEmail = container.dataset.contribEmail || "";
 
@@ -107,8 +110,17 @@ export function initFalaiseDetailsEditor(containerId) {
     zoomSnap: 0.5,
   });
 
-  L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
-  L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
+  L.control
+    .layers(baseMaps, undefined, { position: "topleft", size: 22 })
+    .addTo(map);
+  L.control
+    .scale({
+      position: "bottomright",
+      metric: true,
+      imperial: false,
+      maxWidth: 125,
+    })
+    .addTo(map);
 
   // Feature map and state
   let featureId = 0;
@@ -130,8 +142,8 @@ export function initFalaiseDetailsEditor(containerId) {
       div.innerHTML = `
         <div class="leaflet-control-zoom leaflet-bar">
           <a class="p-1 cursor-pointer" title="Tableau récapitulatif des éléments">
-            <svg class="w-5 h-5 fill-current">
-              <use xlink:href="/symbols/icons.svg#table"></use>
+            <svg class="w-5 h-5 fill-none stroke-current">
+              <use href="#table"></use>
             </svg>
           </a>
         </div>
@@ -157,8 +169,10 @@ export function initFalaiseDetailsEditor(containerId) {
     const InfoControl = L.Control.extend({
       onAdd: function () {
         const div = L.DomUtil.create("div", "leaflet-bar");
-        div.style.cssText = "padding:6px 8px;background:white;box-shadow:0 1px 5px rgba(0,0,0,0.4);border-radius:4px";
-        div.innerHTML = "<strong>Multibarres :</strong><br/>Cliquez sur un secteur existant pour y ajouter une nouvelle barre.";
+        div.style.cssText =
+          "padding:6px 8px;background:white;box-shadow:0 1px 5px rgba(0,0,0,0.4);border-radius:4px";
+        div.innerHTML =
+          "<strong>Multibarres :</strong><br/>Cliquez sur un secteur existant pour y ajouter une nouvelle barre.";
         return div;
       },
     });
@@ -189,7 +203,9 @@ export function initFalaiseDetailsEditor(containerId) {
     showMultiSecteurInfo();
 
     Object.values(featureMap).forEach((f) => {
-      const isSecteur = f.layer?.properties?.type === "secteur" || f.layer?.properties?.type === undefined;
+      const isSecteur =
+        f.layer?.properties?.type === "secteur" ||
+        f.layer?.properties?.type === undefined;
       const isLine = f.layer instanceof L.Polyline;
       if (!isSecteur || !isLine) return;
 
@@ -415,7 +431,8 @@ export function initFalaiseDetailsEditor(containerId) {
       },
       {
         text: "Ajout barre",
-        title: "Sélectionnez un secteur existant, puis tracez une nouvelle barre",
+        title:
+          "Sélectionnez un secteur existant, puis tracez une nouvelle barre",
         name: "line-multi",
         onClick: startMultiSecteurAppend,
       },
@@ -466,7 +483,10 @@ export function initFalaiseDetailsEditor(containerId) {
     currentRoute = [];
     currentRoutingPoints = [];
 
-    if (workingLayer.options.type === "approche-auto" || workingLayer.options.type === "acces_velo-auto") {
+    if (
+      workingLayer.options.type === "approche-auto" ||
+      workingLayer.options.type === "acces_velo-auto"
+    ) {
       workingLayer.on("pm:vertexadded", (e) => {
         if (currentRoutingPoints.includes([e.latlng.lat, e.latlng.lng])) {
           map.pm.disableDraw("Line");
@@ -499,7 +519,10 @@ export function initFalaiseDetailsEditor(containerId) {
 
     // Multi-secteur append
     if (type === "secteur-multi-append") {
-      if (currentMultiSecteur && currentMultiSecteur.layer instanceof L.Polyline) {
+      if (
+        currentMultiSecteur &&
+        currentMultiSecteur.layer instanceof L.Polyline
+      ) {
         const target = currentMultiSecteur;
         const newSegment = layer.getLatLngs();
         let existing = target.layer.getLatLngs();
@@ -517,7 +540,11 @@ export function initFalaiseDetailsEditor(containerId) {
 
         createAndBindPopup(target.layer, target._element_id);
         if (target.label) {
-          createAndBindPopup(target.label.layer, target._element_id, target.layer);
+          createAndBindPopup(
+            target.label.layer,
+            target._element_id,
+            target.layer,
+          );
         }
 
         try {
@@ -621,10 +648,17 @@ export function initFalaiseDetailsEditor(containerId) {
     popupHtml += field("name", "Nom", "Nom");
     popupHtml += field("description", "Description", "optionnel");
 
-    if (targetLayer.properties.type === "secteur" || targetLayer.properties.type === undefined) {
+    if (
+      targetLayer.properties.type === "secteur" ||
+      targetLayer.properties.type === undefined
+    ) {
       popupHtml += field("parking", "Parkings", "p1, p2, ...");
       popupHtml += field("approche", "Approches", "a1, a2, ...");
-      popupHtml += field("gv", "Grandes Voies", "0 = non, 1 = uniq. GV, 2 = mixte");
+      popupHtml += field(
+        "gv",
+        "Grandes Voies",
+        "0 = non, 1 = uniq. GV, 2 = mixte",
+      );
     } else if (targetLayer.properties.type === "approche") {
       popupHtml += field("parking", "Parkings", "p1, p2, ...");
       popupHtml += field("bus_stop", "Arrêts Bus", "b1, b2, ...");
@@ -638,7 +672,11 @@ export function initFalaiseDetailsEditor(containerId) {
     popupHtml += `<button class="flex-1 btn btn-xs btn-error text-base-100" onclick="window._fde_deleteFeature('${containerId}', ${id})">Suppr.</button>`;
     popupHtml += `<button class="flex-1 btn btn-xs btn-accent" onclick="window._fde_editLayer('${containerId}', ${id})">${targetLayer.pm.enabled() ? "OK" : "Modif."}</button>`;
 
-    if ((targetLayer.properties.type === "secteur" || targetLayer.properties.type === undefined) && layer instanceof L.Polyline) {
+    if (
+      (targetLayer.properties.type === "secteur" ||
+        targetLayer.properties.type === undefined) &&
+      layer instanceof L.Polyline
+    ) {
       popupHtml += `<button class="flex-1 btn btn-xs btn-secondary" onclick="window._fde_invertLine('${containerId}', ${id})">Inverser</button>`;
     }
 
@@ -665,7 +703,10 @@ export function initFalaiseDetailsEditor(containerId) {
 
     data.features.forEach((feature) => {
       let obj;
-      if (feature.properties.type === "secteur" || feature.properties.type === undefined) {
+      if (
+        feature.properties.type === "secteur" ||
+        feature.properties.type === undefined
+      ) {
         if (Secteur.isInvalidSecteur(feature)) return;
         obj = new Secteur(map, feature);
       } else if (feature.properties.type === "approche") {
@@ -714,7 +755,12 @@ export function initFalaiseDetailsEditor(containerId) {
 
   // Global functions for popup buttons
   window._fde_editors = window._fde_editors || {};
-  window._fde_editors[containerId] = { featureMap, map, createAndBindPopup, updateAssociations };
+  window._fde_editors[containerId] = {
+    featureMap,
+    map,
+    createAndBindPopup,
+    updateAssociations,
+  };
 
   window._fde_editLayer = (cid, id) => {
     const editor = window._fde_editors[cid];
@@ -740,7 +786,11 @@ export function initFalaiseDetailsEditor(containerId) {
     document.querySelectorAll(`.input-${id}`).forEach((input) => {
       const propertyName = input.name;
       if (propertyName && layer) {
-        if (propertyName === "name" && layer.properties.name !== input.value && ["secteur", "falaise_voisine"].includes(feature.type)) {
+        if (
+          propertyName === "name" &&
+          layer.properties.name !== input.value &&
+          ["secteur", "falaise_voisine"].includes(feature.type)
+        ) {
           needsLabelUpdate = true;
         }
         layer.properties[propertyName] = input.value;
@@ -753,7 +803,11 @@ export function initFalaiseDetailsEditor(containerId) {
     layer.closePopup();
     editor.createAndBindPopup(layer, feature._element_id);
     if (feature instanceof Secteur && feature.label) {
-      editor.createAndBindPopup(feature.label.layer, feature._element_id, layer);
+      editor.createAndBindPopup(
+        feature.label.layer,
+        feature._element_id,
+        layer,
+      );
     }
     editor.updateAssociations();
     feature.highlight();
@@ -821,8 +875,8 @@ export function initFalaiseDetailsEditor(containerId) {
 
     const saveBtn = (featureId) => `
       <button class="btn btn-xs btn-primary" onclick="window._fde_updateLayer('${containerId}', ${featureId})">
-        <svg class="w-5 h-5 fill-current">
-          <use xlink:href="/symbols/icons.svg#save"></use>
+        <svg class="w-5 h-5 fill-none stroke-current">
+          <use href="#save"></use>
         </svg>
       </button>`;
 
@@ -837,8 +891,23 @@ export function initFalaiseDetailsEditor(containerId) {
         tableauRecap.innerHTML += `<h4 class="text-lg font-bold capitalize">${type}</h4>`;
 
         const headers = {
-          secteur: ["Nom", "Description", "Parkings", "Approches", "GV", "Type", ""],
-          approche: ["Nom", "Description", "Parkings", "Arrêts Bus", "Type", ""],
+          secteur: [
+            "Nom",
+            "Description",
+            "Parkings",
+            "Approches",
+            "GV",
+            "Type",
+            "",
+          ],
+          approche: [
+            "Nom",
+            "Description",
+            "Parkings",
+            "Arrêts Bus",
+            "Type",
+            "",
+          ],
           parking: ["Nom", "Description", "Accès Vélo", "Type", ""],
           bus_stop: ["Nom", "Description", "Type", ""],
           acces_velo: ["Nom", "Description", "Type", ""],
@@ -850,12 +919,49 @@ export function initFalaiseDetailsEditor(containerId) {
       }
 
       const rows = {
-        secteur: [field(fid, "name"), field(fid, "description"), field(fid, "parking"), field(fid, "approche"), field(fid, "gv"), field(fid, "type"), saveBtn(fid)],
-        approche: [field(fid, "name"), field(fid, "description"), field(fid, "parking"), field(fid, "bus_stop"), field(fid, "type"), saveBtn(fid)],
-        parking: [field(fid, "name"), field(fid, "description"), field(fid, "itineraire_acces"), field(fid, "type"), saveBtn(fid)],
-        bus_stop: [field(fid, "name"), field(fid, "description"), field(fid, "type"), saveBtn(fid)],
-        acces_velo: [field(fid, "name"), field(fid, "description"), field(fid, "type"), saveBtn(fid)],
-        falaise_voisine: [field(fid, "name"), field(fid, "description"), field(fid, "falaise_id"), field(fid, "type"), saveBtn(fid)],
+        secteur: [
+          field(fid, "name"),
+          field(fid, "description"),
+          field(fid, "parking"),
+          field(fid, "approche"),
+          field(fid, "gv"),
+          field(fid, "type"),
+          saveBtn(fid),
+        ],
+        approche: [
+          field(fid, "name"),
+          field(fid, "description"),
+          field(fid, "parking"),
+          field(fid, "bus_stop"),
+          field(fid, "type"),
+          saveBtn(fid),
+        ],
+        parking: [
+          field(fid, "name"),
+          field(fid, "description"),
+          field(fid, "itineraire_acces"),
+          field(fid, "type"),
+          saveBtn(fid),
+        ],
+        bus_stop: [
+          field(fid, "name"),
+          field(fid, "description"),
+          field(fid, "type"),
+          saveBtn(fid),
+        ],
+        acces_velo: [
+          field(fid, "name"),
+          field(fid, "description"),
+          field(fid, "type"),
+          saveBtn(fid),
+        ],
+        falaise_voisine: [
+          field(fid, "name"),
+          field(fid, "description"),
+          field(fid, "falaise_id"),
+          field(fid, "type"),
+          saveBtn(fid),
+        ],
       };
 
       const row = rows[type] || rows.secteur;
@@ -919,18 +1025,21 @@ export function initFalaiseDetailsEditor(containerId) {
     saveBtn?.classList.add("btn-disabled");
 
     try {
-      const response = await fetch(`${apiEndpoint}?falaise_id=${falaise.falaise_id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${apiEndpoint}?falaise_id=${falaise.falaise_id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...exportData(),
+            author: contribNom,
+            author_email: contribEmail,
+          }),
         },
-        body: JSON.stringify({
-          ...exportData(),
-          author: contribNom,
-          author_email: contribEmail,
-        }),
-      });
+      );
 
       if (!response.ok) throw new Error("Erreur lors de l'enregistrement");
       await response.json();
@@ -961,7 +1070,11 @@ export function initFalaiseDetailsEditor(containerId) {
       if (!confirmed) return false;
     }
 
-    if (!confirm("Êtes-vous sûr de vouloir enregistrer les données ? Cela écrasera les données existantes.")) {
+    if (
+      !confirm(
+        "Êtes-vous sûr de vouloir enregistrer les données ? Cela écrasera les données existantes.",
+      )
+    ) {
       return false;
     }
 
@@ -972,8 +1085,12 @@ export function initFalaiseDetailsEditor(containerId) {
   const uploadInput = container.querySelector(".upload-geojson-input");
   const uploadAddInput = container.querySelector(".upload-add-geojson-input");
 
-  container.querySelector(".upload-geojson-btn")?.addEventListener("click", () => uploadInput?.click());
-  container.querySelector(".upload-add-geojson-btn")?.addEventListener("click", () => uploadAddInput?.click());
+  container
+    .querySelector(".upload-geojson-btn")
+    ?.addEventListener("click", () => uploadInput?.click());
+  container
+    .querySelector(".upload-add-geojson-btn")
+    ?.addEventListener("click", () => uploadAddInput?.click());
 
   const handleUpload = (isAdd) => (event) => {
     const file = event.target.files[0];
@@ -998,18 +1115,22 @@ export function initFalaiseDetailsEditor(containerId) {
   uploadInput?.addEventListener("change", handleUpload(false));
   uploadAddInput?.addEventListener("change", handleUpload(true));
 
-  container.querySelector(".download-geojson-btn")?.addEventListener("click", () => {
-    const geojson = exportData();
-    const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${falaise.falaise_id}_${falaise.falaise_nomformate}.geojson`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
+  container
+    .querySelector(".download-geojson-btn")
+    ?.addEventListener("click", () => {
+      const geojson = exportData();
+      const blob = new Blob([JSON.stringify(geojson, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${falaise.falaise_id}_${falaise.falaise_nomformate}.geojson`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
 
   container.querySelector(".save-geojson-btn")?.addEventListener("click", save);
 
@@ -1053,7 +1174,8 @@ export function initFalaiseDetailsEditor(containerId) {
   // Load initial data
   fetch(`${apiEndpoint}?falaise_id=${falaise.falaise_id}`)
     .then((response) => {
-      if (!response.ok) throw new Error("Erreur lors de la récupération des détails");
+      if (!response.ok)
+        throw new Error("Erreur lors de la récupération des détails");
       return response.json();
     })
     .then((data) => importData(data))

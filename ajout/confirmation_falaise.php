@@ -124,7 +124,7 @@ $falaise_nom = $falaise ? htmlspecialchars($falaise['falaise_nom']) : 'Falaise';
     </div>
   </div>
 
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 
 </html>

@@ -112,7 +112,7 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
     </div>
   </div>
 
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 
 </html>

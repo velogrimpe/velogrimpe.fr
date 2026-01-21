@@ -110,7 +110,7 @@ $falaises_topo = array_values(array_filter(
       </div>
     </dialog>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
   <script>
     const btn = document.getElementById('batchGeocodeBtn');
     const modal = document.getElementById('batchGeocodeModal');

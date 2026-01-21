@@ -84,8 +84,8 @@ sendMail($adminData);
     <?php if ($ret): ?>
       <div class="max-w-(--breakpoint-lg) alert alert-success text-base-100" role="alert">
         <span>
-          <svg class="w-4 h-4 fill-current">
-            <use xlink:href="/symbols/icons.svg#checkbox-circle-fill"></use>
+          <svg class="w-4 h-4 fill-none stroke-current">
+            <use href="#checkbox-circle-fill"></use>
           </svg>
         </span>
         <span>Demande d'inscription prise en compte. Vous allez recevoir un email pour confirmer votre inscription.</span>
@@ -94,15 +94,15 @@ sendMail($adminData);
     <?php else: ?>
       <div class="max-w-(--breakpoint-lg) alert alert-error text-base-100" role="alert">
         <span>
-          <svg class="w-4 h-4 fill-current">
-            <use xlink:href="/symbols/icons.svg#error-warning-fill"></use>
+          <svg class="w-4 h-4 fill-none stroke-current">
+            <use href="#error-warning-fill"></use>
           </svg>
         </span>
         <span>Une erreur est survenue lors de l'inscription. Veuillez réessayer ou contactez nous directement.</span>
       </div>
     <?php endif; ?>
   </div>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 
 </html>

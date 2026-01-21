@@ -108,7 +108,7 @@
       Mélanie pour son logo, Natacha pour affiche ! Et puis merci à tous les partenaires de sorties vélogrimpe, et à
       tous ceux dont l'enthousiasme donne la motivation de développer ce projet ! </p>
   </div>
-  <?php include "./components/footer.html"; ?>
+  <?php include "./components/footer.php"; ?>
 </body>
 
 </html>

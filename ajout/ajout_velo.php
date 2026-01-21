@@ -141,8 +141,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             name="falaise_id" required readonly />
         </div>
         <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
-          <svg class="w-4 h-4 mb-1 fill-current inline-block">
-            <use xlink:href="/symbols/icons.svg#error-warning-fill"></use>
+          <svg class="w-4 h-4 mb-1 fill-none stroke-current inline-block">
+            <use href="#error-warning-fill"></use>
           </svg> Un itinéraire existe déjà entre cette gare et cette falaise. Vérifiez que vous ne faites pas de
           doublon.
         </div>
@@ -265,8 +265,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
               <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
                 placeholder="Prénom (et/ou nom, surnom...)" required>
-              <svg class="w-4 h-4 fill-current">
-                <use xlink:href="/symbols/icons.svg#user"></use>
+              <svg class="w-4 h-4 fill-none stroke-current">
+                <use href="#user"></use>
               </svg>
             </label>
           </div>
@@ -274,8 +274,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             <b>Mail :</b>
             <label for="email" class="input input-primary input-sm flex items-center gap-2 w-full">
               <input class="grow" type="email" id="email" name="email" required>
-              <svg class="w-4 h-4 fill-current">
-                <use xlink:href="/symbols/icons.svg#mail"></use>
+              <svg class="w-4 h-4 fill-none stroke-current">
+                <use href="#mail-line"></use>
               </svg>
             </label>
           </div>
@@ -292,7 +292,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       </div>
     </form>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 <script type="module" src="/dist/ajout-velo.js"></script>
 

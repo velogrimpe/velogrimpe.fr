@@ -58,7 +58,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
       <option value="<?= $falaise["falaise_nom"] ?> (falaise)"></option>
     <?php endforeach; ?>
   </datalist>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 <script>
 
@@ -158,7 +158,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
               className: "btn btn-accent btn-xs text-base-100! hover:text-base-100! p-px rounded-full",
               iconSize: [24, 24],
               iconAnchor: [24 / 2, 0],
-              html: `<div id="linkFalaises_${selected.falaise_id}_${falaise.id}" class="flex items-center justify-center w-full h-full"><svg class="w-3 h-3 fill-current"><use xlink:href="/symbols/icons.svg#link"></use></svg></div>`,
+              html: `<div id="linkFalaises_${selected.falaise_id}_${falaise.id}" class="flex items-center justify-center w-full h-full"><svg class="w-3 h-3 fill-none stroke-current"><use href="#link"></use></svg></div>`,
             }),
             riseOnHover: true,
             autoPanOnFocus: true,

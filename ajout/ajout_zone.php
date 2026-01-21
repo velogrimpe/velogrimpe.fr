@@ -43,7 +43,7 @@ if (!$admin) {
       <button class="btn btn-primary" type="submit">AJOUTER LA ZONE</button>
     </form>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 
 </html>

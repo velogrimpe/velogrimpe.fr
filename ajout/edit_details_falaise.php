@@ -110,7 +110,7 @@ $nextUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
     ?>
   </main>
 
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 
 </html>

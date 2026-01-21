@@ -46,8 +46,8 @@ if ($stmt->num_rows === 0) {
     <?php if ($ret): ?>
       <div class="max-w-(--breakpoint-lg) alert alert-success text-base-100" role="alert">
         <span>
-          <svg class="w-4 h-4 fill-current">
-            <use xlink:href="/symbols/icons.svg#checkbox-circle-fill"></use>
+          <svg class="w-4 h-4 fill-none stroke-current">
+            <use href="#checkbox-circle-fill"></use>
           </svg>
         </span>
         <span>Inscription confirmée.</span>
@@ -56,15 +56,15 @@ if ($stmt->num_rows === 0) {
     <?php else: ?>
       <div class="max-w-(--breakpoint-lg) alert alert-error text-base-100" role="alert">
         <span>
-          <svg class="w-4 h-4 fill-current">
-            <use xlink:href="/symbols/icons.svg#error-warning-fill"></use>
+          <svg class="w-4 h-4 fill-none stroke-current">
+            <use href="#error-warning-fill"></use>
           </svg>
         </span>
         <span>Lien de confirmation invalide. Veuillez réessayer ou contactez nous directement.</span>
       </div>
     <?php endif; ?>
   </div>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 
 </html>

@@ -76,7 +76,7 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
       <div id="map" class="w-full h-[calc(100dvh-260px)]"></div>
     </div>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 <script type="module">
   import * as BaseMaps from '/js/components/map/basemap.js';

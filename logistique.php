@@ -222,7 +222,7 @@
           carte d’openrailwaymap</a>. </i>
     </p>
   </main>
-  <?php include "./components/footer.html"; ?>
+  <?php include "./components/footer.php"; ?>
 </body>
 
 </html>

@@ -350,7 +350,7 @@ foreach (["falaise_img1", "falaise_img2", "falaise_img3"] as $img) {
 $record_id = $falaise_id;
 $type = $isEdition ? "update" : "insert";
 $collection = 'falaises';
-logChanges(
+$changes_json = logChanges(
   $nom_prenom,
   $email,
   $type,
@@ -366,37 +366,51 @@ logChanges(
 if ($admin == 0) {
   require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
   $to = $config["contact_mail"];
-  $subject = "🧗 Falaise '$falaise_nom' ajoutée par $nom_prenom";
+  $subject = "🧗 Falaise '$falaise_nom' " . ($isEdition ? "modifiée" : "ajoutée") . " par $nom_prenom";
 
   $html = "<html><body>";
-  $html .= "<h1>La falaise de $falaise_nom a été ajoutée par $nom_prenom</h1>";
+  $html .= "<h1>La falaise de $falaise_nom a été " . ($isEdition ? "modifiée" : "ajoutée") . " par $nom_prenom</h1>";
   $html .= "<p>email : <a href='mailto:$email'>$email</a></p>";
   $html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a></p>";
   if ($message) {
     $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "</p>";
   }
-  $html .= "<p>Détails de la falaise :</p>";
-  $html .= "<ul>";
-  $html .= "<li><b>Nom</b>: $falaise_nom</li>";
-  $html .= "<li><b>Zone</b>: $falaise_zonename</li>";
-  $html .= "<li><b>Département</b>: $falaise_deptcode - $falaise_deptname</li>";
-  $html .= "<li><b>Topo</b>: $falaise_topo</li>";
-  $html .= "<li><b>Nb Voies</b>: $falaise_nbvoies</li>";
-  $html .= "<li><b>Voies</b>: $falaise_voies</li>";
-  $html .= "<li><b>Volet carto</b>: $falaise_voletcarto</li>";
-  $html .= "<li><b>Expositions</b>: $falaise_exposhort1</li>";
-  $html .= "<li><b>Exposition</b>: $falaise_expotxt</li>";
-  $html .= "<li><b>Cotations min/max</b>: $falaise_cotmin/$falaise_cotmax</li>";
-  $html .= "<li><b>Cotations</b>: $falaise_cottxt</li>";
-  $html .= "<li><b>Approche A/R</b>: $falaise_maa/$falaise_mar</li>";
-  $html .= "<li><b>Approche</b>: $falaise_matxt</li>";
-  $html .= "<li><b>Grandes voies</b>: " . $champs['falaise_gvtxt'] . "</li>";
-  $html .= "<li><b>Nombre de GV</b>: " . $champs['falaise_gvnb'] . "</li>";
-  $html .= "<li><b>Bloc</b>: $falaise_bloc</li>";
-  $html .= "<li><b>Remarque</b>: " . $champs['falaise_rq'] . "</li>";
-  $html .= "</ul>";
-  $html .= "</body></html>";
-
+  if ($isEdition && $changes_json) {
+    $html .= "<h2>Modifications apportées :</h2>";
+    $changes = json_decode($changes_json, true);
+    $html .= "<ul>";
+    foreach ($changes as $change) {
+      $field = htmlspecialchars($change['field']);
+      $old = htmlspecialchars($change['old']);
+      $new = htmlspecialchars($change['new']);
+      $html .= "<li><b>$field</b> : '$old' ➔ '$new'</li>";
+    }
+    $html .= "</ul>";
+  } else if ($isEdition) {
+    $html .= "<p>Aucune modification détectée.</p>";
+  } else {
+    $html .= "<h2>Détails de la falaise</h2>";
+    $html .= "<ul>";
+    $html .= "<li><b>Nom</b>: $falaise_nom</li>";
+    $html .= "<li><b>Zone</b>: $falaise_zonename</li>";
+    $html .= "<li><b>Département</b>: $falaise_deptcode - $falaise_deptname</li>";
+    $html .= "<li><b>Topo</b>: $falaise_topo</li>";
+    $html .= "<li><b>Nb Voies</b>: $falaise_nbvoies</li>";
+    $html .= "<li><b>Voies</b>: $falaise_voies</li>";
+    $html .= "<li><b>Volet carto</b>: $falaise_voletcarto</li>";
+    $html .= "<li><b>Expositions</b>: $falaise_exposhort1</li>";
+    $html .= "<li><b>Exposition</b>: $falaise_expotxt</li>";
+    $html .= "<li><b>Cotations min/max</b>: $falaise_cotmin/$falaise_cotmax</li>";
+    $html .= "<li><b>Cotations</b>: $falaise_cottxt</li>";
+    $html .= "<li><b>Approche A/R</b>: $falaise_maa/$falaise_mar</li>";
+    $html .= "<li><b>Approche</b>: $falaise_matxt</li>";
+    $html .= "<li><b>Grandes voies</b>: " . $champs['falaise_gvtxt'] . "</li>";
+    $html .= "<li><b>Nombre de GV</b>: " . $champs['falaise_gvnb'] . "</li>";
+    $html .= "<li><b>Bloc</b>: $falaise_bloc</li>";
+    $html .= "<li><b>Remarque</b>: " . $champs['falaise_rq'] . "</li>";
+    $html .= "</ul>";
+    $html .= "</body></html>";
+  }
 
   $data = [
     'to' => $to,

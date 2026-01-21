@@ -31,7 +31,6 @@ $data = [
 
 $ret = sendMail($data);
 ?>
-
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -39,22 +38,19 @@ $ret = sendMail($data);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Validation formulaire - Vélogrimpe.fr</title>
-
     <?php vite_css('main'); ?>
-
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="stylesheet" href="/global.css" />
 </head>
 
 <body class="min-h-screen flex flex-col">
     <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-
     <div class="grow flex justify-center items-center">
         <?php if ($ret): ?>
             <div class="max-w-(--breakpoint-lg) alert alert-success text-base-100" role="alert">
                 <span>
-                    <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#checkbox-circle-fill"></use>
+                    <svg class="w-4 h-4 fill-none stroke-current">
+                        <use href="#checkbox-circle-fill"></use>
                     </svg>
                 </span>
                 <span>Votre message a bien été envoyé.</span>
@@ -63,15 +59,15 @@ $ret = sendMail($data);
         <?php else: ?>
             <div class="max-w-(--breakpoint-lg) alert alert-error text-base-100" role="alert">
                 <span>
-                    <svg class="w-4 h-4 fill-current">
-                        <use xlink:href="/symbols/icons.svg#error-warning-fill"></use>
+                    <svg class="w-4 h-4 fill-none stroke-current">
+                        <use href="#error-warning-fill"></use>
                     </svg>
                 </span>
                 <span>Une erreur est survenue lors de l'envoi de votre message. Veuillez réessayer.</span>
             </div>
         <?php endif; ?>
     </div>
-    <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+    <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 
 </html>

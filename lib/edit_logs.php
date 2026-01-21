@@ -40,5 +40,6 @@ function logChanges($author, $email, $type, $collection, $id, $falaise_id, $new_
     die(json_encode(["error" => "Erreur lors de l'exécution de la requête : " . $stmt->error]));
   }
   $stmt->close();
+  return $changes_json;
 
 }

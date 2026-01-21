@@ -82,13 +82,13 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
         <a class="btn btn-sm" href="/falaise.php?falaise_id=<?= $falaise['falaise_id'] ?>">Voir la falaise</a>
         <input type="file" hidden accept=".geojson" class="upload-geojson-input" />
         <button class="btn btn-sm upload-geojson-btn" title="Importer un fichier GeoJSON et remplacer la carte actuelle">
-          <svg class="w-5 h-5 fill-current">
-            <use xlink:href="/symbols/icons.svg#file-upload"></use>
+          <svg class="w-5 h-5 fill-none stroke-current">
+            <use href="#file-upload"></use>
           </svg> Import </button>
         <input type="file" hidden accept=".geojson" class="upload-add-geojson-input" />
         <button class="btn btn-sm upload-add-geojson-btn" title="Importer un fichier GeoJSON et ajouter son contenu">
-          <svg class="w-5 h-5 fill-current">
-            <use xlink:href="/symbols/icons.svg#file-upload"></use>
+          <svg class="w-5 h-5 fill-none stroke-current">
+            <use href="#file-upload"></use>
           </svg> Ajouter </button>
         <button class="btn btn-sm download-geojson-btn">Télécharger le GeoJSON</button>
         <div class="tooltip tooltip-left" data-tip="Cmd/Ctrl + S">
@@ -98,14 +98,14 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
           <div class="divider divider-horizontal mx-1"></div>
           <?php if ($opts['backUrl']): ?>
             <a href="<?= htmlspecialchars($opts['backUrl']) ?>" class="btn btn-sm btn-outline">
-              <svg class="w-4 h-4 fill-current">
-                <use xlink:href="/symbols/icons.svg#arrow-left"></use>
+              <svg class="w-4 h-4 fill-none stroke-current">
+                <use href="#arrow-left"></use>
               </svg> Retour </a>
           <?php endif; ?>
           <?php if ($opts['nextUrl']): ?>
             <button class="btn btn-sm btn-secondary save-and-next-btn"
-              data-next-url="<?= htmlspecialchars($opts['nextUrl']) ?>"> Terminer <svg class="w-4 h-4 fill-current">
-                <use xlink:href="/symbols/icons.svg#arrow-right"></use>
+              data-next-url="<?= htmlspecialchars($opts['nextUrl']) ?>"> Terminer <svg class="w-4 h-4 fill-none stroke-current">
+                <use href="#arrow-right"></use>
               </svg>
             </button>
           <?php endif; ?>
@@ -118,8 +118,8 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
         <input class="input input-sm rounded-none coords-input" type="text" placeholder="ex: 45.1234,6.2355"
           value="<?= htmlspecialchars($falaise['falaise_latlng']) ?>">
         <button class="btn btn-sm btn-primary px-1 goto-coords-btn">
-          <svg class="w-5 h-5 fill-current">
-            <use xlink:href="/symbols/icons.svg#arrow-right"></use>
+          <svg class="w-5 h-5 fill-none stroke-current">
+            <use href="#arrow-right"></use>
           </svg>
         </button>
       </div>
@@ -141,11 +141,15 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
         <p class="py-2">Merci d'indiquer vos coordonnées pour cette contribution.</p>
         <div class="flex flex-col gap-3">
           <label class="input input-primary flex items-center gap-2">
-            <svg class="w-4 h-4 fill-current"><use xlink:href="/symbols/icons.svg#user"></use></svg>
+            <svg class="w-4 h-4 fill-none stroke-current">
+              <use href="#user"></use>
+            </svg>
             <input type="text" class="grow contrib-nom-input" placeholder="Prénom (et/ou nom)" required>
           </label>
           <label class="input input-primary flex items-center gap-2">
-            <svg class="w-4 h-4 fill-current"><use xlink:href="/symbols/icons.svg#mail"></use></svg>
+            <svg class="w-4 h-4 fill-none stroke-current">
+              <use href="#mail-line"></use>
+            </svg>
             <input type="email" class="grow contrib-email-input" placeholder="Email" required>
           </label>
         </div>

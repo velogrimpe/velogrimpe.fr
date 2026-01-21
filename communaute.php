@@ -70,8 +70,8 @@
           </div>
           <label class="input input-primary flex items-center gap-2 w-full">
             <input class="grow" type="email" id="email" name="email" required />
-            <svg class="w-4 h-4 fill-current">
-              <use xlink:href="/symbols/icons.svg#mail"></use>
+            <svg class="w-4 h-4 fill-none stroke-current">
+              <use href="#mail-line"></use>
             </svg>
           </label>
         </div>
@@ -81,14 +81,14 @@
           </div>
           <label class="input input-primary flex items-center gap-2 w-full">
             <input class="grow" type="tel" id="phone" name="phone" />
-            <svg class="w-4 h-4 fill-current">
-              <use xlink:href="/symbols/icons.svg#phone"></use>
+            <svg class="w-4 h-4 fill-none stroke-current">
+              <use href="#phone-line"></use>
             </svg>
           </label>
         </div>
         <div class="w-full">
           <div class="label">
-            <span class="label-text"> Pourquoi voulez-vous rejoindre le groupe Signal "Vélogrimpe" ? </span>
+            <span class="label-text text-wrap">Pourquoi voulez-vous rejoindre le groupe Signal "Vélogrimpe" ?</span>
           </div>
           <textarea class="textarea leading-6 textarea-primary w-full" id="message" name="message" rows="4"
             minlength="100" required
@@ -100,7 +100,7 @@
       </form>
     </div>
   </main>
-  <?php include "./components/footer.html"; ?>
+  <?php include "./components/footer.php"; ?>
 </body>
 
 </html>

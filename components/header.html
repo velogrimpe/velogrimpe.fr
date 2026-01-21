@@ -1,3 +1,8 @@
+<style>
+  /* Critical CSS to prevent drawer flash before DaisyUI loads */
+  .drawer-side { visibility: hidden; }
+  .drawer-toggle:checked ~ .drawer-side { visibility: visible; }
+</style>
 <header>
   <nav class="z-10000">
     <div class="drawer z-10000">
@@ -135,7 +140,7 @@
           class="drawer-overlay"
         ></label>
         <ul class="menu bg-base-200 min-h-full w-80 p-4 pt-20 text-xl gap-2">
-          <li><a href="/carte.php">Carte</a></li>
+          <li><a class="text-primary font-bold" href="/carte.php">Carte</a></li>
           <li>
             <details>
               <summary class="text-primary font-bold">
@@ -153,7 +158,7 @@
               </ul>
             </details>
           </li>
-          <li><a href="/logistique.php">Logistique</a></li>
+          <li><a class="text-primary font-bold" href="/logistique.php">Logistique</a></li>
           <li class="mt-4"></li>
           <li><a href="/communaute.php">Communauté</a></li>
           <li><a href="/contribuer.php">Contribuer</a></li>

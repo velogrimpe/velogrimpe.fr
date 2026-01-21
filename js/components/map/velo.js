@@ -18,7 +18,7 @@ export default class Velo extends Element {
       l.setStyle({
         weight: Velo.highlightedLineWeight,
         color: this.color,
-      })
+      }),
     );
     super.highlight(e, propagate);
   }
@@ -28,7 +28,7 @@ export default class Velo extends Element {
       l.setStyle({
         weight: Velo.baseLineWeight,
         color: this.color,
-      })
+      }),
     );
     super.unhighlight(propagate);
   }
@@ -69,17 +69,17 @@ function renderGpx(velo, options = {}) {
       e.target.bindTooltip(
         format_time(calculate_time(velo)) +
           (velo.velo_apieduniquement
-            ? '<svg class="w-4 h-4 fill-current inline"><use xlink:href="/symbols/icons.svg#ri-footprint-fill"></use></svg>'
+            ? '<svg class="w-4 h-4 fill-none stroke-current inline"><use href="#footprint"></use></svg>'
             : ""),
         {
           className: `vg-velo-tooltip vg-color-${color}`,
           permanent: true,
           direction: "center",
-        }
+        },
       );
       e.target.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
       });
-    }
+    },
   );
 }

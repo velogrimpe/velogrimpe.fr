@@ -82,8 +82,8 @@ $formatter = new IntlDateFormatter(
             <td>
               <?= htmlspecialchars($log['author']) ?>
               <a class="" href="mailto:<?= htmlspecialchars($log['author_email']) ?>">
-                <svg class="w-3 h-3 fill-current inline">
-                  <use xlink:href="/symbols/icons.svg#mail-fill"></use>
+                <svg class="w-3 h-3 fill-none stroke-current inline">
+                  <use href="#mail-line"></use>
                 </svg>
               </a>
             </td>
@@ -93,8 +93,8 @@ $formatter = new IntlDateFormatter(
             <td>
               <?php if ($log['falaise_id'] !== null): ?>
                 <a href="/falaise.php?falaise_id=<?= $log['falaise_id'] ?>">
-                  <svg class="w-4 h-4 fill-current">
-                    <use xlink:href="/symbols/icons.svg#eye"></use>
+                  <svg class="w-4 h-4 fill-none stroke-current">
+                    <use href="#eye"></use>
                   </svg>
                 </a>
               <?php endif; ?>
@@ -128,7 +128,7 @@ $formatter = new IntlDateFormatter(
         <button class="btn btn-disabled btn-sm">&rarr;</button>
       <?php endif; ?>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 
 </html>

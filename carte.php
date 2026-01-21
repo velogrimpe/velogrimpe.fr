@@ -111,8 +111,8 @@ $highlight = $_GET['h'] ?? '';
   <div class="hidden">
     <div class="flex flex-row gap-1 justify-end md:hidden" id="searchAndFilter">
       <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
-        onclick="searchModal.showModal()"> Chercher <svg class="w-4 h-4 fill-current">
-          <use xlink:href="/symbols/icons.svg#search"></use>
+        onclick="searchModal.showModal()"> Chercher <svg class="w-4 h-4 fill-none stroke-current">
+          <use href="#search"></use>
         </svg>
       </button>
       <dialog id="searchModal" class="modal modal-bottom sm:modal-middle">
@@ -127,8 +127,9 @@ $highlight = $_GET['h'] ?? '';
         </form>
       </dialog>
       <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
-        onclick="document.getElementById('filtersModal').showModal()"> Filtrer <svg class="w-4 h-4 fill-current">
-          <use xlink:href="/symbols/icons.svg#filter"></use>
+        onclick="document.getElementById('filtersModal').showModal()"> Filtrer <svg
+          class="w-4 h-4 fill-none stroke-current">
+          <use href="#filter"></use>
         </svg>
       </button>
       <dialog id="filtersModal" class="modal modal-bottom sm:modal-middle">
@@ -150,7 +151,7 @@ $highlight = $_GET['h'] ?? '';
       </dialog>
     </div>
   </div>
-  <?php include "./components/footer.html"; ?>
+  <?php include "./components/footer.php"; ?>
 </body>
 <script>
 
@@ -282,7 +283,7 @@ $highlight = $_GET['h'] ?? '';
         e.target.bindTooltip(
           format_time(calculate_time(it))
           + (it.velo_apieduniquement === "1"
-            ? '<svg class="w-4 h-4 fill-current inline"><use xlink:href="/symbols/icons.svg#footprint"></use></svg>'
+            ? '<svg class="w-4 h-4 fill-none stroke-current inline"><use href="#footprint"></use></svg>'
             : ""
           ),
           {

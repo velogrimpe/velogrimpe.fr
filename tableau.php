@@ -164,8 +164,8 @@ $stmt->close();
     <div class="flex flex-col justify-center gap-1 items-end w-full">
       <div class="flex justify-between w-full items-center">
         <button class="btn btn-xs w-fit" onclick="instructionsDialog.showModal()">
-          <svg class="w-4 h-4 fill-current">
-            <use xlink:href="/symbols/icons.svg#information"></use>
+          <svg class="w-4 h-4 fill-none stroke-current">
+            <use href="#information"></use>
           </svg> Comment lire ce tableau ?</button>
         <dialog id="instructionsDialog" class="modal">
           <div class="modal-box">
@@ -202,7 +202,7 @@ $stmt->close();
     <!-- Vue Tableau List -->
     <div id="vue-tableau"></div>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 <!-- Initialize Vue data -->
 <script>

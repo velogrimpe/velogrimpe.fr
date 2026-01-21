@@ -1,0 +1,42 @@
+<?php
+// Inclusion du SVG sprite inline pour éviter les problèmes de chargement externe
+$svgSpritePath = $_SERVER['DOCUMENT_ROOT'] . '/symbols/icons.svg';
+if (file_exists($svgSpritePath)) {
+  include $svgSpritePath;
+}
+?> <footer
+  class="font-normal text-xs text-slate-500 flex justify-center py-2 items-center gap-2 bg-base-100 border-t border-slate-200">
+  <!-- Open the modal using ID.showModal() method -->
+  <a class="font-normal" href="/">© Velogrimpe.fr</a>
+  <span class="hidden sm:block">-</span>
+  <a class="font-normal cursor-pointer" onclick="credits_modal.showModal()">Crédits</a>
+  <dialog id="credits_modal" class="modal">
+    <div class="modal-box text-base">
+      <ul class="list list-disc">
+        <li> Données topos fournies par les contributeurs velogrimpe, souvent à partir des topos papiers, de
+          connaissances locales et des itinéraires testés ou tracés par ces mêmes contributeurs. </li>
+        <li> Crédits photos: <a href="https://client.monikaglet.com/changerdapprochemountainwilderness/"> Stock de
+            photos de la Campagne Mountain Wilderness "Changer d'approche" </a>, par <a
+            href="https://monikaglet.com/">Monika Glet</a>. <br />
+          <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" class="text-primary">Licence : CC
+            BY-NC-SA</a>
+        </li>
+        <li>Logo créé par Mélanie</li>
+        <li>
+          <a tabindex="-1" href="https://www.flaticon.com/free-icons/maps-and-location" title="crag icons"
+            class="font-normal"> Icones créé par Freepik - Flaticon </a>
+        </li>
+      </ul>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <span class="hidden sm:block">-</span>
+  <a class="font-normal" href="/contact.php">Nous contacter</a>
+  <span class="hidden sm:block">-</span>
+  <a href="https://instagram.com/velogrimpe" target="_blank">
+    <svg class="inline w-4 h-4 fill-current">
+      <use href="#instagram-fill"></use>
+    </svg> @velogrimpe </a>
+</footer>

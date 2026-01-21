@@ -102,7 +102,7 @@ $image = "https://velogrimpe.fr/images/articles/2026-01-20-velo-train-conditions
           target="_blank" class="link link-primary">cartotrain.fr</a>.</p>
     </div>
   </main>
-  <?php include "../components/footer.html"; ?>
+  <?php include "../components/footer.php"; ?>
 </body>
 
 </html>

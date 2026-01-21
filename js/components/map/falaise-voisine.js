@@ -68,7 +68,7 @@ export default class FalaiseVoisine extends Element {
     console.debug(
       "FalaiseVoisine.updateLabel",
       this.label,
-      this.layer.properties.name
+      this.layer.properties.name,
     );
     if (this.label && this.layer.properties.name) {
       this.label.updateLabel();
@@ -123,7 +123,7 @@ const buildLayer = (zoneFeature, options = {}) => {
       }
       return ring.map((coord) => [coord[1], coord[0]]);
     }),
-    FalaiseVoisine.style
+    FalaiseVoisine.style,
   );
   // layer = layer.setText(textPathText, textPathOptions);
   return layer;
@@ -142,8 +142,8 @@ const buildPopupContent = (zoneFeature) => {
   return `
     <a href="${url}" class="btn btn-sm btn-primary flex flex-row items-center gap-1">
       <span>Voir la fiche falaise
-      <svg class="inline-block w-3 h-3 fill-current" aria-hidden="true" focusable="false">
-        <use xlink:href="/symbols/icons.svg#ri-external-link-line"></use>
+      <svg class="inline-block w-3 h-3 fill-none stroke-current" aria-hidden="true" focusable="false">
+        <use href="#external-link"></use>
       </svg></span>
     </a>
   `;

@@ -62,8 +62,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
         d’un cadre naturel, dans un esprit de respect de l’environnement et de mobilité responsable.</p>
       <div class="w-full text-center mb-8">
         <a href="https://www.uncolouunpic.com/" class="mx-auto not-prose btn btn-primary mt-4 shadow-xl"
-          target="_blank"> Découvrir Un Col ou un Pic <svg class="w-4 h-4 fill-current">
-            <use xlink:href="/symbols/icons.svg#external-link"></use>
+          target="_blank"> Découvrir Un Col ou un Pic <svg class="w-4 h-4 fill-none stroke-current">
+            <use href="#external-link"></use>
           </svg>
         </a>
       </div>
@@ -79,7 +79,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
     </div>
     </div>
   </main>
-  <?php include "../components/footer.html"; ?>
+  <?php include "../components/footer.php"; ?>
 </body>
 
 </html>

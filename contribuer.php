@@ -89,7 +89,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
     <p>- Si vous avez envie de contribuer au code de ce site, signaler des erreurs ou suggérer des évolutions, ça se
       passe sur Github : <a href="https://github.com/velogrimpe/velogrimpe.fr" target="_blank">code source</a></p>
   </div>
-  <?php include "./components/footer.html"; ?>
+  <?php include "./components/footer.php"; ?>
 </body>
 
 </html>
