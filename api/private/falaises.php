@@ -35,7 +35,7 @@ header('Content-Type: application/json');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 // Prepare the SQL statement
 
-$falaises = $mysqli->query("SELECT falaise_id, falaise_nom FROM falaises")->fetch_all(MYSQLI_ASSOC);
+$falaises = $mysqli->query("SELECT falaise_id, falaise_nom, date_creation FROM falaises")->fetch_all(MYSQLI_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   // Return the result as JSON
