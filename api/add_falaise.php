@@ -310,7 +310,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 $newFalaise = [
   "falaise_id" => $falaise_id,
   "falaise_nom" => $falaise_nom,
-  "falaise_nomformate" => $falaise_nomformate,
   "falaise_latlng" => $falaise_latlng,
   "falaise_exposhort1" => $falaise_exposhort1,
   "falaise_exposhort2" => $champs['falaise_exposhort2'],
@@ -383,7 +382,9 @@ if ($admin == 0) {
       $field = htmlspecialchars($change['field']);
       $old = htmlspecialchars($change['old']);
       $new = htmlspecialchars($change['new']);
-      $html .= "<li><b>$field</b> : '$old' ➔ '$new'</li>";
+      $html .= "<li><b>$field</b> : <ul>";
+      $html .= "<li><span style='color: red;'>$old</span></li>";
+      $html .= "<li> → <span style='color: green;'>$new</span></li></ul></li>";
     }
     $html .= "</ul>";
   } else if ($isEdition) {
@@ -409,8 +410,13 @@ if ($admin == 0) {
     $html .= "<li><b>Bloc</b>: $falaise_bloc</li>";
     $html .= "<li><b>Remarque</b>: " . $champs['falaise_rq'] . "</li>";
     $html .= "</ul>";
-    $html .= "</body></html>";
   }
+  $html .= "<h2>Actions</h2>";
+  $html .= "<p>Pour valider cette falaise, cliquez sur le lien suivant :</p>";
+  $html .= "<p><a href='https://velogrimpe.fr/api/private/accept_falaise.php?admin=" . urlencode($config["admin_token"]) . "&falaise_id=$falaise_id'>Valider la falaise</a></p>";
+  $html .= "<p>Pour modifier cette falaise, cliquez sur le lien suivant :</p>";
+  $html .= "<p><a href='https://velogrimpe.fr/ajout/ajout_falaise.php?admin=" . urlencode($config["admin_token"]) . "&falaise_id=$falaise_id'>Modifier la falaise</a></p>";
+  $html .= "</body></html>";
 
   $data = [
     'to' => $to,
