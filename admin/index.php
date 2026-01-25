@@ -45,17 +45,16 @@ $falaises_topo = array_values(array_filter(
     </h1>
     <h2 class="text-4xl font-bold text-wrap text-center">Ajouter des données</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <a class="btn btn-primary btn-lg" href="/ajout/ajout_ville.php?admin=<?= $token ?>">Ajouter une ville de
+      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_ville.php?admin=<?= $token ?>">Ajouter une ville de
         départ</a>
-      <a class="btn btn-primary btn-lg" href="/ajout/ajout_falaise.php?admin=<?= $token ?>">Ajouter une falaise</a>
-      <a class="btn btn-primary btn-lg" href="/ajout/ajout_train.php?admin=<?= $token ?>">Ajouter un itinéraire train
-        (ville - gare)</a>
-      <a class="btn btn-primary btn-lg" href="/ajout/ajout_velo.php?admin=<?= $token ?>">Ajouter un itinéraire vélo
-        (gare - falaise)</a>
-      <a class="btn btn-primary btn-lg" href="/admin/oblyk.php?admin=<?= $token ?>">Créer les liens Oblyk</a>
-      <a class="btn btn-primary btn-lg" href="/admin/tableau_trains.php?admin=<?= $token ?>">Récap. Trains</a>
-      <a class="btn btn-primary btn-lg" href="/ajout/contrib/details_falaise.php?falaise_id=247">Éditeur Falaises</a>
-      <a class="btn btn-primary btn-lg" href="/admin/edit_logs.php">Historique des modifications</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_falaise.php?admin=<?= $token ?>">Ajouter une falaise</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_train.php?admin=<?= $token ?>">Ajouter un itinéraire
+        train</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_velo.php?admin=<?= $token ?>">Ajouter un itinéraire vélo</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/oblyk.php?admin=<?= $token ?>">Créer les liens Oblyk</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/tableau_trains.php?admin=<?= $token ?>">Récap. Trains</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/contrib/details_falaise.php?falaise_id=247">Éditeur Falaises</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/edit_logs.php">Historique des modifications</a>
     </div>
     <h2 class="text-4xl font-bold text-wrap text-center">Modifier des données</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
