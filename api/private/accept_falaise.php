@@ -47,7 +47,7 @@ if (!$updateStmt->execute()) {
 
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
-logChanges("email-link", "contact@velogrimpe.fr", "update", "falaise", $falaise_id, $falaise_id, ["falaise_public" => "Validée (1)"], []);
+logChanges("admin", "contact@velogrimpe.fr", "update", "falaise", $falaise_id, $falaise_id, ["falaise_public" => "Validée (1)"], []);
 
 
 http_response_code(200);
