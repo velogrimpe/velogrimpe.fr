@@ -195,7 +195,7 @@ if ($falaise_id) {
           <label class="form-control" for="falaise_latlng">
             <b>Coordonnées GPS <span class="text-error">(format : "latitude,longitude" (degrés décimaux))</span></b>
             <input class="input input-primary input-sm" type="text" id="falaise_latlng" name="falaise_latlng"
-              placeholder="ex: 45.1234,6.2355" required>
+              placeholder="ex: 45.1234,6.2355" required autocomplete="off">
           </label>
           <div id="map" class="w-full h-64 rounded-lg relative" title="Cliquez pour placer la falaise">
             <div id="mapinstructions" class="h-full w-full bg-[#3333] flex items-center justify-center
@@ -527,7 +527,7 @@ if ($falaise_id) {
           <b class="">Grandes voies - Texte très court pour le tableau <span
               class="text-accent opacity-50">(optionnel)</span></b>
           <input class="input input-sm" type="text" id="falaise_gvnb" name="falaise_gvnb"
-            placeholder="ex : Plusieurs GV, 3 à 4 longueurs" maxlength="40">
+            placeholder="ex : Plusieurs GV, 3 à 4 longueurs" maxlength="40" autocomplete="off">
           <i class="text-slate-400 text-sm">Texte très court pour le tableau "falaises proches de...".<br> Exemples :
             "Nombreuses GV - 2 à 10 longueurs" ; "GV en 2 à 3 longueurs" ; "12 GV - 4 à 9 longueurs". </i>
         </label>
@@ -564,12 +564,12 @@ if ($falaise_id) {
             <label class="form-control w-full md:w-1/2" for="falaise_maa">
               <b> Aller</b>
               <input class="input input-primary input-sm" type="number" id="falaise_maa" name="falaise_maa"
-                placeholder="ex : 10" required>
+                placeholder="ex : 10" required autocomplete="off">
             </label>
             <label class="form-control w-full md:w-1/2" for="falaise_mar">
               <b>Retour</b>
               <input class="input input-primary input-sm" type="number" id="falaise_mar" name="falaise_mar"
-                placeholder="ex : 5" required>
+                placeholder="ex : 5" required autocomplete="off">
             </label>
           </div>
           <i class="text-slate-400 text-sm"> Donner le temps de marche d'approche pour arriver au secteur le plus proche
