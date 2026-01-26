@@ -21,7 +21,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/components/falaise-details-editor.php
 // Liste des falaises pour le sélecteur
 $falaises = $mysqli->query("SELECT falaise_id, falaise_nom
                             FROM falaises
-                            ORDER BY falaise_id DESC")->fetch_all(MYSQLI_ASSOC);
+                            ORDER BY falaise_nom ASC")->fetch_all(MYSQLI_ASSOC);
 
 // Données de la falaise courante
 $stmtF = $mysqli->prepare("SELECT
@@ -67,17 +67,12 @@ if (!$falaise) {
 <body>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="py-4 px-2 md:px-8 flex flex-col gap-4">
-    <div class="flex gap-2 justify-start items-center">
-      <select id="selectFalaise1" name="selectFalaise1" class="select select-primary select-sm"
-        onchange="window.location.href = '/ajout/contrib/details_falaise.php?falaise_id=' + this.value">
-        <?php foreach ($falaises as $f): ?>
-          <option value="<?= $f['falaise_id'] ?>" <?= $falaise_id == $f["falaise_id"] ? "selected" : "" ?>>
-            <?= htmlspecialchars($f['falaise_nom']) ?> - <?= $f['falaise_id'] ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
+    <div class="flex gap-2 justify-start items-center w-full max-w-md">
+      <div id="vue-falaise-selector" class="w-full"
+        data-falaises="<?= htmlspecialchars(json_encode(array_map(fn($f) => ['id' => (int)$f['falaise_id'], 'nom' => $f['falaise_nom']], $falaises)), ENT_QUOTES, 'UTF-8') ?>"
+        data-current-id="<?= $falaise_id ?>">
+      </div>
     </div>
-
     <?php
     render_falaise_details_editor($falaise, $token, [
       'height' => 'calc(100vh - 220px)',
@@ -88,6 +83,7 @@ if (!$falaise) {
     ?>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
+  <script type="module" src="/dist/contrib-details-falaise.js"></script>
 </body>
 
 </html>
