@@ -160,6 +160,7 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
       </div>
     </dialog>
   </div>
+  <script src="/js/contrib-storage.js"></script>
   <script type="module">
     import { initFalaiseDetailsEditor } from '/js/components/falaise-details-editor.js';
     initFalaiseDetailsEditor('<?= $containerId ?>');

@@ -16,6 +16,9 @@ import AccesVelo from "/js/components/map/acces-velo.js";
 import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
 import { getValhallaRoute } from "/js/services/valhalla.js";
 
+// Use global contribStorage (loaded via script tag)
+const { getContribInfo, saveContribInfo } = window.contribStorage || {};
+
 /**
  * @typedef {Object} FalaiseData
  * @property {number} falaise_id
@@ -96,6 +99,13 @@ export function initFalaiseDetailsEditor(containerId) {
     container.dataset.apiEndpoint || "/api/private/falaise_details.php";
   let contribNom = container.dataset.contribNom || "";
   let contribEmail = container.dataset.contribEmail || "";
+
+  // Fallback to localStorage if not provided via data attributes
+  if (!contribNom || !contribEmail) {
+    const stored = getContribInfo();
+    if (!contribNom && stored.nom) contribNom = stored.nom;
+    if (!contribEmail && stored.email) contribEmail = stored.email;
+  }
 
   const mapEl = container.querySelector(".editor-map");
   const center = falaise.falaise_latlng.split(",").map(parseFloat);
@@ -997,6 +1007,8 @@ export function initFalaiseDetailsEditor(containerId) {
         }
         contribNom = nomInput.value.trim();
         contribEmail = emailInput.value.trim();
+        // Save to localStorage for future use
+        saveContribInfo(contribNom, contribEmail);
         modal.close();
         cleanup();
         resolve(true);

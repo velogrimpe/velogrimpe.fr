@@ -58,6 +58,8 @@ if ($falaise_id) {
   <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
+  <!-- Contrib storage -->
+  <script src="/js/contrib-storage.js"></script>
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
   <?php vite_css('ajout-falaise'); ?>
@@ -89,8 +91,16 @@ if ($falaise_id) {
       <?php else: ?>
         document.getElementById('falaise_public').value = '2';
         document.getElementById('admin').value = '0';
+        // Pre-fill contributor info from localStorage
+        if (window.contribStorage) {
+          window.contribStorage.prefillContribInputs();
+        }
       <?php endif; ?>
       document.querySelectorAll(".input-disabled").forEach(e => e.value = "");
+      // Attach form save listener for contrib info
+      if (window.contribStorage) {
+        window.contribStorage.attachFormSaveListener(document.getElementById('form'));
+      }
     });
   </script>
   <script>
