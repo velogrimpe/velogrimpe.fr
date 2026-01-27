@@ -254,7 +254,7 @@ input[type="number"] {
 .autocomplete-list {
   max-height: 150px;
   overflow-y: auto;
-  z-index: 10;
+  z-index: 10000;
 }
 .autocomplete-active {
   background-color: #2e8b57 !important;
