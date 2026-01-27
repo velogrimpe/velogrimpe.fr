@@ -1,11 +1,15 @@
 <style>
   /* Critical CSS to prevent drawer flash before DaisyUI loads */
-  .drawer-side { visibility: hidden; }
-  .drawer-toggle:checked ~ .drawer-side { visibility: visible; }
+  .drawer-side {
+    visibility: hidden;
+  }
+  .drawer-toggle:checked ~ .drawer-side {
+    visibility: visible;
+  }
 </style>
 <header>
-  <nav class="z-10000">
-    <div class="drawer z-10000">
+  <nav class="z-[10000]">
+    <div class="drawer z-[10000]">
       <input id="my-drawer-3" type="checkbox" class="drawer-toggle" />
       <div class="drawer-content flex flex-col">
         <!-- Navbar -->
@@ -133,7 +137,7 @@
           </div>
         </div>
       </div>
-      <div class="drawer-side z-10000">
+      <div class="drawer-side z-[10000]">
         <label
           for="my-drawer-3"
           aria-label="close sidebar"
@@ -158,7 +162,11 @@
               </ul>
             </details>
           </li>
-          <li><a class="text-primary font-bold" href="/logistique.php">Logistique</a></li>
+          <li>
+            <a class="text-primary font-bold" href="/logistique.php"
+              >Logistique</a
+            >
+          </li>
           <li class="mt-4"></li>
           <li><a href="/communaute.php">Communauté</a></li>
           <li><a href="/contribuer.php">Contribuer</a></li>

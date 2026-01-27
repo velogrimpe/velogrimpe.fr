@@ -81,7 +81,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
           <?php foreach ($falaises as $falaise_nom => $gares): ?>
             <tr class="border-top border-[black] text-center relative" data-id="<?= $gares[0]['falaise_id'] ?>"
               data-nom="<?= $falaise_nom ?>">
-              <th class="border-left border border-[black] w-48 z-10000">
+              <th class="border-left border border-[black] w-48 z-[10000]">
                 <a
                   href="/falaise.php?falaise_id=<?= $gares[0]['falaise_id'] ?>"><?= $falaise_nom ?></a><br>(<?= $gares[0]['falaise_id'] ?>)
               </th>

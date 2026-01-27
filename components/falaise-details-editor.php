@@ -114,7 +114,7 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
     <?php endif; ?>
     <div class="relative">
       <div class="editor-map w-full" style="height: <?= $opts['height'] ?>"></div>
-      <div class="absolute bottom-3 left-3 z-10000 flex gap-1">
+      <div class="absolute bottom-3 left-3 z-[10000] flex gap-1">
         <input class="input input-sm rounded-none coords-input" type="text" placeholder="ex: 45.1234,6.2355"
           value="<?= htmlspecialchars($falaise['falaise_latlng']) ?>">
         <button class="btn btn-sm btn-primary px-1 goto-coords-btn">

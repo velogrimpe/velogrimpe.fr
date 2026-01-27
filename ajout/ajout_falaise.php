@@ -209,7 +209,7 @@ if ($falaise_id) {
           </label>
           <div id="map" class="w-full h-64 rounded-lg relative" title="Cliquez pour placer la falaise">
             <div id="mapinstructions" class="h-full w-full bg-[#3333] flex items-center justify-center
-              pointer-events-none z-10000 absolute top-0 left-0 rounded-lg text-black text-xl">
+              pointer-events-none z-[10000] absolute top-0 left-0 rounded-lg text-black text-xl">
               <span class="bg-[#fff8] rounded-lg px-2 py-1 max-w-50 sm:max-w-full">Cliquez pour placer la falaise</span>
             </div>
           </div>
