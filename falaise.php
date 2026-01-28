@@ -1103,7 +1103,7 @@ $stmtC->close();
     })
       .then((data) => {
         let id = 0;
-        if (data.features && data.features.length === 0) {
+        if (data.features && !data.features.find(f => f.properties.type === "secteur")) {
           falaiseObject.setVisibility({ from: 0, to: 30 });
         }
         if (data.features && data.features.length > 0) {
