@@ -5,31 +5,31 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 // Load villes for filter
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 
+$meta_title = "Sorties - Vélogrimpe.fr";
+$meta_description = "Proposez ou rejoignez des sorties d'escalade en mobilité douce. Trouvez votre binôme pour la journée ou un groupe pour partir à la semaine.";
+
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
 <head>
   <meta charset="UTF-8" />
-  <title>Sorties d'escalade - Vélogrimpe.fr</title>
+  <title><?= htmlspecialchars($meta_title) ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://velogrimpe.fr/sorties.php" />
-  <meta name="description"
-    content="Proposez ou rejoignez des sorties d'escalade en mobilité douce. Trouvez des compagnons de grimpe pour vos prochaines aventures à vélo et en train.">
+  <meta name="description" content="<?= htmlspecialchars($meta_description) ?>">
   <meta property="og:locale" content="fr_FR">
-  <meta property="og:title" content="Sorties d'escalade - Velogrimpe.fr">
+  <meta property="og:title" content="<?= htmlspecialchars($meta_title) ?>">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Velogrimpe.fr">
   <meta property="og:url" content="https://velogrimpe.fr/sorties.php">
   <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
-  <meta property="og:description"
-    content="Proposez ou rejoignez des sorties d'escalade en mobilité douce. Trouvez des compagnons de grimpe pour vos prochaines aventures à vélo et en train.">
+  <meta property="og:description" content="<?= htmlspecialchars($meta_description) ?>">
   <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
-  <meta name="twitter:title" content="Sorties d'escalade - Velogrimpe.fr">
-  <meta name="twitter:description"
-    content="Proposez ou rejoignez des sorties d'escalade en mobilité douce. Trouvez des compagnons de grimpe pour vos prochaines aventures à vélo et en train.">
+  <meta name="twitter:title" content="<?= htmlspecialchars($meta_title) ?>">
+  <meta name="twitter:description" content="<?= htmlspecialchars($meta_description) ?>">
   <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
