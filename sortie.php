@@ -32,35 +32,44 @@ $sortie['is_past'] = $sortie['date_debut'] < $today;
 $sortie['is_multi_day'] = !empty($sortie['date_fin']) && $sortie['date_fin'] !== $sortie['date_debut'];
 
 // Format dates for meta
-$date_debut_formatted = date('d/m/Y', strtotime($sortie['date_debut']));
+$formatter = new IntlDateFormatter(
+  'fr_FR',                // Locale française
+  IntlDateFormatter::SHORT, // Format long pour la date
+  IntlDateFormatter::SHORT, // Format court pour l'heure
+  'Europe/Paris',         // Fuseau horaire
+  IntlDateFormatter::GREGORIAN,
+  "E' 'd' 'MMM' 'YY"
+);
+$date_debut_formatted = $formatter->format(new DateTime($sortie['date_debut']));
 if ($sortie['is_multi_day']) {
-  $date_formatted = $date_debut_formatted . ' au ' . date('d/m/Y', strtotime($sortie['date_fin']));
+  $date_formatted = $date_debut_formatted . ' au ' . $formatter->format(new DateTime($sortie['date_fin']));
 } else {
   $date_formatted = $date_debut_formatted;
 }
 
-$meta_description = "Sortie d'escalade à {$sortie['falaise_principale_nom']} le {$date_formatted}. Organisée par {$sortie['organisateur_nom']}.";
+$meta_description = "Sortie vélogrimpe à {$sortie['falaise_principale_nom']} le {$date_formatted}. Rejoignez-nous !";
+$title = "Sortie Vélogrimpe du {$date_formatted} à " . htmlspecialchars($sortie['falaise_principale_nom']);
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
 <head>
   <meta charset="UTF-8" />
-  <title><?= htmlspecialchars($sortie['falaise_principale_nom']) ?> - <?= $date_formatted ?> - Sorties Vélogrimpe</title>
+  <title><?= $title ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://velogrimpe.fr/sortie.php?sortie_id=<?= $sortie_id ?>" />
   <meta name="description" content="<?= htmlspecialchars($meta_description) ?>">
   <meta property="og:locale" content="fr_FR">
-  <meta property="og:title" content="<?= htmlspecialchars($sortie['falaise_principale_nom']) ?> - <?= $date_formatted ?>">
+  <meta property="og:title" content="<?= htmlspecialchars($title) ?>">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Velogrimpe.fr">
   <meta property="og:url" content="https://velogrimpe.fr/sortie.php?sortie_id=<?= $sortie_id ?>">
   <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
   <meta property="og:description" content="<?= htmlspecialchars($meta_description) ?>">
   <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
-  <meta name="twitter:title" content="<?= htmlspecialchars($sortie['falaise_principale_nom']) ?> - <?= $date_formatted ?>">
+  <meta name="twitter:title" content="<?= htmlspecialchars($title) ?>">
   <meta name="twitter:description" content="<?= htmlspecialchars($meta_description) ?>">
   <?php vite_css('main'); ?>
   <!-- Pageviews -->

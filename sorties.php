@@ -64,7 +64,7 @@ $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(M
     </div>
     <div class="drawer-side z-50">
       <label for="sortie-drawer" class="drawer-overlay" aria-label="close sidebar"></label>
-      <div class="pt-16 relative h-full w-full bg-base-100">
+      <div class="pt-16 relative h-full bg-base-100">
         <!-- Close button -->
         <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-20 z-10"
           onclick="document.getElementById('sortie-drawer').checked=false;">✕</button>
