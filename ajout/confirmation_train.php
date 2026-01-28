@@ -48,69 +48,58 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
 
 <body class="min-h-screen flex flex-col">
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-
   <div class="grow flex justify-center items-center p-4">
     <div class="card bg-base-100 shadow-xl max-w-md w-full">
       <div class="card-body items-center text-center">
         <!-- Icône succès -->
         <div class="text-success mb-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 fill-none stroke-current" viewBox="0 0 24 24"
+            stroke-width="1.5">
+            <use href="#checkbox-circle-fill"></use>
           </svg>
         </div>
-
         <!-- Message -->
         <h2 class="card-title text-2xl">Itinéraire train ajouté !</h2>
         <p class="text-base-content/70 mb-4">
           <?= $ville_nom ?> → <?= $gare_nom ?>
         </p>
-
         <!-- Boutons principaux -->
         <div class="flex flex-col gap-2 w-full">
           <!-- Nouvel itinéraire depuis la même ville -->
-          <a href="/ajout/ajout_train.php?ville_id=<?= $ville_id ?><?= $admin ? '&admin=' . $config["admin_token"] : '' ?>" class="btn btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Autre gare depuis <?= $ville_nom ?>
+          <a href="/ajout/ajout_train.php?ville_id=<?= $ville_id ?><?= $admin ? '&admin=' . $config["admin_token"] : '' ?>"
+            class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-none stroke-current" viewBox="0 0 24 24"
+              stroke-width="2">
+              <use href="#plus"></use>
+            </svg> Autre gare depuis <?= $ville_nom ?>
           </a>
-
           <!-- Nouvel itinéraire vers la même gare -->
-          <a href="/ajout/ajout_train.php?gare_id=<?= $gare_id ?><?= $admin ? '&admin=' . $config["admin_token"] : '' ?>" class="btn btn-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Autre ville vers <?= $gare_nom ?>
+          <a href="/ajout/ajout_train.php?gare_id=<?= $gare_id ?><?= $admin ? '&admin=' . $config["admin_token"] : '' ?>"
+            class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-none stroke-current" viewBox="0 0 24 24"
+              stroke-width="2">
+              <use href="#plus"></use>
+            </svg> Autre ville vers <?= $gare_nom ?>
           </a>
         </div>
-
         <!-- Séparateur -->
         <div class="divider my-2">ou</div>
-
         <!-- Boutons secondaires -->
         <div class="flex flex-wrap justify-center gap-2">
-          <a href="/" class="btn btn-outline btn-sm">
-            Accueil
-          </a>
-          <a href="/ajout/ajout_falaise.php<?= $admin ? '?admin=' . $config["admin_token"] : '' ?>" class="btn btn-outline btn-sm">
-            + Falaise
-          </a>
-          <a href="/ajout/ajout_velo.php<?= $admin ? '?admin=' . $config["admin_token"] : '' ?>" class="btn btn-outline btn-sm">
-            + Vélo
-          </a>
+          <a href="/" class="btn btn-outline btn-sm"> Accueil </a>
+          <a href="/ajout/ajout_falaise.php<?= $admin ? '?admin=' . $config["admin_token"] : '' ?>"
+            class="btn btn-outline btn-sm"> + Falaise </a>
+          <a href="/ajout/ajout_velo.php<?= $admin ? '?admin=' . $config["admin_token"] : '' ?>"
+            class="btn btn-outline btn-sm"> + Vélo </a>
           <?php if ($admin): ?>
-            <a href="/ajout/ajout_train.php?admin=<?= $config["admin_token"] ?>" class="btn btn-outline btn-sm">
-              + Train
+            <a href="/ajout/ajout_train.php?admin=<?= $config["admin_token"] ?>" class="btn btn-outline btn-sm"> + Train
             </a>
-            <a href="/admin/" class="btn btn-outline btn-sm">
-              Admin
-            </a>
+            <a href="/admin/" class="btn btn-outline btn-sm"> Admin </a>
           <?php endif; ?>
         </div>
       </div>
     </div>
   </div>
-
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 

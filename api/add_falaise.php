@@ -66,6 +66,8 @@ $champs = [
   'falaise_gvtxt' => null,
   'falaise_gvnb' => null,
   'falaise_rq' => null,
+  'falaise_hebergement' => null,
+  'falaise_acces_bus' => null,
   'falaise_fermee' => null,
   'falaise_txt1' => null,
   'falaise_txt2' => null,
@@ -120,6 +122,8 @@ $stmt = $mysqli->prepare("INSERT INTO falaises (
     falaise_gvtxt,
     falaise_gvnb,
     falaise_rq,
+    falaise_hebergement,
+    falaise_acces_bus,
     falaise_fermee,
     falaise_txt1,
     falaise_txt2,
@@ -134,6 +138,8 @@ $stmt = $mysqli->prepare("INSERT INTO falaises (
   )
   VALUES (
     COALESCE(?, NULL),
+    ?,
+    ?,
     ?,
     ?,
     ?,
@@ -192,6 +198,8 @@ $stmt = $mysqli->prepare("INSERT INTO falaises (
   falaise_gvtxt = VALUES(falaise_gvtxt),
   falaise_gvnb = VALUES(falaise_gvnb),
   falaise_rq = VALUES(falaise_rq),
+  falaise_hebergement = VALUES(falaise_hebergement),
+  falaise_acces_bus = VALUES(falaise_acces_bus),
   falaise_fermee = VALUES(falaise_fermee),
   falaise_txt1 = VALUES(falaise_txt1),
   falaise_txt2 = VALUES(falaise_txt2),
@@ -210,7 +218,7 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-  "isssssisssssiissssssssssssssssssii",
+  "isssssississssiisssssssssssssssssssii",
   $falaise_id,
   $falaise_nom,
   $falaise_zonename,
@@ -234,6 +242,8 @@ $stmt->bind_param(
   $champs['falaise_gvtxt'],
   $champs['falaise_gvnb'],
   $champs['falaise_rq'],
+  $champs['falaise_hebergement'],
+  $champs['falaise_acces_bus'],
   $champs['falaise_fermee'],
   $champs['falaise_txt1'],
   $champs['falaise_txt2'],
@@ -332,6 +342,8 @@ $newFalaise = [
   "falaise_gvtxt" => $champs['falaise_gvtxt'],
   "falaise_gvnb" => $champs['falaise_gvnb'],
   "falaise_rq" => $champs['falaise_rq'],
+  "falaise_hebergement" => $champs['falaise_hebergement'],
+  "falaise_acces_bus" => $champs['falaise_acces_bus'],
   "falaise_fermee" => $champs['falaise_fermee'],
   "falaise_txt1" => $champs['falaise_txt1'],
   "falaise_txt2" => $champs['falaise_txt2'],
@@ -409,6 +421,8 @@ if ($admin == 0) {
     $html .= "<li><b>Nombre de GV</b>: " . $champs['falaise_gvnb'] . "</li>";
     $html .= "<li><b>Bloc</b>: $falaise_bloc</li>";
     $html .= "<li><b>Remarque</b>: " . $champs['falaise_rq'] . "</li>";
+    $html .= "<li><b>Hébergement</b>: " . $champs['falaise_hebergement'] . "</li>";
+    $html .= "<li><b>Accès bus</b>: " . $champs['falaise_acces_bus'] . "</li>";
     $html .= "</ul>";
   }
   $html .= "<h2>Actions</h2>";

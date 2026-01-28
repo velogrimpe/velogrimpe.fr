@@ -79,24 +79,22 @@ $nextUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
 
 <body class="min-h-screen flex flex-col">
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-
   <main class="grow py-4 px-2 md:px-8 flex flex-col gap-4">
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold">
-        Éditer les détails : <?= htmlspecialchars($falaise['falaise_nom']) ?>
+      <h1 class="text-2xl font-bold"> Éditer les détails : <?= htmlspecialchars($falaise['falaise_nom']) ?>
       </h1>
     </div>
-
     <div class="alert alert-info">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6 fill-none"
+        stroke-width="2">
+        <use href="#information"></use>
       </svg>
       <div>
         <p class="font-semibold">Ajoutez des détails à votre falaise (optionnel)</p>
-        <p class="text-sm">Utilisez les outils de la carte pour ajouter : secteurs, parkings, approches, arrêts de bus, accès vélo...</p>
+        <p class="text-sm">Utilisez les outils de la carte pour ajouter : secteurs, parkings, approches, arrêts de bus,
+          accès vélo...</p>
       </div>
     </div>
-
     <?php
     render_falaise_details_editor($falaise, $token, [
       'height' => 'calc(100vh - 320px)',
@@ -109,7 +107,6 @@ $nextUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
     ]);
     ?>
   </main>
-
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 

@@ -89,6 +89,8 @@ $falaise_maa = $dataF['falaise_maa'];
 $falaise_topo = $dataF['falaise_topo'];
 $falaise_gvtxt = $dataF['falaise_gvtxt'];
 $falaise_rq = $dataF['falaise_rq'];
+$falaise_hebergement = $dataF['falaise_hebergement'] ?? null;
+$falaise_acces_bus = $dataF['falaise_acces_bus'] ?? null;
 $falaise_fermee = $dataF['falaise_fermee'] ?? null;
 $falaise_txt1 = $dataF['falaise_txt1'] ?? null;
 $falaise_txt2 = $dataF['falaise_txt2'] ?? null;
@@ -393,17 +395,27 @@ $stmtC->close();
                   <?= nl2br($falaise_gvtxt) ?>
                 </div>
               <?php endif; ?>
-              <?php if (!empty($falaise_rq)): ?>
-                <img src="/images/icons/note_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
-                <!-- <div class="font-bold ">Remarques</div> -->
-                <div class=""><?= nl2br($falaise_rq) ?></div>
-              <?php endif; ?>
               <!-- Rose des vents (Vue component) -->
               <div id="vue-rose-des-vents" data-expo1="<?= htmlspecialchars($falaise_exposhort1) ?>"
                 data-expo2="<?= htmlspecialchars($falaise_exposhort2) ?>" data-size="60"></div>
               <div class=" flex flex-row gap-2 items-center">
                 <?= nl2br($falaise_expotxt) ?>
               </div>
+              <?php if (!empty($falaise_rq)): ?>
+                <img src="/images/icons/note_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
+                <!-- <div class="font-bold ">Remarques</div> -->
+                <div class=""><?= nl2br($falaise_rq) ?></div>
+              <?php endif; ?>
+              <?php if (!empty($falaise_hebergement)): ?>
+                <img src="/images/icons/camping.png" alt=" Hébergement" class="h-12 w-12 mx-auto" />
+                <!-- <div class="font-bold ">Hébergement</div> -->
+                <div class=""><?= nl2br($falaise_hebergement) ?></div>
+              <?php endif; ?>
+              <?php if (!empty($falaise_acces_bus)): ?>
+                <img src="/images/icons/bus.png" alt=" Accès en bus" class="h-12 w-12 mx-auto" />
+                <!-- <div class="font-bold ">Accès en bus</div> -->
+                <div class=""><?= nl2br($falaise_acces_bus) ?></div>
+              <?php endif; ?>
             </div>
           </div>
         </div>

@@ -611,6 +611,22 @@ if ($falaise_id) {
             placeholder="ex : falaise abritée de la pluie."></textarea>
           <i class="text-slate-400 text-sm">A compléter si vous avez des informations additionnelles sur la falaise.</i>
         </label>
+        <label class="form-control" for="falaise_hebergement">
+          <b class="">Infos Hébergements <span class="text-accent opacity-50">(optionnel)</span></b>
+          <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_hebergement"
+            name="falaise_hebergement" rows="2"
+            placeholder="ex : camping municipal à 1km, refuge gardé en saison."></textarea>
+          <i class="text-slate-400 text-sm">Informations sur les possibilités d'hébergement à proximité (campings,
+            refuges, gîtes...).</i>
+        </label>
+        <label class="form-control" for="falaise_acces_bus">
+          <b class="">Accès en bus <span class="text-accent opacity-50">(optionnel)</span></b>
+          <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_acces_bus"
+            name="falaise_acces_bus" rows="2"
+            placeholder="ex : ligne 12 depuis la gare, arrêt à 500m de la falaise."></textarea>
+          <i class="text-slate-400 text-sm">Informations sur les accès en transports en commun (bus, navettes...) depuis
+            la gare ou les villes proches.</i>
+        </label>
         <label class="form-control" for="falaise_voletcarto">
           <b>Résumé de la fiche falaise</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voletcarto"
@@ -797,6 +813,8 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_gvtxt").value = falaise.falaise_gvtxt;
         document.getElementById("falaise_gvnb").value = falaise.falaise_gvnb;
         document.getElementById("falaise_rq").value = falaise.falaise_rq;
+        document.getElementById("falaise_hebergement").value = falaise.falaise_hebergement || '';
+        document.getElementById("falaise_acces_bus").value = falaise.falaise_acces_bus || '';
         document.getElementById("falaise_txt1").value = falaise.falaise_txt1;
         document.getElementById("falaise_txt2").value = falaise.falaise_txt2;
         document.getElementById("falaise_leg1").value = falaise.falaise_leg1;
