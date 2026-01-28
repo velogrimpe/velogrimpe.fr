@@ -15,6 +15,7 @@ import BusStop from "/js/components/map/bus-stop.js";
 import AccesVelo from "/js/components/map/acces-velo.js";
 import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
 import { getValhallaRoute } from "/js/services/valhalla.js";
+import { fetchBusStops } from "/js/components/utils/fetch-bus-stops.js";
 
 // Use global contribStorage (loaded via script tag)
 const { getContribInfo, saveContribInfo } = window.contribStorage || {};
@@ -144,6 +145,11 @@ export function initFalaiseDetailsEditor(containerId) {
 
   // Falaise marker
   new Falaise(map, falaise);
+
+  // External search layers
+  const searchLayers = {
+    busStops: L.layerGroup().addTo(map),
+  };
 
   // Table control
   const TableControl = L.Control.extend({
@@ -1145,6 +1151,122 @@ export function initFalaiseDetailsEditor(containerId) {
     });
 
   container.querySelector(".save-geojson-btn")?.addEventListener("click", save);
+
+  // Fetch bus stops button
+  container
+    .querySelector(".fetch-bus-stops-btn")
+    ?.addEventListener("click", async () => {
+      try {
+        // Clear previous
+        searchLayers.busStops.clearLayers();
+
+        const stops = await fetchBusStops(map);
+
+        stops.forEach((s) => {
+          const descLines = (s.routes || [])
+            .map((r) => {
+              const network = (r.network || "").trim();
+              const ref = (r.ref || "").trim();
+              const name = (r.name || "").trim();
+              if (network && ref) return `${network} : Ligne ${ref}`;
+              if (ref) return `Ligne ${ref}`;
+              return name;
+            })
+            .filter((t) => t && t.length > 0);
+
+          const escapeHtml = (str) =>
+            String(str)
+              .replaceAll("&", "&amp;")
+              .replaceAll("<", "&lt;")
+              .replaceAll(">", "&gt;")
+              .replaceAll('"', "&quot;");
+
+          const description = descLines.length > 0 ? descLines.join("\n") : "";
+          const marker = L.circleMarker([s.lat, s.lon], {
+            radius: 6,
+            weight: 2,
+            color: "#2563eb",
+            fillColor: "#60a5fa",
+            fillOpacity: 0.7,
+          });
+
+          const formHtml = `
+          <div class="flex flex-col gap-2 w-[260px]">
+            <div class="text-sm opacity-70">Arrêt proposé via Overpass</div>
+            <label class="flex flex-col gap-1">
+              <span class="text-sm">Nom</span>
+              <input type=\"text\" class=\"input input-xs w-full\" value=\"${escapeHtml(s.name || "")}\">
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-sm">Description</span>
+              <textarea class=\"textarea textarea-xs w-full\" rows=\"4\">${escapeHtml(description || s.network)}</textarea>
+            </label>
+          </div>`;
+
+          marker.bindPopup(formHtml, { minWidth: 260, maxWidth: 300 });
+          marker.on("popupopen", (e) => {
+            const root = e?.popup?.getElement?.() || document;
+            const content = root.querySelector?.(".leaflet-popup-content");
+            // Append action button if not already present
+            if (content && !root.querySelector?.(".add-bus-stop-btn")) {
+              const footer = document.createElement("div");
+              footer.className = "flex justify-end";
+              footer.innerHTML =
+                '<button class="btn btn-xs btn-primary add-bus-stop-btn" type="button">Ajouter cet arrêt</button>';
+              content.appendChild(footer);
+            }
+            const addBtn = root.querySelector?.(".add-bus-stop-btn");
+            const nameInput = root.querySelector?.("input");
+            const descInput = root.querySelector?.("textarea");
+            if (!addBtn) return;
+            addBtn.addEventListener(
+              "click",
+              () => {
+                const name = (nameInput?.value || s.name || "").trim();
+                const description = (descInput?.value || "").trim();
+
+                const feature = {
+                  type: "Feature",
+                  geometry: { type: "Point", coordinates: [s.lon, s.lat] },
+                  properties: { name, description },
+                };
+
+                const obj = new BusStop(map, feature);
+                obj._element_id = featureId++;
+                featureMap[obj._element_id] = obj;
+                attachInvertIndexHandler(obj.layer);
+                createAndBindPopup(obj.layer, obj._element_id);
+                if (obj.label) {
+                  createAndBindPopup(
+                    obj.label.layer,
+                    obj._element_id,
+                    obj.layer,
+                  );
+                }
+                updateAssociations();
+
+                try {
+                  marker.closePopup();
+                } catch (_) {}
+                try {
+                  searchLayers.busStops.removeLayer(marker);
+                } catch (_) {}
+                try {
+                  obj.layer.openPopup();
+                } catch (_) {}
+              },
+              { once: true },
+            );
+          });
+          searchLayers.busStops.addLayer(marker);
+        });
+      } catch (e) {
+        console.error("Erreur récupération arrêts bus:", e);
+        alert(
+          "Impossible de récupérer les arrêts de bus pour la zone visible.",
+        );
+      }
+    });
 
   // Save and navigate to next step
   const saveAndNextBtn = container.querySelector(".save-and-next-btn");

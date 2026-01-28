@@ -81,15 +81,22 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
         <?php endif; ?>
         <a class="btn btn-sm" href="/falaise.php?falaise_id=<?= $falaise['falaise_id'] ?>">Voir la falaise</a>
         <input type="file" hidden accept=".geojson" class="upload-geojson-input" />
-        <button class="btn btn-sm upload-geojson-btn" title="Importer un fichier GeoJSON et remplacer la carte actuelle">
+        <button class="btn btn-sm btn-outline btn-primary upload-geojson-btn"
+          title="Importer un fichier GeoJSON et remplacer la carte actuelle">
           <svg class="w-5 h-5 fill-none stroke-current">
             <use href="#file-upload"></use>
           </svg> Import </button>
         <input type="file" hidden accept=".geojson" class="upload-add-geojson-input" />
-        <button class="btn btn-sm upload-add-geojson-btn" title="Importer un fichier GeoJSON et ajouter son contenu">
+        <button class="btn btn-sm btn-outline btn-primary upload-add-geojson-btn"
+          title="Importer un fichier GeoJSON et ajouter son contenu">
           <svg class="w-5 h-5 fill-none stroke-current">
             <use href="#file-upload"></use>
           </svg> Ajouter </button>
+        <button class="btn btn-sm btn-outline btn-accent fetch-bus-stops-btn"
+          title="Chercher les arrêts de bus visibles sur la carte">
+          <svg class="w-5 h-5 fill-current">
+            <use href="#bus-stop"></use>
+          </svg> Arrêts bus </button>
         <button class="btn btn-sm download-geojson-btn">Télécharger le GeoJSON</button>
         <div class="tooltip tooltip-left" data-tip="Cmd/Ctrl + S">
           <button class="btn btn-primary btn-sm save-geojson-btn">Enregistrer</button>
