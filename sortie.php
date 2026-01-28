@@ -66,9 +66,9 @@ $title = "Sortie Vélogrimpe du {$date_formatted} à " . htmlspecialchars($sorti
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Velogrimpe.fr">
   <meta property="og:url" content="https://velogrimpe.fr/sortie.php?sortie_id=<?= $sortie_id ?>">
-  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/sortie-social.webp">
   <meta property="og:description" content="<?= htmlspecialchars($meta_description) ?>">
-  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/sortie-social.webp">
   <meta name="twitter:title" content="<?= htmlspecialchars($title) ?>">
   <meta name="twitter:description" content="<?= htmlspecialchars($meta_description) ?>">
   <?php vite_css('main'); ?>

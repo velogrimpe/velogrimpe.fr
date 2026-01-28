@@ -25,9 +25,9 @@ $meta_description = "Proposez ou rejoignez des sorties d'escalade en mobilité d
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Velogrimpe.fr">
   <meta property="og:url" content="https://velogrimpe.fr/sorties.php">
-  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/sortie-social.webp">
   <meta property="og:description" content="<?= htmlspecialchars($meta_description) ?>">
-  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/sortie-social.webp">
   <meta name="twitter:title" content="<?= htmlspecialchars($meta_title) ?>">
   <meta name="twitter:description" content="<?= htmlspecialchars($meta_description) ?>">
   <?php vite_css('main'); ?>
