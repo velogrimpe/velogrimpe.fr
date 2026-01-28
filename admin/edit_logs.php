@@ -29,6 +29,7 @@ $table_labels = [
   'train' => "Train",
   'velo' => "Itinéraire Vélo",
   'villes' => "Villes",
+  'sorties' => "Sorties",
   'zones' => "Zones"
 ];
 
