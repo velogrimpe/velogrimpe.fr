@@ -331,63 +331,74 @@ $stmtC->close();
         <!-- TABLEAU STATIQUE DESCRIPTION FALAISE -->
         <div class="vg-a-primary flex flex-col gap-4 md:gap-10 w-full items-center md:my-auto max-w-150 mx-auto">
           <div class="flex flex-row gap-2 items-start justify-around w-full">
-            <div class="flex flex-col items-center justify-start gap-2">
-              <img src="/images/icons/abacus_color.png" alt=" Logo Nb voies" class="h-12 w-12 mx-auto" />
-              <div class="font-bold text-center text-lg"><?= $falaise_nbvoies ?></div>
-            </div>
-            <div class="flex flex-col items-center justify-start gap-2">
-              <img src="/images/icons/speedometer_color.png" alt=" Logo difficulté" class="h-12 w-12 mx-auto" />
-              <div class="font-bold text-center text-lg">
-                <?= $falaise_cotmin ?> à <?= $falaise_cotmax ?>
+            <?php if ($falaise_nbvoies !== "inconnue"): ?>
+              <div class="flex flex-col items-center justify-start gap-2">
+                <img src="/images/icons/abacus_color.png" alt=" Logo Nb voies" class="h-12 w-12 mx-auto" />
+                <div class="font-bold text-center text-lg"><?= $falaise_nbvoies ?></div>
               </div>
-            </div>
+            <?php endif; ?>
+            <?php if (!empty($falaise_cotmin) && !empty($falaise_cotmax)): ?>
+              <div class="flex flex-col items-center justify-start gap-2">
+                <img src="/images/icons/speedometer_color.png" alt=" Logo difficulté" class="h-12 w-12 mx-auto" />
+                <div class="font-bold text-center text-lg">
+                  <?= $falaise_cotmin ?> à <?= $falaise_cotmax ?>
+                </div>
+              </div>
+            <?php endif; ?>
           </div>
           <div class="flex flex-row gap-2 items-center justify-center mx-auto">
             <div class='w-full grid grid-cols-[auto_auto] gap-4 md:gap-y-6 items-center'>
-              <img src="/images/icons/rock-climbing_color.png" alt=" Voies" class="h-12 w-12 mx-auto" />
-              <!-- <div class="font-bold ">Voies</div> -->
-              <div class="">
-                <?= nl2br($falaise_voies) ?>
-                <?php if (!empty($falaise_cottxt)): ?>
-                  <div><span>Cotations</span> :
-                    <?= nl2br(mb_strtolower(substr($falaise_cottxt, 0, 1))) . nl2br(substr($falaise_cottxt, 1)) ?>
-                  </div>
-                <?php endif ?>
-              </div>
-              <img src="/images/icons/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
-              <!-- <div class="font-bold  ">Topo(s)</div> -->
-              <div class="">
-                <div><?= nl2br($falaise_topo) ?></div>
-                <?php if (count($liensOblyk) > 1): ?>
-                  <div class="dropdown w-fit">
-                    <a tabindex="0" role="button"
-                      class="font-normal text-nowrap focus:pointer-events-none flex items-center gap-1"
-                      id="approcheFilterBtn"> Fiches Oblyk <span
-                        class="badge badge-sm badge-primary"><?= count($liensOblyk) ?></span>
-                    </a>
-                    <div
-                      class="dropdown-content menu bg-base-200 rounded-box z-10 m-1 p-2 shadow-lg w-60 max-h-62.5 flex-nowrap overflow-auto"
-                      tabindex="1">
-                      <?php foreach ($liensOblyk as $lien): ?>
-                        <a target="_blank" href="<?= htmlspecialchars($lien['url']) ?>"
-                          class="text-primary font-bold hover:underline cursor-pointer">
-                          <span><?= htmlspecialchars($lien['name']) ?></span>&nbsp;<svg
-                            class="w-3 h-3 fill-none stroke-current inline">
-                            <use href="#external-link"></use>
-                          </svg>
-                        </a>
-                      <?php endforeach; ?>
+              <?php if (!empty($falaise_voies) || !empty($falaise_cottxt)): ?>
+                <img src="/images/icons/rock-climbing_color.png" alt=" Voies" class="h-12 w-12 mx-auto" />
+                <!-- <div class="font-bold ">Voies</div> -->
+                <div class="">
+                  <?= nl2br($falaise_voies) ?>
+                  <?php if (!empty($falaise_cottxt)): ?>
+                    <div><span>Cotations</span> :
+                      <?= nl2br(mb_strtolower(substr($falaise_cottxt, 0, 1))) . nl2br(substr($falaise_cottxt, 1)) ?>
                     </div>
-                  </div>
-                <?php elseif (count($liensOblyk) == 1): ?>
-                  <a target="_blank" href="<?= htmlspecialchars($liensOblyk[0]['url']) ?>"
-                    class="text-primary font-bold hover:underline cursor-pointer"> Fiche Oblyk </a>
-                <?php endif ?>
-              </div>
-              <img src="/images/icons/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
-              <!-- <div class="font-bold  ">Approche</div> -->
-              <div class="">Approche :
-                <?= nl2br(mb_strtolower(substr($falaise_matxt, 0, 1))) . nl2br(substr($falaise_matxt, 1)) ?></div>
+                  <?php endif ?>
+                </div>
+              <?php endif; ?>
+              <?php if (!empty($falaise_topo)): ?>
+                <img src="/images/icons/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
+                <!-- <div class="font-bold  ">Topo(s)</div> -->
+                <div class="">
+                  <div><?= nl2br($falaise_topo) ?></div>
+                  <?php if (count($liensOblyk) > 1): ?>
+                    <div class="dropdown w-fit">
+                      <a tabindex="0" role="button"
+                        class="font-normal text-nowrap focus:pointer-events-none flex items-center gap-1"
+                        id="approcheFilterBtn"> Fiches Oblyk <span
+                          class="badge badge-sm badge-primary"><?= count($liensOblyk) ?></span>
+                      </a>
+                      <div
+                        class="dropdown-content menu bg-base-200 rounded-box z-10 m-1 p-2 shadow-lg w-60 max-h-62.5 flex-nowrap overflow-auto"
+                        tabindex="1">
+                        <?php foreach ($liensOblyk as $lien): ?>
+                          <a target="_blank" href="<?= htmlspecialchars($lien['url']) ?>"
+                            class="text-primary font-bold hover:underline cursor-pointer">
+                            <span><?= htmlspecialchars($lien['name']) ?></span>&nbsp;<svg
+                              class="w-3 h-3 fill-none stroke-current inline">
+                              <use href="#external-link"></use>
+                            </svg>
+                          </a>
+                        <?php endforeach; ?>
+                      </div>
+                    </div>
+                  <?php elseif (count($liensOblyk) == 1): ?>
+                    <a target="_blank" href="<?= htmlspecialchars($liensOblyk[0]['url']) ?>"
+                      class="text-primary font-bold hover:underline cursor-pointer"> Fiche Oblyk </a>
+                  <?php endif ?>
+                </div>
+              <?php endif ?>
+              <?php if (!empty($falaise_matxt)): ?>
+                <img src="/images/icons/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
+                <!-- <div class="font-bold  ">Approche</div> -->
+                <div class="">Approche :
+                  <?= nl2br(mb_strtolower(substr($falaise_matxt, 0, 1))) . nl2br(substr($falaise_matxt, 1)) ?>
+                </div>
+              <?php endif; ?>
               <?php if (!empty($falaise_gvtxt)): ?>
                 <img src="/images/icons/mountain_color.png" alt=" Grande voies" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Grandes voies</div> -->
@@ -395,12 +406,12 @@ $stmtC->close();
                   <?= nl2br($falaise_gvtxt) ?>
                 </div>
               <?php endif; ?>
-              <!-- Rose des vents (Vue component) -->
-              <div id="vue-rose-des-vents" data-expo1="<?= htmlspecialchars($falaise_exposhort1) ?>"
-                data-expo2="<?= htmlspecialchars($falaise_exposhort2) ?>" data-size="60"></div>
-              <div class=" flex flex-row gap-2 items-center">
-                <?= nl2br($falaise_expotxt) ?>
-              </div>
+              <!-- Rose des vents (Vue component) --> <?php if (!empty($falaise_expotxt)): ?>
+                <div id="vue-rose-des-vents" data-expo1="<?= htmlspecialchars($falaise_exposhort1) ?>"
+                  data-expo2="<?= htmlspecialchars($falaise_exposhort2) ?>" data-size="60"></div>
+                <div class=" flex flex-row gap-2 items-center">
+                  <?= nl2br($falaise_expotxt) ?>
+                </div> <?php endif; ?>
               <?php if (!empty($falaise_rq)): ?>
                 <img src="/images/icons/note_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Remarques</div> -->
