@@ -56,6 +56,7 @@ $highlight = $_GET['h'] ?? '';
   <link rel="stylesheet" href="/global.css" />
   <!-- Vue Component Styles -->
   <?php vite_css('carte-info'); ?>
+  <?php vite_css('carte-map-filters'); ?>
   <link rel="stylesheet" href="./index.css" />
   <link rel="manifest" href="./site.webmanifest" />
   <style>
@@ -72,85 +73,9 @@ $highlight = $_GET['h'] ?? '';
 
 <body>
   <?php include "./components/header.html"; ?>
-  <main class="pb-2 px-2 md:px-8 pt-2">
-    <!-- <h1 class="text-4xl font-bold text-center mb-1">Carte Vélogrimpe</h1> -->
-    <!-- <div class="flex flex-col gap-1">
-      <div id="map" class="w-full --md:w-[calc(100%-17rem)] h-[calc(100dvh-160px)] relative">
-      </div>
-    </div> -->
-    <div class="flex flex-col gap-1">
-      <div class="flex flex-row gap-4">
-        <div
-          class="hidden md:flex w-68 bg-base-100 rounded-lg p-4 shadow-lg text-sm flex-col gap-6 h-[calc(100dvh-115px)] overflow-y-auto">
-          <div class="flex flex-col gap-2">
-            <div id="searchFormPanelContainer">
-              <div class="text-lg font-bold">Recherche</div>
-              <div id="searchForm">
-                <div id="vue-search"
-                  data-falaises='<?= htmlspecialchars(json_encode(array_map(fn($f) => ["falaise_id" => $f["falaise_id"], "falaise_nom" => $f["falaise_nom"]], $falaises)), ENT_QUOTES) ?>'
-                  data-gares='<?= htmlspecialchars(json_encode(array_map(fn($g) => ["gare_id" => $g["gare_id"], "gare_nom" => $g["gare_nom"]], $gares)), ENT_QUOTES) ?>'>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="flex flex-col gap-2">
-            <div class="flex flex-row items-center justify-between">
-              <div class="text-lg font-bold">Filtres</div>
-            </div>
-            <div id="filtersFormPanelContainer">
-              <!-- Vue Filter Panel -->
-              <div id="vue-filters" data-villes='<?= htmlspecialchars(json_encode($villes), ENT_QUOTES) ?>'>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="map" class="w-full md:w-[calc(100%-17rem)] h-[calc(100dvh-115px)]"></div>
-      </div>
-    </div>
+  <main class="">
+    <div id="map" class="w-full h-[calc(100dvh-100px)]"></div>
   </main>
-  <div class="hidden">
-    <div class="flex flex-row gap-1 justify-end md:hidden" id="searchAndFilter">
-      <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
-        onclick="searchModal.showModal()"> Chercher <svg class="w-4 h-4 fill-none stroke-current">
-          <use href="#search"></use>
-        </svg>
-      </button>
-      <dialog id="searchModal" class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box md:w-3/5 max-w-xl">
-          <form method="dialog">
-            <button tabindex="-1" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          </form>
-          <div id="searchFormDialogContainer" class="min-h-50 mt-4"></div>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
-      <button class="btn btn-sm border-2 border-solid border-[rgba(0,0,0,.2)] rounded-md"
-        onclick="document.getElementById('filtersModal').showModal()"> Filtrer <svg
-          class="w-4 h-4 fill-none stroke-current">
-          <use href="#filter"></use>
-        </svg>
-      </button>
-      <dialog id="filtersModal" class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box md:w-4/5 max-w-3xl m-0 p-4">
-          <div class="flex justify-between items-center pb-3 border-b border-base-300 mb-4 ">
-            <div>
-              <span class="font-bold text-lg">Filtres</span>
-              <span class="text-sm text-base-content/70" id="mobile-filter-stats"></span>
-            </div>
-            <form method="dialog">
-              <button class="btn btn-sm btn-primary">OK</button>
-            </form>
-          </div>
-          <div id="filtersFormDialogContainer"></div>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
-    </div>
-  </div>
   <?php include "./components/footer.php"; ?>
 </body>
 <script>
@@ -667,17 +592,20 @@ $highlight = $_GET['h'] ?? '';
   L.control.scale({ position: "bottomleft", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
   L.control.locate().addTo(map);
 
-  var searchAndFilter = L.control({ position: 'topright' });
-
-  searchAndFilter.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'w-[calc(100%-50px)]'); // create a div with a class "info"
+  // Contrôle Leaflet pour filtres + recherche (Vue.js)
+  var filtersControl = L.control({ position: 'topright' });
+  filtersControl.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'leaflet-filters-control');
+    this._div.id = 'vue-map-filters';
+    // Note: Use JSON_HEX_APOS to safely embed in JS single-quoted strings (escapes ' as \u0027)
+    this._div.dataset.villes = <?= json_encode(json_encode($villes), JSON_HEX_APOS) ?>;
+    this._div.dataset.falaises = <?= json_encode(json_encode(array_map(fn($f) => ["falaise_id" => $f["falaise_id"], "falaise_nom" => $f["falaise_nom"]], $falaises)), JSON_HEX_APOS) ?>;
+    this._div.dataset.gares = <?= json_encode(json_encode(array_map(fn($g) => ["gare_id" => $g["gare_id"], "gare_nom" => $g["gare_nom"]], $gares)), JSON_HEX_APOS) ?>;
     L.DomEvent.disableClickPropagation(this._div);
     L.DomEvent.disableScrollPropagation(this._div);
-    const form = document.getElementById("searchAndFilter")
-    this._div.appendChild(form)
     return this._div;
   };
-  searchAndFilter.addTo(map);
+  filtersControl.addTo(map);
 
   // PANNEAU D'INFORMATION SUR LA FALAISE/GARE SELECTIONNEE (Vue.js)
   var info = L.control({ position: 'bottomright' });
@@ -697,15 +625,6 @@ $highlight = $_GET['h'] ?? '';
     if (window.velogrimpe?.carteInfo) {
       window.velogrimpe.carteInfo.updateStats(nFalaises, nFalaiseFiltered);
       window.velogrimpe.carteInfo.setSelected(selected);
-    }
-
-    // Update mobile filter stats
-    const mobileStats = document.getElementById('mobile-filter-stats');
-    if (mobileStats) {
-      const hasFilters = nFalaises !== nFalaiseFiltered;
-      mobileStats.textContent = hasFilters
-        ? `${nFalaiseFiltered} / ${nFalaises} falaises`
-        : `${nFalaises} falaises`;
     }
 
     // Open details on desktop after Vue renders
@@ -834,8 +753,7 @@ $highlight = $_GET['h'] ?? '';
 
   // Listen for Vue search selection event
   window.addEventListener('velogrimpe:search-select', (e) => {
-    const { id, type, name } = e.detail;
-    document.getElementById("searchModal")?.close();
+    const { id, type } = e.detail;
     document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "nearest" });
 
     let item = null;
@@ -998,37 +916,8 @@ $highlight = $_GET['h'] ?? '';
   });
 
 </script>
-<script>
-  // --------------------------------- MOVE FORM ACCORDING TO SCREEN SIZE ---------------------------------
-  document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("vue-filters");
-    const searchForm = document.getElementById("searchForm");
-    const dialog = document.getElementById("filtersModal");
-    const searchdialog = document.getElementById("searchModal");
-    const dialogContainer = document.getElementById("filtersFormDialogContainer");
-    const desktopContainer = document.getElementById("filtersFormPanelContainer");
-    const searchDialogContainer = document.getElementById("searchFormDialogContainer");
-    const searchDesktopContainer = document.getElementById("searchFormPanelContainer");
-
-    function moveForm() {
-      if (window.innerWidth >= 768) {
-        desktopContainer.appendChild(form);
-        dialog.close();
-        searchDesktopContainer.appendChild(searchForm);
-        searchdialog.close();
-      } else {
-        dialogContainer.appendChild(form);
-        searchDialogContainer.appendChild(searchForm);
-      }
-    }
-    // Run on load
-    moveForm();
-  });
-</script>
-<!-- Vue.js Search Autocomplete -->
-<script type="module" src="/dist/carte-search.js"></script>
-<!-- Vue.js Filter Panel -->
-<script type="module" src="/dist/carte-filters.js"></script>
+<!-- Vue.js Map Filters (search + filters in Leaflet control) -->
+<script type="module" src="/dist/carte-map-filters.js"></script>
 <!-- Vue.js Info Panel -->
 <script type="module" src="/dist/carte-info.js"></script>
 
