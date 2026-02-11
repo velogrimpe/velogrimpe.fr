@@ -8,9 +8,6 @@ function main() {
   if (!userId) {
     userId = crypto.randomUUID(); // Generates a unique, random UUID
   }
-  if (userId === "9012e65d-e761-4cf5-ad4a-7c9b15f3a0da") {
-    userId = "samouel";
-  }
   localStorage.setItem(userIdKey, userId);
 
   const url = window.location.hostname.replace(/^www\./, "");
