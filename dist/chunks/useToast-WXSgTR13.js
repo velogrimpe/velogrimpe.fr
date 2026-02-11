@@ -1,1 +1,0 @@
-import{r as a}from"./runtime-dom.esm-bundler-DMen96Nq.js";const o=a([]);let c=0;function l(){function f(s,e="info",t=5e3){const i=c++,u={id:i,message:s,type:e,duration:t};o.value.push(u),t>0&&setTimeout(()=>{n(i)},t)}function n(s){const e=o.value.findIndex(t=>t.id===s);e>-1&&o.value.splice(e,1)}return{toasts:o,showToast:f,removeToast:n}}export{l as u};

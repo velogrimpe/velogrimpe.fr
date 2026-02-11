@@ -1,0 +1,1 @@
+import{d as n,c as s,o,a as t}from"./runtime-dom.esm-bundler-CFjh9Irh.js";const a={class:"w-4 h-4 fill-none stroke-current","aria-hidden":"true"},r=["xlink:href"],_=n({__name:"Icon",props:{name:{}},setup(e){return(c,i)=>(o(),s("svg",a,[t("use",{"xlink:href":`/symbols/icons.svg#${e.name}`},null,8,r)]))}});export{_};
