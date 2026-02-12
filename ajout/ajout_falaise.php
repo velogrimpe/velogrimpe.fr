@@ -840,9 +840,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         updateMarker();
       });
   }
-  <?php if ($falaise_id): ?>
-    fetchAndPrefillData(<?= $falaise_id ?>);
-  <?php endif ?>
+  // fetchAndPrefillData is now called from the Vue module after mount
 </script>
 <script>
   const images = ["falaise_img1", "falaise_img2", "falaise_img3"];

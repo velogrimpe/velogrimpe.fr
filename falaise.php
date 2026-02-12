@@ -257,6 +257,9 @@ $stmtC->close();
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
                 href="/ajout/ajout_falaise.php?falaise_id=<?= $falaise_id ?>"> Modifier la fiche falaise </a>
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
+                href="/ajout/edit_details_falaise.php?falaise_id=<?= $falaise_id ?>"> Ajouter des détails (secteurs,
+                parking...) </a>
+              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
                 href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>"> Ajouter un accès vélo </a>
               <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
                 href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>"> Modifier un accès vélo </a>
