@@ -102,11 +102,23 @@ $falaises_topo = array_values(array_filter(
     <h2 class="text-3xl font-bold text-wrap text-center">Actions</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <button id="batchGeocodeBtn" class="btn btn-outline btn-lg" type="button">Affectation zones aux falaises</button>
+      <button id="ingestCartotrainBtn" class="btn btn-outline btn-lg" type="button">MàJ Cartotrain</button>
     </div>
     <dialog id="batchGeocodeModal" class="modal">
       <div class="modal-box">
         <h3 class="font-bold text-lg">Affectation zones aux falaises</h3>
         <div id="batchGeocodeModalContent" class="py-2 text-sm"></div>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn btn-primary">OK</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="ingestCartotrainModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">MàJ Cartotrain</h3>
+        <div id="ingestCartotrainModalContent" class="py-2 text-sm"></div>
         <div class="modal-action">
           <form method="dialog">
             <button class="btn btn-primary">OK</button>
@@ -153,6 +165,35 @@ $falaises_topo = array_values(array_filter(
         } finally {
           btn.disabled = false;
           btn.textContent = originalText;
+        }
+      });
+    }
+
+    const cartoBtn = document.getElementById('ingestCartotrainBtn');
+    const cartoModal = document.getElementById('ingestCartotrainModal');
+    const cartoModalContent = document.getElementById('ingestCartotrainModalContent');
+    if (cartoBtn) {
+      cartoBtn.addEventListener('click', async () => {
+        cartoBtn.disabled = true;
+        const originalText = cartoBtn.textContent;
+        cartoBtn.textContent = 'Exécution en cours…';
+        try {
+          const res = await fetch('/api/private/crons/ingest_cartotrain.php', {
+            headers: { 'Authorization': 'Bearer <?= $config['vg_token'] ?>' }
+          });
+          const isJson = res.headers.get('content-type')?.includes('application/json');
+          if (!res.ok) {
+            const errTxt = isJson ? JSON.stringify(await res.json()) : await res.text();
+            throw new Error(errTxt || `Erreur HTTP ${res.status}`);
+          }
+          const data = isJson ? await res.json() : {};
+          cartoModalContent.innerHTML = `Import Cartotrain terminé : <b>${data.inserted ?? '?'}</b> lignes insérées, <b>${data.skipped ?? '?'}</b> ignorées.`;
+          cartoModal?.showModal();
+        } catch (e) {
+          alert(`Erreur: ${e.message}`);
+        } finally {
+          cartoBtn.disabled = false;
+          cartoBtn.textContent = originalText;
         }
       });
     }
