@@ -14,9 +14,9 @@ $description = 'Conseils pratiques pour le vélogrimpe : comment équiper son v�
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Velogrimpe.fr">
   <meta property="og:url" content="https://velogrimpe.fr/">
-  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/0026-velo-social-20.webp">
   <meta property="og:description" content="<?= htmlspecialchars($description) ?>">
-  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/0026-velo-social-20.webp">
   <meta name="twitter:title" content="<?= htmlspecialchars($title) ?>">
   <meta name="twitter:description" content="<?= htmlspecialchars($description) ?>">
   <title><?= htmlspecialchars($title) ?></title>
