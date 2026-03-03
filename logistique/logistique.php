@@ -30,7 +30,7 @@
 </head>
 
 <body class="min-h-screen">
-  <?php include "./components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <div class="hero min-h-100 bg-center" style="background-image: url(/images/mw/075-matos-5.webp);">
     <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">
@@ -222,7 +222,7 @@
           carte d’openrailwaymap</a>. </i>
     </p>
   </main>
-  <?php include "./components/footer.php"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 
 </html>
