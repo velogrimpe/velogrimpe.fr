@@ -25,7 +25,7 @@
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <link rel="stylesheet" href="/global.css" />
-  <link rel="stylesheet" href="infos.css" />
+  
   <link rel="manifest" href="/site.webmanifest" />
 </head>
 

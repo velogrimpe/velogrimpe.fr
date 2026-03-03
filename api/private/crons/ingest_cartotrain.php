@@ -188,8 +188,8 @@ $skipped = 0;
 for ($i = 1; $i < count($rows); $i++) {
   $row = $rows[$i];
 
-  $typeTrain = trim(strip_tags($row[0] ?? ''));
-  $compagnieRegion = trim(strip_tags($row[1] ?? ''));
+  $typeTrain = html_entity_decode(trim(strip_tags($row[0] ?? '')), ENT_QUOTES, 'UTF-8');
+  $compagnieRegion = html_entity_decode(trim(strip_tags($row[1] ?? '')), ENT_QUOTES, 'UTF-8');
 
   // Cellules fusionnées : reporter le dernier type_train non vide
   if ($typeTrain !== '') {
@@ -209,8 +209,8 @@ for ($i = 1; $i < count($rows); $i++) {
   $regleNondemonte = trim($row[3] ?? '') ?: null;
 
   // Sources : texte brut (URLs)
-  $source1 = trim(strip_tags($row[6] ?? '')) ?: null;
-  $source2 = trim(strip_tags($row[7] ?? '')) ?: null;
+  $source1 = html_entity_decode(trim(strip_tags($row[6] ?? '')), ENT_QUOTES, 'UTF-8') ?: null;
+  $source2 = html_entity_decode(trim(strip_tags($row[7] ?? '')), ENT_QUOTES, 'UTF-8') ?: null;
 
   $stmt->bind_param('ssssss', $typeTrain, $compagnieRegion, $regleDemonte, $regleNondemonte, $source1, $source2);
   $stmt->execute();
