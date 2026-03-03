@@ -223,7 +223,8 @@
     "isEntry": true,
     "imports": [
       "_runtime-dom.esm-bundler-CFjh9Irh.js",
-      "_pinia-CsLZD9ME.js"
+      "_pinia-CsLZD9ME.js",
+      "_Icon.vue_vue_type_script_setup_true_lang-CxRcsHEs.js"
     ]
   },
   "src/apps/falaise-comment.ts": {
