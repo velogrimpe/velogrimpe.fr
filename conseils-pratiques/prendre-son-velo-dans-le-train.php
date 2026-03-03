@@ -56,9 +56,6 @@ $description = 'Conseils pratiques pour le vélogrimpe : comment équiper son v�
       <li>Il est conseillé d’enlever les sacoches avant de monter dans le train, et de les porter en bandoulière, c’est
         plus pratique.</li>
     </ul>
-    <h2>Détails des conditions d'emport du vélo dans les différents types de trains</h2>
-    <p class="text-base-content/70 mb-6"> Règles par type de train et par compagnie/région. Données issues des sources
-      officielles des opérateurs. </p>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
   <?php vite_js('emport'); ?>
