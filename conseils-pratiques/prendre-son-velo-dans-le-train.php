@@ -34,7 +34,7 @@ $description = 'Conseils pratiques pour le vélogrimpe : comment équiper son v�
     <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">
       <div class="max-w-md">
-        <h1 class="text-5xl font-bold">Conseils pratiques : prendre son vélo dans le train</h1>
+        <h1 class="text-5xl font-bold">Conseils pratiques&nbsp;: prendre son vélo dans le train</h1>
       </div>
     </div>
   </div>
@@ -45,7 +45,10 @@ $description = 'Conseils pratiques pour le vélogrimpe : comment équiper son v�
       les compagnies et les années ! Alors comment savoir ??</p>
     <p>C'est là qu'arrive Jean-Luc Levoux, du projet <a href="https://cartotrain.fr">Cartotrain</a> : grâce aux
       informations qu'il a patiemment collectées, nous pouvons répondre à cette question ! </p>
+    <img src="/images/pages/logistique/logo-cartotrain.png" alt="Logo Cartotrain" class="w-96 mx-auto" />
+    <h2>Règles d'emport des vélos dans les trains</h2>
     <div id="vue-emport"></div>
+    <hr />
     <p>Quelques conseils supplémentaires : </p>
     <ul>
       <li>De nombreux trains ont des wagons prévus pour accrocher les vélos, qui sont généralement indiqués par des

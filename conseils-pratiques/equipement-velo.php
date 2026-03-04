@@ -33,7 +33,7 @@ $description = 'Conseils pratiques pour le vélogrimpe : comment équiper son v�
     <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">
       <div class="max-w-md">
-        <h1 class="text-5xl font-bold">Conseils pratiques pour le vélo-grimpe : équipements vélo</h1>
+        <h1 class="text-5xl font-bold">Conseils pratiques pour le vélo-grimpe&nbsp;: équipements vélo</h1>
       </div>
     </div>
   </div>

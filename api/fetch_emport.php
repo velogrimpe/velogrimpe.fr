@@ -24,10 +24,15 @@ $result = $mysqli->query("SELECT
       ELSE 3
     END,
     CASE
-      WHEN compagnie_region LIKE '%TGV Inoui%' THEN 1
-      WHEN compagnie_region LIKE '%TGV Lyria%' THEN 2
-      WHEN compagnie_region LIKE '%Ouigo%' THEN 3
-      ELSE 4
+      WHEN type_train = 'GRANDE VITESSE' AND compagnie_region LIKE '%TGV Inoui%' THEN 1
+      WHEN type_train = 'GRANDE VITESSE' AND compagnie_region LIKE '%Ouigo%' THEN 2
+      WHEN type_train = 'GRANDE VITESSE' AND compagnie_region LIKE '%TGV Lyria%' THEN 3
+      WHEN type_train = 'GRANDE VITESSE' AND compagnie_region LIKE '%Renfe%' THEN 4
+      WHEN type_train = 'GRANDE VITESSE' AND compagnie_region LIKE '%Trenitalia%' THEN 5
+      WHEN type_train = 'GRANDE VITESSE' AND compagnie_region LIKE '%DB%' THEN 6
+      WHEN type_train = 'INTERCITÉS' AND compagnie_region LIKE '%Ouigo%' THEN 99
+      WHEN type_train NOT IN ('GRANDE VITESSE','INTERCITÉS') AND compagnie_region LIKE '%Léman%' THEN 99
+      ELSE 50
     END,
     compagnie_region ASC");
 

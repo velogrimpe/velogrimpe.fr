@@ -33,7 +33,7 @@ $description = 'Conseils pratiques pour le vélogrimpe : Checklist du matériel 
     <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">
       <div class="max-w-md">
-        <h1 class="text-5xl font-bold">Conseils pratiques pour le vélo-grimpe : camping, escalade et matériel</h1>
+        <h1 class="text-5xl font-bold">Conseils pratiques pour le vélo-grimpe&nbsp;: camping, escalade et matériel</h1>
       </div>
     </div>
   </div>
