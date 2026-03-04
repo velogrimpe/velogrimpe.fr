@@ -20,7 +20,7 @@ const tgvPaintRules = [
   {
     dataLayer: "tgv",
     symbolizer: new protomapsL.LineSymbolizer({
-      color: "#a00",
+      color: "#c00",
       width: (z) => (z <= 6 ? 0.5 : z < 9 ? 1 : 1.5),
     }),
   },
@@ -32,13 +32,13 @@ const tgvLabelRules = [
     symbolizer: new protomapsL.GroupSymbolizer([
       new protomapsL.CircleSymbolizer({
         radius: 3,
-        fill: "#a00",
+        fill: "#c00",
         stroke: "#fff",
         width: 1,
       }),
       new protomapsL.OffsetTextSymbolizer({
         label_props: ["name"],
-        fill: (z, f) => (z < tgvShowLabelFromZoom ? "transparent" : "#a00"),
+        fill: (z, f) => (z < tgvShowLabelFromZoom ? "transparent" : "#c00"),
         stroke: "white",
         width: (z, f) => (z < tgvShowLabelFromZoom ? 0 : 2),
         maxLineChars: 15,
@@ -287,7 +287,7 @@ const biodivPaintRules = [
       return (
         f.props.practices.includes(2) &&
         JSON.parse(f.props.rules)?.some(
-          (rule) => rule.code === "CLIMBING-FORBIDDEN"
+          (rule) => rule.code === "CLIMBING-FORBIDDEN",
         )
       );
     },

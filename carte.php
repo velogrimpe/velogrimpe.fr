@@ -141,6 +141,13 @@ $highlight = $_GET['h'] ?? '';
     attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
     crossOrigin: true,
   })
+  const opencyclemapTiles = L.tileLayer(
+    "https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
+    maxZoom: 19,
+    minZoom: 0,
+    attribution: '<a href="http://www.thunderforest.com/opencyclemap/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
+    crossOrigin: true,
+  })
   const outdoorsTiles = L.tileLayer(
     "https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
     maxZoom: 19,
@@ -150,6 +157,7 @@ $highlight = $_GET['h'] ?? '';
   })
   var baseMaps = {
     "Landscape": landscapeTiles,
+    'OpenCycleMap': opencyclemapTiles,
     'IGNv2': ignTiles,
     'Satellite': ignOrthoTiles,
     'Outdoors': outdoorsTiles,
@@ -242,19 +250,21 @@ $highlight = $_GET['h'] ?? '';
         }
       ).addTo(map);
       falaise.marker = marker;
-      const labelMarker = L.marker(
-        falaise.falaise_latlng.split(","),
-        {
-          icon: L.divIcon({
-            className: "relative",
-            html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo} text-sm">${falaise.falaise_nom}</div>`,
-            iconSize: [0, 0],
-          }),
-          riseOnHover: true,
-          autoPanOnFocus: true,
-        }
-      ).addTo(map);
-      falaise.labelMarker = labelMarker;
+      if (!falaise.highlighted) {
+        const labelMarker = L.marker(
+          falaise.falaise_latlng.split(","),
+          {
+            icon: L.divIcon({
+              className: "relative",
+              html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo} text-sm">${falaise.falaise_nom}</div>`,
+              iconSize: [0, 0],
+            }),
+            riseOnHover: true,
+            autoPanOnFocus: true,
+          }
+        ).addTo(map);
+        falaise.labelMarker = labelMarker;
+      }
       if (falaise.highlighted) {
         const hmarker = L.marker(
           falaise.falaise_latlng.split(","),
@@ -264,7 +274,7 @@ $highlight = $_GET['h'] ?? '';
               iconAnchor: [0, 0],
               className: "relative",
               html: `<div
-                class="absolute z-1 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2
+                class="absolute z-1000 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2
                 bg-linear-to-r from-primary to-secondary border-2 border-white text-white text-xs p-[2px] leading-none rounded-md"
                 >
               ${falaise.falaise_nom}
@@ -350,7 +360,7 @@ $highlight = $_GET['h'] ?? '';
     if (mode === "normal+label") {
       falaise.labelMarker?.addTo(map);
     } else {
-      map.removeLayer(falaise.labelMarker);
+      falaise.labelMarker && map.removeLayer(falaise.labelMarker);
     }
     switch (mode) {
       case "normal":
@@ -429,12 +439,12 @@ $highlight = $_GET['h'] ?? '';
             falaise.labelMarker.addTo(map);
           }
         } else {
-          map.removeLayer(falaise.labelMarker);
+          falaise.labelMarker && map.removeLayer(falaise.labelMarker);
         }
         return;
       case "hidden":
         map.removeLayer(falaise.marker);
-        map.removeLayer(falaise.labelMarker);
+        falaise.labelMarker && map.removeLayer(falaise.labelMarker);
         return;
     }
   }

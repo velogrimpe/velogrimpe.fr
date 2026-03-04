@@ -165,104 +165,146 @@ $nouvellesFalaises = [
     <tr>
       <td>
         <h1 style="<?= $h1Style ?>"><?= preg_replace('/ - /', '<br />', trim($page_title), 1) ?></h1>
-        <p>Salut ! <br />
-          <br /> C'est Florent et Yoann, l'équipe derrière le site <a style="<?= $astyle ?>"
-            href="https://velogrimpe.fr/?<?= $utm ?>">velogrimpe.fr</a>. Vous recevez ce mail car vous avez à un moment
-          montré votre intérêt pour le projet velogrimpe.fr, ou alors parce que vous avez contribué en ajoutant une
-          falaise ou un itinéraire sur le site. On s’est dit qu’il serait bien de vous tenir au courant des nouveautés
-          du projet. Si vous ne souhaitez plus recevoir cette newsletter, dites le nous en réponse à ce mail, et promis,
-          on ne vous contacte plus ! <br />
-          <br /> Allez c’est parti, voici un petit résumé en images des dernières contributions et nouveautés sur le
-          site, suivies de quelques actualités du projet.
-        </p>
-        <h2 style="<?= $h2Style ?>">Nouveautés sur le site</h2>
-        <p>Du côté du site, on a surtout fait du ménage, un peu de réorganisation et beaucoup de choses invisibles qui
-          améliorent grandement la maintenance du projet. Quelques nouveautés visibles tout de même : </p>
-        <p style="<?= $liStyle ?>">&bull; Retours d’expériences et récits de sorties : on peut maintenant ajouter un
-          commentaire à la page falaise pour faire un retour, raconter son expérience sur un itinéraire, donner des
-          conseils aux suivants. C’est quelque chose que l’on souhaitait faire depuis longtemps pour permettre à tout le
-          monde d’améliorer le topo en donnant des petits “tips” sur un accès train, des détails d’itinéraires etc.
-          Dites nous ce que vous en pensez et comment on pourrait l’améliorer !</p>
+        <p>Salut tout le monde !</p>
+        <p>Pfiou, il s'en est passé des choses sur Vélogrimpe.fr ces derniers mois ! On va essayer de rattraper le
+          retard dans notre newsletter, allez c'est parti&nbsp;:)</p>
+        <p>Déjà, on tient à vous rappeler que ce site web est contributif. Vous pouvez&nbsp;:</p>
+        <ul>
+          <li>ajouter des falaises (cliquez sur "contribuer").</li>
+          <li>modifier des falaises déjà présentes (icône "modifier" en haut à droite d'une fiche falaise)&nbsp;: vous
+            connaissez bien une falaise ? Allez voir sa fiche, et n'hésitez pas à ajouter/modifier une info
+            (hébergement, accès, cotations...)</li>
+          <li>écrire un petit compte rendu d'une sortie vélogrimpe réalisée sur une falaise (icône "commentaire" en haut
+            à droite de la fiche falaise)</li>
+        </ul>
+        <h2>NOUVELLES FONCTIONNALITES</h2>
+        <ul>
+          <li>Accès TGV&nbsp;: dorénavant, en plus des accès TER, les accès TGV sont décrits (lignes/gares TGV visibles
+            sur
+            les cartes, temps de trajet TGV renseignés, possibilité de filtrer TER/TGV). Mais comment je mets mon vélo
+            dans un TGV ? On répondra bientôt à cette question en détail...&nbsp;:)</li>
+        </ul>
+        <!-- TODO [screenshots carte avec voies TGV en rouge + fiche falaise Sormiou avec accès TGV depuis Paris] -->
+        <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
+          <tr>
+            <td style="<?= $imageContainerStyle ?>">
+              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Carte avec les voies TGV en rouge"
+                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+            </td>
+          </tr>
+        </table>
+        <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
+          <tr>
+            <td style="<?= $imageContainerStyle ?>">
+              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Sormiou depuis Paris en TGV"
+                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+            </td>
+          </tr>
+        </table>
+        <ul>
+          <li>Accès en bus&nbsp;: certaines falaises sont très facilement accessibles en bus, on a commencé à renseigner
+            les
+            accès bus pour certaines (Calanques, la Balme de Yenne, autour de Vaison la Romaine...). L'itinéraire bus
+            est rempli dans un nouveau champ de la fiche falaise, et les arrêts sont représentés sur la carte de la
+            falaise</li>
+        </ul>
+        <!-- TODO [2 screenshots, un pour l'accès à la balme décrit en texte et un pour un secteur des calanques] -->
+
+        <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
+          <tr>
+            <td style="<?= $imageContainerStyle ?>">
+              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Accès en bus à la Balme de Yenne"
+                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+            </td>
+          </tr>
+        </table>
+        <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
+          <tr>
+            <td style="<?= $imageContainerStyle ?>">
+              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Accès en bus aux Calanques"
+                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+            </td>
+          </tr>
+        </table>
+        <ul>
+          <li>Camping et gîtes&nbsp;: sur toutes les cartes du site web, vous pouvez afficher les campings et gîtes à
+            proximité. Nous avons aussi ajouté des champs "hébergements" dans les fiches falaises. Si vous connaissez
+            des bons plans, n'hésitez pas à les ajouter (allez sur la fiche du falaise, puis cliquez sur le bouton
+            "modifier" en haut à droite)</li>
+        </ul>
+        <!-- TODO [screenshot carte avec campings à côté de falaise + fiche falaise avec un exemple de gîte décrit] -->
+
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto"
-                alt="exemple de retour d'expérience sur une falaise"
-                src="https://velogrimpe.fr/images/news/2025-10/retour-experience.webp" />
+                alt="Carte avec les campings à proximité d'une falaise"
+                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
             </td>
           </tr>
         </table>
-        <p style="<?= $liStyle ?>">&bull; Page d’accueil séparée de la carte pour mieux expliquer le but du site et
-          expliquer les différentes fonctionnalités, on en a profité pour utiliser <a style="<?= $astyle ?>"
-            href="https://client.monikaglet.com/changerdapprochemountainwilderness/entransportsencommun/">les belles
-            photos de Monika Glet</a> issues du stock de photos libres de droit de la campagne Changer d’Approche de
-          Mountain Wilderness.</p>
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
-              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="nouvelle page d'accueil velogrimpe.fr"
-                src="https://velogrimpe.fr/images/news/2025-10/accueil.webp" />
+              <img style="<?= $imageStyle ?>" width="500px" height="auto"
+                alt="Description d'un gîte dans la fiche falaise"
+                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
             </td>
           </tr>
         </table>
-        <p style="<?= $liStyle ?>">&bull; Filtres par le nombre de voies et le type d’escalade dans le tableau et la
-          carte principale. On a donc fait une passe sur toutes les falaises pour préciser l’ordre de grandeur du nombre
-          de voies de chaque falaise du topo. </p>
+        <ul>
+          <li>Édition de détails falaises&nbsp;: vous aviez déjà remarqué que sur certaines falaises, on avait créé des
+            cartes interactives précises, avec les barres rocheuses, les parkings, les sentiers de marche d'approche...?
+            Et bien maintenant, vous pouvez vous aussi contribuer à créer ces cartes détaillés</li>
+        </ul>
+        <!-- TODO [décrire procédure à
+            suivre + screenshot d'une carte détaillée, pas trop chargée, genre St Léger du Ventoux, Pont de Barret,
+            Orpierre ou autre] -->
+
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
-              <img style="<?= $imageStyle ?>" width="250px" height="auto"
-                alt="filtres par nombre de voies et type d'escalade"
-                src="https://velogrimpe.fr/images/news/2025-10/filtres.webp" />
+              <img style="<?= $imageStyle ?>" width="500px" height="auto"
+                alt="Bouton d'édition des détails d'une falaise à partir de la page falaise"
+                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
             </td>
           </tr>
         </table>
-        <p style="<?= $liStyle ?>">&bull; Ré-ouverture des contributions sur toutes les falaises (même celles du topo)
-          pour faciliter la contribution et permettre d’améliorer les fiches falaises. On a aussi ajouté un bouton
-          “suggérer une modification” sur chaque page falaise pour faciliter la contribution. </p>
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
-              <img style="<?= $imageStyle ?>" width="400px" height="auto" alt="bouton suggérer une modification"
-                src="https://velogrimpe.fr/images/news/2025-10/edition.webp" />
+              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Éditeur de détails falaise"
+                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
             </td>
           </tr>
         </table>
-        <h2 style="<?= $h2Style ?>">Un grand rassemblement vélogrimpe en préparation !</h2>
-        <p>100 personnes qui se retrouveraient pour grimper en train + vélo, avec des ateliers, des discussions, des
-          initiations pour accompagner les néopratiquants, ça vous dirait ? Et bien c’est un projet en cours
-          d’organisation : une quinzaine de personnes motivées s’est retrouvée pour commencer à planifier tout ça, ce
-          serait dans le Royans en septembre 2026, à suivre ! </p>
-        <h2 style="<?= $h2Style ?>">On parle de Vélogrimpe !</h2>
-        <p>Présentation de vélogrimpe.fr par Florent à la <a style="<?= $astyle ?>"
-            href="https://www.clubalpinlyon.fr/sortie/soiree-changer-d-approche-en-m-9076.html?commission=environnement">soirée
-            Changer d’Approche du CAF de Lyon</a> le 29 septembre 2025. </p>
-        <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
-          <tr>
-            <td style="<?= $imageContainerStyle ?>">
-              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="florent au caf lyon"
-                src="https://velogrimpe.fr/images/news/2025-10/caf.jpeg" />
-            </td>
-          </tr>
-        </table>
-        <h2 style="<?= $h2Style ?>">Nouvelles falaises sur le site</h2>
+        <ul>
+          <li>Page falaises prioritaires&nbsp;: on a cartographié toutes les falaises françaises situées à moins de 6km
+            d'une
+            gare, plus de 730 falaises accessibles en train même sans vélo ! De très bonnes candidates pour de nouvelles
+            <a href="https://velogrimpe.fr/contribuer.php">contributions sur vélogrimpe.fr</a>
+          </li>
+        </ul>
+        <h2>NOUVELLES FALAISES</h2>
         <p>Cet été, des contributeurs ont ajouté une vingtaine de falaises, dont de nombreuses ajoutées par Olivier
           autour de Montpellier (ville qui fait du même coup son entrée dans <a style="<?= $astyle ?>"
             href="https://velogrimpe.fr/tableau.php?ville_id=19&<?= $utm ?>">la liste des “falaises à proximité de…”</a>
           du menu principal), et à Marseille avec trois sites majeurs des Calanques ajoutés par Samuel, qui a fourni un
           travail de fou furieux pour renseigner tous les détails des accès et des secteurs !! (plus de détails plus
-          bas). Toutes ces contributions nous amènent à un nombre total de 150 falaises : merci !!! </p>
+          bas). Toutes ces contributions nous amènent à un nombre total de 150 falaises&nbsp;: merci !!! </p>
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $nouvellesFalaiseStyle ?>">
               <?php foreach ($nouvellesFalaises as $region => $content): ?>
+                <!-- <a
+                  href="http://localhost:4002/carte.php?h=<?= join(',', array_column($content['falaises'], 'id')) ?>">HIGHLIGHT</a> -->
                 <h3 style="<?= $h3Style ?>"><?= $region ?></h3>
                 <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
                   <tr>
                     <td style="width: 700px;">
                       <img style="<?= $imageStyle ?>" width="500px" height="auto"
                         alt="Aperçu des nouvelles falaises de la région <?= $region ?>"
-                        src="https://velogrimpe.fr/images/news/2025-10/<?= $content['img'] ?>" />
+                        src="https://velogrimpe.fr/images/news/2026-01/<?= $content['img'] ?>" />
                     </td>
                   </tr>
                 </table>
@@ -285,30 +327,19 @@ $nouvellesFalaises = [
             </td>
           </tr>
         </table>
-        <p>Ces trois zones des Calanques ont été ajoutées avec des cartes détaillées de tous les secteurs et leurs accès
-          respectifs !! </p>
-        <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
-          <tr>
-            <td style="<?= $imageContainerStyle ?>">
-              <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="details falaises calanques"
-                src="https://velogrimpe.fr/images/news/2025-10/sormiou.webp" />
-            </td>
-          </tr>
-        </table>
-        <h2 style="<?= $h2Style ?>">Autres news</h2>
-        <p style="<?= $liStyle ?>">&bull; Présence de vélogrimpe.fr sur un stand avec Mountain Wilderness au salon de
-          l’escalade en janvier 2026 à Paris. </p>
-        <p style="<?= $liStyle ?>">&bull; Présence à la Cordée Jean Macé (à Lyon) pour une soirée Changer d’Approche le
-          25 Novembre (infos à suivre pour y participer !).</p>
-        <p style="<?= $liStyle ?>">&bull; Florian Garibal et Fanny Audigé sont en pleine campagne de financement
-          participatif pour leur topo d’escalade en mobilité douce au départ de Grenoble. <a style="<?= $astyle ?>"
-            href="https://fr.ulule.com/topo-doux-depuis-grenoble/">Allez y faire un tour</a>, l’ouvrage est splendide !
-        </p>
-        <p style="<?= $liStyle ?>">&bull; On aimerait bien cartographier Fontainebleau, mais ne connaissant pas bien le
-          secteur, on est toujours à la recherche de connaisseurs pour nous conseiller voire aider dans ce travail.</p>
-        <p>Et voilà ! Merci mille fois à ceux qui sont arrivés jusque-là ! Envoyez nous un petit message pour nous dire
-          ce que vous en pensez ! Et si vous ne souhaitez plus recevoir de mails comme celui-ci, dites le nous, ceci
-          n'est pas un mail automatique on rentre les adresses une à une 😉</p>
+        <!-- TODO Les Calanques&nbsp;: du travail
+        a été réalisé sur les Calanques&nbsp;: accès bus ajoutés, différents secteurs représentés, megasecteurs (Sormiou,
+        Morgiou...) cartographiés... [screenshot d'une carte d'une fiche falaise des Calanques] -->
+        <h2>ON PARLE DE VELOGRIMPE</h2>
+        <p>Le site Vélogrimpe a été présenté au public lors de plusieurs évènements ces derniers mois&nbsp;:</p>
+        <ul>
+          <li>Dans 2 soirées "une montagne d'aventures sans voiture" organisées par Mountain Wilderness&nbsp;: à La
+            Cordée Jean Macé de Lyon en Novembre, à La Cordée Annecy en Janvier&nbsp;: les deux soirées ont fait salle
+            comble, avec une cinquantaine de personnes ! <a
+              href="https://www.mountainwilderness.fr/actualites/soirees-aventure-sans-voiture-eco-mobilite">Lien</a>
+          </li>
+          <li>Au Salon de l'Escalade à Paris en Janvier.</li>
+        </ul>
       </td>
     </tr>
     <tr>
