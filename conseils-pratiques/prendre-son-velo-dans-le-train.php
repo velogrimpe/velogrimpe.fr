@@ -1,6 +1,6 @@
 <?php require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
-$title = 'Conseils pratiques vélo - Velogrimpe.fr';
-$description = 'Conseils pratiques pour le vélogrimpe : comment équiper son vélo, que faut-il penser à prendre ?';
+$title = 'Conseils pratiques vélo dans le train - Velogrimpe.fr';
+$description = 'Conseils pratiques pour prendre le train avec son vélo : faut il réserver ? le démonter ? quelles sont les règles d\'emport des vélos dans les trains en France ?';
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -43,9 +43,14 @@ $description = 'Conseils pratiques pour le vélogrimpe : comment équiper son v�
     <p>Prendre son vélo dans un train, c'est possible, et ça a même un nom savant : l'intermodalité (wahou !). </p>
     <p>Parfois, il faut démonter son vélo. Parfois, faut réserver... Et les règles varient beaucoup suivant les régions,
       les compagnies et les années. Alors comment savoir ??</p>
-    <p>C'est là qu'arrive Jean-Luc Levoux, du projet <a href="https://cartotrain.fr">Cartotrain</a> : grâce aux
-      informations qu'il a patiemment collectées, nous pouvons répondre à cette question ! </p>
-    <img src="/images/pages/logistique/logo-cartotrain.png" alt="Logo Cartotrain" class="w-96 mx-auto" />
+    <p>
+      C'est là qu'arrive Jean-Luc Levoux avec son projet <a href="https://cartotrain.fr">Cartotrain</a>, qui depuis 2024
+      a déjà conduit à la publication de <a href="https://cartotrain.fr/cartes/">5 cartes papier</a> pour voyager en
+      train et transports en commun à travers différentes zones d'Europe. Grâce aux informations qu'il a patiemment
+      collectées, nous pouvons vous dire comment embarquer votre vélo dans le train !
+    </p>
+    <a href="https://cartotrain.fr"><img src="/images/pages/logistique/logo-cartotrain.png" alt="Logo Cartotrain"
+        class="w-96 mx-auto" /></a>
     <h2>Règles d'emport des vélos dans les trains</h2>
     <div id="vue-emport"></div>
     <h2>Quelques conseils supplémentaires</h2>
