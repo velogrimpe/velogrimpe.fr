@@ -67,7 +67,46 @@ if ($zip->open($xlsxPath) !== true) {
   exit;
 }
 
-// 1) Parser les shared strings (texte riche → HTML)
+// 1) Parser la table des couleurs indexées depuis styles.xml
+$indexedColors = [];
+$stylesXml = $zip->getFromName('xl/styles.xml');
+if ($stylesXml) {
+  // Extraire les couleurs via regex pour éviter les problèmes de namespace SimpleXML
+  if (preg_match('/<indexedColors>(.*?)<\/indexedColors>/s', $stylesXml, $m)) {
+    preg_match_all('/rgb="([^"]+)"/', $m[1], $colorMatches);
+    foreach ($colorMatches[1] as $argb) {
+      // ARGB → RGB (strip alpha)
+      $indexedColors[] = (strlen($argb) === 8) ? substr($argb, 2) : $argb;
+    }
+  }
+}
+
+/**
+ * Résout la couleur d'un élément <color> (supporte rgb et indexed)
+ * Retourne une chaîne RGB hex (ex: "FF0000") ou null si noir/pas de couleur
+ */
+function resolveColor(SimpleXMLElement $colorEl, array $indexedColors): ?string {
+  $rgb = null;
+
+  if ($colorEl['rgb']) {
+    // Format direct ARGB (ancien format Excel/Google Sheets)
+    $rgb = (string)$colorEl['rgb'];
+    if (strlen($rgb) === 8) $rgb = substr($rgb, 2);
+  } elseif ($colorEl['indexed'] !== null) {
+    // Format indexed (LibreOffice, Numbers, etc.)
+    $idx = (int)(string)$colorEl['indexed'];
+    $rgb = $indexedColors[$idx] ?? null;
+  }
+
+  // Ignorer le noir (couleur par défaut, pas besoin de span)
+  if ($rgb !== null && strtoupper($rgb) === '000000') {
+    return null;
+  }
+
+  return $rgb;
+}
+
+// 2) Parser les shared strings (texte riche → HTML)
 $sharedStrings = [];
 $ssXml = $zip->getFromName('xl/sharedStrings.xml');
 if ($ssXml) {
@@ -97,11 +136,12 @@ if ($ssXml) {
             $open .= '<u>';
             $close = '</u>' . $close;
           }
-          if ($run->rPr->color && $run->rPr->color['rgb']) {
-            $rgb = (string)$run->rPr->color['rgb'];
-            if (strlen($rgb) === 8) $rgb = substr($rgb, 2); // ARGB → RGB
-            $open .= '<span style="color:#' . $rgb . '">';
-            $close = '</span>' . $close;
+          if ($run->rPr->color) {
+            $rgb = resolveColor($run->rPr->color, $indexedColors);
+            if ($rgb) {
+              $open .= '<span style="color:#' . $rgb . '">';
+              $close = '</span>' . $close;
+            }
           }
 
           $text = $open . $text . $close;
@@ -118,7 +158,7 @@ if ($ssXml) {
   }
 }
 
-// 2) Parser la feuille de calcul
+// 3) Parser la feuille de calcul
 $wsXml = $zip->getFromName('xl/worksheets/sheet1.xml');
 if (!$wsXml) {
   $zip->close();
