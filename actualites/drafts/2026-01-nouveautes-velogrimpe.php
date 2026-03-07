@@ -83,14 +83,6 @@ $nouvellesFalaises = [
     ],
     "img" => "bretagne.webp",
   ],
-  "Les Calanques" => [
-    "falaises" => [
-      ["name" => "Les Calanques - Luminy", "id" => 364, "contributor" => "Florent"],
-      ["name" => "Les Calanques - Morgiou", "id" => 365, "contributor" => "Florent"],
-      ["name" => "Les Calanques - La Melette", "id" => 366, "contributor" => "Florent"],
-    ],
-    "img" => "calanques.webp",
-  ],
   "Savoie" => [
     "falaises" => [
       ["name" => "La Grande Dent", "id" => 367, "contributor" => "David SZUMILO"],
@@ -102,6 +94,14 @@ $nouvellesFalaises = [
       ["name" => "Hermillon", "id" => 373, "contributor" => "David SZUMILO"],
     ],
     "img" => "savoie.webp",
+  ],
+  "Les Calanques" => [
+    "falaises" => [
+      ["name" => "Les Calanques - Luminy", "id" => 364, "contributor" => "Florent"],
+      ["name" => "Les Calanques - Morgiou", "id" => 365, "contributor" => "Florent"],
+      ["name" => "Les Calanques - La Melette", "id" => 366, "contributor" => "Florent"],
+    ],
+    "img" => "calanques.webp",
   ],
 ]
 
@@ -167,7 +167,7 @@ $nouvellesFalaises = [
         <h1 style="<?= $h1Style ?>"><?= preg_replace('/ - /', '<br />', trim($page_title), 1) ?></h1>
         <p>Salut tout le monde !</p>
         <p>Pfiou, il s'en est passé des choses sur Vélogrimpe.fr ces derniers mois ! On va essayer de rattraper le
-          retard dans notre newsletter, allez c'est parti&nbsp;:)</p>
+          retard dans notre newsletter, allez c'est parti !</p>
         <p>Déjà, on tient à vous rappeler que ce site web est contributif. Vous pouvez&nbsp;:</p>
         <ul>
           <li>ajouter des falaises (cliquez sur "contribuer").</li>
@@ -182,7 +182,7 @@ $nouvellesFalaises = [
           <li>Accès TGV&nbsp;: dorénavant, en plus des accès TER, les accès TGV sont décrits (lignes/gares TGV visibles
             sur
             les cartes, temps de trajet TGV renseignés, possibilité de filtrer TER/TGV). Mais comment je mets mon vélo
-            dans un TGV ? On répondra bientôt à cette question en détail...&nbsp;:)</li>
+            dans un TGV ? On répondra bientôt à cette question en détail...&nbsp;🙂</li>
         </ul>
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
@@ -257,9 +257,6 @@ $nouvellesFalaises = [
               la falaise.</li>
           </ul>
         </ul>
-        <!-- TODO [décrire procédure à
-            suivre + screenshot d'une carte détaillée, pas trop chargée, genre St Léger du Ventoux, Pont de Barret,
-            Orpierre ou autre] -->
 
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
@@ -327,9 +324,9 @@ $nouvellesFalaises = [
             </td>
           </tr>
         </table>
-        <!-- TODO Les Calanques&nbsp;: du travail
-        a été réalisé sur les Calanques&nbsp;: accès bus ajoutés, différents secteurs représentés, megasecteurs (Sormiou,
-        Morgiou...) cartographiés... [screenshot d'une carte d'une fiche falaise des Calanques] -->
+        <p>Du travail a aussi été fourni sur les détails de certaines falaises, notamment dans les Calanques&nbsp;:
+          Accès bus, différents secteurs représentés, mégasecteurs cartographiés...</p>
+
         <h2>ON PARLE DE VELOGRIMPE</h2>
         <p>Le site Vélogrimpe a été présenté au public lors de plusieurs évènements ces derniers mois&nbsp;:</p>
         <ul>
@@ -340,6 +337,11 @@ $nouvellesFalaises = [
           </li>
           <li>Au Salon de l'Escalade à Paris en Janvier.</li>
         </ul>
+
+        <p>Et voilà, ça fait déja pas mal de nouvelles choses développées en trois mois, et promis, c'est pas fini 😉
+        </p>
+        <p>À bientôt !</p>
+        <p>Florent et Yoann, l'équipe vélogrimpe</p>
       </td>
     </tr>
     <tr>
