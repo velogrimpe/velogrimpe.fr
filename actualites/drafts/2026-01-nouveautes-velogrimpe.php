@@ -286,12 +286,12 @@ $nouvellesFalaises = [
           </li>
         </ul>
         <h2>NOUVELLES FALAISES</h2>
-        <p>Cet été, des contributeurs ont ajouté une vingtaine de falaises, dont de nombreuses ajoutées par Olivier
-          autour de Montpellier (ville qui fait du même coup son entrée dans <a style="<?= $astyle ?>"
-            href="https://velogrimpe.fr/tableau.php?ville_id=19&<?= $utm ?>">la liste des “falaises à proximité de…”</a>
-          du menu principal), et à Marseille avec trois sites majeurs des Calanques ajoutés par Samuel, qui a fourni un
-          travail de fou furieux pour renseigner tous les détails des accès et des secteurs !! (plus de détails plus
-          bas). Toutes ces contributions nous amènent à un nombre total de 150 falaises&nbsp;: merci !!! </p>
+        <p>Ces derniers mois, on a eu de nombreuses contributions dans plusieurs coins de la France dont 3 grosses
+          zones&nbsp;: Tautavel grâce à Florent, autour de Paris grâce à Tanguy et la Savoie grâce à David. En plus de
+          ça, on a eu plusieurs autres contributions locales par 7 contributeurs différents. Ça peut paraître peu mais
+          vu qu'il faut quand même un peu de temps pour renseigner une falaise et comparé
+          à il y a un an et l'intégralité des falaises ajoutées par Florent, c'est génialissime !! Encore merci à eux !
+        </p>
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $nouvellesFalaiseStyle ?>">
