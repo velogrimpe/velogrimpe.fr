@@ -52,12 +52,13 @@ $errorCount = 0;
 // send one by one
 foreach ($recipients as $recipient) {
 
+  $hostWithPort = strpos($host, 'localhost') !== false ? "$host:4002" : $host;
   $unsubscribeLink = $hostWithPort . "/actualites/gestion/unsubscribe.php?mail=" . urlencode($recipient['mail']) . "&token=" . urlencode($recipient['token']);
 
   $mailBodyForRecipient = $mailBody;
   $mailBodyForRecipient = str_replace(
     '<span data-placeholder></span>',
-    "<a style=\"text-align: center; display: block; width: 100%; font-size: 10px; color: #ccc; margin-bottom: 20px; font-weight: normal;\" href=\"$unsubscribeLink\">Se désinscrire</a>",
+    "<a style=\"text-align: center; display: block; margin-top: 20px; width: 100%; font-size: 10px; color: #ccc; margin-bottom: 20px; font-weight: normal;\" href=\"$unsubscribeLink\">Se désinscrire</a>",
     $mailBodyForRecipient
   );
   $data = [
