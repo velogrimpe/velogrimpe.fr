@@ -279,7 +279,7 @@ $nouvellesFalaises = [
           <li>Page falaises prioritaires&nbsp;: on a cartographié toutes les falaises françaises situées à moins de 6km
             d'une
             gare, plus de 730 falaises accessibles en train même sans vélo ! De très bonnes candidates pour de nouvelles
-            <a href="https://velogrimpe.fr/contribuer.php">contributions sur vélogrimpe.fr</a>
+            <a href="https://velogrimpe.fr/contribuer.php?<?= $utm ?>">contributions sur vélogrimpe.fr</a>
           </li>
         </ul>
         <h2>NOUVELLES FALAISES</h2>
