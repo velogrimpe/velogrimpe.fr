@@ -184,12 +184,11 @@ $nouvellesFalaises = [
             les cartes, temps de trajet TGV renseignés, possibilité de filtrer TER/TGV). Mais comment je mets mon vélo
             dans un TGV ? On répondra bientôt à cette question en détail...&nbsp;:)</li>
         </ul>
-        <!-- TODO [screenshots carte avec voies TGV en rouge + fiche falaise Sormiou avec accès TGV depuis Paris] -->
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Carte avec les voies TGV en rouge"
-                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+                src="https://velogrimpe.fr/images/news/2026-01/tgv.webp" />
             </td>
           </tr>
         </table>
@@ -197,7 +196,7 @@ $nouvellesFalaises = [
           <tr>
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Sormiou depuis Paris en TGV"
-                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+                src="https://velogrimpe.fr/images/news/2026-01/tgv-sormiou.webp" />
             </td>
           </tr>
         </table>
@@ -208,13 +207,11 @@ $nouvellesFalaises = [
             est rempli dans un nouveau champ de la fiche falaise, et les arrêts sont représentés sur la carte de la
             falaise</li>
         </ul>
-        <!-- TODO [2 screenshots, un pour l'accès à la balme décrit en texte et un pour un secteur des calanques] -->
-
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Accès en bus à la Balme de Yenne"
-                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+                src="https://velogrimpe.fr/images/news/2026-01/bus-fiche-falaise.webp" />
             </td>
           </tr>
         </table>
@@ -222,7 +219,7 @@ $nouvellesFalaises = [
           <tr>
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Accès en bus aux Calanques"
-                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+                src="https://velogrimpe.fr/images/news/2026-01/bus-calanques.webp" />
             </td>
           </tr>
         </table>
@@ -232,14 +229,12 @@ $nouvellesFalaises = [
             des bons plans, n'hésitez pas à les ajouter (allez sur la fiche du falaise, puis cliquez sur le bouton
             "modifier" en haut à droite)</li>
         </ul>
-        <!-- TODO [screenshot carte avec campings à côté de falaise + fiche falaise avec un exemple de gîte décrit] -->
-
         <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
           <tr>
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto"
                 alt="Carte avec les campings à proximité d'une falaise"
-                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+                src="https://velogrimpe.fr/images/news/2026-01/couche-camping.webp" />
             </td>
           </tr>
         </table>
@@ -248,14 +243,19 @@ $nouvellesFalaises = [
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto"
                 alt="Description d'un gîte dans la fiche falaise"
-                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+                src="https://velogrimpe.fr/images/news/2026-01/gite-fiche-falaise.webp" />
             </td>
           </tr>
         </table>
         <ul>
           <li>Édition de détails falaises&nbsp;: vous aviez déjà remarqué que sur certaines falaises, on avait créé des
             cartes interactives précises, avec les barres rocheuses, les parkings, les sentiers de marche d'approche...?
-            Et bien maintenant, vous pouvez vous aussi contribuer à créer ces cartes détaillés</li>
+            Et bien maintenant, vous pouvez vous aussi contribuer à créer ces cartes détaillés:</li>
+          <ul>
+            <li>Sur une page falaise, cliquez sur l'icône d'édition puis sur "Ajouter des détails"</li>
+            <li>Vous avez ensuite accès à une interface pour ajouter directement sur la carte les différents détails de
+              la falaise.</li>
+          </ul>
         </ul>
         <!-- TODO [décrire procédure à
             suivre + screenshot d'une carte détaillée, pas trop chargée, genre St Léger du Ventoux, Pont de Barret,
@@ -266,7 +266,7 @@ $nouvellesFalaises = [
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto"
                 alt="Bouton d'édition des détails d'une falaise à partir de la page falaise"
-                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+                src="https://velogrimpe.fr/images/news/2026-01/editer-details.webp" />
             </td>
           </tr>
         </table>
@@ -274,7 +274,7 @@ $nouvellesFalaises = [
           <tr>
             <td style="<?= $imageContainerStyle ?>">
               <img style="<?= $imageStyle ?>" width="500px" height="auto" alt="Éditeur de détails falaise"
-                src="https://velogrimpe.fr/images/news/2026-01/retour-experience.webp" />
+                src="https://velogrimpe.fr/images/news/2026-01/editeur-details.webp" />
             </td>
           </tr>
         </table>
