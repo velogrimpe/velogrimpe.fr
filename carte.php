@@ -38,8 +38,7 @@ $highlight = $_GET['h'] ?? '';
   <meta property="og:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
   <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
-  <meta name="twitter:title"
-    content="<?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
+  <meta name="twitter:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train">
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
   <!-- Map libraries bundle (Leaflet, GPX, Fullscreen, Locate) -->
@@ -51,7 +50,7 @@ $highlight = $_GET['h'] ?? '';
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <!-- Shared utilities -->
-  <script src="/js/utils-global.js"></script>
+  <script src="/js/utils-global.js?v=2"></script>
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
   <!-- Vue Component Styles -->
@@ -191,7 +190,7 @@ $highlight = $_GET['h'] ?? '';
       if (falaise.type === "falaise") {
         // falaise.marker?.closeTooltip();
         falaise.marker?.unbindTooltip();
-        falaise.marker?.bindTooltip(falaise.falaise_nom, {
+        falaise.marker?.bindTooltip(escapeHtml(falaise.falaise_nom), {
           className: "p-px",
           direction: "right",
           offset: [iconSize / 2, 0],
@@ -256,7 +255,7 @@ $highlight = $_GET['h'] ?? '';
           {
             icon: L.divIcon({
               className: "relative",
-              html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo} text-sm">${falaise.falaise_nom}</div>`,
+              html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo} text-sm">${escapeHtml(falaise.falaise_nom)}</div>`,
               iconSize: [0, 0],
             }),
             riseOnHover: true,
@@ -277,7 +276,7 @@ $highlight = $_GET['h'] ?? '';
                 class="absolute z-1000 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2
                 bg-linear-to-r from-primary to-secondary border-2 border-white text-white text-xs p-[2px] leading-none rounded-md"
                 >
-              ${falaise.falaise_nom}
+              ${escapeHtml(falaise.falaise_nom)}
             </div>`,
             }),
             riseOnHover: true,
@@ -286,7 +285,7 @@ $highlight = $_GET['h'] ?? '';
         ).addTo(map);
         falaise.hmarker = hmarker;
       }
-      marker.bindTooltip(falaise.falaise_nom, {
+      marker.bindTooltip(escapeHtml(falaise.falaise_nom), {
         className: "p-px",
         direction: "right",
         offset: [iconSize / 2, -iconSize / 2],
@@ -327,7 +326,7 @@ $highlight = $_GET['h'] ?? '';
           // marker.closeTooltip();
         }
         marker.unbindTooltip();
-        marker.bindTooltip(falaise.falaise_nom, {
+        marker.bindTooltip(escapeHtml(falaise.falaise_nom), {
           className: "p-px",
           direction: "top",
           permanent: true,
@@ -350,7 +349,7 @@ $highlight = $_GET['h'] ?? '';
     const setIconAndTooltip = (size, direction, permanent = false) => {
       falaise.marker.setIcon(falaiseIcon(size, falaise.falaise_fermee, falaise.falaise_bloc));
       falaise.marker.unbindTooltip();
-      falaise.marker.bindTooltip(falaise.falaise_nom, {
+      falaise.marker.bindTooltip(escapeHtml(falaise.falaise_nom), {
         className: "p-px",
         direction,
         offset: direction === "right" ? [size / 4, -size / 2] : direction === "top" ? [0, -size] : [size / 2, 0],
@@ -404,7 +403,7 @@ $highlight = $_GET['h'] ?? '';
         {
           icon: L.divIcon({
             className: "relative",
-            html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo}">${falaise.falaise_nom}</div>`,
+            html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo}">${escapeHtml(falaise.falaise_nom)}</div>`,
             iconSize: [0, 0],
           }),
           opacity: 0.75,
@@ -417,8 +416,8 @@ $highlight = $_GET['h'] ?? '';
       marker.bindPopup(
         `<div class="flex flex-col gap-1">`
         + `<div class="text-slate-400"><span class="uppercase">hors topo</span> (aucun accès 🚲 décrit)</div>`
-        + `<div class="text-sm font-bold">${falaise.falaise_nom}</div>`
-        + `${falaise.falaise_fermee ? `<div class="text-error">${falaise.falaise_fermee.replace(/\n/g, "<br>")}</div>` : ""}`
+        + `<div class="text-sm font-bold">${escapeHtml(falaise.falaise_nom)}</div>`
+        + `${falaise.falaise_fermee ? `<div class="text-error">${escapeHtml(falaise.falaise_fermee).replace(/\n/g, "<br>")}</div>` : ""}`
         + `<div class="flex gap-2 w-full justify-end">`
         + `  <a href="/ajout/ajout_falaise.php?falaise_id=${falaise.falaise_id}" class="btn btn-xs btn-primary">Renseigner la falaise</a>`
         + `  <a href="/ajout/ajout_velo.php?falaise_id=${falaise.falaise_id}"class="btn btn-xs btn-primary">Ajouter accès</a>`
@@ -501,7 +500,7 @@ $highlight = $_GET['h'] ?? '';
         // Afficher les noms des falaises accessibles depuis cette gare
         const falaise = falaises.find(f => f.falaise_id === it.falaise.falaise_id);
         falaise.marker?.unbindTooltip();
-        falaise.marker?.bindTooltip(falaise.falaise_nom, {
+        falaise.marker?.bindTooltip(escapeHtml(falaise.falaise_nom), {
           direction: "right",
           permanent: true,
           offset: [iconSize / 2, -iconSize / 2],
@@ -562,7 +561,7 @@ $highlight = $_GET['h'] ?? '';
   const zoom = 6.5;
   // Récupération des données
   const falaisesBase = <?php echo json_encode($falaises); ?>;
-  const highlightedFalaiseIds = "<?= $highlight ?>".split(",");
+  const highlightedFalaiseIds = <?= json_encode(explode(',', $highlight)) ?>;
   const itineraires = <?php echo json_encode($itineraires); ?>.map(it => ({ ...it, tempsVelo: calculate_time(it) }));
   const garesBase = <?php echo json_encode($gares); ?>.map(g => {
     g.villes = (g.villes || "")

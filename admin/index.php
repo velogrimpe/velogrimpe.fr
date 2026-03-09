@@ -73,7 +73,7 @@ $falaises_topo = array_values(array_filter(
             onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
             <option value="">Sélectionner une falaise</option>
             <?php foreach ($falaises_contrib as $falaise): ?>
-              <option value="<?= $falaise['falaise_id'] ?>"><?= $falaise['falaise_nom'] ?></option>
+              <option value="<?= $falaise['falaise_id'] ?>"><?= htmlspecialchars($falaise['falaise_nom'], ENT_QUOTES, 'UTF-8') ?></option>
             <?php endforeach; ?>
           </select>
         <?php endif; ?>
@@ -84,7 +84,7 @@ $falaises_topo = array_values(array_filter(
           onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
           <option value="">Sélectionner une falaise</option>
           <?php foreach ($falaises_topo as $falaise): ?>
-            <option value="<?= $falaise['falaise_id'] ?>"><?= $falaise['falaise_nom'] ?></option>
+            <option value="<?= $falaise['falaise_id'] ?>"><?= htmlspecialchars($falaise['falaise_nom'], ENT_QUOTES, 'UTF-8') ?></option>
           <?php endforeach; ?>
         </select>
       </label>
@@ -94,7 +94,7 @@ $falaises_topo = array_values(array_filter(
           onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
           <option value="">Sélectionner une falaise</option>
           <?php foreach ($falaises_ht as $falaise): ?>
-            <option value="<?= $falaise['falaise_id'] ?>"><?= $falaise['falaise_nom'] ?></option>
+            <option value="<?= $falaise['falaise_id'] ?>"><?= htmlspecialchars($falaise['falaise_nom'], ENT_QUOTES, 'UTF-8') ?></option>
           <?php endforeach; ?>
         </select>
       </label>

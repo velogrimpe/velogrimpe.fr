@@ -101,7 +101,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
               <option value="">Sélectionnez une ville</option>
               <?php foreach ($villes as $ville_id => $ville_nom): ?>
                 <option value="<?= $ville_id; ?>" <?= (isset($preset_ville_id) && $preset_ville_id == $ville_id) ? 'selected' : '' ?>>
-                  <?= $ville_nom; ?>
+                  <?= htmlspecialchars($ville_nom, ENT_QUOTES, 'UTF-8'); ?>
                 </option>
               <?php endforeach; ?>
             </select>
@@ -118,7 +118,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           </label>
           <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="gare_id" name="gare_id"
             value="<?= $preset_gare_id ?? '' ?>" readonly required>
-          <input type="hidden" id="train_arrivee" name="train_arrivee" value="<?= $preset_gare_nom ?? '' ?>">
+          <input type="hidden" id="train_arrivee" name="train_arrivee" value="<?= htmlspecialchars($preset_gare_nom ?? '', ENT_QUOTES, 'UTF-8') ?>">
         </div>
       </div>
       <!-- <div class="flex flex-row gap-4 items-center"> -->

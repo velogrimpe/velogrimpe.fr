@@ -34,11 +34,24 @@
     return Math.round(time_in_hours * 60);
   }
 
+  // Sanitize a string before injecting into innerHTML (prevents DOM-based XSS)
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   window.velogrimpe = window.velogrimpe || {};
   window.velogrimpe.format_time = format_time;
   window.velogrimpe.calculate_time = calculate_time;
+  window.velogrimpe.escapeHtml = escapeHtml;
 
   // Also expose as globals for backward compatibility
   window.format_time = format_time;
   window.calculate_time = calculate_time;
+  window.escapeHtml = escapeHtml;
 })();

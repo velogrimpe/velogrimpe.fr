@@ -10,6 +10,10 @@ $host = $config['base_url'] ?? 'http://localhost';
 $hostWithPort = strpos($host, 'localhost') !== false ? "$host:4002" : $host;
 $utm = "source=newsletter-subscription";
 
+$encodedEmail = urlencode($_GET['email']);
+$encodedToken = urlencode($_GET['token']);
+$unsubscribeUrl = htmlspecialchars($hostWithPort) . "/actualites/gestion/unsubscribe.php?mail=" . $encodedEmail . "&amp;token=" . $encodedToken;
+
 ?>
 <!DOCTYPE html>
 <html lang="fr" style="background-color: #eee;">
@@ -55,18 +59,11 @@ $utm = "source=newsletter-subscription";
     <tr>
       <td>
         <h1 style="<?= $h1Style ?>">Inscription à la newsletter Velogrimpe.fr</h1>
-        <p style="<?= $pStyle ?>">Merci de vous être inscrit à notre newsletter ! Pour confirmer votre inscription,
-          veuillez cliquer sur le lien ci-dessous.</p>
-        <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
-          <tr>
-            <td style="<?= $logoStyle ?>">
-              <a href="<?= $hostWithPort ?>/api/newsletter_confirmation.php?email=<?= urlencode($_GET['email']) ?>&token=<?= urlencode($_GET['token']) ?>"
-                style="<?= $astyle ?>">Confirmer mon inscription</a>
-            </td>
-          </tr>
-        </table>
-        <p style="<?= $pStyle ?>">Si vous n'avez pas demandé cette inscription, vous pouvez l'ignorer, vous ne recevrez
-          pas d'autre mails de notre part.</p>
+        <p style="<?= $pStyle ?>">Merci de vous être inscrit à notre newsletter !</p>
+        <p style="<?= $pStyle ?>">Si vous n'êtes pas à l'origine de cette inscription, vous pouvez vous désinscrire en
+          cliquant sur ce lien ou en le copiant dans votre navigateur: <a
+            href="<?= $unsubscribeUrl ?>"><?= $unsubscribeUrl ?></a>.
+        </p>
         <p style="<?= $pStyle ?>"><b>L'équipe Velogrimpe.fr</b></p>
       </td>
     </tr>

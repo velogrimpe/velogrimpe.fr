@@ -55,7 +55,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   </main>
   <datalist id="falaises">
     <?php foreach ($falaises as $falaise): ?>
-      <option value="<?= $falaise["falaise_nom"] ?> (falaise)"></option>
+      <option value="<?= htmlspecialchars($falaise["falaise_nom"], ENT_QUOTES, 'UTF-8') ?> (falaise)"></option>
     <?php endforeach; ?>
   </datalist>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>

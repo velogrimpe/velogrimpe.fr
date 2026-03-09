@@ -37,6 +37,7 @@ function calculate_time($distance_km, $elevation_m, $velo_apieduniquement)
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 
+$ville_id = (int) $ville_id;
 $ville = $mysqli->query("SELECT ville_nom FROM villes WHERE ville_id = $ville_id")->fetch_assoc();
 
 $stmt = $mysqli->prepare("
@@ -127,20 +128,20 @@ $stmt->close();
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://velogrimpe.fr/tableau.php?ville_id=<?= $ville_id ?>" />
   <meta name="description"
-    content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
+    content="Sorties escalade au départ de <?= htmlspecialchars($ville['ville_nom'], ENT_QUOTES, 'UTF-8') ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
   <meta property="og:locale" content="fr_FR">
-  <meta property="og:title" content="Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr">
+  <meta property="og:title" content="Escalade au départ de <?= htmlspecialchars($ville['ville_nom'], ENT_QUOTES, 'UTF-8') ?> - Vélogrimpe.fr">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Velogrimpe.fr">
   <meta property="og:url" content="https://velogrimpe.fr/tableau.php?ville_id=<?= $ville_id ?>">
   <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
   <meta property="og:description"
-    content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
+    content="Sorties escalade au départ de <?= htmlspecialchars($ville['ville_nom'], ENT_QUOTES, 'UTF-8') ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
   <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
-  <meta name="twitter:title" content="Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr">
+  <meta name="twitter:title" content="Escalade au départ de <?= htmlspecialchars($ville['ville_nom'], ENT_QUOTES, 'UTF-8') ?> - Vélogrimpe.fr">
   <meta name="twitter:description"
-    content="Sorties escalade au départ de <?= $ville['ville_nom'] ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
-  <title>Escalade au départ de <?= $ville['ville_nom'] ?> - Vélogrimpe.fr</title>
+    content="Sorties escalade au départ de <?= htmlspecialchars($ville['ville_nom'], ENT_QUOTES, 'UTF-8') ?>. <?= count($falaises) ?> falaises décrites avec accès vélo-train.">
+  <title>Escalade au départ de <?= htmlspecialchars($ville['ville_nom'], ENT_QUOTES, 'UTF-8') ?> - Vélogrimpe.fr</title>
   <?php vite_css('main'); ?>
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
@@ -149,13 +150,13 @@ $stmt->close();
   <script async defer src="/js/pv.js"></script>
 </head>
 
-<body class="w-screen min-h-screen">
+<body class="min-h-screen">
   <?php include "./components/header.html"; ?>
   <div class="hero min-h-100 bg-center" style="background-image: url(/images/mw/005-train-2-10.webp);">
     <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">
       <div class="max-w-md">
-        <h1 class="text-5xl font-bold"> Falaises proches de <?php echo $ville['ville_nom'] ?>
+        <h1 class="text-5xl font-bold"> Falaises proches de <?= htmlspecialchars($ville['ville_nom'], ENT_QUOTES, 'UTF-8') ?>
         </h1>
       </div>
     </div>
@@ -208,7 +209,7 @@ $stmt->close();
 <script>
   window.__TABLEAU_DATA__ = {
     falaises: <?php echo json_encode(array_values($falaises)); ?>,
-    villeId: <?php echo $ville_id; ?>
+    villeId: <?= (int) $ville_id ?>
   };
 </script>
 <!-- Vue.js Tableau App -->

@@ -25,7 +25,7 @@ if ($stmt->num_rows > 0) {
 $stmt->close();
 $stmt = $mysqli->prepare("INSERT INTO
     mailing_list (mail, confirme)
-  VALUES (?, 0)
+  VALUES (?, 1)
   ;");
 $stmt->bind_param('s', $email);
 $stmt->execute();
@@ -88,7 +88,7 @@ sendMail($adminData);
             <use href="#checkbox-circle-fill"></use>
           </svg>
         </span>
-        <span>Demande d'inscription prise en compte. Vous allez recevoir un email pour confirmer votre inscription.</span>
+        <span>Inscription confirmée !</span>
         <a class="btn btn-sm btn-primary" href="/">Retour à l'accueil</a>
       </div>
     <?php else: ?>

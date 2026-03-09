@@ -326,7 +326,7 @@ foreach ([
 
 if ($errors) {
   foreach ($errors as $error) {
-    echo "<p style='color:red;'>$error</p>";
+    echo "<p style='color:red;'>" . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . "</p>";
   }
   echo "<a href='add_falaise.html'>Retour au formulaire</a>";
   exit;
@@ -400,8 +400,8 @@ if ($admin == 0) {
   $subject = "🧗 Falaise '$falaise_nom' " . ($isEdition ? "modifiée" : "ajoutée") . " par $nom_prenom";
 
   $html = "<html><body>";
-  $html .= "<h1>La falaise de $falaise_nom a été " . ($isEdition ? "modifiée" : "ajoutée") . " par $nom_prenom</h1>";
-  $html .= "<p>email : <a href='mailto:$email'>$email</a></p>";
+  $html .= "<h1>La falaise de " . htmlspecialchars($falaise_nom) . " a été " . ($isEdition ? "modifiée" : "ajoutée") . " par " . htmlspecialchars($nom_prenom) . "</h1>";
+  $html .= "<p>email : <a href='mailto:" . htmlspecialchars($email) . "'>" . htmlspecialchars($email) . "</a></p>";
   $html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a></p>";
   if ($message) {
     $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "</p>";
@@ -424,25 +424,25 @@ if ($admin == 0) {
   } else {
     $html .= "<h2>Détails de la falaise</h2>";
     $html .= "<ul>";
-    $html .= "<li><b>Nom</b>: $falaise_nom</li>";
-    $html .= "<li><b>Zone</b>: $falaise_zonename</li>";
-    $html .= "<li><b>Département</b>: $falaise_deptcode - $falaise_deptname</li>";
-    $html .= "<li><b>Topo</b>: $falaise_topo</li>";
-    $html .= "<li><b>Nb Voies</b>: $falaise_nbvoies</li>";
-    $html .= "<li><b>Voies</b>: $falaise_voies</li>";
-    $html .= "<li><b>Volet carto</b>: $falaise_voletcarto</li>";
-    $html .= "<li><b>Expositions</b>: $falaise_exposhort1</li>";
-    $html .= "<li><b>Exposition</b>: $falaise_expotxt</li>";
-    $html .= "<li><b>Cotations min/max</b>: $falaise_cotmin/$falaise_cotmax</li>";
-    $html .= "<li><b>Cotations</b>: $falaise_cottxt</li>";
-    $html .= "<li><b>Approche A/R</b>: $falaise_maa/$falaise_mar</li>";
-    $html .= "<li><b>Approche</b>: $falaise_matxt</li>";
-    $html .= "<li><b>Grandes voies</b>: " . $champs['falaise_gvtxt'] . "</li>";
-    $html .= "<li><b>Nombre de GV</b>: " . $champs['falaise_gvnb'] . "</li>";
-    $html .= "<li><b>Bloc</b>: $falaise_bloc</li>";
-    $html .= "<li><b>Remarque</b>: " . $champs['falaise_rq'] . "</li>";
-    $html .= "<li><b>Hébergement</b>: " . $champs['falaise_hebergement'] . "</li>";
-    $html .= "<li><b>Accès bus</b>: " . $champs['falaise_acces_bus'] . "</li>";
+    $html .= "<li><b>Nom</b>: " . htmlspecialchars($falaise_nom) . "</li>";
+    $html .= "<li><b>Zone</b>: " . htmlspecialchars($falaise_zonename) . "</li>";
+    $html .= "<li><b>Département</b>: " . htmlspecialchars($falaise_deptcode) . " - " . htmlspecialchars($falaise_deptname) . "</li>";
+    $html .= "<li><b>Topo</b>: " . htmlspecialchars($falaise_topo) . "</li>";
+    $html .= "<li><b>Nb Voies</b>: " . htmlspecialchars($falaise_nbvoies) . "</li>";
+    $html .= "<li><b>Voies</b>: " . htmlspecialchars($falaise_voies) . "</li>";
+    $html .= "<li><b>Volet carto</b>: " . htmlspecialchars($falaise_voletcarto) . "</li>";
+    $html .= "<li><b>Expositions</b>: " . htmlspecialchars($falaise_exposhort1) . "</li>";
+    $html .= "<li><b>Exposition</b>: " . htmlspecialchars($falaise_expotxt) . "</li>";
+    $html .= "<li><b>Cotations min/max</b>: " . htmlspecialchars($falaise_cotmin) . "/" . htmlspecialchars($falaise_cotmax) . "</li>";
+    $html .= "<li><b>Cotations</b>: " . htmlspecialchars($falaise_cottxt) . "</li>";
+    $html .= "<li><b>Approche A/R</b>: " . htmlspecialchars($falaise_maa) . "/" . htmlspecialchars($falaise_mar) . "</li>";
+    $html .= "<li><b>Approche</b>: " . htmlspecialchars($falaise_matxt) . "</li>";
+    $html .= "<li><b>Grandes voies</b>: " . htmlspecialchars($champs['falaise_gvtxt']) . "</li>";
+    $html .= "<li><b>Nombre de GV</b>: " . htmlspecialchars($champs['falaise_gvnb']) . "</li>";
+    $html .= "<li><b>Bloc</b>: " . htmlspecialchars($falaise_bloc) . "</li>";
+    $html .= "<li><b>Remarque</b>: " . htmlspecialchars($champs['falaise_rq']) . "</li>";
+    $html .= "<li><b>Hébergement</b>: " . htmlspecialchars($champs['falaise_hebergement']) . "</li>";
+    $html .= "<li><b>Accès bus</b>: " . htmlspecialchars($champs['falaise_acces_bus']) . "</li>";
     $html .= "</ul>";
   }
   $html .= "<h2>Actions</h2>";

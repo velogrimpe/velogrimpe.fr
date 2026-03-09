@@ -275,7 +275,7 @@ $stmtC->close();
         <div class="alert text-center flex flex-col items-center">
           <div class="text-error font-bold text-2xl"> FALAISE INTERDITE ! </div>
           <div class="text-error">
-            <?= nl2br($falaise_fermee) ?>
+            <?= nl2br(htmlspecialchars($falaise_fermee, ENT_QUOTES, 'UTF-8')) ?>
           </div>
         </div>
       <?php endif; ?>
@@ -344,7 +344,7 @@ $stmtC->close();
               <div class="flex flex-col items-center justify-start gap-2">
                 <img src="/images/icons/speedometer_color.png" alt=" Logo difficulté" class="h-12 w-12 mx-auto" />
                 <div class="font-bold text-center text-lg">
-                  <?= $falaise_cotmin ?> à <?= $falaise_cotmax ?>
+                  <?= htmlspecialchars($falaise_cotmin, ENT_QUOTES, 'UTF-8') ?> à <?= htmlspecialchars($falaise_cotmax, ENT_QUOTES, 'UTF-8') ?>
                 </div>
               </div>
             <?php endif; ?>
@@ -355,10 +355,10 @@ $stmtC->close();
                 <img src="/images/icons/rock-climbing_color.png" alt=" Voies" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Voies</div> -->
                 <div class="">
-                  <?= nl2br($falaise_voies) ?>
+                  <?= nl2br(htmlspecialchars($falaise_voies, ENT_QUOTES, 'UTF-8')) ?>
                   <?php if (!empty($falaise_cottxt)): ?>
                     <div><span>Cotations</span> :
-                      <?= nl2br(mb_strtolower(substr($falaise_cottxt, 0, 1))) . nl2br(substr($falaise_cottxt, 1)) ?>
+                      <?= nl2br(htmlspecialchars(mb_strtolower(substr($falaise_cottxt, 0, 1)) . substr($falaise_cottxt, 1), ENT_QUOTES, 'UTF-8')) ?>
                     </div>
                   <?php endif ?>
                 </div>
@@ -367,7 +367,7 @@ $stmtC->close();
                 <img src="/images/icons/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Topo(s)</div> -->
                 <div class="">
-                  <div><?= nl2br($falaise_topo) ?></div>
+                  <div><?= nl2br(htmlspecialchars($falaise_topo, ENT_QUOTES, 'UTF-8')) ?></div>
                   <?php if (count($liensOblyk) > 1): ?>
                     <div class="dropdown w-fit">
                       <a tabindex="0" role="button"
@@ -399,36 +399,36 @@ $stmtC->close();
                 <img src="/images/icons/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Approche</div> -->
                 <div class="">Approche :
-                  <?= nl2br(mb_strtolower(substr($falaise_matxt, 0, 1))) . nl2br(substr($falaise_matxt, 1)) ?>
+                  <?= nl2br(htmlspecialchars(mb_strtolower(substr($falaise_matxt, 0, 1)) . substr($falaise_matxt, 1), ENT_QUOTES, 'UTF-8')) ?>
                 </div>
               <?php endif; ?>
               <?php if (!empty($falaise_gvtxt)): ?>
                 <img src="/images/icons/mountain_color.png" alt=" Grande voies" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Grandes voies</div> -->
                 <div class="">
-                  <?= nl2br($falaise_gvtxt) ?>
+                  <?= nl2br(htmlspecialchars($falaise_gvtxt, ENT_QUOTES, 'UTF-8')) ?>
                 </div>
               <?php endif; ?>
               <!-- Rose des vents (Vue component) --> <?php if (!empty($falaise_expotxt)): ?>
                 <div id="vue-rose-des-vents" data-expo1="<?= htmlspecialchars($falaise_exposhort1) ?>"
                   data-expo2="<?= htmlspecialchars($falaise_exposhort2) ?>" data-size="60"></div>
                 <div class=" flex flex-row gap-2 items-center">
-                  <?= nl2br($falaise_expotxt) ?>
+                  <?= nl2br(htmlspecialchars($falaise_expotxt, ENT_QUOTES, 'UTF-8')) ?>
                 </div> <?php endif; ?>
               <?php if (!empty($falaise_rq)): ?>
                 <img src="/images/icons/note_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Remarques</div> -->
-                <div class=""><?= nl2br($falaise_rq) ?></div>
+                <div class=""><?= nl2br(htmlspecialchars($falaise_rq, ENT_QUOTES, 'UTF-8')) ?></div>
               <?php endif; ?>
               <?php if (!empty($falaise_hebergement)): ?>
                 <img src="/images/icons/camping.png" alt=" Hébergement" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Hébergement</div> -->
-                <div class=""><?= nl2br($falaise_hebergement) ?></div>
+                <div class=""><?= nl2br(htmlspecialchars($falaise_hebergement, ENT_QUOTES, 'UTF-8')) ?></div>
               <?php endif; ?>
               <?php if (!empty($falaise_acces_bus)): ?>
                 <img src="/images/icons/bus.png" alt=" Accès en bus" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Accès en bus</div> -->
-                <div class=""><?= nl2br($falaise_acces_bus) ?></div>
+                <div class=""><?= nl2br(htmlspecialchars($falaise_acces_bus, ENT_QUOTES, 'UTF-8')) ?></div>
               <?php endif; ?>
             </div>
           </div>
@@ -437,7 +437,7 @@ $stmtC->close();
       <!-- Texte optionnel 2 (juste après le tableau descriptif) -->
       <?php if (!empty($falaise_txt2)): ?>
         <div>
-          <?= nl2br($falaise_txt2) ?>
+          <?= nl2br(htmlspecialchars($falaise_txt2, ENT_QUOTES, 'UTF-8')) ?>
         </div>
       <?php endif; ?>
       <!-- Menu déroulant pour choisir la ville de départ -->
@@ -692,7 +692,7 @@ $stmtC->close();
                         <?php endif; ?>
                         <div class="mb-2">
                           <?php if (!empty($t['train_descr'])): ?>
-                            <span class="vg-a-primary"><?= nl2br($t['train_descr']) ?></span>
+                            <span class="vg-a-primary"><?= nl2br(htmlspecialchars($t['train_descr'], ENT_QUOTES, 'UTF-8')) ?></span>
                           <?php else: ?>
                             <span class="ml-2">Itinéraire non décrit (soit il est peu pertinent, soit pas encore
                               renseigné).</span>
@@ -747,7 +747,7 @@ $stmtC->close();
                   <td class='border-t border-b border border-base-300'>
                     <?= htmlspecialchars($velo['velo_km']) . " km, " . htmlspecialchars($velo['velo_dplus']) . " D+, " . htmlspecialchars($velo['velo_dmoins']) . " D-." ?>
                     <br>
-                    <span class="vg-a-primary"><?= nl2br($velo['velo_descr']) ?></span>
+                    <span class="vg-a-primary"><?= nl2br(htmlspecialchars($velo['velo_descr'], ENT_QUOTES, 'UTF-8')) ?></span>
                     <br>
                     <?php if ($velo['velo_openrunner']): ?>
                       <!-- Desktop : ouvre juste en dessous -->
@@ -771,7 +771,7 @@ $stmtC->close();
                     <?php endif; ?>
                     <!-- Desktop : div en dessous -->
                     <div id="profil_<?= $velo['velo_id'] ?>" class="hidden mt-2">
-                      <iframe width="100%" height="650" loading="lazy" src="<?= $velo['velo_openrunner'] ?>"
+                      <iframe width="100%" height="650" loading="lazy" src="<?= htmlspecialchars($velo['velo_openrunner'], ENT_QUOTES, 'UTF-8') ?>"
                         style="border: none;"></iframe>
                     </div>
                     <!-- Mobile : ouvre dans un dialog -->
@@ -780,7 +780,7 @@ $stmtC->close();
                         <form method="dialog">
                           <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                         </form>
-                        <iframe width="100%" height="650" loading="lazy" src="<?= $velo['velo_openrunner'] ?>"
+                        <iframe width="100%" height="650" loading="lazy" src="<?= htmlspecialchars($velo['velo_openrunner'], ENT_QUOTES, 'UTF-8') ?>"
                           style="border: none;"></iframe>
                       </div>
                     </dialog>
@@ -794,7 +794,7 @@ $stmtC->close();
       <!-- Remarque entre tableaux dynamique et tableau descriptif (rq générale sur l'accès) -->
       <?php if (!empty($falaise_txt1)): ?>
         <div class="vg-a-primary">
-          <?= nl2br($falaise_txt1) ?>
+          <?= nl2br(htmlspecialchars($falaise_txt1, ENT_QUOTES, 'UTF-8')) ?>
         </div>
       <?php endif; ?>
       <!-- Remarque spécifique pour l'accès entre une ville V et la falaise F (table rqvillefalaise, champ rqvillefalaise_txt) -->
@@ -830,13 +830,13 @@ $stmtC->close();
         <div class="flex flex-col items-center gap-1">
           <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg1)): ?>
-            <div class="text-base-content"><?= nl2br($falaise_leg1) ?></div>
+            <div class="text-base-content"><?= nl2br(htmlspecialchars($falaise_leg1, ENT_QUOTES, 'UTF-8')) ?></div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
       <?php if (!empty($falaise_txt3)): ?>
         <div>
-          <?= nl2br($falaise_txt3) ?>
+          <?= nl2br(htmlspecialchars($falaise_txt3, ENT_QUOTES, 'UTF-8')) ?>
         </div>
       <?php endif; ?>
       <!-- Image optionnelle 2 -->
@@ -845,14 +845,14 @@ $stmtC->close();
         <div class="flex flex-col items-center gap-1">
           <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg2)): ?>
-            <div class="text-base-content"><?= nl2br($falaise_leg2) ?></div>
+            <div class="text-base-content"><?= nl2br(htmlspecialchars($falaise_leg2, ENT_QUOTES, 'UTF-8')) ?></div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
       <!-- Texte optionnel numéro 4 -->
       <?php if (!empty($falaise_txt4)): ?>
         <div>
-          <?= nl2br($falaise_txt4) ?>
+          <?= nl2br(htmlspecialchars($falaise_txt4, ENT_QUOTES, 'UTF-8')) ?>
         </div>
       <?php endif; ?>
       <!-- Image optionnelle 3 -->
@@ -861,12 +861,12 @@ $stmtC->close();
         <div class="flex flex-col items-center gap-1">
           <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg3)): ?>
-            <div class="text-base-content"><?= nl2br($falaise_leg3) ?></div>
+            <div class="text-base-content"><?= nl2br(htmlspecialchars($falaise_leg3, ENT_QUOTES, 'UTF-8')) ?></div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
       <div class="text-center text-slate-600 text-sm italic opacity-60"> Falaise ajoutée par
-        <?= $falaise_contrib_name ?>
+        <?= htmlspecialchars($falaise_contrib_name, ENT_QUOTES, 'UTF-8') ?>
       </div>
     </section>
     <section id="commentaires" class="w-full">
