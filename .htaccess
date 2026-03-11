@@ -1,0 +1,40 @@
+#RewriteCond %{HTTPS} off
+#RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+RewriteEngine On
+RewriteRule ^ajout/admin/(.*)$ /admin/$1 [R=301,L]
+RewriteRule ^admin/ajout_donnees_admin.php$ /admin/ [R=301,L]
+RewriteRule ^actualites/([a-zA-Z0-9_-]+)$ /actualites/newsletter.php?slug=$1 [L,QSA]
+
+ErrorDocument 404 /404.php
+
+<FilesMatch ".*\.gpx$">
+  Header set Content-Disposition attachment
+  #Header set Content-Type application/gpx+xml
+  ForceType application/gpx+xml
+  Header set Cache-Control "max-age=31536000, public, must-revalidate"
+</FilesMatch>
+
+<FilesMatch ".*\.geojson$">
+  Header set Cache-Control "max-age=31536000, public, must-revalidate"
+</FilesMatch>
+
+<FilesMatch ".*\.(webp|png|jpg|jpeg)">
+  Header set Cache-Control "max-age=31536000, public, must-revalidate"
+</FilesMatch>
+
+# Disable caching for JS files
+<FilesMatch "\.js$">
+    FileETag None
+    Header unset ETag
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+</FilesMatch>
+
+DirectoryIndex index.php
+<Limit GET POST>
+  Allow from all
+</Limit>
+# DO NOT REMOVE THIS LINE AND THE LINES BELOW IPALLOWID:bdy3fJPHzy
+allow from 45.80.9.168
+# DO NOT REMOVE THIS LINE AND THE LINES ABOVE bdy3fJPHzy:IPALLOWID

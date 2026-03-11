@@ -1,0 +1,1 @@
+.ProseMirror{min-height:180px;cursor:text;background-color:var(--color-base-100)}.ProseMirror>:first-child{margin-top:0}.ProseMirror:focus{outline:none}.ProseMirror img{max-width:100%;height:auto;border-radius:8px}.ProseMirror img.ProseMirror-selectednode{outline:2px solid #2e8b57;outline-offset:2px}.ProseMirror h2{color:#2e8b57}.ProseMirror h3{color:#2c3e50}

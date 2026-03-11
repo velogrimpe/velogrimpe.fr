@@ -61,6 +61,7 @@ $falaises_topo = array_values(array_filter(
         href="/ajout/contrib/details_falaise.php?falaise_id=247">Éditeur Falaises</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/admin/edit_logs.php">Historique des
         modifications</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/newsletter.php">Newsletters</a>
     </div>
     <h2 class="text-3xl font-bold text-wrap text-center">Modifier des données</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

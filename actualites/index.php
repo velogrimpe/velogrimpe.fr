@@ -2,6 +2,7 @@
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/fetch_mail_template.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $articleDateFormatter = new IntlDateFormatter(
   'fr_FR',                // Locale française
@@ -96,6 +97,26 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
             ];
           }
         }
+        // Load newsletters from database
+        $dbNewsletters = $mysqli->query("SELECT slug, title, description, date_label, date_creation FROM newsletters WHERE status IN ('published', 'sent') ORDER BY date_creation DESC");
+        if ($dbNewsletters) {
+          while ($row = $dbNewsletters->fetch_assoc()) {
+            $date_str = substr($row['date_creation'], 0, 7) . '-01';
+            $date = DateTime::createFromFormat('Y-m-d', $date_str);
+            if ($date) {
+              $articles[] = [
+                'date' => $date,
+                'file' => null,
+                'title' => $row['title'],
+                'description' => $row['description'] ?: '',
+                'image' => $logoUrl,
+                'type' => 'actualites',
+                'url' => '/actualites/newsletter.php?slug=' . urlencode($row['slug']),
+              ];
+            }
+          }
+        }
+
         usort($articles, function ($a, $b) {
           return $b['date'] <=> $a['date'];
         });
