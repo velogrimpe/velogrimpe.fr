@@ -82,6 +82,22 @@ foreach ($champs as $key => &$val) {
   $val = trim($_POST[$key] ?? $val);
 }
 
+// Contrôle anti-script sur les champs affichés sans htmlspecialchars
+$champs_html = array_merge(
+  ['falaise_topo' => $falaise_topo, 'falaise_matxt' => $falaise_matxt],
+  array_intersect_key($champs, array_flip([
+    'falaise_fermee', 'falaise_gvtxt', 'falaise_rq', 'falaise_hebergement',
+    'falaise_acces_bus', 'falaise_txt1', 'falaise_txt2', 'falaise_txt3',
+    'falaise_txt4', 'falaise_leg1', 'falaise_leg2', 'falaise_leg3',
+  ]))
+);
+foreach ($champs_html as $nom => $valeur) {
+  if ($valeur && preg_match('/<\s*script/i', $valeur)) {
+    http_response_code(400);
+    die(json_encode(["error" => "Le champ $nom contient un tag script interdit."]));
+  }
+}
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 if ($mysqli->connect_error) {
