@@ -1094,7 +1094,7 @@ $stmtC->close();
     import BusStop from "/js/components/map/bus-stop.js";
     import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
     import Gare from "/js/components/map/gare.js";
-    import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
+    import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer, garesLayer } from "/js/components/map/load-vector-tiles.js";
 
     const falaise = <?php echo json_encode($dataF); ?>;
     const itineraires = <?php echo json_encode($itineraires); ?>;
@@ -1181,6 +1181,7 @@ $stmtC->close();
     campingLayer.addTo(map);
     trainlinesLayer.addTo(map);
     tgvLayer.addTo(map);
+    garesLayer.addTo(map);
     layerControl.addOverlay(tgvLayer, 'Lignes et Gares TGV');
     layerControl.addOverlay(campingLayer, 'Campings');
     layerControl.addOverlay(giteLayer, 'Gîtes');

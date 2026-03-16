@@ -1,4 +1,3 @@
-import { parseList } from "/js/components/utils/lists.js";
 import MultiScaleElement from "/js/components/map/multi-scale-element.js";
 
 export default class Gare extends MultiScaleElement {

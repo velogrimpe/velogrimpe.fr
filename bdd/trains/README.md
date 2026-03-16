@@ -1,5 +1,18 @@
 # Génération des tiles à partir du GEOJSON
 
+## Commandes utilisées (2026)
+
+```
+tippecanoe -o public_html/bdd/trains/gares.pmtiles  \
+  -f \
+  -l gares \
+  -Z0 -z14 \
+  -r1 \
+  --no-feature-limit \
+  --no-tile-size-limit \
+  public_html/bdd/trains/gares.geojson
+```
+
 ## Génération des tuiles mbtiles avec `tippecanoe`
 
 ### Installation (Mac OS)

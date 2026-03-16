@@ -327,4 +327,52 @@ const biodivLayer = protomapsL.leafletLayer({
   attribution: "BiodivSport",
 });
 
-export { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer };
+//  --- Ajout des gares ---
+const garesShowLabelFromZoom = 12;
+const garesLabelRules = [
+  {
+    dataLayer: "gares",
+    symbolizer: new protomapsL.GroupSymbolizer([
+      new protomapsL.CircleSymbolizer({
+        radius: 3,
+        minZoom: 12,
+        maxDataZoom: 14,
+        fill: "#000",
+        stroke: "#fff",
+        width: 1,
+      }),
+      new protomapsL.OffsetTextSymbolizer({
+        label_props: ["name"],
+        fill: (z, f) => (z < garesShowLabelFromZoom ? "transparent" : "#000"),
+        stroke: "white",
+        width: (z, f) => (z < garesShowLabelFromZoom ? 0 : 2),
+        minZoom: 12,
+        maxDataZoom: 14,
+        maxLineChars: 15,
+        lineHeight: 1.2,
+        placements: [protomapsL.TextPlacements.S],
+        offsetY: 5,
+        justify: 2,
+        font: (z, f) => {
+          return "700 12px sans-serif";
+        },
+      }),
+    ]),
+  },
+];
+const garesLayer = protomapsL.leafletLayer({
+  url: "/bdd/trains/gares.pmtiles",
+  labelRules: garesLabelRules,
+  maxDataZoom: 16,
+  pane: "overlayPane",
+  attribution: "SNCF",
+});
+
+export {
+  campingLayer,
+  giteLayer,
+  trainlinesLayer,
+  tgvLayer,
+  biodivLayer,
+  garesLayer,
+};
