@@ -62,6 +62,16 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
       <?php foreach ($sections as $section): ?>
         <?php if (($section['type'] ?? '') === 'text'): ?>
           <?= $section['html'] ?? '' ?>
+        <?php elseif (($section['type'] ?? '') === 'iframe'): ?>
+          <?php if (!empty($section['title'])): ?>
+            <h2><?= htmlspecialchars($section['title']) ?></h2>
+          <?php endif; ?>
+          <?php if (!empty($section['intro_html'])): ?>
+            <?= $section['intro_html'] ?>
+          <?php endif; ?>
+          <?php if (!empty($section['embed_code'])): ?>
+            <div class="not-prose my-4"><?= $section['embed_code'] ?></div>
+          <?php endif; ?>
         <?php endif; ?>
       <?php endforeach; ?>
     </article>
