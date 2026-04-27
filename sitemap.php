@@ -27,7 +27,7 @@ if ($resultV) {
 }
 
 // URLs des pages falaises sans villes sélectionnées
-$queryF = "SELECT DISTINCT f.falaise_id FROM falaises f
+$queryF = "SELECT DISTINCT f.falaise_id, f.date_modification FROM falaises f
     INNER JOIN velo v ON v.falaise_id = f.falaise_id
     WHERE falaise_public >= 0";
 $resultF = $mysqli->query($queryF);
@@ -35,13 +35,15 @@ if ($resultF) {
     while ($rowF = $resultF->fetch_assoc()) {
         $falaiseId = $rowF['falaise_id'];
         $url = "https://velogrimpe.fr/falaise.php?falaise_id=$falaiseId";
-        echo "  <url><loc>$url</loc></url>" . PHP_EOL;
+        $lastmod = $rowF['date_modification'] ? date('c', strtotime($rowF['date_modification'])) : '';
+        echo "  <url><loc>$url</loc>" . ($lastmod ? "<lastmod>$lastmod</lastmod>" : '') . "</url>" . PHP_EOL;
     }
 }
 
 // URLs des pages falaises avec villes sélectionnées
 $query = "SELECT DISTINCT
     f.falaise_id,
+    f.date_modification,
     villes.ville_id
 FROM falaises f
 LEFT JOIN velo v ON v.falaise_id = f.falaise_id
@@ -63,7 +65,8 @@ if ($result) {
         $falaiseId = $row['falaise_id'];
         $villeId = $row['ville_id'];
         $url = "https://velogrimpe.fr/falaise.php?falaise_id=$falaiseId&amp;ville_id=$villeId";
-        echo "  <url><loc>$url</loc></url>" . PHP_EOL;
+        $lastmod = $row['date_modification'] ? date('c', strtotime($row['date_modification'])) : '';
+        echo "  <url><loc>$url</loc>" . ($lastmod ? "<lastmod>$lastmod</lastmod>" : '') . "</url>" . PHP_EOL;
     }
 }
 
@@ -79,4 +82,28 @@ foreach ($newsletters_files as $file) {
     $url = 'https://velogrimpe.fr/actualites/' . basename($file);
     echo "  <url><loc>$url</loc></url>" . PHP_EOL;
 }
+
+// Newsletters publiées ou envoyées (table newsletters)
+$resultN = $mysqli->query("SELECT slug, date_creation, date_sent FROM newsletters WHERE status IN ('published', 'sent')");
+if ($resultN) {
+    while ($rowN = $resultN->fetch_assoc()) {
+        $url = 'https://velogrimpe.fr/actualites/' . rawurlencode($rowN['slug']);
+        $ts = $rowN['date_sent'] ?: $rowN['date_creation'];
+        $lastmod = $ts ? date('c', strtotime($ts)) : '';
+        echo "  <url><loc>$url</loc>" . ($lastmod ? "<lastmod>$lastmod</lastmod>" : '') . "</url>" . PHP_EOL;
+    }
+}
+
+// Pages CMS publiées (table pages)
+$resultP = $mysqli->query("SELECT slug, date_modification FROM pages WHERE status = 'published'");
+if ($resultP) {
+    while ($rowP = $resultP->fetch_assoc()) {
+        // Slug peut contenir des "/" (chemins multi-segments) ; on encode chaque segment
+        $segments = array_map('rawurlencode', explode('/', $rowP['slug']));
+        $url = 'https://velogrimpe.fr/p/' . implode('/', $segments);
+        $lastmod = $rowP['date_modification'] ? date('c', strtotime($rowP['date_modification'])) : '';
+        echo "  <url><loc>$url</loc>" . ($lastmod ? "<lastmod>$lastmod</lastmod>" : '') . "</url>" . PHP_EOL;
+    }
+}
+
 echo '</urlset>';

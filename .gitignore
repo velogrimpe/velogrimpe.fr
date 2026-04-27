@@ -1,4 +1,6 @@
 bdd/images_falaises
+bdd/images_pages
+bdd/images_news
 bdd/**/*.gpx
 bdd/**/*.geojson
 bdd/**/*.pmtiles

@@ -4,6 +4,7 @@ RewriteEngine On
 RewriteRule ^ajout/admin/(.*)$ /admin/$1 [R=301,L]
 RewriteRule ^admin/ajout_donnees_admin.php$ /admin/ [R=301,L]
 RewriteRule ^actualites/([a-zA-Z0-9_-]+)$ /actualites/newsletter.php?slug=$1 [L,QSA]
+RewriteRule ^p/([a-z0-9/-]+)/?$ /p/dispatch.php?slug=$1 [L,QSA]
 
 ErrorDocument 404 /404.php
 

@@ -45,6 +45,20 @@
       "_runtime-dom.esm-bundler-DRyBD3lK.js"
     ]
   },
+  "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00f}~.js": {
+    "file": "assets/SectionTextEditor-DgTldLWe.css",
+    "src": "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00f}~.js"
+  },
+  "_SectionTextEditor.vue_vue_type_style_index_0_lang-BhTq175T.js": {
+    "file": "chunks/SectionTextEditor.vue_vue_type_style_index_0_lang-BhTq175T.js",
+    "name": "SectionTextEditor.vue_vue_type_style_index_0_lang",
+    "imports": [
+      "_runtime-dom.esm-bundler-DRyBD3lK.js"
+    ],
+    "css": [
+      "assets/SectionTextEditor-DgTldLWe.css"
+    ]
+  },
   "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00d}~.js": {
     "file": "assets/SortieDrawer-CfeI_V3B.css",
     "src": "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00d}~.js"
@@ -264,7 +278,7 @@
     "src": "src/apps/main.ts",
     "isEntry": true,
     "css": [
-      "assets/main-DPfg9wue.css"
+      "assets/main-BnyT8xRm.css"
     ]
   },
   "src/apps/newsletter-admin.ts": {
@@ -275,10 +289,20 @@
     "imports": [
       "_runtime-dom.esm-bundler-DRyBD3lK.js",
       "_pinia-uJfgvNoq.js",
-      "_Icon.vue_vue_type_script_setup_true_lang-nbeWEXpD.js"
-    ],
-    "css": [
-      "assets/newsletter-admin-DgTldLWe.css"
+      "_Icon.vue_vue_type_script_setup_true_lang-nbeWEXpD.js",
+      "_SectionTextEditor.vue_vue_type_style_index_0_lang-BhTq175T.js"
+    ]
+  },
+  "src/apps/pages-admin.ts": {
+    "file": "pages-admin.js",
+    "name": "pages-admin",
+    "src": "src/apps/pages-admin.ts",
+    "isEntry": true,
+    "imports": [
+      "_runtime-dom.esm-bundler-DRyBD3lK.js",
+      "_pinia-uJfgvNoq.js",
+      "_Icon.vue_vue_type_script_setup_true_lang-nbeWEXpD.js",
+      "_SectionTextEditor.vue_vue_type_style_index_0_lang-BhTq175T.js"
     ]
   },
   "src/apps/sortie-details.ts": {
