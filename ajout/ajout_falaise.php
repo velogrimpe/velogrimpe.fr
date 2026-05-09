@@ -407,6 +407,17 @@ if ($falaise_id) {
         <hr class="my-0 grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
+        <div class="tabs tabs-box self-center" role="tablist">
+          <input type="radio" name="falaise_type_grimpe" class="tab" aria-label="Couenne" value="couenne"
+            id="falaise_type_couenne" checked />
+          <input type="radio" name="falaise_type_grimpe" class="tab" aria-label="Grande Voie" value="gv"
+            id="falaise_type_gv" />
+          <input type="radio" name="falaise_type_grimpe" class="tab" aria-label="Bloc" value="bloc"
+            id="falaise_type_bloc" />
+          <input type="radio" name="falaise_type_grimpe" class="tab" aria-label="Psychobloc" value="psychobloc"
+            id="falaise_type_psychobloc" />
+        </div>
+        <input type="hidden" id="falaise_bloc" name="falaise_bloc" value="0" />
         <div>
           <div class="flex flex-col md:flex-row gap-4">
             <label class="form-control flex-1" for="falaise_cotmin">
@@ -481,7 +492,56 @@ if ($falaise_id) {
             différents secteurs espacés.<br> - Nombre exact de voies.<br> - Hauteur max de la falaise.<br> - Pied des
             voies (confortable, à l'ombre...).<br> - Style des voies (dévers, réglettes...).<br> - ...</i>
         </label>
+        <div id="falaise_gv_fields" class="hidden flex-col gap-4">
+          <label class="form-control" for="falaise_gvtxt">
+            <b class="">Grandes voies - Texte descriptif. <span class="text-error">Important pour les GV !</span></b>
+            <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_gvtxt" name="falaise_gvtxt"
+              rows="2" placeholder="ex : 10 grandes voies, de PD+ à AD+."></textarea>
+            <i class="text-slate-400 text-sm"> Indiquez s'il y a des grandes voies, et si oui, combien environ, de
+              combien à combien de longueurs, jusqu'à quelle hauteur max, éventuellement donner les cotations... </i>
+          </label>
+          <label class="form-control" for="falaise_gvnb">
+            <b class="">Grandes voies - Texte très court pour le tableau. <span class="text-error">Important pour les GV
+                !</span></b>
+            <input class="input input-primary input-sm" type="text" id="falaise_gvnb" name="falaise_gvnb"
+              placeholder="ex : Plusieurs GV, 3 à 4 longueurs" maxlength="40" autocomplete="off">
+            <i class="text-slate-400 text-sm">Texte très court pour le tableau "falaises proches de...".<br> Exemples :
+              "Nombreuses GV - 2 à 10 longueurs" ; "GV en 2 à 3 longueurs" ; "12 GV - 4 à 9 longueurs". </i>
+          </label>
+        </div>
       </div>
+      <script>
+        (function () {
+          const radios = document.querySelectorAll('input[name="falaise_type_grimpe"]');
+          const blocInput = document.getElementById('falaise_bloc');
+          const gvFields = document.getElementById('falaise_gv_fields');
+          const gvtxt = document.getElementById('falaise_gvtxt');
+          const gvnb = document.getElementById('falaise_gvnb');
+
+          function applyType(type) {
+            const isGv = type === 'gv';
+            gvFields.classList.toggle('hidden', !isGv);
+            gvFields.classList.toggle('flex', isGv);
+            if (!isGv) {
+              gvtxt.value = '';
+              gvnb.value = '';
+            }
+            blocInput.value = type === 'bloc' ? '1' : type === 'psychobloc' ? '2' : '0';
+          }
+
+          radios.forEach(r => r.addEventListener('change', () => {
+            if (r.checked) applyType(r.value);
+          }));
+
+          window.setFalaiseTypeGrimpe = function (type) {
+            const radio = document.getElementById('falaise_type_' + type);
+            if (radio) {
+              radio.checked = true;
+              applyType(type);
+            }
+          };
+        })();
+      </script>
       <!-- Partie Exposition -->
       <div class="relative flex items-center">
         <hr class="my-0 grow border-[#2e8b57]" />
@@ -520,44 +580,6 @@ if ($falaise_id) {
             rows="1" placeholder="ex : majoritairement orienté Sud, quelques faces à l'Ouest" required></textarea>
           <i class="text-slate-400 text-sm"> Ecrivez un court texte décrivant l'exposition. Ex : "falaise orientée Sud à
             Sud-Est", "la plupart des voies orientées Ouest, quelques voies orientées Nord". </i>
-        </label>
-      </div>
-      <!-- Partie Types de voies -->
-      <div class="relative flex items-center">
-        <hr class="my-0 grow border-[#2e8b57]" />
-        <div class="flex items-center justify-center">
-          <span class="px-2 text-primary italic bg-unset rounded-full">Type de grimpe</span>
-        </div>
-        <hr class="my-0 grow border-[#2e8b57]" />
-      </div>
-      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
-        <label class="form-control" for="falaise_gvtxt">
-          <span class="flex flex-col md:flex-row justify-center md:items-center gap-2">
-            <b class="">Grandes voies - Texte descriptif <span class="text-accent opacity-50">(optionnel)</span></b>
-            <span class="text-red-600">champ à laisser vide s'il n'y a pas de grandes voies !</span>
-          </span>
-          <textarea class="textarea textarea-sm leading-6" id="falaise_gvtxt" name="falaise_gvtxt" rows="2"
-            placeholder="ex : 10 grandes voies, de PD+ à AD+."></textarea>
-          <i class="text-slate-400 text-sm"> Indiquez s'il y a des grandes voies, et si oui, combien environ, de combien
-            à combien de longueurs, jusqu'à quelle hauteur max, éventuellement donner les cotations... </i>
-        </label>
-        <label class="form-control" for="falaise_gvnb">
-          <b class="">Grandes voies - Texte très court pour le tableau <span
-              class="text-accent opacity-50">(optionnel)</span></b>
-          <input class="input input-sm" type="text" id="falaise_gvnb" name="falaise_gvnb"
-            placeholder="ex : Plusieurs GV, 3 à 4 longueurs" maxlength="40" autocomplete="off">
-          <i class="text-slate-400 text-sm">Texte très court pour le tableau "falaises proches de...".<br> Exemples :
-            "Nombreuses GV - 2 à 10 longueurs" ; "GV en 2 à 3 longueurs" ; "12 GV - 4 à 9 longueurs". </i>
-        </label>
-        <label class="form-control" for="falaise_bloc">
-          <b class="">Falaise de bloc <span class="text-accent opacity-50">(optionnel)</span></b>
-          <select id="falaise_bloc" name="falaise_bloc" class="select select-primary select-sm">
-            <option value="0" selected>Non</option>
-            <option value="1">Bloc</option>
-            <option value="2">PsychoBloc 🌊</option>
-          </select>
-          <i class="text-slate-400 text-sm">À saisir uniquement si la falaise est un site de bloc ou de psychobloc
-            (grimpe sans corde au dessus de l'eau, deep water solo) </i>
         </label>
       </div>
       <!-- Partie Marche d'approche -->
@@ -818,8 +840,15 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_matxt").value = falaise.falaise_matxt;
         document.getElementById("falaise_maa").value = falaise.falaise_maa;
         document.getElementById("falaise_mar").value = falaise.falaise_mar;
-        document.getElementById("falaise_gvtxt").value = falaise.falaise_gvtxt;
-        document.getElementById("falaise_gvnb").value = falaise.falaise_gvnb;
+        document.getElementById("falaise_gvtxt").value = falaise.falaise_gvtxt || '';
+        document.getElementById("falaise_gvnb").value = falaise.falaise_gvnb || '';
+        const blocVal = String(falaise.falaise_bloc ?? '0');
+        const hasGv = (falaise.falaise_gvtxt && String(falaise.falaise_gvtxt).trim() !== '')
+          || (falaise.falaise_gvnb && String(falaise.falaise_gvnb).trim() !== '');
+        const typeGrimpe = blocVal === '1' ? 'bloc'
+          : blocVal === '2' ? 'psychobloc'
+            : hasGv ? 'gv' : 'couenne';
+        if (window.setFalaiseTypeGrimpe) window.setFalaiseTypeGrimpe(typeGrimpe);
         document.getElementById("falaise_rq").value = falaise.falaise_rq;
         document.getElementById("falaise_hebergement").value = falaise.falaise_hebergement || '';
         document.getElementById("falaise_acces_bus").value = falaise.falaise_acces_bus || '';
@@ -832,7 +861,6 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         document.getElementById("falaise_leg3").value = falaise.falaise_leg3;
         document.getElementById("falaise_fermee").value = falaise.falaise_fermee;
         document.getElementById("falaise_voletcarto").value = falaise.falaise_voletcarto;
-        document.getElementById("falaise_bloc").value = falaise.falaise_bloc;
         document.getElementById("falaise_img1_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img1.webp`;
         document.getElementById("falaise_img2_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img2.webp`;
         document.getElementById("falaise_img3_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img3.webp`;

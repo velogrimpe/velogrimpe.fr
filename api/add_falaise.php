@@ -86,9 +86,18 @@ foreach ($champs as $key => &$val) {
 $champs_html = array_merge(
   ['falaise_topo' => $falaise_topo, 'falaise_matxt' => $falaise_matxt],
   array_intersect_key($champs, array_flip([
-    'falaise_fermee', 'falaise_gvtxt', 'falaise_rq', 'falaise_hebergement',
-    'falaise_acces_bus', 'falaise_txt1', 'falaise_txt2', 'falaise_txt3',
-    'falaise_txt4', 'falaise_leg1', 'falaise_leg2', 'falaise_leg3',
+    'falaise_fermee',
+    'falaise_gvtxt',
+    'falaise_rq',
+    'falaise_hebergement',
+    'falaise_acces_bus',
+    'falaise_txt1',
+    'falaise_txt2',
+    'falaise_txt3',
+    'falaise_txt4',
+    'falaise_leg1',
+    'falaise_leg2',
+    'falaise_leg3',
   ]))
 );
 foreach ($champs_html as $nom => $valeur) {
@@ -409,75 +418,72 @@ $changes_json = logChanges(
 );
 ////// FIN GESTION DES CHANGEMENTS
 
-// Envoi du mail de confirmation seulement si admin = 0
-if ($admin == 0) {
-  require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
-  $to = $config["contact_mail"];
-  $subject = "🧗 Falaise '$falaise_nom' " . ($isEdition ? "modifiée" : "ajoutée") . " par $nom_prenom";
+// Envoi du mail de confirmation seulement
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
+$to = $admin == 0 ? $config["contact_mail"] : $config["admin_mail"];
+$subject = "🧗 Falaise '$falaise_nom' " . ($isEdition ? "modifiée" : "ajoutée") . " par $nom_prenom";
 
-  $html = "<html><body>";
-  $html .= "<h1>La falaise de " . htmlspecialchars($falaise_nom) . " a été " . ($isEdition ? "modifiée" : "ajoutée") . " par " . htmlspecialchars($nom_prenom) . "</h1>";
-  $html .= "<p>email : <a href='mailto:" . htmlspecialchars($email) . "'>" . htmlspecialchars($email) . "</a></p>";
-  $html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a></p>";
-  if ($message) {
-    $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "</p>";
-  }
-  if ($isEdition && $changes_json) {
-    $html .= "<h2>Modifications apportées :</h2>";
-    $changes = json_decode($changes_json, true);
-    $html .= "<ul>";
-    foreach ($changes as $change) {
-      $field = htmlspecialchars($change['field']);
-      $old = htmlspecialchars($change['old']);
-      $new = htmlspecialchars($change['new']);
-      $html .= "<li><b>$field</b> : <ul>";
-      $html .= "<li><span style='color: red;'>$old</span></li>";
-      $html .= "<li> → <span style='color: green;'>$new</span></li></ul></li>";
-    }
-    $html .= "</ul>";
-  } else if ($isEdition) {
-    $html .= "<p>Aucune modification détectée.</p>";
-  } else {
-    $html .= "<h2>Détails de la falaise</h2>";
-    $html .= "<ul>";
-    $html .= "<li><b>Nom</b>: " . htmlspecialchars($falaise_nom) . "</li>";
-    $html .= "<li><b>Zone</b>: " . htmlspecialchars($falaise_zonename) . "</li>";
-    $html .= "<li><b>Département</b>: " . htmlspecialchars($falaise_deptcode) . " - " . htmlspecialchars($falaise_deptname) . "</li>";
-    $html .= "<li><b>Topo</b>: " . htmlspecialchars($falaise_topo) . "</li>";
-    $html .= "<li><b>Nb Voies</b>: " . htmlspecialchars($falaise_nbvoies) . "</li>";
-    $html .= "<li><b>Voies</b>: " . htmlspecialchars($falaise_voies) . "</li>";
-    $html .= "<li><b>Volet carto</b>: " . htmlspecialchars($falaise_voletcarto) . "</li>";
-    $html .= "<li><b>Expositions</b>: " . htmlspecialchars($falaise_exposhort1) . "</li>";
-    $html .= "<li><b>Exposition</b>: " . htmlspecialchars($falaise_expotxt) . "</li>";
-    $html .= "<li><b>Cotations min/max</b>: " . htmlspecialchars($falaise_cotmin) . "/" . htmlspecialchars($falaise_cotmax) . "</li>";
-    $html .= "<li><b>Cotations</b>: " . htmlspecialchars($falaise_cottxt) . "</li>";
-    $html .= "<li><b>Approche A/R</b>: " . htmlspecialchars($falaise_maa) . "/" . htmlspecialchars($falaise_mar) . "</li>";
-    $html .= "<li><b>Approche</b>: " . htmlspecialchars($falaise_matxt) . "</li>";
-    $html .= "<li><b>Grandes voies</b>: " . htmlspecialchars($champs['falaise_gvtxt']) . "</li>";
-    $html .= "<li><b>Nombre de GV</b>: " . htmlspecialchars($champs['falaise_gvnb']) . "</li>";
-    $html .= "<li><b>Bloc</b>: " . htmlspecialchars($falaise_bloc) . "</li>";
-    $html .= "<li><b>Remarque</b>: " . htmlspecialchars($champs['falaise_rq']) . "</li>";
-    $html .= "<li><b>Hébergement</b>: " . htmlspecialchars($champs['falaise_hebergement']) . "</li>";
-    $html .= "<li><b>Accès bus</b>: " . htmlspecialchars($champs['falaise_acces_bus']) . "</li>";
-    $html .= "</ul>";
-  }
-  $html .= "<h2>Actions</h2>";
-  $html .= "<p>Pour valider cette falaise, cliquez sur le lien suivant :</p>";
-  $html .= "<p><a href='https://velogrimpe.fr/api/private/accept_falaise.php?admin=" . urlencode($config["admin_token"]) . "&falaise_id=$falaise_id'>Valider la falaise</a></p>";
-  $html .= "<p>Pour modifier cette falaise, cliquez sur le lien suivant :</p>";
-  $html .= "<p><a href='https://velogrimpe.fr/ajout/ajout_falaise.php?admin=" . urlencode($config["admin_token"]) . "&falaise_id=$falaise_id'>Modifier la falaise</a></p>";
-  $html .= "</body></html>";
-
-  $data = [
-    'to' => $to,
-    'subject' => $subject,
-    'html' => $html,
-    'h:Reply-To' => $email
-  ];
-  sendMail($data);
-
-  // mail($to, $subject, $body, $headers);
+$html = "<html><body>";
+$html .= "<h1>La falaise de " . htmlspecialchars($falaise_nom) . " a été " . ($isEdition ? "modifiée" : "ajoutée") . " par " . htmlspecialchars($nom_prenom) . "</h1>";
+$html .= "<p>email : <a href='mailto:" . htmlspecialchars($email) . "'>" . htmlspecialchars($email) . "</a></p>";
+$html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=$falaise_id'>Voir la falaise</a></p>";
+if ($message) {
+  $html .= "<p>Message additionnel : " . htmlspecialchars(nl2br(trim($message))) . "</p>";
 }
+if ($isEdition && $changes_json) {
+  $html .= "<h2>Modifications apportées :</h2>";
+  $changes = json_decode($changes_json, true);
+  $html .= "<ul>";
+  foreach ($changes as $change) {
+    $field = htmlspecialchars($change['field']);
+    $old = htmlspecialchars($change['old']);
+    $new = htmlspecialchars($change['new']);
+    $html .= "<li><b>$field</b> : <ul>";
+    $html .= "<li><span style='color: red;'>$old</span></li>";
+    $html .= "<li> → <span style='color: green;'>$new</span></li></ul></li>";
+  }
+  $html .= "</ul>";
+} else if ($isEdition) {
+  $html .= "<p>Aucune modification détectée.</p>";
+} else {
+  $html .= "<h2>Détails de la falaise</h2>";
+  $html .= "<ul>";
+  $html .= "<li><b>Nom</b>: " . htmlspecialchars($falaise_nom) . "</li>";
+  $html .= "<li><b>Zone</b>: " . htmlspecialchars($falaise_zonename) . "</li>";
+  $html .= "<li><b>Département</b>: " . htmlspecialchars($falaise_deptcode) . " - " . htmlspecialchars($falaise_deptname) . "</li>";
+  $html .= "<li><b>Topo</b>: " . htmlspecialchars($falaise_topo) . "</li>";
+  $html .= "<li><b>Nb Voies</b>: " . htmlspecialchars($falaise_nbvoies) . "</li>";
+  $html .= "<li><b>Voies</b>: " . htmlspecialchars($falaise_voies) . "</li>";
+  $html .= "<li><b>Volet carto</b>: " . htmlspecialchars($falaise_voletcarto) . "</li>";
+  $html .= "<li><b>Expositions</b>: " . htmlspecialchars($falaise_exposhort1) . "</li>";
+  $html .= "<li><b>Exposition</b>: " . htmlspecialchars($falaise_expotxt) . "</li>";
+  $html .= "<li><b>Cotations min/max</b>: " . htmlspecialchars($falaise_cotmin) . "/" . htmlspecialchars($falaise_cotmax) . "</li>";
+  $html .= "<li><b>Cotations</b>: " . htmlspecialchars($falaise_cottxt) . "</li>";
+  $html .= "<li><b>Approche A/R</b>: " . htmlspecialchars($falaise_maa) . "/" . htmlspecialchars($falaise_mar) . "</li>";
+  $html .= "<li><b>Approche</b>: " . htmlspecialchars($falaise_matxt) . "</li>";
+  $html .= "<li><b>Grandes voies</b>: " . htmlspecialchars($champs['falaise_gvtxt']) . "</li>";
+  $html .= "<li><b>Nombre de GV</b>: " . htmlspecialchars($champs['falaise_gvnb']) . "</li>";
+  $html .= "<li><b>Bloc</b>: " . htmlspecialchars($falaise_bloc) . "</li>";
+  $html .= "<li><b>Remarque</b>: " . htmlspecialchars($champs['falaise_rq']) . "</li>";
+  $html .= "<li><b>Hébergement</b>: " . htmlspecialchars($champs['falaise_hebergement']) . "</li>";
+  $html .= "<li><b>Accès bus</b>: " . htmlspecialchars($champs['falaise_acces_bus']) . "</li>";
+  $html .= "</ul>";
+}
+$html .= "<h2>Actions</h2>";
+$html .= "<p>Pour valider cette falaise, cliquez sur le lien suivant :</p>";
+$html .= "<p><a href='https://velogrimpe.fr/api/private/accept_falaise.php?admin=" . urlencode($config["admin_token"]) . "&falaise_id=$falaise_id'>Valider la falaise</a></p>";
+$html .= "<p>Pour modifier cette falaise, cliquez sur le lien suivant :</p>";
+$html .= "<p><a href='https://velogrimpe.fr/ajout/ajout_falaise.php?admin=" . urlencode($config["admin_token"]) . "&falaise_id=$falaise_id'>Modifier la falaise</a></p>";
+$html .= "</body></html>";
+
+$data = [
+  'to' => $to,
+  'subject' => $subject,
+  'html' => $html,
+  'h:Reply-To' => $email
+];
+sendMail($data);
+
 
 // Redirect vers la page de confirmation
 $params = http_build_query([
