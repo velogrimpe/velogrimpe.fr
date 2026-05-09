@@ -750,8 +750,7 @@ $stmtC->close();
                   <td class='border-t border-b border border-base-300'>
                     <?= htmlspecialchars($velo['velo_km']) . " km, " . htmlspecialchars($velo['velo_dplus']) . " D+, " . htmlspecialchars($velo['velo_dmoins']) . " D-." ?>
                     <br>
-                    <span
-                      class="vg-a-primary"><?= nl2br(htmlspecialchars($velo['velo_descr'], ENT_QUOTES, 'UTF-8')) ?></span>
+                    <span class="vg-a-primary"><?= nl2br($velo['velo_descr']) ?></span>
                     <br>
                     <?php if ($velo['velo_openrunner']): ?>
                       <!-- Desktop : ouvre juste en dessous -->
