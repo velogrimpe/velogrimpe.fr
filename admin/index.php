@@ -66,6 +66,7 @@ $falaises_topo = array_values(array_filter(
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <a class="btn btn-primary btn-lg text-primary-content" href="/admin/newsletter.php">Newsletters</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/admin/pages.php">Pages CMS</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/qr-generator.php?admin=<?= $token ?>">QR &amp; liens trackés</a>
     </div>
     <h2 class="text-3xl font-bold text-wrap text-center">Modifier des données</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
