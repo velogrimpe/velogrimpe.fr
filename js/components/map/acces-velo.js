@@ -48,25 +48,28 @@ export default class AccesVelo extends Element {
     this.parkings = features.filter(
       (feature) =>
         feature.type === "parking" &&
-        parseList(feature.layer.properties.itineraire_acces).includes(name)
+        !!name &&
+        parseList(feature.layer.properties.itineraire_acces).includes(name),
     );
     this.approches = this.parkings.flatMap((parking) =>
       features.filter(
         (feature) =>
           feature.type === "approche" &&
+          !!parking.layer.properties.name &&
           parseList(feature.layer.properties.parking).includes(
-            parking.layer.properties.name
-          )
-      )
+            parking.layer.properties.name,
+          ),
+      ),
     );
     this.secteurs = this.parkings.flatMap((parking) =>
       features.filter(
         (feature) =>
           feature.type === "secteur" &&
+          !!parking.layer.properties.name &&
           parseList(feature.layer.properties.parking).includes(
-            parking.layer.properties.name
-          )
-      )
+            parking.layer.properties.name,
+          ),
+      ),
     );
   }
 }
@@ -75,14 +78,14 @@ const buildAccesVeloLayer = (accesVelo, options = {}) => {
   if (accesVelo.geometry.type === "LineString") {
     return L.polyline(
       accesVelo.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
-      AccesVelo.style
+      AccesVelo.style,
     );
   } else if (accesVelo.geometry.type === "MultiLineString") {
     return L.polyline(
       accesVelo.geometry.coordinates.map((line) =>
-        line.map((coord) => [coord[1], coord[0]])
+        line.map((coord) => [coord[1], coord[0]]),
       ),
-      AccesVelo.style
+      AccesVelo.style,
     );
   }
 };

@@ -59,24 +59,30 @@ export default class Approche extends Element {
     this.secteurs = features.filter(
       (feature) =>
         feature.type === "secteur" &&
-        parseList(feature.layer.properties.approche).includes(name)
+        !!name &&
+        parseList(feature.layer.properties.approche).includes(name),
     );
     this.parkings = features.filter(
       (feature) =>
         feature.type === "parking" &&
-        parkings.includes(feature.layer.properties.name)
+        !!feature.layer.properties.name &&
+        parkings.includes(feature.layer.properties.name),
     );
     const busStops = parseList(this.layer.properties.bus_stop);
     this.busStops = features.filter(
-      (feature) => feature.type === "bus_stop" && busStops.includes(feature.layer.properties.name)
+      (feature) =>
+        feature.type === "bus_stop" &&
+        !!feature.layer.properties.name &&
+        busStops.includes(feature.layer.properties.name),
     );
     const accesVelos = this.parkings.flatMap((pk) =>
-      parseList(pk.layer.properties.itineraire_acces)
+      parseList(pk.layer.properties.itineraire_acces),
     );
     this.accesVelos = features.filter(
       (feature) =>
         feature.type === "acces_velo" &&
-        accesVelos.includes(feature.layer.properties.name)
+        !!feature.layer.properties.name &&
+        accesVelos.includes(feature.layer.properties.name),
     );
   }
 }
@@ -85,14 +91,14 @@ const buildApprocheLayer = (approche, options = {}) => {
   if (approche.geometry.type === "LineString") {
     return L.polyline(
       approche.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
-      Approche.style
+      Approche.style,
     );
   } else if (approche.geometry.type === "MultiLineString") {
     return L.polyline(
       approche.geometry.coordinates.map((line) =>
-        line.map((coord) => [coord[1], coord[0]])
+        line.map((coord) => [coord[1], coord[0]]),
       ),
-      Approche.style
+      Approche.style,
     );
   }
 };

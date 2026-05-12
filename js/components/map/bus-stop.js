@@ -81,7 +81,8 @@ export default class BusStop extends Element {
     this.approches = features.filter(
       (feature) =>
         feature.type === "approche" &&
-        parseList(feature.layer.properties.bus_stop).includes(busName)
+        !!busName &&
+        parseList(feature.layer.properties.bus_stop).includes(busName),
     );
     // Sectors linked to those approaches (sectors list approach names)
     const approcheNames = this.approches
@@ -90,9 +91,10 @@ export default class BusStop extends Element {
     this.secteurs = features.filter(
       (feature) =>
         feature.type === "secteur" &&
-        approcheNames.some((n) =>
-          parseList(feature.layer.properties.approche).includes(n)
-        )
+        approcheNames.some(
+          (n) =>
+            !!n && parseList(feature.layer.properties.approche).includes(n),
+        ),
     );
     // No bicycle access associations for bus stops.
   }
@@ -107,7 +109,7 @@ const buildBusStopMarker = (busStopFeature, options = {}) => {
     ],
     {
       icon: iconBusStop,
-    }
+    },
   );
   return marker;
 };

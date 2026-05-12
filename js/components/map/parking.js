@@ -55,14 +55,14 @@ export default class Parking extends Element {
     this.layer.setIcon(
       Parking.parkingIcon(
         Parking.iconSize * 1.2,
-        this.layer.properties.name || "P"
-      )
+        this.layer.properties.name || "P",
+      ),
     );
     super.highlight(event, propagate);
   }
   unhighlight(propagate) {
     this.layer.setIcon(
-      Parking.parkingIcon(Parking.iconSize, this.layer.properties.name || "P")
+      Parking.parkingIcon(Parking.iconSize, this.layer.properties.name || "P"),
     );
     super.unhighlight(propagate);
   }
@@ -76,18 +76,21 @@ export default class Parking extends Element {
     this.secteurs = features.filter(
       (feature) =>
         feature.type === "secteur" &&
-        parseList(feature.layer.properties.parking).includes(name)
+        !!name &&
+        parseList(feature.layer.properties.parking).includes(name),
     );
     const accesVelos = parseList(this.layer.properties.itineraire_acces);
     this.accesVelos = features.filter(
       (feature) =>
         feature.type === "acces_velo" &&
-        accesVelos.includes(feature.layer.properties.name)
+        !!feature.layer.properties.name &&
+        accesVelos.includes(feature.layer.properties.name),
     );
     this.approches = features.filter(
       (feature) =>
         feature.type === "approche" &&
-        parseList(feature.layer.properties.parking).includes(name)
+        !!name &&
+        parseList(feature.layer.properties.parking).includes(name),
     );
   }
 }
@@ -103,7 +106,7 @@ const buildParkingMarker = (parkingFeature, options = {}) => {
       icon: parkingFeature.properties.name
         ? Parking.parkingIcon(Parking.iconSize, parkingFeature.properties.name)
         : iconParking,
-    }
+    },
   );
   return marker;
 };

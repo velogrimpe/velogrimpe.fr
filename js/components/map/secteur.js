@@ -120,29 +120,33 @@ export default class Secteur extends Element {
     this.parkings = features.filter(
       (feature) =>
         feature.type === "parking" &&
-        parkings.includes(feature.layer.properties.name)
+        !!feature.layer.properties.name &&
+        parkings.includes(feature.layer.properties.name),
     );
     const accesVelos = this.parkings.flatMap((pk) =>
-      parseList(pk.layer.properties.itineraire_acces)
+      parseList(pk.layer.properties.itineraire_acces),
     );
     this.accesVelos = features.filter(
       (feature) =>
         feature.type === "acces_velo" &&
-        accesVelos.includes(feature.layer.properties.name)
+        !!feature.layer.properties.name &&
+        accesVelos.includes(feature.layer.properties.name),
     );
     this.approches = features.filter(
       (feature) =>
         feature.type === "approche" &&
-        approches.includes(feature.layer.properties.name)
+        !!feature.layer.properties.name &&
+        approches.includes(feature.layer.properties.name),
     );
     // Bus stops inferred via linked approaches
     const busStopNames = this.approches.flatMap((ap) =>
-      parseList(ap.layer.properties.bus_stop)
+      parseList(ap.layer.properties.bus_stop),
     );
     this.busStops = features.filter(
       (feature) =>
         feature.type === "bus_stop" &&
-        busStopNames.includes(feature.layer.properties.name)
+        !!feature.layer.properties.name &&
+        busStopNames.includes(feature.layer.properties.name),
     );
   }
 
@@ -159,7 +163,7 @@ export default class Secteur extends Element {
     return (
       !secteur.geometry ||
       !["Polygon", "LineString", "MultiLineString"].includes(
-        secteur.geometry.type
+        secteur.geometry.type,
       ) ||
       secteur.geometry.coordinates.length === 0 ||
       secteur.geometry.coordinates[0].length === 0
@@ -186,20 +190,20 @@ const buildSecteurLayer = (secteurFeature, options = {}) => {
       secteurFeature.geometry.coordinates.map((rings) => {
         return rings.map((coord) => [coord[1], coord[0]]);
       }),
-      Secteur.polygonStyle
+      Secteur.polygonStyle,
     );
   } else if (secteurFeature.geometry.type === "LineString") {
     layer = L.polyline(
       secteurFeature.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
-      Secteur.lineStyle
+      Secteur.lineStyle,
     );
     layer.setText(textPathText, textPathOptions);
   } else if (secteurFeature.geometry.type === "MultiLineString") {
     layer = L.polyline(
       secteurFeature.geometry.coordinates.map((line) =>
-        line.map((coord) => [coord[1], coord[0]])
+        line.map((coord) => [coord[1], coord[0]]),
       ),
-      Secteur.lineStyle
+      Secteur.lineStyle,
     );
     layer.setText(textPathText, textPathOptions);
   }
