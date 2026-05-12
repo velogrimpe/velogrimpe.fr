@@ -200,7 +200,11 @@ function renderNewsletterEmail(array $newsletter): string
     </tr>
     <tr>
       <td>
-        <h1 style="' . $h1Style . '">' . preg_replace('/ - /', '<br />', $title, 1) . '</h1>';
+        <h1 style="' . $h1Style . '">' . (
+          str_contains($title, ' - ')
+            ? explode(' - ', $title, 2)[0] . '<br /><span style="font-size: 0.75em;">' . explode(' - ', $title, 2)[1] . '</span>'
+            : $title
+        ) . '</h1>';
 
   // Render sections
   $sections = $newsletter['sections'] ?? [];
