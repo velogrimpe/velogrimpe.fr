@@ -1238,7 +1238,7 @@ export function initFalaiseDetailsEditor(containerId) {
                 const feature = {
                   type: "Feature",
                   geometry: { type: "Point", coordinates: [s.lon, s.lat] },
-                  properties: { name, description },
+                  properties: { type: "bus_stop", name, description },
                 };
 
                 const obj = new BusStop(map, feature);
