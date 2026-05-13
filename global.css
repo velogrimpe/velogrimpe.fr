@@ -284,9 +284,12 @@ input[type="number"] {
     Helvetica,
     sans-serif;
   border: 2px solid #e8cd51;
-  width: fit-content;
+  width: max-content;
+  max-width: 260px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   border-radius: 5px;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 /* Prevent iOS Zoom on inputs */

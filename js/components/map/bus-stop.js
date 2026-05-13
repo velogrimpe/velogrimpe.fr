@@ -21,7 +21,7 @@ export default class BusStop extends Element {
     const name = layer.properties?.name || "Arrêt de bus";
     const desc = layer.properties?.description || "";
     const html =
-      `<div class=\"max-w-[260px]\">` +
+      `<div>` +
       `  <div class=\"font-bold\">${name}</div>` +
       `  ${desc ? `<div class=\"text-sm\">${desc}</div>` : ""}` +
       `</div>`;
@@ -32,7 +32,6 @@ export default class BusStop extends Element {
       tooltipOptions: {
         direction: "right",
         offset: [BusStop.iconSize / 2, BusStop.iconSize / 2],
-        maxWidth: 260,
         className: "vg-tooltip vg-bus-stop-tooltip",
       },
     });
