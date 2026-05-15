@@ -147,6 +147,16 @@ export function initFalaiseDetailsEditor(containerId) {
   // Feature map and state
   let featureId = 0;
   const featureMap = {};
+
+  const ensureFeatureId = (layer) => {
+    if (!layer.properties) layer.properties = {};
+    if (!layer.properties.id) {
+      layer.properties.id =
+        (typeof crypto !== "undefined" && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : `f-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+  };
   let currentRoute = [];
   let currentRoutingPoints = [];
   let currentMultiSecteur = null;
@@ -629,6 +639,7 @@ export function initFalaiseDetailsEditor(containerId) {
     }
 
     obj._element_id = layer._leaflet_id || `feature_${featureId++}`;
+    ensureFeatureId(obj.layer);
     attachInvertIndexHandler(obj.layer);
     createAndBindPopup(obj.layer, obj._element_id);
     if (obj.label) {
@@ -781,6 +792,7 @@ export function initFalaiseDetailsEditor(containerId) {
 
       if (obj) {
         obj._element_id = featureId++;
+        ensureFeatureId(obj.layer);
         featureMap[obj._element_id] = obj;
         attachInvertIndexHandler(obj.layer);
         createAndBindPopup(obj.layer, obj._element_id);
@@ -1275,6 +1287,7 @@ export function initFalaiseDetailsEditor(containerId) {
 
                 const obj = new BusStop(map, feature);
                 obj._element_id = featureId++;
+                ensureFeatureId(obj.layer);
                 featureMap[obj._element_id] = obj;
                 attachInvertIndexHandler(obj.layer);
                 createAndBindPopup(obj.layer, obj._element_id);

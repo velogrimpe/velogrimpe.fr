@@ -24,6 +24,192 @@ header('Content-Type: application/json');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
+
+function summarizeFalaiseDetailsChanges($oldFeatures, $newFeatures)
+{
+  $typeOf = fn($f) => $f['properties']['type'] ?? 'secteur';
+  $idOf = fn($f) => $f['properties']['id'] ?? null;
+
+  $contentSignature = function ($f) {
+    $props = $f['properties'] ?? [];
+    ksort($props);
+    return json_encode(['p' => $props, 'g' => $f['geometry'] ?? null]);
+  };
+
+  $labelOf = function ($f) {
+    $name = trim((string)($f['properties']['name'] ?? ''));
+    if ($name !== '') return $name;
+    $id = $f['properties']['id'] ?? null;
+    if (is_string($id) && $id !== '') return '#' . substr($id, 0, 8);
+    return '?';
+  };
+
+  $perType = [];
+  $touch = function ($type) use (&$perType) {
+    if (!isset($perType[$type])) {
+      $perType[$type] = ['old' => 0, 'new' => 0, 'edited' => []];
+    }
+  };
+  foreach ($oldFeatures as $f) {
+    $t = $typeOf($f);
+    $touch($t);
+    $perType[$t]['old']++;
+  }
+  foreach ($newFeatures as $f) {
+    $t = $typeOf($f);
+    $touch($t);
+    $perType[$t]['new']++;
+  }
+  ksort($perType);
+
+  // Pre-migration files have no ids yet — the first save after the migration
+  // assigns them client-side. We fall back to the initial simple heuristic:
+  // match by (type, name) for named features, bag-count by type for the rest.
+  $oldHasIds = false;
+  foreach ($oldFeatures as $f) {
+    if ($idOf($f) !== null) { $oldHasIds = true; break; }
+  }
+  if (!$oldHasIds && !empty($oldFeatures)) {
+    $nameOf = fn($f) => trim((string)($f['properties']['name'] ?? ''));
+    $partition = function ($features) use ($typeOf, $nameOf) {
+      $named = [];
+      $unnamed = [];
+      foreach ($features as $f) {
+        $name = $nameOf($f);
+        if ($name !== '') {
+          $key = $typeOf($f) . '|' . mb_strtolower($name);
+          $named[$key] = $f;
+        } else {
+          $unnamed[$typeOf($f)] = ($unnamed[$typeOf($f)] ?? 0) + 1;
+        }
+      }
+      return [$named, $unnamed];
+    };
+    [$oldNamed, $oldUnnamed] = $partition($oldFeatures);
+    [$newNamed, $newUnnamed] = $partition($newFeatures);
+
+    $added = 0; $removed = 0; $modified = 0;
+    foreach ($oldNamed as $key => $oldFeature) {
+      if (isset($newNamed[$key])) {
+        if ($contentSignature($oldFeature) !== $contentSignature($newNamed[$key])) {
+          $modified++;
+          $perType[$typeOf($oldFeature)]['edited'][] = $labelOf($newNamed[$key]);
+        }
+        unset($newNamed[$key]);
+      } else {
+        $removed++;
+      }
+    }
+    $added += count($newNamed);
+    $types = array_unique(array_merge(array_keys($oldUnnamed), array_keys($newUnnamed)));
+    foreach ($types as $t) {
+      $o = $oldUnnamed[$t] ?? 0;
+      $n = $newUnnamed[$t] ?? 0;
+      if ($n > $o) $added += $n - $o;
+      elseif ($o > $n) $removed += $o - $n;
+    }
+    return [
+      'preMigration' => true,
+      'added' => $added,
+      'removed' => $removed,
+      'modified' => $modified,
+      'perType' => $perType,
+    ];
+  }
+
+  $oldById = [];
+  foreach ($oldFeatures as $f) {
+    $id = $idOf($f);
+    if ($id !== null) $oldById[$id] = $f;
+  }
+  $newById = [];
+  foreach ($newFeatures as $f) {
+    $id = $idOf($f);
+    if ($id !== null) $newById[$id] = $f;
+  }
+
+  $added = 0;
+  $removed = 0;
+  $modified = 0;
+
+  foreach ($oldById as $id => $oldFeature) {
+    if (isset($newById[$id])) {
+      if ($contentSignature($oldFeature) !== $contentSignature($newById[$id])) {
+        $modified++;
+        $perType[$typeOf($newById[$id])]['edited'][] = $labelOf($newById[$id]);
+      }
+      unset($newById[$id]);
+    } else {
+      $removed++;
+    }
+  }
+  $added += count($newById);
+
+  return [
+    'preMigration' => false,
+    'added' => $added,
+    'removed' => $removed,
+    'modified' => $modified,
+    'perType' => $perType,
+  ];
+}
+
+function renderChangeSummaryHtml($summary, $isUpdate)
+{
+  $typeLabels = [
+    'secteur' => 'Secteurs',
+    'approche' => 'Approches',
+    'parking' => 'Parkings',
+    'bus_stop' => 'Arrêts de bus',
+    'acces_velo' => 'Accès vélo',
+    'falaise_voisine' => 'Falaises voisines',
+  ];
+
+  $html = '<h2>Bilan des modifications</h2>';
+
+  if (!$isUpdate) {
+    $html .= '<p><em>Première création des détails de cette falaise.</em></p>';
+  } elseif (!empty($summary['preMigration'])) {
+    $html .= '<p><em>Premier enregistrement après attribution des identifiants — bilan détaillé non disponible.</em></p>';
+  } else {
+    $html .= '<p>';
+    $html .= '<strong>' . (int)$summary['added'] . '</strong> ajoutée(s), ';
+    $html .= '<strong>' . (int)$summary['removed'] . '</strong> supprimée(s), ';
+    $html .= '<strong>' . (int)$summary['modified'] . '</strong> modifiée(s).';
+    $html .= '</p>';
+  }
+
+  if (!empty($summary['perType'])) {
+    $html .= '<table style="border-collapse:collapse" cellpadding="6">';
+    $html .= '<thead><tr>'
+      . '<th style="border:1px solid #ccc;text-align:left">Type</th>'
+      . '<th style="border:1px solid #ccc;text-align:right">Avant</th>'
+      . '<th style="border:1px solid #ccc;text-align:right">Après</th>'
+      . '<th style="border:1px solid #ccc;text-align:right">Δ</th>'
+      . '<th style="border:1px solid #ccc;text-align:left">Édités</th>'
+      . '</tr></thead><tbody>';
+    foreach ($summary['perType'] as $type => $counts) {
+      $label = $typeLabels[$type] ?? $type;
+      $delta = $counts['new'] - $counts['old'];
+      $deltaStr = $delta > 0 ? '+' . $delta : (string)$delta;
+      $edited = $counts['edited'] ?? [];
+      $editedHtml = empty($edited)
+        ? '<span style="color:#999">—</span>'
+        : htmlspecialchars(implode(', ', $edited));
+      $html .= '<tr>'
+        . '<td style="border:1px solid #ccc">' . htmlspecialchars($label) . '</td>'
+        . '<td style="border:1px solid #ccc;text-align:right">' . (int)$counts['old'] . '</td>'
+        . '<td style="border:1px solid #ccc;text-align:right">' . (int)$counts['new'] . '</td>'
+        . '<td style="border:1px solid #ccc;text-align:right">' . htmlspecialchars($deltaStr) . '</td>'
+        . '<td style="border:1px solid #ccc">' . $editedHtml . '</td>'
+        . '</tr>';
+    }
+    $html .= '</tbody></table>';
+  }
+
+  return $html;
+}
+
 // Prepare the SQL statement
 $stmt = $mysqli->prepare("SELECT
 falaise_id, falaise_nomformate, falaise_nom
@@ -111,8 +297,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   // Track if this is an update or new file
   $isUpdate = file_exists($geojson_file);
 
-  // Create backup of existing file before saving
+  // Load previous features (for change summary) and create backup before saving
+  $previousFeatures = [];
   if (file_exists($geojson_file)) {
+    $previousContent = file_get_contents($geojson_file);
+    $previousData = json_decode($previousContent, true);
+    if (is_array($previousData) && isset($previousData['features']) && is_array($previousData['features'])) {
+      $previousFeatures = $previousData['features'];
+    }
+
     $backup_dir = $_SERVER['DOCUMENT_ROOT'] . "/bdd/barres-historique";
     if (!is_dir($backup_dir)) {
       mkdir($backup_dir, 0755, true);
@@ -137,6 +330,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
       []
     );
 
+    $summaryHtml = '';
+    try {
+      $changeSummary = summarizeFalaiseDetailsChanges($previousFeatures, $data['features'] ?? []);
+      $summaryHtml = renderChangeSummaryHtml($changeSummary, $isUpdate);
+    } catch (\Throwable $e) {
+      error_log('[falaise_details] change summary failed: ' . $e->getMessage());
+    }
+
     // Send notification email
     $falaise_nom = $falaise['falaise_nom'];
     $subject = "🧗 Détails falaise '$falaise_nom' modifiés par $author";
@@ -144,15 +345,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $html .= "<h1>Les détails de la falaise $falaise_nom ont été modifiés</h1>";
     $html .= "<p>Contributeur : " . htmlspecialchars($author) . "</p>";
     $html .= "<p>Email : <a href='mailto:" . htmlspecialchars($author_email) . "'>" . htmlspecialchars($author_email) . "</a></p>";
+    $html .= $summaryHtml;
     $html .= "<p><a href='https://velogrimpe.fr/falaise.php?falaise_id=" . $falaise['falaise_id'] . "'>Voir la falaise</a></p>";
     $html .= "</body></html>";
 
-    sendMail([
-      'to' => $config["contact_mail"],
-      'subject' => $subject,
-      'html' => $html,
-      'h:Reply-To' => $author_email
-    ]);
+    try {
+      sendMail([
+        'to' => $config["contact_mail"],
+        'subject' => $subject,
+        'html' => $html,
+        'h:Reply-To' => $author_email
+      ]);
+    } catch (\Throwable $e) {
+      error_log('[falaise_details] sendMail failed: ' . $e->getMessage());
+    }
 
     echo json_encode(['success' => 'Falaise details updated successfully']);
   } else {
