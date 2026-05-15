@@ -32,6 +32,27 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
   $opts = array_merge($defaults, $options);
   $containerId = $opts['containerId'];
   $falaiseJson = htmlspecialchars(json_encode($falaise), ENT_QUOTES, 'UTF-8');
+
+  global $mysqli;
+  $itineraires = [];
+  if (isset($mysqli) && !empty($falaise['falaise_id'])) {
+    $stmtIt = $mysqli->prepare("
+      SELECT velo.velo_id, velo.velo_depart, velo.velo_arrivee, velo.velo_varianteformate,
+             velo.velo_variante, gares.gare_nom
+      FROM velo
+      LEFT JOIN gares ON velo.gare_id = gares.gare_id AND gares.deleted = 0
+      WHERE velo.falaise_id = ?");
+    if ($stmtIt) {
+      $stmtIt->bind_param("i", $falaise['falaise_id']);
+      $stmtIt->execute();
+      $result = $stmtIt->get_result();
+      while ($row = $result->fetch_assoc()) {
+        $itineraires[] = $row;
+      }
+      $stmtIt->close();
+    }
+  }
+  $itinerairesJson = htmlspecialchars(json_encode($itineraires), ENT_QUOTES, 'UTF-8');
   ?>
   <style>
     .vg-icon {
@@ -67,7 +88,8 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
   <div id="<?= $containerId ?>" class="falaise-details-editor flex flex-col gap-1" data-falaise="<?= $falaiseJson ?>"
     data-token="<?= htmlspecialchars($token) ?>" data-api-endpoint="<?= htmlspecialchars($opts['apiEndpoint']) ?>"
     data-contrib-nom="<?= htmlspecialchars($opts['contribNom']) ?>"
-    data-contrib-email="<?= htmlspecialchars($opts['contribEmail']) ?>">
+    data-contrib-email="<?= htmlspecialchars($opts['contribEmail']) ?>"
+    data-itineraires="<?= $itinerairesJson ?>">
     <?php if ($opts['showToolbar']): ?>
       <div class="flex gap-2 justify-end items-center">
         <?php if ($opts['showFalaiseSelect'] && !empty($opts['falaises'])): ?>

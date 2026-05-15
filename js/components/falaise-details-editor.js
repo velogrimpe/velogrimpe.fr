@@ -16,6 +16,7 @@ import AccesVelo from "/js/components/map/acces-velo.js";
 import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
 import { getValhallaRoute } from "/js/services/valhalla.js";
 import { fetchBusStops } from "/js/components/utils/fetch-bus-stops.js";
+import { gpx_path } from "/js/components/utils/paths.js";
 
 // Use global contribStorage (loaded via script tag)
 const { getContribInfo, saveContribInfo } = window.contribStorage || {};
@@ -160,6 +161,37 @@ export function initFalaiseDetailsEditor(containerId) {
   const searchLayers = {
     busStops: L.layerGroup().addTo(map),
   };
+
+  // Read-only context: itinéraires vélos arrivant à cette falaise
+  const itineraires = JSON.parse(container.dataset.itineraires || "[]");
+  itineraires.forEach((velo) => {
+    new L.GPX("/bdd/gpx/" + gpx_path(velo), {
+      async: true,
+      markers: { startIcon: null, endIcon: null },
+      polyline_options: {
+        weight: 2,
+        color: "black",
+        interactive: false,
+      },
+    })
+      .on("loaded", (e) => {
+        const label = velo.velo_variante
+          ? `${velo.gare_nom} (${velo.velo_variante})`
+          : velo.gare_nom || "";
+        const pad = Array(40).fill(" ").join("");
+        e.target.setText(pad + label + pad, {
+          center: true,
+          repeat: true,
+          offset: -6,
+          attributes: {
+            "font-size": "12px",
+            "font-weight": "bold",
+            fill: "black",
+          },
+        });
+      })
+      .addTo(map);
+  });
 
   // Table control
   const TableControl = L.Control.extend({
