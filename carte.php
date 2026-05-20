@@ -2,14 +2,14 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 
-$falaises = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
-$villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
+$falaises = $mysqli->query("SELECT falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
+$villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 $gares = $mysqli->query("SELECT
-  g.*,
+  g.gare_id, g.gare_latlng, g.gare_nom, g.gare_tgv,
   GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin, '|', COALESCE(t.train_tgv, 0)) SEPARATOR '=|=') AS villes
   FROM gares g
   LEFT JOIN train t ON t.gare_id = g.gare_id
-  WHERE g.deleted = 0
+  WHERE g.deleted = 0 and g.gare_id in (SELECT DISTINCT gare_id FROM velo WHERE velo_public >= 1)
   GROUP BY g.gare_id;"
 )->fetch_all(MYSQLI_ASSOC);
 $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);
@@ -86,7 +86,6 @@ $highlight = $_GET['h'] ?? '';
   // Paramètres généraux
   const iconSize = 30;
   const defaultMarkerSize = iconSize;
-  const selectedGareSize = iconSize * 1.5;
   const itinerairesColors = ["indianRed", "tomato", "teal", "paleVioletRed", "mediumSlateBlue", "lightSalmon", "fireBrick", "crimson", "purple", "hotPink", "mediumOrchid"]
   const falaiseIcon = (size, closed, bloc) =>
     L.icon({
@@ -302,23 +301,31 @@ $highlight = $_GET['h'] ?? '';
             falaise.falaise_latlng.split(",").map(parseFloat),
             ...falaise.access.map(it => it.gare.gare_latlng.split(",").map(parseFloat))
           ];
-          map.flyToBounds(bounds, { paddingTopLeft: [0, 40], paddingBottomRight: [0, 200], duration: 0.5 });
+          map.flyToBounds(bounds, { paddingTopLeft: [40, 50], paddingBottomRight: [100, 200], duration: 0.5 });
 
-          //Affichage des itinéraire vélo/à pied
-          setTimeout(() => falaise.access.map((it, i) => {
-            const c = itinerairesColors[i % itinerairesColors.length];
-            const gpx = renderGpx(it, c);
-            itinerairesLines.push(gpx);
-            const station = gares.find(g => g.gare_id === it.gare.gare_id);
-            // Afficher les noms des gares qui donnent accès à cette falaise
-            station.marker?.unbindTooltip();
-            station.marker?.bindTooltip(station.gare_nom, {
-              direction: "right",
-              offset: [iconSize / 2, 0],
-              permanent: true,
-              className: `vg-station-tooltip vg-color-${c}`,
+          //Affichage des itinéraires vélo/à pied
+          // Une gare peut être l'origine de plusieurs variantes — on ne tagge
+          // le tooltip qu'au 1er passage (= itinéraire le plus court, access
+          // étant trié par tempsVelo), sinon le dernier écrase les précédents.
+          setTimeout(() => {
+            const tagged = new Set();
+            falaise.access.forEach((it, i) => {
+              const c = itinerairesColors[i % itinerairesColors.length];
+              const gpx = renderGpx(it, c);
+              itinerairesLines.push(gpx);
+              if (tagged.has(it.gare.gare_id)) return;
+              tagged.add(it.gare.gare_id);
+              const station = gares.find(g => g.gare_id === it.gare.gare_id);
+              // Afficher les noms des gares qui donnent accès à cette falaise
+              station.marker?.unbindTooltip();
+              station.marker?.bindTooltip(station.gare_nom, {
+                direction: "right",
+                offset: [iconSize / 2, 0],
+                permanent: true,
+                className: `vg-station-tooltip vg-color-${c}`,
+              });
             });
-          }), 0.76 * 1000);
+          }, 0.76 * 1000);
         } else {
           // map.flyTo(falaise.falaise_latlng.split(","), 15, { duration: 0.25 });
           // navigate to falaise page
@@ -480,35 +487,29 @@ $highlight = $_GET['h'] ?? '';
         gare.gare_latlng.split(",").map(parseFloat),
         ...gare.access.map(it => it.falaise.falaise_latlng.split(",").map(parseFloat))
       ];
-      map.flyToBounds(bounds, { maxZoom: 12, paddingTopLeft: [0, 50], paddingBottomRight: [50, 0], duration: 0.5 });
-      e.target.setIcon(trainIcon(gare.gare_tgv === "1", selectedGareSize));
+      map.flyToBounds(bounds, { maxZoom: 12, paddingTopLeft: [40, 50], paddingBottomRight: [100, 200], duration: 0.5 });
 
-      setTimeout(() => gare.access.map((it, i) => {
-        const c = itinerairesColors[i % itinerairesColors.length];
-        if (falaises.find(f => f.falaise_id === it.falaise.falaise_id)?.filteredOut) return;
-        const options = {
-          async: true,
-          markers: {
-            startIcon: null,
-            endIcon: null,
-          },
-          polyline_options: {
-            weight: 5,
-            color: c,
-          },
-        };
-        // Afficher les noms des falaises accessibles depuis cette gare
-        const falaise = falaises.find(f => f.falaise_id === it.falaise.falaise_id);
-        falaise.marker?.unbindTooltip();
-        falaise.marker?.bindTooltip(escapeHtml(falaise.falaise_nom), {
-          direction: "right",
-          permanent: true,
-          offset: [iconSize / 2, -iconSize / 2],
-          className: `vg-station-tooltip vg-color-${c}`,
+      // Idem côté gare : ne tagger le tooltip falaise qu'au 1er passage.
+      setTimeout(() => {
+        const tagged = new Set();
+        gare.access.forEach((it, i) => {
+          const c = itinerairesColors[i % itinerairesColors.length];
+          if (falaises.find(f => f.falaise_id === it.falaise.falaise_id)?.filteredOut) return;
+          const gpx = renderGpx(it, c);
+          itinerairesLines.push(gpx);
+          if (tagged.has(it.falaise.falaise_id)) return;
+          tagged.add(it.falaise.falaise_id);
+          // Afficher les noms des falaises accessibles depuis cette gare
+          const falaise = falaises.find(f => f.falaise_id === it.falaise.falaise_id);
+          falaise.marker?.unbindTooltip();
+          falaise.marker?.bindTooltip(escapeHtml(falaise.falaise_nom), {
+            direction: "right",
+            permanent: true,
+            offset: [iconSize / 2, -iconSize / 2],
+            className: `vg-station-tooltip vg-color-${c}`,
+          });
         });
-        const gpx = renderGpx(it, c);
-        itinerairesLines.push(gpx);
-      }), 0.76 * 1000);
+      }, 0.76 * 1000);
       marker.unbindTooltip();
       marker.bindTooltip(gare.gare_nom, {
         className: "p-px",
@@ -608,7 +609,7 @@ $highlight = $_GET['h'] ?? '';
   // map.on("zoomend", () => console.log("zoom", map.getZoom()))
   var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
   L.control.scale({ position: "bottomleft", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
-  L.control.locate({locateOptions:{enableHighAccuracy: true}}).addTo(map);
+  L.control.locate({ locateOptions: { enableHighAccuracy: true } }).addTo(map);
 
   // Contrôle Leaflet pour filtres + recherche (Vue.js)
   var filtersControl = L.control({ position: 'topright' });
