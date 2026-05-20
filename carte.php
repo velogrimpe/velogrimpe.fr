@@ -595,11 +595,20 @@ $highlight = $_GET['h'] ?? '';
   })
 
   var map = L.map("map", {
-    layers: [landscapeTiles], center, zoom, fullscreenControl: true
+    layers: [landscapeTiles],
+    center,
+    zoom,
+    fullscreenControl: true,
+    // zoomSnap: 0.25,
+    // zoomDelta: 0.25,
+    // preferCanvas: true,
+    // updateWhenZooming: false,
+
   });
+  // map.on("zoomend", () => console.log("zoom", map.getZoom()))
   var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
   L.control.scale({ position: "bottomleft", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
-  L.control.locate().addTo(map);
+  L.control.locate({locateOptions:{enableHighAccuracy: true}}).addTo(map);
 
   // Contrôle Leaflet pour filtres + recherche (Vue.js)
   var filtersControl = L.control({ position: 'topright' });
