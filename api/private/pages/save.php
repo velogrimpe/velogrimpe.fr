@@ -31,6 +31,7 @@ if (!$input) {
 
 $slug = trim($input['slug'] ?? '');
 $title = trim($input['title'] ?? '');
+$short_title = trim($input['short_title'] ?? '');
 $description = trim($input['description'] ?? '');
 $status = $input['status'] ?? 'draft';
 $sections = json_encode($input['sections'] ?? [], JSON_UNESCAPED_UNICODE);
@@ -57,8 +58,8 @@ if (!in_array($status, ['draft', 'published'])) {
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 if ($id > 0) {
-  $stmt = $mysqli->prepare("UPDATE pages SET slug = ?, title = ?, description = ?, status = ?, sections = ? WHERE id = ?");
-  $stmt->bind_param('sssssi', $slug, $title, $description, $status, $sections, $id);
+  $stmt = $mysqli->prepare("UPDATE pages SET slug = ?, title = ?, short_title = ?, description = ?, status = ?, sections = ? WHERE id = ?");
+  $stmt->bind_param('ssssssi', $slug, $title, $short_title, $description, $status, $sections, $id);
   $stmt->execute();
 
   if ($stmt->affected_rows === 0 && $mysqli->errno) {
@@ -67,8 +68,8 @@ if ($id > 0) {
     exit;
   }
 } else {
-  $stmt = $mysqli->prepare("INSERT INTO pages (slug, title, description, status, sections) VALUES (?, ?, ?, ?, ?)");
-  $stmt->bind_param('sssss', $slug, $title, $description, $status, $sections);
+  $stmt = $mysqli->prepare("INSERT INTO pages (slug, title, short_title, description, status, sections) VALUES (?, ?, ?, ?, ?, ?)");
+  $stmt->bind_param('ssssss', $slug, $title, $short_title, $description, $status, $sections);
   $stmt->execute();
 
   if ($stmt->errno) {

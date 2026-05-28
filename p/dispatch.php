@@ -31,6 +31,18 @@ if (!$page) {
 
 $sections = json_decode($page['sections'], true) ?? [];
 
+$siblings = [];
+$slash_pos = strrpos($page['slug'], '/');
+if ($slash_pos !== false) {
+  $dirname = substr($page['slug'], 0, $slash_pos);
+  $like_siblings = $dirname . '/%';
+  $like_deeper = $dirname . '/%/%';
+  $stmt = $mysqli->prepare("SELECT slug, title, short_title FROM pages WHERE status = 'published' AND slug LIKE ? AND slug NOT LIKE ? ORDER BY id");
+  $stmt->bind_param('ss', $like_siblings, $like_deeper);
+  $stmt->execute();
+  $siblings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 ?>
 <!DOCTYPE html>
@@ -53,6 +65,10 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 
 <body class="flex flex-col min-h-screen">
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php
+  $current_slug = $page['slug'];
+  include $_SERVER['DOCUMENT_ROOT'] . "/components/nav-page-siblings.php";
+  ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto p-6">
     <?php if ($preview && $page['status'] !== 'published'): ?>
       <div class="alert alert-warning mb-4">Aperçu — cette page est en brouillon, non visible publiquement.</div>
