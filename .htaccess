@@ -16,6 +16,9 @@ ErrorDocument 404 /404.php
 </FilesMatch>
 
 <FilesMatch ".*\.geojson$">
+  # Force le bon Content-Type pour que la règle DEFLATE matche (sinon Apache
+  # tombe sur text/plain ou octet-stream selon mime.types).
+  ForceType application/geo+json
   Header set Cache-Control "max-age=31536000, public, must-revalidate"
 </FilesMatch>
 
@@ -23,14 +26,44 @@ ErrorDocument 404 /404.php
   Header set Cache-Control "max-age=31536000, public, must-revalidate"
 </FilesMatch>
 
-# Disable caching for JS files
-<FilesMatch "\.js$">
+# Disable caching for JS files — sauf les bundles de build versionnés
+# (cf. plus bas). Le négative-lookahead exclut map-{x.y.z}.js et map-maplibre-{x.y.z}.js
+# pour qu'ils puissent être cachés long-terme.
+<FilesMatch "^(?!map(?:-maplibre)?-\d[\d.A-Za-z-]*\.js$).+\.js$">
     FileETag None
     Header unset ETag
     Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
     Header set Pragma "no-cache"
     Header set Expires "0"
 </FilesMatch>
+
+# Bundles de build versionnés (`map-1.9.4.js`, `map-maplibre-5.24.0.js`, etc.).
+# Le filename change à chaque upgrade de lib → cache 1 an + immutable. PHP
+# résout le filename courant via `dist/map-bundles.json` (cf. lib/map-bundle.php).
+<FilesMatch "^map(?:-maplibre)?-\d[\d.A-Za-z-]*\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+
+# Compression gzip pour les assets bâtis (JS/CSS/JSON/SVG).
+# Gain ~70% sur les bundles minifiés. No-op si mod_deflate n'est pas chargé.
+# Note : Apache sert souvent le JS avec le MIME legacy `application/x-javascript`,
+# on inclut donc les deux variantes.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+  AddOutputFilterByType DEFLATE application/geo+json
+  AddOutputFilterByType DEFLATE text/css text/javascript text/plain text/xml text/html
+  AddOutputFilterByType DEFLATE image/svg+xml application/xml
+
+</IfModule>
+
+# Workaround pour le bug Apache + mod_deflate : mod_deflate ajoute "-gzip" à
+# l'ETag dans la réponse mais ne strip pas le suffixe du If-None-Match entrant,
+# donc le navigateur reçoit toujours 200 même quand rien n'a changé. On strip
+# le suffixe côté requête pour réaligner. (DeflateAlterETag NoChange serait plus
+# propre mais n'est pas autorisé dans ce .htaccess sur cette config Apache.)
+<IfModule mod_headers.c>
+  RequestHeader edit "If-None-Match" '^"(.*)-gzip"$' '"$1"'
+</IfModule>
 
 DirectoryIndex index.php
 <Limit GET POST>

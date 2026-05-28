@@ -1,6 +1,7 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
@@ -35,8 +36,8 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   <title>Correspondances Oblyk - Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Map libraries bundle (Leaflet, Fullscreen) -->
-  <script src="/dist/map.js"></script>
-  <link rel="stylesheet" href="/dist/map.css" />
+  <?php map_bundle_js('map'); ?>
+  <?php map_bundle_css('map'); ?>
   <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>

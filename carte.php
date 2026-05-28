@@ -1,6 +1,7 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 
 $falaises = $mysqli->query("SELECT falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
@@ -41,9 +42,11 @@ $highlight = $_GET['h'] ?? '';
   <meta name="twitter:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train">
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
-  <!-- Map libraries bundle (Leaflet, GPX, Fullscreen, Locate) -->
-  <script src="/dist/map.js"></script>
-  <link rel="stylesheet" href="/dist/map.css" />
+  <!-- Map libraries bundle (Leaflet, GPX, Fullscreen, Locate) — filename
+       versionné selon la version de Leaflet, résolu via dist/map-bundles.json
+       (cf. lib/map-bundle.php). Cache long-terme côté .htaccess. -->
+  <?php map_bundle_js('map'); ?>
+  <?php map_bundle_css('map'); ?>
   <!-- <script src="https://unpkg.com/protomaps-leaflet@5.1.0/dist/protomaps-leaflet.js"></script> -->
   <script src="/js/vendor/protomaps-leaflet.js"></script>
   <?php vite_css('main'); ?>

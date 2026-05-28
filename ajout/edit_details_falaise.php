@@ -20,6 +20,7 @@ if (empty($falaise_id)) {
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/components/falaise-details-editor.php';
 
 // Données de la falaise courante
@@ -67,8 +68,8 @@ $nextUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Éditeur de détails de falaise - secteurs, parkings, approches">
   <!-- Map libraries bundle (Leaflet, Fullscreen, Geoman, GPX, Turf) -->
-  <script src="/dist/map.js"></script>
-  <link rel="stylesheet" href="/dist/map.css" />
+  <?php map_bundle_js('map'); ?>
+  <?php map_bundle_css('map'); ?>
   <script src="/js/vendor/leaflet-textpath.js"></script>
   <?php vite_css('main'); ?>
   <!-- Velogrimpe Styles -->

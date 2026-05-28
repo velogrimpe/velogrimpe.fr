@@ -1,6 +1,7 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 $config = require $_SERVER['DOCUMENT_ROOT']
   . '/../config.php';
 // Read the admin search parameter
@@ -53,8 +54,8 @@ if ($falaise_id) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><?= $falaise_id ? "Modifier" : "Ajouter" ?> une falaise - Vélogrimpe.fr</title>
   <!-- Map libraries bundle (Leaflet, Fullscreen, Locate) -->
-  <script src="/dist/map.js"></script>
-  <link rel="stylesheet" href="/dist/map.css" />
+  <?php map_bundle_js('map'); ?>
+  <?php map_bundle_css('map'); ?>
   <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
@@ -407,15 +408,37 @@ if ($falaise_id) {
         <hr class="my-0 grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
-        <div class="tabs tabs-box self-center" role="tablist">
-          <input type="radio" name="falaise_type_grimpe" class="tab" aria-label="Couenne" value="couenne"
-            id="falaise_type_couenne" checked />
-          <input type="radio" name="falaise_type_grimpe" class="tab" aria-label="Grande Voie" value="gv"
-            id="falaise_type_gv" />
-          <input type="radio" name="falaise_type_grimpe" class="tab" aria-label="Bloc" value="bloc"
-            id="falaise_type_bloc" />
-          <input type="radio" name="falaise_type_grimpe" class="tab" aria-label="Psychobloc" value="psychobloc"
-            id="falaise_type_psychobloc" />
+        <div class="form-control">
+          <b>Type d'escalade</b>
+          <div class="flex flex-wrap gap-x-4 gap-y-2">
+            <div class="tooltip" data-tip="et grandes voies < 3 longueurs">
+              <label class="label cursor-pointer flex items-center gap-2 p-0">
+                <input type="radio" name="falaise_type_grimpe" class="radio radio-primary radio-sm" value="couenne"
+                  id="falaise_type_couenne" checked />
+                <span>Couenne</span>
+              </label>
+            </div>
+            <label class="label cursor-pointer flex items-center gap-2 p-0">
+              <input type="radio" name="falaise_type_grimpe" class="radio radio-primary radio-sm" value="gv"
+                id="falaise_type_gv" />
+              <span>Grandes voies &ge; 3 longueurs</span>
+            </label>
+            <label class="label cursor-pointer flex items-center gap-2 p-0">
+              <input type="radio" name="falaise_type_grimpe" class="radio radio-primary radio-sm" value="bloc"
+                id="falaise_type_bloc" />
+              <span>Bloc</span>
+            </label>
+            <div class="tooltip" data-tip="Psychobloc : blocs engagés avec chute dans l'eau">
+              <label class="label cursor-pointer flex items-center gap-2 p-0">
+                <input type="radio" name="falaise_type_grimpe" class="radio radio-primary radio-sm" value="psychobloc"
+                  id="falaise_type_psychobloc" />
+                <span>Psychobloc</span>
+              </label>
+            </div>
+          </div>
+
+          <i class="text-slate-400 text-sm"> Remarque : Si plusieurs type d'escalade sur la falaise, indiquer le style
+            prépondérant et préciser la répartition dans les descriptions.</i>
         </div>
         <input type="hidden" id="falaise_bloc" name="falaise_bloc" value="0" />
         <div>
@@ -425,16 +448,16 @@ if ($falaise_id) {
               <select class="select select-primary select-sm" required name="falaise_cotmin" id="falaise_cotmin">
                 <option value="" disabled selected></option>
                 <option value="4">4 et -</option>
-                <option value="5-">5-</option>
-                <option value="5+">5+</option>
-                <option value="6-">6-</option>
-                <option value="6+">6+</option>
-                <option value="7-">7-</option>
-                <option value="7+">7+</option>
-                <option value="8-">8-</option>
-                <option value="8+">8+</option>
-                <option value="9-">9-</option>
-                <option value="9+">9+</option>
+                <option value="5-">5a à 5b</option>
+                <option value="5+">5c à 5c+</option>
+                <option value="6-">6a à 6b</option>
+                <option value="6+">6b+ à 6c+</option>
+                <option value="7-">7a à 7b</option>
+                <option value="7+">7b+ à 7c+</option>
+                <option value="8-">8a à 8b</option>
+                <option value="8+">8b+ à 8c+</option>
+                <option value="9-">9a à 9b</option>
+                <option value="9+">9b+ et +</option>
               </select>
             </label>
             <label class="form-control flex-1" for="falaise_cotmax">
@@ -442,16 +465,16 @@ if ($falaise_id) {
               <select class="select select-primary select-sm" required name="falaise_cotmax" id="falaise_cotmax">
                 <option value="" disabled selected></option>
                 <option value="4">4 et -</option>
-                <option value="5-">5-</option>
-                <option value="5+">5+</option>
-                <option value="6-">6-</option>
-                <option value="6+">6+</option>
-                <option value="7-">7-</option>
-                <option value="7+">7+</option>
-                <option value="8-">8-</option>
-                <option value="8+">8+</option>
-                <option value="9-">9-</option>
-                <option value="9+">9+</option>
+                <option value="5-">5a à 5b</option>
+                <option value="5+">5c à 5c+</option>
+                <option value="6-">6a à 6b</option>
+                <option value="6+">6b+ à 6c+</option>
+                <option value="7-">7a à 7b</option>
+                <option value="7+">7b+ à 7c+</option>
+                <option value="8-">8a à 8b</option>
+                <option value="8+">8b+ à 8c+</option>
+                <option value="9-">9a à 9b</option>
+                <option value="9+">9b+ et +</option>
               </select>
             </label>
             <label class="form-control flex-1" for="falaise_nbvoies">
@@ -493,6 +516,12 @@ if ($falaise_id) {
             voies (confortable, à l'ombre...).<br> - Style des voies (dévers, réglettes...).<br> - ...</i>
         </label>
         <div id="falaise_gv_fields" class="hidden flex-col gap-4">
+          <div class="bg-amber-100 border border-amber-700 text-amber-900 p-2 rounded-lg text-sm">
+            <svg class="w-4 h-4 mb-1 fill-none stroke-current inline-block">
+              <use href="#error-warning-fill"></use>
+            </svg>
+            Pour que la mention « Grandes voies » soit effective sur la fiche falaise, merci de bien renseigner les deux champs ci-dessous.
+          </div>
           <label class="form-control" for="falaise_gvtxt">
             <b class="">Grandes voies - Texte descriptif. <span class="text-error">Important pour les GV !</span></b>
             <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_gvtxt" name="falaise_gvtxt"
@@ -517,27 +546,37 @@ if ($falaise_id) {
           const gvFields = document.getElementById('falaise_gv_fields');
           const gvtxt = document.getElementById('falaise_gvtxt');
           const gvnb = document.getElementById('falaise_gvnb');
+          const form = document.getElementById('form');
 
-          function applyType(type) {
+          function getSelectedType() {
+            const r = Array.from(radios).find(r => r.checked);
+            return r ? r.value : 'couenne';
+          }
+
+          function applyState() {
+            const type = getSelectedType();
             const isGv = type === 'gv';
             gvFields.classList.toggle('hidden', !isGv);
             gvFields.classList.toggle('flex', isGv);
-            if (!isGv) {
+            blocInput.value = type === 'psychobloc' ? '2'
+              : type === 'bloc' ? '1'
+                : '0';
+          }
+
+          radios.forEach(r => r.addEventListener('change', applyState));
+
+          form.addEventListener('submit', () => {
+            if (getSelectedType() !== 'gv') {
               gvtxt.value = '';
               gvnb.value = '';
             }
-            blocInput.value = type === 'bloc' ? '1' : type === 'psychobloc' ? '2' : '0';
-          }
-
-          radios.forEach(r => r.addEventListener('change', () => {
-            if (r.checked) applyType(r.value);
-          }));
+          });
 
           window.setFalaiseTypeGrimpe = function (type) {
             const radio = document.getElementById('falaise_type_' + type);
             if (radio) {
               radio.checked = true;
-              applyType(type);
+              applyState();
             }
           };
         })();

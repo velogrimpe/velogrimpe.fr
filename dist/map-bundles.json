@@ -1,0 +1,12 @@
+{
+  "map": {
+    "js": "/dist/map-1.9.4.js",
+    "css": "/dist/map-1.9.4.css",
+    "version": "1.9.4"
+  },
+  "map-maplibre": {
+    "js": "/dist/map-maplibre-5.24.0.js",
+    "css": "/dist/map-maplibre-5.24.0.css",
+    "version": "5.24.0"
+  }
+}

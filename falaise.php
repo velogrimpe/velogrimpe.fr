@@ -8,6 +8,7 @@ if (empty($falaise_id)) {
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 
 $stmtF = $mysqli->prepare("SELECT * FROM falaises WHERE falaise_id = ?");
 if (!$stmtF) {
@@ -209,9 +210,11 @@ $stmtC->close();
     content="Escalade à <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?> - Velogrimpe.fr">
   <meta name="twitter:description"
     content="Escalade à <?= htmlspecialchars(mb_strtoupper($falaise_nom, 'UTF-8')) ?><?php if ($ville_id_get): ?> au départ de <?= htmlspecialchars($selected_ville_nom) ?><?php endif; ?>. Découvrez les accès en vélo et en train, les topos et les informations pratiques pour une sortie vélo-grimpe en mobilité douce.">
-  <!-- Map libraries bundle (Leaflet, GPX, Fullscreen, Locate, Turf) -->
-  <script src="/dist/map.js"></script>
-  <link rel="stylesheet" href="/dist/map.css" />
+  <!-- Map libraries bundle (Leaflet, GPX, Fullscreen, Locate, Turf) — filename
+       versionné selon la version de Leaflet, résolu via dist/map-bundles.json
+       (cf. lib/map-bundle.php). Cache long-terme côté .htaccess. -->
+  <?php map_bundle_js('map'); ?>
+  <?php map_bundle_css('map'); ?>
   <!-- Carte : Lignes de train-->
   <!-- <script src="https://unpkg.com/protomaps-leaflet@5.1.0/dist/protomaps-leaflet.js"></script> -->
   <script src="/js/vendor/protomaps-leaflet.js"></script>

@@ -1,6 +1,7 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 
 $falaises = $mysqli->query("SELECT falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
@@ -42,12 +43,13 @@ $highlight = $_GET['h'] ?? '';
   <meta name="twitter:description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
 
-  <!-- MapLibre GL JS + PMTiles + GPX protocol (CDN) -->
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
-  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
-  <script src="https://unpkg.com/pmtiles@^3/dist/pmtiles.js"></script>
-  <script
-    src="https://unpkg.com/maplibre-gl-vector-text-protocol@0.0.5/dist/maplibre-gl-vector-text-protocol.js"></script>
+  <!-- MapLibre GL JS + PMTiles + GPX protocol (self-hosted bundle, built
+       par frontend/build-map.ts). Bundles maplibre-gl + pmtiles +
+       maplibre-gl-vector-text-protocol et pré-enregistre les protocols
+       `pmtiles://` et `gpx://`. Le filename inclut la version maplibre
+       (résolu via dist/map-bundles.json) → cache long-terme safe. -->
+  <?php map_bundle_css('map-maplibre'); ?>
+  <?php map_bundle_js('map-maplibre'); ?>
 
   <?php vite_css('main'); ?>
   <!-- Pageviews -->
@@ -277,11 +279,8 @@ $highlight = $_GET['h'] ?? '';
   };
   let currentBasemap = "Landscape";
 
-  // Register pmtiles protocol
-  const pmtilesProtocol = new pmtiles.Protocol();
-  maplibregl.addProtocol("pmtiles", pmtilesProtocol.tile);
-  // Register gpx protocol (also handles kml/csv/tsv/topojson/tcx but we only use gpx)
-  maplibregl.addProtocol("gpx", VectorTextProtocol.VectorTextProtocol);
+  // Les protocoles `pmtiles://` et `gpx://` sont enregistrés en amont par
+  // /dist/map-maplibre.js (cf. frontend/src/apps/map-maplibre.ts).
 
   const map = new maplibregl.Map({
     container: "map",
