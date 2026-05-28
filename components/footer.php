@@ -7,7 +7,16 @@ if (file_exists($svgSpritePath)) {
 ?> <footer
   class="font-normal text-xs text-slate-500 flex justify-center py-2 items-center gap-2 bg-base-100 border-t border-slate-200">
   <!-- Open the modal using ID.showModal() method -->
-  <a class="font-normal" href="/">© Velogrimpe.fr</a>
+  <a class="font-normal cursor-pointer" onclick="licences_modal.showModal()">© Velogrimpe.fr</a>
+  <dialog id="licences_modal" class="modal">
+    <div class="modal-box text-base">
+      <h3 class="font-bold text-lg mb-3">Licences</h3>
+      <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/licence-notice.php"; ?>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
   <span class="hidden sm:block">-</span>
   <a class="font-normal cursor-pointer" onclick="credits_modal.showModal()">Crédits</a>
   <dialog id="credits_modal" class="modal">

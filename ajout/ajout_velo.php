@@ -298,6 +298,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <textarea class="textarea textarea-sm leading-6" id="message" name="message"
             rows="4"></textarea>
         </label>
+        <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/contrib-licence-notice.php"; ?>
         <button type="submit" class="btn btn-primary">Ajouter l'itinéraire vélo</button>
       </div>
     </form>

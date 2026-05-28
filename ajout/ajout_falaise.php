@@ -845,6 +845,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           </span>
           <textarea class="textarea textarea-sm leading-6" id="message" name="message" rows="4"></textarea>
         </label>
+        <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/contrib-licence-notice.php"; ?>
         <button type="submit" id="confirmButton" class="btn btn-primary"><?= $falaise_id ? "Modifier" : "Ajouter" ?> la
           falaise</button>
       </div>

@@ -57,6 +57,7 @@ if (!$admin) {
           <use href="#error-warning-fill"></use>
         </svg> Une ville avec ce nom existe déjà dans la base de données. Vérifiez que vous ne faites pas de doublon.
       </div>
+      <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/contrib-licence-notice.php"; ?>
       <button class="btn btn-primary" type="submit">AJOUTER LA VILLE</button>
     </form>
   </main>
