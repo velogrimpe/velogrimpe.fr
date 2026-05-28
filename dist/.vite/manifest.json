@@ -49,8 +49,8 @@
     "file": "assets/SectionTextEditor-DgTldLWe.css",
     "src": "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00g}~.js"
   },
-  "_SectionTextEditor.vue_vue_type_style_index_0_lang-GmNMdJ-i.js": {
-    "file": "chunks/SectionTextEditor.vue_vue_type_style_index_0_lang-GmNMdJ-i.js",
+  "_SectionTextEditor.vue_vue_type_style_index_0_lang-DAMspaKt.js": {
+    "file": "chunks/SectionTextEditor.vue_vue_type_style_index_0_lang-DAMspaKt.js",
     "name": "SectionTextEditor.vue_vue_type_style_index_0_lang",
     "imports": [
       "_runtime-dom.esm-bundler-CtbWMevV.js"
@@ -286,7 +286,7 @@
     "src": "src/apps/main.ts",
     "isEntry": true,
     "css": [
-      "assets/main-V1aXfXgt.css"
+      "assets/main-TAFuuOjj.css"
     ]
   },
   "src/apps/newsletter-admin.ts": {
@@ -298,7 +298,7 @@
       "_runtime-dom.esm-bundler-CtbWMevV.js",
       "_pinia-tg08vSA0.js",
       "_Icon.vue_vue_type_script_setup_true_lang-Da9vJpJV.js",
-      "_SectionTextEditor.vue_vue_type_style_index_0_lang-GmNMdJ-i.js"
+      "_SectionTextEditor.vue_vue_type_style_index_0_lang-DAMspaKt.js"
     ]
   },
   "src/apps/pages-admin.ts": {
@@ -310,7 +310,7 @@
       "_runtime-dom.esm-bundler-CtbWMevV.js",
       "_pinia-tg08vSA0.js",
       "_Icon.vue_vue_type_script_setup_true_lang-Da9vJpJV.js",
-      "_SectionTextEditor.vue_vue_type_style_index_0_lang-GmNMdJ-i.js"
+      "_SectionTextEditor.vue_vue_type_style_index_0_lang-DAMspaKt.js"
     ]
   },
   "src/apps/qr-generator.ts": {
