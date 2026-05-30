@@ -29,6 +29,8 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://velogrimpe.fr/actualites/" />
+  <link rel="alternate" type="application/rss+xml" title="Actualités Vélogrimpe" href="/feed/actualites.xml">
+  <link rel="alternate" type="application/rss+xml" title="Nouveautés Vélogrimpe (falaises &amp; itinéraires)" href="/feed/nouveautes.xml">
   <meta name="description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
   <meta property="og:locale" content="fr_FR">

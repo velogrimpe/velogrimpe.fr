@@ -43,6 +43,7 @@ $falaise_nom = $falaise ? htmlspecialchars($falaise['falaise_nom']) : 'Falaise';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Confirmation d'ajout de falaise - Vélogrimpe.fr">
   <title>Confirmation - <?= $falaise_nom ?> - Vélogrimpe.fr</title>
   <?php vite_css('main'); ?>

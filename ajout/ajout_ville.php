@@ -20,6 +20,7 @@ if (!$admin) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>Ajouter une ville (admin)</title>
   <?php vite_css('main'); ?>
   <!-- Pageviews -->

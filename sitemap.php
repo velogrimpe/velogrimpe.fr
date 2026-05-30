@@ -9,10 +9,24 @@ echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 // URLs des pages statiques
 echo '  <url><loc>https://velogrimpe.fr/</loc></url>' . PHP_EOL;
 echo '  <url><loc>https://velogrimpe.fr/carte.php</loc></url>' . PHP_EOL;
-echo '  <url><loc>https://velogrimpe.fr/logistique.php</loc></url>' . PHP_EOL;
 echo '  <url><loc>https://velogrimpe.fr/infos.php</loc></url>' . PHP_EOL;
 echo '  <url><loc>https://velogrimpe.fr/contribuer.php</loc></url>' . PHP_EOL;
 echo '  <url><loc>https://velogrimpe.fr/communaute.php</loc></url>' . PHP_EOL;
+echo '  <url><loc>https://velogrimpe.fr/contact.php</loc></url>' . PHP_EOL;
+
+// Pages conseils pratiques
+$conseils_files = glob($_SERVER['DOCUMENT_ROOT'] . '/conseils-pratiques/*.php');
+foreach ($conseils_files as $file) {
+    $url = 'https://velogrimpe.fr/conseils-pratiques/' . basename($file);
+    echo "  <url><loc>$url</loc></url>" . PHP_EOL;
+}
+
+// Formulaires de contribution
+$ajout_files = glob($_SERVER['DOCUMENT_ROOT'] . '/ajout/ajout_*.php');
+foreach ($ajout_files as $file) {
+    $url = 'https://velogrimpe.fr/ajout/' . basename($file);
+    echo "  <url><loc>$url</loc></url>" . PHP_EOL;
+}
 
 // URLs des pages tableau
 $queryV = "SELECT DISTINCT v.ville_id FROM villes v

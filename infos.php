@@ -1,4 +1,7 @@
-<?php require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php'; ?>
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
+?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -27,6 +30,22 @@
   <link rel="stylesheet" href="/global.css" />
 
   <link rel="manifest" href="/site.webmanifest" />
+  <?php
+  vg_jsonld(
+    vg_organization(),
+    [
+      '@type'       => 'AboutPage',
+      'name'        => 'À propos - Vélogrimpe.fr',
+      'description' => 'Escalade en mobilité douce à vélo et en train. Histoire du projet, initiatives liées.',
+      'url'         => VG_BASE . '/infos.php',
+      'isPartOf'    => ['@id' => VG_BASE . '/#website'],
+    ],
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'À propos', 'url' => '/infos.php'],
+    ])
+  );
+  ?>
 </head>
 
 <body class="min-h-screen">

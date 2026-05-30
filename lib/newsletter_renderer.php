@@ -241,5 +241,39 @@ function renderNewsletterEmail(array $newsletter): string
  */
 function renderNewsletterWeb(array $newsletter): string
 {
-  return renderNewsletterEmail($newsletter);
+  require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
+
+  $html = renderNewsletterEmail($newsletter);
+
+  // Données structurées JSON-LD — injectées uniquement pour la version web
+  // (renderNewsletterEmail est partagé avec l'email, qui ne doit pas les porter).
+  $news_url = VG_BASE . '/actualites/' . rawurlencode($newsletter['slug']);
+  $article = [
+    '@type'            => 'Article',
+    'headline'         => $newsletter['title'],
+    'description'      => $newsletter['description'] ?? '',
+    'url'              => $news_url,
+    'mainEntityOfPage' => $news_url,
+    'image'            => VG_BASE . '/images/mw/velogrimpe-social-60.webp',
+    'author'           => ['@id' => VG_BASE . '/#organization'],
+    'publisher'        => ['@id' => VG_BASE . '/#organization'],
+  ];
+  $date = $newsletter['date_sent'] ?? $newsletter['date_creation'] ?? null;
+  if (!empty($date)) {
+    $article['datePublished'] = substr($date, 0, 10);
+  }
+
+  ob_start();
+  vg_jsonld(
+    vg_organization(),
+    $article,
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'Actualités', 'url' => '/actualites'],
+      ['name' => $newsletter['title'], 'url' => $news_url],
+    ])
+  );
+  $jsonld = ob_get_clean();
+
+  return str_replace('</head>', $jsonld . '</head>', $html);
 }

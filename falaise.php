@@ -9,6 +9,7 @@ if (empty($falaise_id)) {
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 
 $stmtF = $mysqli->prepare("SELECT * FROM falaises WHERE falaise_id = ?");
 if (!$stmtF) {
@@ -226,6 +227,57 @@ $stmtC->close();
   <script async defer src="/js/pv.js"></script>
   <link rel="stylesheet" href="/global.css">
   <link rel="stylesheet" href="falaise.css">
+  <?php
+  // --- Données structurées JSON-LD ---
+  $jsonld_url = VG_BASE . '/falaise.php?falaise_id=' . $falaise_id . ($ville_id_get ? '&ville_id=' . $ville_id_get : '');
+  $jsonld_desc = 'Escalade à ' . $falaise_nom
+    . ($ville_id_get && $selected_ville_nom ? ' au départ de ' . $selected_ville_nom : '')
+    . '. Découvrez les accès en vélo et en train, les topos et les informations pratiques pour une sortie vélo-grimpe en mobilité douce.';
+
+  $img1_path = '/bdd/images_falaises/' . $falaise_id . '_' . $falaise_nomformate . '_img1.webp';
+  $jsonld_image = file_exists($_SERVER['DOCUMENT_ROOT'] . $img1_path)
+    ? VG_BASE . $img1_path
+    : VG_BASE . '/images/mw/velogrimpe-social-60.webp';
+
+  $attraction = [
+    '@type'              => 'TouristAttraction',
+    'name'               => 'Escalade à ' . $falaise_nom,
+    'description'        => $jsonld_desc,
+    'url'                => $jsonld_url,
+    'image'              => $jsonld_image,
+    'isAccessibleForFree' => true,
+    'touristType'        => 'Escalade / Climbing',
+    'geo'                => [
+      '@type'     => 'GeoCoordinates',
+      'latitude'  => (float) $lat,
+      'longitude' => (float) $lng,
+    ],
+  ];
+  $falaise_deptname = $dataF['falaise_deptname'] ?? null;
+  if (!empty($falaise_deptname)) {
+    $attraction['address'] = [
+      '@type'          => 'PostalAddress',
+      'addressRegion'  => $falaise_deptname,
+      'addressCountry' => 'FR',
+    ];
+  }
+
+  if ($ville_id_get && $selected_ville_nom) {
+    $breadcrumb = vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => $selected_ville_nom, 'url' => '/tableau.php?ville_id=' . $ville_id_get],
+      ['name' => 'Escalade à ' . $falaise_nom, 'url' => $jsonld_url],
+    ]);
+  } else {
+    $breadcrumb = vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'Carte', 'url' => '/carte.php'],
+      ['name' => 'Escalade à ' . $falaise_nom, 'url' => $jsonld_url],
+    ]);
+  }
+
+  vg_jsonld(vg_organization(), $attraction, $breadcrumb);
+  ?>
 </head>
 
 <body>

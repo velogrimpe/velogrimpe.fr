@@ -66,6 +66,7 @@ $nextUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
   <meta charset="UTF-8" />
   <title>Éditer les détails - <?= htmlspecialchars($falaise['falaise_nom']) ?> - Vélogrimpe.fr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Éditeur de détails de falaise - secteurs, parkings, approches">
   <!-- Map libraries bundle (Leaflet, Fullscreen, Geoman, GPX, Turf) -->
   <?php map_bundle_js('map'); ?>

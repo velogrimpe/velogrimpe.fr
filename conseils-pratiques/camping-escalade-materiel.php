@@ -1,4 +1,5 @@
 <?php require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 $title = 'Conseils pratiques : camping, matériel etc.  - Velogrimpe.fr';
 $description = 'Conseils pratiques pour le vélogrimpe : Checklist du matériel à emporter, conseils pour le bivouac, etc.';
 ?>
@@ -25,6 +26,27 @@ $description = 'Conseils pratiques pour le vélogrimpe : Checklist du matériel 
   <script async defer src="/js/pv.js"></script>
   <link rel="stylesheet" href="/global.css" />
   <link rel="manifest" href="/site.webmanifest" />
+  <?php
+  $cp_url = VG_BASE . '/conseils-pratiques/' . basename(__FILE__);
+  $cp_name = preg_replace('/\s*-\s*Velogrimpe\.fr$/i', '', $title);
+  vg_jsonld(
+    vg_organization(),
+    [
+      '@type'            => 'Article',
+      'headline'         => $cp_name,
+      'description'      => $description,
+      'url'              => $cp_url,
+      'mainEntityOfPage' => $cp_url,
+      'image'            => VG_BASE . '/images/mw/0026-velo-social-20.webp',
+      'author'           => ['@id' => VG_BASE . '/#organization'],
+      'publisher'        => ['@id' => VG_BASE . '/#organization'],
+    ],
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => $cp_name, 'url' => $cp_url],
+    ])
+  );
+  ?>
 </head>
 
 <body class="min-h-screen">

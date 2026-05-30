@@ -1,0 +1,9 @@
+@host = http://localhost:4002
+
+### Flux RSS Actualités (articles + newsletters + pages /p/)
+GET {{host}}/feed/actualites.xml
+Accept: application/rss+xml
+
+### Flux RSS Nouveautés (falaises + itinéraires vélo)
+GET {{host}}/feed/nouveautes.xml
+Accept: application/rss+xml

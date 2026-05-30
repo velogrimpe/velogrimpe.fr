@@ -1,4 +1,7 @@
-<?php require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php'; ?>
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
+?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -9,6 +12,8 @@
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://velogrimpe.fr/" />
+  <link rel="alternate" type="application/rss+xml" title="Actualités Vélogrimpe" href="/feed/actualites.xml">
+  <link rel="alternate" type="application/rss+xml" title="Nouveautés Vélogrimpe (falaises &amp; itinéraires)" href="/feed/nouveautes.xml">
   <meta name="description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
   <meta property="og:locale" content="fr_FR">
@@ -31,6 +36,10 @@
   <link rel="stylesheet" href="/global.css" />
   <link rel="stylesheet" href="./index.css" />
   <link rel="manifest" href="./site.webmanifest" />
+  <?php
+  // --- Données structurées JSON-LD (déclaration canonique de l'entité) ---
+  vg_jsonld(vg_organization(), vg_website());
+  ?>
 </head>
 
 <body>

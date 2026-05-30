@@ -2,6 +2,7 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . "/database/velogrimpe.php";
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 
 $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
 ?>
@@ -58,6 +59,28 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
       margin: 0 !important;
     }
   </style>
+  <?php
+  $article_url = VG_BASE . '/articles/' . basename(__FILE__);
+  vg_jsonld(
+    vg_organization(),
+    [
+      '@type'            => 'Article',
+      'headline'         => 'Falaises prioritaires',
+      'description'      => "Falaises proches d'une gare en France. 1134 falaises à moins de 6 km d'une gare SNCF.",
+      'url'              => $article_url,
+      'mainEntityOfPage' => $article_url,
+      'image'            => VG_BASE . '/images/articles/2025-10-18-falaises-prioritaires-velogrimpe/falaises-prioritaires.webp',
+      'datePublished'    => '2025-10-18',
+      'author'           => ['@id' => VG_BASE . '/#organization'],
+      'publisher'        => ['@id' => VG_BASE . '/#organization'],
+    ],
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'Actualités', 'url' => '/actualites'],
+      ['name' => 'Falaises prioritaires', 'url' => $article_url],
+    ])
+  );
+  ?>
 </head>
 
 <body>

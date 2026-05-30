@@ -18,6 +18,7 @@ $gares = $mysqli->query("SELECT gare_id, gare_nom FROM gares WHERE deleted = 0 O
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>Proposer une sortie - Vélogrimpe.fr</title>
   <?php vite_css('main'); ?>
   <!-- Pageviews -->

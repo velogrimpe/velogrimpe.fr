@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -34,6 +35,28 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
   <link rel="stylesheet" href="/global.css" />
   <link rel="stylesheet" href="./index.css" />
   <link rel="manifest" href="./site.webmanifest" />
+  <?php
+  $article_url = VG_BASE . '/articles/' . basename(__FILE__);
+  vg_jsonld(
+    vg_organization(),
+    [
+      '@type'            => 'Article',
+      'headline'         => 'Vélogrimpe.fr x Un Col ou Un Pic',
+      'description'      => "Présentation d'Un Col ou un Pic, une agence spécialisée dans les stages d'escalade en mobilité douce à vélo.",
+      'url'              => $article_url,
+      'mainEntityOfPage' => $article_url,
+      'image'            => VG_BASE . '/images/articles/2025-10-29-presentation-un-col-ou-un-pic/velogrimpe-x-uncolunpic.webp',
+      'datePublished'    => '2025-10-29',
+      'author'           => ['@id' => VG_BASE . '/#organization'],
+      'publisher'        => ['@id' => VG_BASE . '/#organization'],
+    ],
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'Actualités', 'url' => '/actualites'],
+      ['name' => 'Vélogrimpe.fr x Un Col ou Un Pic', 'url' => $article_url],
+    ])
+  );
+  ?>
 </head>
 
 <body>

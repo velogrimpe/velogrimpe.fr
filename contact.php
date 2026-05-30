@@ -1,4 +1,7 @@
-<?php require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php'; ?>
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
+?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
@@ -11,6 +14,21 @@
   <script async defer src="/js/pv.js"></script>
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
+  <?php
+  vg_jsonld(
+    vg_organization(),
+    [
+      '@type'    => 'ContactPage',
+      'name'     => 'Contact - Vélogrimpe.fr',
+      'url'      => VG_BASE . '/contact.php',
+      'isPartOf' => ['@id' => VG_BASE . '/#website'],
+    ],
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'Contact', 'url' => '/contact.php'],
+    ])
+  );
+  ?>
 </head>
 
 <body class="min-h-screen flex flex-col">

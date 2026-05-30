@@ -2,6 +2,7 @@
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $email = $config['contact_mail'];
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -30,6 +31,22 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
   <script async defer src="/js/pv.js"></script>
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
+  <?php
+  vg_jsonld(
+    vg_organization(),
+    [
+      '@type'       => 'WebPage',
+      'name'        => 'Contribuer - Vélogrimpe.fr',
+      'description' => "Escalade en mobilité douce à vélo et en train. Contribuez aux topos d'accès vélo + train pour se rendre en falaise.",
+      'url'         => VG_BASE . '/contribuer.php',
+      'isPartOf'    => ['@id' => VG_BASE . '/#website'],
+    ],
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'Contribuer', 'url' => '/contribuer.php'],
+    ])
+  );
+  ?>
 </head>
 
 <body class="min-h-screen">

@@ -109,6 +109,31 @@ $nouvellesFalaises = [
       text-decoration: underline;
     }
   </style>
+  <?php
+  require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
+  $news_url = VG_BASE . '/actualites/' . basename(__FILE__);
+  $news_article = [
+    '@type'            => 'Article',
+    'headline'         => $page_title,
+    'description'      => $description,
+    'url'              => $news_url,
+    'mainEntityOfPage' => $news_url,
+    'author'           => ['@id' => VG_BASE . '/#organization'],
+    'publisher'        => ['@id' => VG_BASE . '/#organization'],
+  ];
+  if (preg_match('/^(\d{4})-(\d{2})/', $slug, $m)) {
+    $news_article['datePublished'] = $m[1] . '-' . $m[2] . '-01';
+  }
+  vg_jsonld(
+    vg_organization(),
+    $news_article,
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'Actualités', 'url' => '/actualites'],
+      ['name' => $page_title, 'url' => $news_url],
+    ])
+  );
+  ?>
 </head>
 
 <body style="<?= $bodyStyle ?>">

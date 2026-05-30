@@ -39,6 +39,7 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Confirmation d'ajout d'itinéraire vélo - Vélogrimpe.fr">
   <title>Itinéraire ajouté - <?= $gare_nom ?> → <?= $falaise_nom ?> - Vélogrimpe.fr</title>
   <?php vite_css('main'); ?>

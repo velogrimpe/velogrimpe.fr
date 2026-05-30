@@ -1,9 +1,18 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 
 // Load villes for filter
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
+
+// Sorties à venir (pour le JSON-LD ItemList)
+$sorties_avenir = $mysqli->query("
+  SELECT sortie_id, falaise_principale_nom, date_debut, date_fin
+  FROM sorties
+  WHERE sortie_public = 1 AND (date_fin >= CURDATE() OR (date_fin IS NULL AND date_debut >= CURDATE()))
+  ORDER BY date_debut ASC
+")->fetch_all(MYSQLI_ASSOC);
 
 $meta_title = "Sorties - Vélogrimpe.fr";
 $meta_description = "Proposez ou rejoignez des sorties d'escalade en mobilité douce. Trouvez votre binôme pour la journée ou un groupe pour partir à la semaine.";
@@ -37,6 +46,36 @@ $meta_description = "Proposez ou rejoignez des sorties d'escalade en mobilité d
   <link rel="stylesheet" href="/global.css" />
   <!-- Vue Component Styles -->
   <?php vite_css('sorties'); ?>
+  <?php
+  // --- Données structurées JSON-LD ---
+  $sorties_items = [];
+  foreach ($sorties_avenir as $i => $s) {
+    $sorties_items[] = [
+      '@type'    => 'ListItem',
+      'position' => $i + 1,
+      'item'     => [
+        '@type'     => 'Event',
+        'name'      => 'Sortie Vélogrimpe à ' . $s['falaise_principale_nom'],
+        'startDate' => $s['date_debut'],
+        'url'       => VG_BASE . '/sortie.php?sortie_id=' . $s['sortie_id'],
+      ],
+    ];
+  }
+
+  $sorties_list = [
+    '@type'           => 'ItemList',
+    'name'            => 'Sorties Vélogrimpe à venir',
+    'numberOfItems'   => count($sorties_items),
+    'itemListElement' => $sorties_items,
+  ];
+
+  $breadcrumb = vg_breadcrumb([
+    ['name' => 'Accueil', 'url' => '/'],
+    ['name' => 'Sorties', 'url' => '/sorties.php'],
+  ]);
+
+  vg_jsonld(vg_organization(), $sorties_list, $breadcrumb);
+  ?>
 </head>
 
 <body>

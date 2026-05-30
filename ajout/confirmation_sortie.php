@@ -47,6 +47,7 @@ if ($sortie['date_fin']) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>Sortie publiée - Vélogrimpe.fr</title>
   <?php vite_css('main'); ?>
   <!-- Pageviews -->

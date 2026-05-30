@@ -36,6 +36,7 @@ function calculate_time($distance_km, $elevation_m, $velo_apieduniquement)
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 
 $ville_id = (int) $ville_id;
 $ville = $mysqli->query("SELECT ville_nom FROM villes WHERE ville_id = $ville_id")->fetch_assoc();
@@ -148,6 +149,47 @@ $stmt->close();
   <link rel="manifest" href="/site.webmanifest" />
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
+  <?php
+  // --- Données structurées JSON-LD ---
+  $tableau_url = VG_BASE . '/tableau.php?ville_id=' . $ville_id;
+  $ville_nom = $ville['ville_nom'] ?? '';
+
+  $list_items = [];
+  $pos = 0;
+  foreach (array_values($falaises) as $rows) {
+    $first = $rows[0] ?? null;
+    if (!$first) {
+      continue;
+    }
+    $pos++;
+    $list_items[] = [
+      '@type'    => 'ListItem',
+      'position' => $pos,
+      'name'     => $first['falaise_nom'],
+      'url'      => VG_BASE . '/falaise.php?falaise_id=' . $first['falaise_id'] . '&ville_id=' . $ville_id,
+    ];
+  }
+
+  $collection = [
+    '@type'       => 'CollectionPage',
+    'name'        => 'Falaises accessibles à vélo + train au départ de ' . $ville_nom,
+    'description' => 'Sorties escalade au départ de ' . $ville_nom . '. ' . count($falaises) . ' falaises décrites avec accès vélo-train.',
+    'url'         => $tableau_url,
+    'isPartOf'    => ['@id' => VG_BASE . '/#website'],
+    'mainEntity'  => [
+      '@type'           => 'ItemList',
+      'numberOfItems'   => count($list_items),
+      'itemListElement' => $list_items,
+    ],
+  ];
+
+  $breadcrumb = vg_breadcrumb([
+    ['name' => 'Accueil', 'url' => '/'],
+    ['name' => $ville_nom, 'url' => '/tableau.php?ville_id=' . $ville_id],
+  ]);
+
+  vg_jsonld(vg_organization(), $collection, $breadcrumb);
+  ?>
 </head>
 
 <body class="min-h-screen">

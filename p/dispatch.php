@@ -52,6 +52,7 @@ if ($slash_pos !== false) {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -73,6 +74,31 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
   <script async defer src="/js/pv.js"></script>
   <link rel="stylesheet" href="/global.css" />
   <link rel="manifest" href="/site.webmanifest" />
+  <?php
+  // --- Données structurées JSON-LD ---
+  $page_url = VG_BASE . '/p/' . $page['slug'];
+  $article = [
+    '@type'            => 'Article',
+    'headline'         => $page['title'],
+    'mainEntityOfPage' => $page_url,
+    'url'              => $page_url,
+    'author'           => ['@id' => VG_BASE . '/#organization'],
+    'publisher'        => ['@id' => VG_BASE . '/#organization'],
+  ];
+  if (!empty($page['description'])) {
+    $article['description'] = $page['description'];
+  }
+  if (!empty($og_image)) {
+    $article['image'] = vg_url($og_image);
+  }
+
+  $breadcrumb = vg_breadcrumb([
+    ['name' => 'Accueil', 'url' => '/'],
+    ['name' => $page['title'], 'url' => '/p/' . $page['slug']],
+  ]);
+
+  vg_jsonld(vg_organization(), $article, $breadcrumb);
+  ?>
 </head>
 
 <body class="flex flex-col min-h-screen">

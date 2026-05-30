@@ -52,6 +52,7 @@ if ($falaise_id) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <title><?= $falaise_id ? "Modifier" : "Ajouter" ?> une falaise - Vélogrimpe.fr</title>
   <!-- Map libraries bundle (Leaflet, Fullscreen, Locate) -->
   <?php map_bundle_js('map'); ?>

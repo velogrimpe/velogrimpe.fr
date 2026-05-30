@@ -1,6 +1,7 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 
 // Get sortie_id from URL
 $sortie_id = isset($_GET['sortie_id']) && !empty($_GET['sortie_id']) ? intval($_GET['sortie_id']) : null;
@@ -78,6 +79,34 @@ $title = "Sortie Vélogrimpe du {$date_formatted} à " . htmlspecialchars($sorti
   <link rel="stylesheet" href="/global.css" />
   <!-- Vue Component Styles -->
   <?php vite_css('sortie-details'); ?>
+  <?php
+  // --- Données structurées JSON-LD ---
+  $sortie_url = VG_BASE . '/sortie.php?sortie_id=' . $sortie_id;
+  $event = [
+    '@type'                => 'Event',
+    'name'                 => 'Sortie Vélogrimpe du ' . $date_formatted . ' à ' . $sortie['falaise_principale_nom'],
+    'startDate'            => $sortie['date_debut'],
+    'eventAttendanceMode'  => 'https://schema.org/OfflineEventAttendanceMode',
+    'eventStatus'          => 'https://schema.org/EventScheduled',
+    'url'                  => $sortie_url,
+    'description'          => !empty($sortie['description']) ? $sortie['description'] : $meta_description,
+    'image'                => VG_BASE . '/images/mw/sortie-social.webp',
+    'location'             => [
+      '@type'   => 'Place',
+      'name'    => $sortie['falaise_principale_nom'],
+      'address' => [
+        '@type'          => 'PostalAddress',
+        'addressCountry' => 'FR',
+      ],
+    ],
+    'organizer'            => ['@id' => VG_BASE . '/#organization'],
+  ];
+  if (!empty($sortie['is_multi_day']) && !empty($sortie['date_fin'])) {
+    $event['endDate'] = $sortie['date_fin'];
+  }
+
+  vg_jsonld(vg_organization(), $event);
+  ?>
 </head>
 
 <body>
