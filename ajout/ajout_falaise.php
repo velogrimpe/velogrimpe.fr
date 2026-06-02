@@ -420,11 +420,6 @@ if ($falaise_id) {
               </label>
             </div>
             <label class="label cursor-pointer flex items-center gap-2 p-0">
-              <input type="radio" name="falaise_type_grimpe" class="radio radio-primary radio-sm" value="gv"
-                id="falaise_type_gv" />
-              <span>Grandes voies &ge; 3 longueurs</span>
-            </label>
-            <label class="label cursor-pointer flex items-center gap-2 p-0">
               <input type="radio" name="falaise_type_grimpe" class="radio radio-primary radio-sm" value="bloc"
                 id="falaise_type_bloc" />
               <span>Bloc</span>
@@ -440,6 +435,11 @@ if ($falaise_id) {
 
           <i class="text-slate-400 text-sm"> Remarque : Si plusieurs type d'escalade sur la falaise, indiquer le style
             prépondérant et préciser la répartition dans les descriptions.</i>
+
+          <label class="label cursor-pointer flex items-center gap-2 p-0 mt-3">
+            <input type="checkbox" class="checkbox checkbox-primary checkbox-sm" id="falaise_has_gv" />
+            <span>Y a-t-il des grandes voies &ge; 3 longueurs ?</span>
+          </label>
         </div>
         <input type="hidden" id="falaise_bloc" name="falaise_bloc" value="0" />
         <div>
@@ -544,6 +544,7 @@ if ($falaise_id) {
           const radios = document.querySelectorAll('input[name="falaise_type_grimpe"]');
           const blocInput = document.getElementById('falaise_bloc');
           const gvFields = document.getElementById('falaise_gv_fields');
+          const gvCheckbox = document.getElementById('falaise_has_gv');
           const gvnb = document.getElementById('falaise_gvnb');
           const form = document.getElementById('form');
 
@@ -554,18 +555,19 @@ if ($falaise_id) {
 
           function applyState() {
             const type = getSelectedType();
-            const isGv = type === 'gv';
-            gvFields.classList.toggle('hidden', !isGv);
-            gvFields.classList.toggle('flex', isGv);
+            const hasGv = gvCheckbox.checked;
+            gvFields.classList.toggle('hidden', !hasGv);
+            gvFields.classList.toggle('flex', hasGv);
             blocInput.value = type === 'psychobloc' ? '2'
               : type === 'bloc' ? '1'
                 : '0';
           }
 
           radios.forEach(r => r.addEventListener('change', applyState));
+          gvCheckbox.addEventListener('change', applyState);
 
           form.addEventListener('submit', () => {
-            if (getSelectedType() !== 'gv') {
+            if (!gvCheckbox.checked) {
               if (window.setRichText) window.setRichText('falaise_gvtxt', '');
               gvnb.value = '';
             }
@@ -577,6 +579,11 @@ if ($falaise_id) {
               radio.checked = true;
               applyState();
             }
+          };
+
+          window.setFalaiseHasGv = function (hasGv) {
+            gvCheckbox.checked = !!hasGv;
+            applyState();
           };
         })();
       </script>
@@ -878,8 +885,9 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           || (falaise.falaise_gvnb && String(falaise.falaise_gvnb).trim() !== '');
         const typeGrimpe = blocVal === '1' ? 'bloc'
           : blocVal === '2' ? 'psychobloc'
-            : hasGv ? 'gv' : 'couenne';
+            : 'couenne';
         if (window.setFalaiseTypeGrimpe) window.setFalaiseTypeGrimpe(typeGrimpe);
+        if (window.setFalaiseHasGv) window.setFalaiseHasGv(hasGv);
         if (window.setRichText) window.setRichText('falaise_rq', falaise.falaise_rq || '');
         if (window.setRichText) window.setRichText('falaise_hebergement', falaise.falaise_hebergement || '');
         if (window.setRichText) window.setRichText('falaise_acces_bus', falaise.falaise_acces_bus || '');
