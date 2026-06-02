@@ -16,7 +16,7 @@ $resF = $mysqli->query(
      FROM falaises
      WHERE falaise_public >= 1 AND date_creation IS NOT NULL
      ORDER BY date_creation DESC
-     LIMIT 100"
+     LIMIT 20"
 );
 if ($resF) {
     while ($r = $resF->fetch_assoc()) {
@@ -56,7 +56,7 @@ $resV = $mysqli->query(
      LEFT JOIN falaises f ON v.falaise_id = f.falaise_id
      WHERE v.velo_public = 1 AND v.date_creation IS NOT NULL
      ORDER BY v.date_creation DESC
-     LIMIT 100"
+     LIMIT 20"
 );
 if ($resV) {
     while ($r = $resV->fetch_assoc()) {
@@ -79,9 +79,9 @@ if ($resV) {
     }
 }
 
-// Tri par date décroissante, limité aux 100 items les plus récents.
+// Tri par date décroissante, limité aux 20 items les plus récents.
 usort($items, fn($a, $b) => $b['date'] <=> $a['date']);
-$items = array_slice($items, 0, 100);
+$items = array_slice($items, 0, 20);
 
 render_rss([
     'title' => 'Vélogrimpe.fr — Nouveautés (falaises & itinéraires)',

@@ -82,28 +82,29 @@ foreach ($champs as $key => &$val) {
   $val = trim($_POST[$key] ?? $val);
 }
 
-// Contrôle anti-script sur les champs affichés sans htmlspecialchars
-$champs_html = array_merge(
-  ['falaise_topo' => $falaise_topo, 'falaise_matxt' => $falaise_matxt],
-  array_intersect_key($champs, array_flip([
-    'falaise_fermee',
-    'falaise_gvtxt',
-    'falaise_rq',
-    'falaise_hebergement',
-    'falaise_acces_bus',
-    'falaise_txt1',
-    'falaise_txt2',
-    'falaise_txt3',
-    'falaise_txt4',
-    'falaise_leg1',
-    'falaise_leg2',
-    'falaise_leg3',
-  ]))
-);
-foreach ($champs_html as $nom => $valeur) {
-  if ($valeur && preg_match('/<\s*script/i', $valeur)) {
-    http_response_code(400);
-    die(json_encode(["error" => "Le champ $nom contient un tag script interdit."]));
+// Sanitisation HTML des champs riches (éditeur TipTap), affichés sans htmlspecialchars.
+// Allowlist stricte : p, br, strong/b, em/i, s, u, a[href], ul, li (voir lib/richtext.php).
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/richtext.php';
+
+$falaise_topo = rt_sanitize_html($falaise_topo);
+$falaise_matxt = rt_sanitize_html($falaise_matxt);
+
+foreach ([
+  'falaise_fermee',
+  'falaise_gvtxt',
+  'falaise_rq',
+  'falaise_hebergement',
+  'falaise_acces_bus',
+  'falaise_txt1',
+  'falaise_txt2',
+  'falaise_txt3',
+  'falaise_txt4',
+  'falaise_leg1',
+  'falaise_leg2',
+  'falaise_leg3',
+] as $champ) {
+  if (array_key_exists($champ, $champs)) {
+    $champs[$champ] = rt_sanitize_html($champs[$champ]);
   }
 }
 

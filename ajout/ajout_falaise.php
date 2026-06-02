@@ -525,8 +525,7 @@ if ($falaise_id) {
           </div>
           <label class="form-control" for="falaise_gvtxt">
             <b class="">Grandes voies - Texte descriptif. <span class="text-error">Important pour les GV !</span></b>
-            <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_gvtxt" name="falaise_gvtxt"
-              rows="2" placeholder="ex : 10 grandes voies, de PD+ à AD+."></textarea>
+            <div class="vue-richtext" data-name="falaise_gvtxt"></div>
             <i class="text-slate-400 text-sm"> Indiquez s'il y a des grandes voies, et si oui, combien environ, de
               combien à combien de longueurs, jusqu'à quelle hauteur max, éventuellement donner les cotations... </i>
           </label>
@@ -545,7 +544,6 @@ if ($falaise_id) {
           const radios = document.querySelectorAll('input[name="falaise_type_grimpe"]');
           const blocInput = document.getElementById('falaise_bloc');
           const gvFields = document.getElementById('falaise_gv_fields');
-          const gvtxt = document.getElementById('falaise_gvtxt');
           const gvnb = document.getElementById('falaise_gvnb');
           const form = document.getElementById('form');
 
@@ -568,7 +566,7 @@ if ($falaise_id) {
 
           form.addEventListener('submit', () => {
             if (getSelectedType() !== 'gv') {
-              gvtxt.value = '';
+              if (window.setRichText) window.setRichText('falaise_gvtxt', '');
               gvnb.value = '';
             }
           });
@@ -633,8 +631,7 @@ if ($falaise_id) {
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
         <label class="form-control" for="falaise_matxt">
           <b>Marche d'approche - Texte descriptif</b>
-          <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_matxt" name="falaise_matxt"
-            rows="3" placeholder="ex : 10' aller, 15' retour, montée raide." required></textarea>
+          <div class="vue-richtext" data-name="falaise_matxt"></div>
           <i class="text-slate-400 text-sm"> Petit texte décrivant la marche d'approche. Ex : "10' en montée", "10'
             aller, 7' retour",... </i>
         </label>
@@ -667,8 +664,7 @@ if ($falaise_id) {
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
         <label class="form-control" for="falaise_topo">
           <b>Topo(s)</b>
-          <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_topo" name="falaise_topo"
-            rows="2" required></textarea>
+          <div class="vue-richtext" data-name="falaise_topo"></div>
           <i class="text-slate-400 text-sm"> Lister les différents topos présentant la falaise.<br> Optionnel : ajouter
             un lien vers la fiche Climbing Away de la falaise. Pour cela, copiez le code &lt;a href="URL"&gt;Fiche
             Climbing Away&lt;/a&gt;, en remplaçant "URL" par l'URL de la fiche.<br> Exemple : "Escalade dans le Jura -
@@ -677,23 +673,18 @@ if ($falaise_id) {
         </label>
         <label class="form-control" for="falaise_rq">
           <b class="">Remarque(s) falaise <span class="text-accent opacity-50">(optionnel)</span></b>
-          <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_rq" name="falaise_rq" rows="2"
-            placeholder="ex : falaise abritée de la pluie."></textarea>
+          <div class="vue-richtext" data-name="falaise_rq"></div>
           <i class="text-slate-400 text-sm">A compléter si vous avez des informations additionnelles sur la falaise.</i>
         </label>
         <label class="form-control" for="falaise_hebergement">
           <b class="">Infos Hébergements <span class="text-accent opacity-50">(optionnel)</span></b>
-          <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_hebergement"
-            name="falaise_hebergement" rows="2"
-            placeholder="ex : camping municipal à 1km, refuge gardé en saison."></textarea>
+          <div class="vue-richtext" data-name="falaise_hebergement"></div>
           <i class="text-slate-400 text-sm">Informations sur les possibilités d'hébergement à proximité (campings,
             refuges, gîtes...).</i>
         </label>
         <label class="form-control" for="falaise_acces_bus">
           <b class="">Accès en bus <span class="text-accent opacity-50">(optionnel)</span></b>
-          <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_acces_bus"
-            name="falaise_acces_bus" rows="2"
-            placeholder="ex : ligne 12 depuis la gare, arrêt à 500m de la falaise."></textarea>
+          <div class="vue-richtext" data-name="falaise_acces_bus"></div>
           <i class="text-slate-400 text-sm">Informations sur les accès en transports en commun (bus, navettes...) depuis
             la gare ou les villes proches.</i>
         </label>
@@ -724,8 +715,7 @@ if ($falaise_id) {
           <label class="form-control" for="falaise_fermee">
             <b class="">Si la falaise est fermée / interdite, explication <span
                 class="text-accent opacity-50">(optionnel)</span></b>
-            <textarea class="textarea textarea-sm leading-6" id="falaise_fermee" name="falaise_fermee" rows="2"
-              placeholder="ex : Falaise interdite, en cours de conventionnement."></textarea>
+            <div class="vue-richtext" data-name="falaise_fermee"></div>
             <i class="text-slate-400 text-sm">A compléter si vous avez des informations sur la cause de l'interdiction
               ou les perspectives de réouverture.</i>
           </label>
@@ -734,7 +724,7 @@ if ($falaise_id) {
             <span>
               <b class="">Remarques diverses <span class="text-accent opacity-50">(optionnel)</span></b>
               <span class="admin text-xs text-accent">[falaise_txt2]</span></span>
-            <textarea class="textarea textarea-sm leading-6" id="falaise_txt2" name="falaise_txt2" rows="3"></textarea>
+            <div class="vue-richtext" data-name="falaise_txt2"></div>
             <i class="text-slate-400 text-sm">Remarques non incluses dans le tableau descriptif. Typiquement utilisé
               pour décrire les différents secteurs, les modalités de bivouac, camping.</i>
           </label>
@@ -746,7 +736,7 @@ if ($falaise_id) {
               (apparaitra entre le tableau des itinéraires et celui de la falaise). <span
                 class="admin text-xs text-accent">[falaise_txt1]</span>
             </span>
-            <textarea class="textarea textarea-sm leading-6" id="falaise_txt1" name="falaise_txt1" rows="3"></textarea>
+            <div class="vue-richtext" data-name="falaise_txt1"></div>
             <i class="text-slate-400 text-sm">Exemple: remarque optionnelle générale sur l’accès falaise, qui s’affiche
               quelle que soit la ville de départ</i>
           </label>
@@ -766,13 +756,13 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
             <b class="">Légende image 1 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent"> [falaise_leg1] </span>
           </span>
-          <textarea class="textarea textarea-sm leading-6" id="falaise_leg1" name="falaise_leg1" rows="2"></textarea>
+          <div class="vue-richtext" data-name="falaise_leg1"></div>
         </label>
         <label class="form-control" for="falaise_txt3">
           <span>
             <b class="">Texte 1 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_txt3]</span></span>
-          <textarea class="textarea textarea-sm leading-6" id="falaise_txt3" name="falaise_txt3" rows="5"></textarea>
+          <div class="vue-richtext" data-name="falaise_txt3"></div>
         </label>
         <label class="form-control" for="falaise_img2">
           <b class="">Image 2 <span class="text-accent opacity-50">(optionnel)</span></b>
@@ -785,13 +775,13 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           <span>
             <b class="">Légende image 2 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_leg2]</span></span>
-          <textarea class="textarea textarea-sm leading-6" id="falaise_leg2" name="falaise_leg2" rows="2"></textarea>
+          <div class="vue-richtext" data-name="falaise_leg2"></div>
         </label>
         <label class="form-control" for="falaise_txt4">
           <span>
             <b class="">Texte 2 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_txt4]</span></span>
-          <textarea class="textarea textarea-sm leading-6" id="falaise_txt4" name="falaise_txt4" rows="5"></textarea>
+          <div class="vue-richtext" data-name="falaise_txt4"></div>
         </label>
         <label class="form-control" for="falaise_img3">
           <b class="">Image 3 <span class="text-accent opacity-50">(optionnel)</span></b>
@@ -804,7 +794,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           <span>
             <b class="">Légende image 3 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_leg3]</span></span>
-          <textarea class="textarea textarea-sm leading-6" id="falaise_leg3" name="falaise_leg3" rows="2"></textarea>
+          <div class="vue-richtext" data-name="falaise_leg3"></div>
         </label>
       </div>
       <hr class="my-4">
@@ -877,11 +867,11 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         if (window.setExpo2Value) window.setExpo2Value(falaise.falaise_exposhort2 || '');
         document.getElementById("falaise_voies").value = falaise.falaise_voies;
         document.getElementById("falaise_nbvoies").value = falaise.falaise_nbvoies;
-        document.getElementById("falaise_topo").value = falaise.falaise_topo;
-        document.getElementById("falaise_matxt").value = falaise.falaise_matxt;
+        if (window.setRichText) window.setRichText('falaise_topo', falaise.falaise_topo || '');
+        if (window.setRichText) window.setRichText('falaise_matxt', falaise.falaise_matxt || '');
         document.getElementById("falaise_maa").value = falaise.falaise_maa;
         document.getElementById("falaise_mar").value = falaise.falaise_mar;
-        document.getElementById("falaise_gvtxt").value = falaise.falaise_gvtxt || '';
+        if (window.setRichText) window.setRichText('falaise_gvtxt', falaise.falaise_gvtxt || '');
         document.getElementById("falaise_gvnb").value = falaise.falaise_gvnb || '';
         const blocVal = String(falaise.falaise_bloc ?? '0');
         const hasGv = (falaise.falaise_gvtxt && String(falaise.falaise_gvtxt).trim() !== '')
@@ -890,17 +880,17 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           : blocVal === '2' ? 'psychobloc'
             : hasGv ? 'gv' : 'couenne';
         if (window.setFalaiseTypeGrimpe) window.setFalaiseTypeGrimpe(typeGrimpe);
-        document.getElementById("falaise_rq").value = falaise.falaise_rq;
-        document.getElementById("falaise_hebergement").value = falaise.falaise_hebergement || '';
-        document.getElementById("falaise_acces_bus").value = falaise.falaise_acces_bus || '';
-        document.getElementById("falaise_txt1").value = falaise.falaise_txt1;
-        document.getElementById("falaise_txt2").value = falaise.falaise_txt2;
-        document.getElementById("falaise_leg1").value = falaise.falaise_leg1;
-        document.getElementById("falaise_txt3").value = falaise.falaise_txt3;
-        document.getElementById("falaise_leg2").value = falaise.falaise_leg2;
-        document.getElementById("falaise_txt4").value = falaise.falaise_txt4;
-        document.getElementById("falaise_leg3").value = falaise.falaise_leg3;
-        document.getElementById("falaise_fermee").value = falaise.falaise_fermee;
+        if (window.setRichText) window.setRichText('falaise_rq', falaise.falaise_rq || '');
+        if (window.setRichText) window.setRichText('falaise_hebergement', falaise.falaise_hebergement || '');
+        if (window.setRichText) window.setRichText('falaise_acces_bus', falaise.falaise_acces_bus || '');
+        if (window.setRichText) window.setRichText('falaise_txt1', falaise.falaise_txt1 || '');
+        if (window.setRichText) window.setRichText('falaise_txt2', falaise.falaise_txt2 || '');
+        if (window.setRichText) window.setRichText('falaise_leg1', falaise.falaise_leg1 || '');
+        if (window.setRichText) window.setRichText('falaise_txt3', falaise.falaise_txt3 || '');
+        if (window.setRichText) window.setRichText('falaise_leg2', falaise.falaise_leg2 || '');
+        if (window.setRichText) window.setRichText('falaise_txt4', falaise.falaise_txt4 || '');
+        if (window.setRichText) window.setRichText('falaise_leg3', falaise.falaise_leg3 || '');
+        if (window.setRichText) window.setRichText('falaise_fermee', falaise.falaise_fermee || '');
         document.getElementById("falaise_voletcarto").value = falaise.falaise_voletcarto;
         document.getElementById("falaise_img1_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img1.webp`;
         document.getElementById("falaise_img2_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img2.webp`;

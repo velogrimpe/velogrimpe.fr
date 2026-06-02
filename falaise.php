@@ -10,6 +10,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/richtext.php';
 
 $stmtF = $mysqli->prepare("SELECT * FROM falaises WHERE falaise_id = ?");
 if (!$stmtF) {
@@ -330,7 +331,7 @@ $stmtC->close();
         <div class="alert text-center flex flex-col items-center">
           <div class="text-error font-bold text-2xl"> FALAISE INTERDITE ! </div>
           <div class="text-error">
-            <?= nl2br($falaise_fermee) ?>
+            <div class="vg-rt"><?= rt_display($falaise_fermee) ?></div>
           </div>
         </div>
       <?php endif; ?>
@@ -423,7 +424,7 @@ $stmtC->close();
                 <img src="/images/icons/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Topo(s)</div> -->
                 <div class="">
-                  <div><?= nl2br($falaise_topo) ?></div>
+                  <div><div class="vg-rt"><?= rt_display($falaise_topo) ?></div></div>
                   <?php if (count($liensOblyk) > 1): ?>
                     <div class="dropdown w-fit">
                       <a tabindex="0" role="button"
@@ -455,14 +456,14 @@ $stmtC->close();
                 <img src="/images/icons/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Approche</div> -->
                 <div class="">Approche :
-                  <?= nl2br(mb_strtolower(substr($falaise_matxt, 0, 1)) . substr($falaise_matxt, 1)) ?>
+                  <?= rt_matxt_display($falaise_matxt) ?>
                 </div>
               <?php endif; ?>
               <?php if (!empty($falaise_gvtxt)): ?>
                 <img src="/images/icons/mountain_color.png" alt=" Grande voies" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Grandes voies</div> -->
                 <div class="">
-                  <?= nl2br($falaise_gvtxt) ?>
+                  <div class="vg-rt"><?= rt_display($falaise_gvtxt) ?></div>
                 </div>
               <?php endif; ?>
               <!-- Rose des vents (Vue component) --> <?php if (!empty($falaise_expotxt)): ?>
@@ -474,17 +475,17 @@ $stmtC->close();
               <?php if (!empty($falaise_rq)): ?>
                 <img src="/images/icons/note_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Remarques</div> -->
-                <div class=""><?= nl2br($falaise_rq) ?></div>
+                <div class=""><div class="vg-rt"><?= rt_display($falaise_rq) ?></div></div>
               <?php endif; ?>
               <?php if (!empty($falaise_hebergement)): ?>
                 <img src="/images/icons/camping.png" alt=" Hébergement" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Hébergement</div> -->
-                <div class=""><?= nl2br($falaise_hebergement) ?></div>
+                <div class=""><div class="vg-rt"><?= rt_display($falaise_hebergement) ?></div></div>
               <?php endif; ?>
               <?php if (!empty($falaise_acces_bus)): ?>
                 <img src="/images/icons/bus.png" alt=" Accès en bus" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Accès en bus</div> -->
-                <div class=""><?= nl2br($falaise_acces_bus) ?></div>
+                <div class=""><div class="vg-rt"><?= rt_display($falaise_acces_bus) ?></div></div>
               <?php endif; ?>
             </div>
           </div>
@@ -493,7 +494,7 @@ $stmtC->close();
       <!-- Texte optionnel 2 (juste après le tableau descriptif) -->
       <?php if (!empty($falaise_txt2)): ?>
         <div>
-          <?= nl2br($falaise_txt2) ?>
+          <div class="vg-rt"><?= rt_display($falaise_txt2) ?></div>
         </div>
       <?php endif; ?>
       <!-- Menu déroulant pour choisir la ville de départ -->
@@ -854,7 +855,7 @@ $stmtC->close();
       <!-- Remarque entre tableaux dynamique et tableau descriptif (rq générale sur l'accès) -->
       <?php if (!empty($falaise_txt1)): ?>
         <div class="vg-a-primary">
-          <?= nl2br($falaise_txt1) ?>
+          <div class="vg-rt"><?= rt_display($falaise_txt1) ?></div>
         </div>
       <?php endif; ?>
       <!-- Remarque spécifique pour l'accès entre une ville V et la falaise F (table rqvillefalaise, champ rqvillefalaise_txt) -->
@@ -890,13 +891,13 @@ $stmtC->close();
         <div class="flex flex-col items-center gap-1">
           <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg1)): ?>
-            <div class="text-base-content"><?= nl2br($falaise_leg1) ?></div>
+            <div class="text-base-content"><div class="vg-rt"><?= rt_display($falaise_leg1) ?></div></div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
       <?php if (!empty($falaise_txt3)): ?>
         <div>
-          <?= nl2br($falaise_txt3) ?>
+          <div class="vg-rt"><?= rt_display($falaise_txt3) ?></div>
         </div>
       <?php endif; ?>
       <!-- Image optionnelle 2 -->
@@ -905,14 +906,14 @@ $stmtC->close();
         <div class="flex flex-col items-center gap-1">
           <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg2)): ?>
-            <div class="text-base-content"><?= nl2br($falaise_leg2) ?></div>
+            <div class="text-base-content"><div class="vg-rt"><?= rt_display($falaise_leg2) ?></div></div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
       <!-- Texte optionnel numéro 4 -->
       <?php if (!empty($falaise_txt4)): ?>
         <div>
-          <?= nl2br($falaise_txt4) ?>
+          <div class="vg-rt"><?= rt_display($falaise_txt4) ?></div>
         </div>
       <?php endif; ?>
       <!-- Image optionnelle 3 -->
@@ -921,7 +922,7 @@ $stmtC->close();
         <div class="flex flex-col items-center gap-1">
           <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg3)): ?>
-            <div class="text-base-content"><?= nl2br($falaise_leg3) ?></div>
+            <div class="text-base-content"><div class="vg-rt"><?= rt_display($falaise_leg3) ?></div></div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
