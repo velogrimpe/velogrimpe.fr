@@ -1,6 +1,10 @@
 #RewriteCond %{HTTPS} off
 #RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 RewriteEngine On
+# Redirection canonique : vélogrimpe.fr (IDN -> punycode) vers velogrimpe.fr
+# Couvre le domaine accentué et son www. Conserve le chemin et la query string.
+RewriteCond %{HTTP_HOST} ^(www\.)?xn--vlogrimpe-b4a\.fr$ [NC]
+RewriteRule ^ https://velogrimpe.fr%{REQUEST_URI} [L,R=301]
 RewriteRule ^ajout/admin/(.*)$ /admin/$1 [R=301,L]
 RewriteRule ^admin/ajout_donnees_admin.php$ /admin/ [R=301,L]
 RewriteRule ^feed/actualites\.xml$ /feed/actualites.php [L]
