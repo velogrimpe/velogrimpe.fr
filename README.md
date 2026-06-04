@@ -65,4 +65,18 @@ Une fois lancé, ce conteneur est synchronisé avec votre dossier local et sert 
 
 ## Partage et réutilisation
 
+### Code
+
 Velogrimpe.fr est un site communautaire visant à promouvoir la mobilité douce pour aller en falaise. Les personnes derrière Velogrimpe.fr sont des bénévoles sans intérêts commerciaux liés au site ou à ses données. Afin de péréniser l'existence du site et des idées qui le sous-tendent, et de permettre des réutilisation pour appliquer le principe à d'autres pratiques outdoor, nous avons décidé de publier le code du site. Ce code est mis à disposition publiquement sous [licence](./LICENCE) `CC BY-NC-SA 4.0`, qui impose la citation, la non-commercialisation et le partage avec la même licence (copyleft).
+
+### Données
+
+Dans une démarche de partage de notre code et du contenu du site, nous avons choisi de diffuser les contenus du site sous des licences libres compatibles avec les autres ressources de références du domaine (OSM, Camp2Camp). Concrètement, cela autorise tout contributeur à copier/coller le contenu d'une fiche falaise issue de C2C (licence CC BY-SA) dans vélogrimpe et inversement.
+
+Les contenus publiés sur velogrimpe.fr sont diffusés sous les licences suivantes :
+
+- **Textes** : [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/deed.fr) → Permet de copier et réutiliser les textes du site sur d'autres supports à licence compatible (ex: C2C) (sauf mention contraire par l'auteur dans la fiche falaise)
+- **Images** : [CC BY-NC-ND](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr) → Utilisation commerciale interdite. Diffusion à l'identique et en citant la source. (sauf licence spécifique précisée par l'auteur dans la légende ou sur l'image)
+- **Données** : [ODbL](https://opendatacommons.org/licenses/odbl/1-0/) et [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/deed.fr) → Compatible OpenStreetMap et C2C, permet de réutiliser les données pour enrichir OSM.
+
+Les données des falaises et de leurs intinéraires peuvent être obtenues [ici](https://velogrimpe.fr/open-data/falaises.geojson) et les détails toutes falaises aggrégées sont accessibles [là](https://velogrimpe.fr/open-data/falaises-details.geojson). Les exports sont quotidiens et fait au cours de la nuit. Toutes les données sont exportées au format GeoJSON, exploitable par exemple directement dans [UMAP](https://umap.openstreetmap.fr/)

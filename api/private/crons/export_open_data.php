@@ -47,6 +47,12 @@ sendEvent($_SERVER['REQUEST_URI'], "vg", "vg-crons", 'event: export-open-data');
 // Cron logic
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
+// Attribution embarquée sur chaque Feature : les membres racine du
+// FeatureCollection ne sont lus par aucun client carto (Leaflet/MapLibre/uMap),
+// alors qu'une propriété de feature survit aux popups uMap, à QGIS/ogr2ogr et
+// aux ré-exports.
+$ATTRIBUTION = '© velogrimpe.fr et contributeurs — CC BY-SA 4.0 / ODbL 1.0';
+
 // Falaises export to geojson
 $falaises = $mysqli->query("SELECT
   falaise_id as id,
@@ -163,6 +169,7 @@ foreach ($falaises as $falaise) {
   $properties = [
     'id' => (int) $falaise['id'],
     'nom' => $falaise['nom'],
+    'attribution' => $ATTRIBUTION,
     'url' => 'https://velogrimpe.fr/falaise.php?falaise_id=' . (int) $falaise['id'],
     'zone' => $falaise['zone'],
     'departement_code' => $falaise['dept'],
@@ -206,14 +213,19 @@ foreach ($falaises as $falaise) {
         if (isset($detail_props['falaise_id'])) {
           $detail_props['voisine_falaise_id'] = $detail_props['falaise_id'];
         }
-        // Prepend the parent falaise_id / falaise_nom (authoritative).
+        // Prepend the parent falaise_id / falaise_nom (authoritative) and the
+        // attribution (overridable order: injected last to stay authoritative).
         $detail_feature['properties'] = array_merge(
           [
             'falaise_id' => (int) $falaise['id'],
             'falaise_nom' => $falaise['nom'],
+            'attribution' => $ATTRIBUTION,
           ],
           $detail_props,
-          ['falaise_id' => (int) $falaise['id']]
+          [
+            'falaise_id' => (int) $falaise['id'],
+            'attribution' => $ATTRIBUTION,
+          ]
         );
         $detailsGeojson['features'][] = $detail_feature;
       }
