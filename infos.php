@@ -71,7 +71,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
         href="https://github.com/velogrimpe/velogrimpe.fr">sur Github</a>.</p>
     <p>Bon train, bon vélo, bonne grimpe !</p>
     <a target="_blank" href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>
-    <h2>LIENS</h2>
+    <h2 id="links">LIENS</h2>
     <p> Pour sa campagne « changer d’approche », <a target="_blank" href="https://www.mountainwilderness.fr/">Mountain
         Wilderness</a> (association indépendante qui agit pour défendre et valoriser la spécificité, la beauté et la
       richesse des espaces montagnards) a lancé <a target="_blank" href="https://www.changerdapproche.org/">un site</a>
@@ -122,15 +122,15 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
       voir les topos d'escalade (grande voies), d'alpinisme et de ski de randonnée de Camp2Camp accessibles en vélo +
       train. Initialement centré sur Grenoble, le projet s'étend petit à petit au quart Sud-Est de la France.
     </p>
-    <h2>REMERCIEMENTS</h2>
+    <h2 id="thanks">REMERCIEMENTS</h2>
     <p> Merci à tous les contributeurs ! Louenn, Zoé, Denise, Alan, Bastien, Clément, Guillaume, Fanny... Merci à
       Mélanie pour son logo, Natacha pour affiche ! Et puis merci à tous les partenaires de sorties vélogrimpe, et à
       tous ceux dont l'enthousiasme donne la motivation de développer ce projet ! </p>
 
-    <h2>LICENCE</h2>
+    <h2 id="licence">LICENCE</h2>
     <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/licence-notice.php"; ?>
 
-    <h2>DONNÉES</h2>
+    <h2 id="opendata">DONNÉES</h2>
 
     Les données des falaises et de leurs intinéraires peuvent être obtenues
     <a target="_blank" href="/open-data/falaises.geojson">ici
