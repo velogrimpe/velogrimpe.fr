@@ -4,8 +4,15 @@ function sendEvent($pageUrl, $userId, $source, $event = "pageviews", $userAgent 
 {
   $host = "couble.eu";
   $path = "/api/event";
+
+  // Domaine d'entrée réel du visiteur (velogrimpe.fr vs vélogrimpe.fr, ce
+  // dernier remonté en punycode xn--vlogrimpe-b4a.fr), pour les distinguer dans
+  // l'analytics — même logique que pv.js (strip du www.). Fallback velogrimpe.fr
+  // hors contexte HTTP (ex. cron, où $_SERVER['HTTP_HOST'] n'existe pas).
+  $domain = preg_replace('/^www\./', '', $_SERVER['HTTP_HOST'] ?? 'velogrimpe.fr');
+
   $payload = json_encode([
-    "d" => "velogrimpe.fr",
+    "d" => $domain,
     "e" => $event,
     "p" => $pageUrl,
     "u" => $userId,
