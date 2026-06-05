@@ -1,6 +1,6 @@
 <?php
 
-function sendEvent($pageUrl, $userId, $source, $event = "pageviews")
+function sendEvent($pageUrl, $userId, $source, $event = "pageviews", $userAgent = null)
 {
   $host = "couble.eu";
   $path = "/api/event";
@@ -12,6 +12,15 @@ function sendEvent($pageUrl, $userId, $source, $event = "pageviews")
     "s" => $source,
   ]);
 
+  // User-Agent du visiteur à forwarder au service analytics (sinon le service
+  // ne voit que la requête serveur-à-serveur, sans browser/OS). On retire tout
+  // CR/LF pour empêcher une injection de header dans la requête forgée.
+  $uaHeader = "";
+  if ($userAgent) {
+    $ua = str_replace(["\r", "\n"], "", $userAgent);
+    $uaHeader = "User-Agent: $ua\r\n";
+  }
+
   // Fire-and-forget : on ouvre la connexion, on pousse la requête puis on coupe
   // sans lire la réponse. Le rendu de page / le téléchargement n'attend donc
   // jamais le traitement de l'analytics (ni un éventuel timeout si le service
@@ -22,6 +31,7 @@ function sendEvent($pageUrl, $userId, $source, $event = "pageviews")
   }
   $request = "POST $path HTTP/1.1\r\n"
     . "Host: $host\r\n"
+    . $uaHeader
     . "Content-Type: application/json\r\n"
     . "Content-Length: " . strlen($payload) . "\r\n"
     . "Connection: Close\r\n"

@@ -32,7 +32,7 @@ if (!is_file($path)) {
 }
 
 // Trace le téléchargement (source/canal distincts du cron, pour les filtrer).
-sendEvent('/open-data/' . $file, 'vg', 'vg-open-data', 'event: download-open-data');
+sendEvent('/open-data/' . $file, 'vg', 'vg-open-data', 'event: download-open-data', $_SERVER['HTTP_USER_AGENT'] ?? null);
 
 // Sert le fichier en pièce jointe pour forcer le téléchargement.
 // Pas de Content-Length : mod_deflate compresse la sortie, la taille finale
