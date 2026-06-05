@@ -247,7 +247,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <div class="form-control grow">
             <b>Itinéraire ajouté par : </b>
             <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
-              <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
+              <input class="grow" type="text" id="nom_prenom" name="nom_prenom" autocomplete="name"
                 placeholder="Prénom (et/ou nom, surnom...)" required>
               <svg class="w-4 h-4 fill-none stroke-current">
                 <use href="#user"></use>

@@ -154,7 +154,7 @@ if ($falaise_id) {
           <div class="flex flex-col md:flex-row gap-2 justify-center md:items-center">
             <div class="relative not-prose z-11000 flex-1">
               <label class="form-control">
-                <b>Nom de la falaise</b>
+                <b aria-label="intitulé du site d'escalade">Nom de la falaise</b>
                 <div id="vue-ajout-falaise"
                   data-falaises="<?= htmlspecialchars(json_encode($falaises), ENT_QUOTES, 'UTF-8') ?>"
                   data-admin="<?= $admin ? 'true' : 'false' ?>" <?php if ($falaise_id): ?>data-preset-falaise-id="<?= $falaise_id ?>" <?php endif; ?>>
@@ -521,7 +521,8 @@ if ($falaise_id) {
             <svg class="w-4 h-4 mb-1 fill-none stroke-current inline-block">
               <use href="#error-warning-fill"></use>
             </svg>
-            Pour que la mention « Grandes voies » soit effective sur la fiche falaise, merci de bien renseigner les deux champs ci-dessous.
+            Pour que la mention « Grandes voies » soit effective sur la fiche falaise, merci de bien renseigner les deux
+            champs ci-dessous.
           </div>
           <label class="form-control" for="falaise_gvtxt">
             <b class="">Grandes voies - Texte descriptif. <span class="text-error">Important pour les GV !</span></b>
@@ -819,7 +820,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
               <b>Falaise ajoutée par</b>
             <?php endif; ?>
             <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
-              <input class="grow" type="text" id="nom_prenom" name="nom_prenom"
+              <input class="grow" type="text" id="nom_prenom" name="nom_prenom" autocomplete="name"
                 placeholder="Prénom (et/ou nom, surnom...)" required>
               <svg class="w-4 h-4 fill-none stroke-current">
                 <use href="#user"></use>
