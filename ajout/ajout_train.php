@@ -145,9 +145,10 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
       <!-- </div> -->
       <label class="form-control" for="train_tgv">
         <div class="flex flex-row items-center gap-2">
-          <span>TER uniquement</span>
+          <b>Déclarer comme itinéraire</b> :
+          <span>faisable en TER uniquement</span>
           <input type="checkbox" class="toggle toggle-primary toggle-sm" id="train_tgv" name="train_tgv">
-          <span>Itinéraire TGV</span>
+          <span>nécessitant de prendre un  TGV</span>
         </div>
       </label>
       <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
@@ -158,7 +159,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           href="mailto:contact@velogrimpe.fr">contact@velogrimpe.fr</a>.
       </div>
       <div class="p-4 border-2 border-secondary rounded-lg pt-2">
-        <div class="text-center font-bold text-lg mb-2 text-secondary">Recherche itinéraires</div>
+        <div class="text-center font-bold text-lg text-secondary">Recherche itinéraires</div>
+        <p class="italic text-center text-sm mb-3 mt-1">Cette partie est uniquement dédiée à la recherche d'horaires pour aider à compléter les champs ci-dessous.</p>
         <!-- Champs libres pour la recherche d'horaires (non envoyés au serveur) -->
         <div class="flex flex-col gap-2">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -209,7 +211,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
           <label class="form-control" for="train_tempsmax">
             <b>Temps de trajet max. (min)</b>
             <input type="number" class="input input-primary input-sm" id="train_tempsmax" name="train_tempsmax"
-              placeholder="125" min="0" required>
+              placeholder="125" min="0">
           </label>
           <label class="form-control" for="train_nbtrains">
             <b>Nb de trains par jour</b>

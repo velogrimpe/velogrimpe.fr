@@ -65,15 +65,29 @@ $falaise_nom = $falaise ? htmlspecialchars($falaise['falaise_nom']) : 'Falaise';
         </div>
         <!-- Message -->
         <h2 class="card-title text-2xl"><?= $message ?></h2>
-        <p class="text-base-content/70 mb-4"><?= $falaise_nom ?></p>
-        <!-- Boutons principaux -->
-        <div class="flex flex-col gap-2 w-full">
+        <p class="text-base-content/70"><?= $falaise_nom ?></p>
+        <div class="flex gap-2 mb-4">
           <!-- Voir la falaise -->
-          <a href="/falaise.php?falaise_id=<?= $falaise_id ?>" class="btn btn-primary">
+          <a href="/falaise.php?falaise_id=<?= $falaise_id ?>" class="btn btn-sm">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-none stroke-current" viewBox="0 0 24 24"
               stroke-width="2">
               <use href="#eye"></use>
             </svg> Voir la falaise </a>
+          <!-- Modifier la falaise -->
+          <a href="/ajout/ajout_falaise.php?falaise_id=<?= $falaise_id ?>" class="btn btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-none stroke-current" viewBox="0 0 24 24"
+              stroke-width="2">
+              <use href="#pencil"></use>
+            </svg> Modifier</a>
+        </div>
+        <!-- Boutons principaux -->
+        <div class="flex flex-col gap-2 w-full">
+          <!-- Ajout vélo -->
+          <a href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 stroke-none fill-current" viewBox="0 0 24 24"
+              stroke-width="1">
+              <use href="#riding"></use>
+            </svg> Ajouter un itinéraire vélo vers cette falaise </a>
           <?php if ($step === 1): ?>
             <!-- Éditer les détails (uniquement après le formulaire initial) -->
             <?php
@@ -84,7 +98,7 @@ $falaise_nom = $falaise ? htmlspecialchars($falaise['falaise_nom']) : 'Falaise';
               'email' => $email
             ]);
             ?>
-            <a href="<?= htmlspecialchars($editDetailsUrl) ?>" class="btn btn-secondary">
+            <a href="<?= htmlspecialchars($editDetailsUrl) ?>" class="btn btn-accent">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-none stroke-current" viewBox="0 0 24 24"
                 stroke-width="2">
                 <use href="#map"></use>
@@ -98,8 +112,6 @@ $falaise_nom = $falaise ? htmlspecialchars($falaise['falaise_nom']) : 'Falaise';
           <a href="/" class="btn btn-outline btn-sm"> Accueil </a>
           <a href="/ajout/ajout_falaise.php<?= $admin ? '?admin=' . $config["admin_token"] : '' ?>"
             class="btn btn-outline btn-sm"> + Falaise </a>
-          <a href="/ajout/ajout_velo.php<?= $admin ? '?admin=' . $config["admin_token"] : '' ?>"
-            class="btn btn-outline btn-sm"> + Vélo </a>
           <?php if ($admin): ?>
             <a href="/ajout/ajout_train.php?admin=<?= $config["admin_token"] ?>" class="btn btn-outline btn-sm"> + Train
             </a>
