@@ -13,11 +13,22 @@
 export function createAjoutMap(elId) {
   const ignTiles = L.tileLayer(
     "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
-    { maxZoom: 19, minZoom: 0, attribution: "IGN-F/Geoportail", crossOrigin: true },
+    {
+      maxZoom: 19,
+      minZoom: 0,
+      attribution: "IGN-F/Geoportail",
+      crossOrigin: true,
+    },
   );
   const ignOrthoTiles = L.tileLayer(
     "https://data.geopf.fr/wmts?&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
-    { maxZoom: 18, minZoom: 0, tileSize: 256, attribution: "IGN-F/Geoportail", crossOrigin: true },
+    {
+      maxZoom: 18,
+      minZoom: 0,
+      tileSize: 256,
+      attribution: "IGN-F/Geoportail",
+      crossOrigin: true,
+    },
   );
   const landscapeTiles = L.tileLayer(
     "https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6",
@@ -70,7 +81,12 @@ export function createAjoutMap(elId) {
     .layers(baseMaps, undefined, { position: "topleft", size: 22 })
     .addTo(map);
   L.control
-    .scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 })
+    .scale({
+      position: "bottomright",
+      metric: true,
+      imperial: false,
+      maxWidth: 125,
+    })
     .addTo(map);
 
   // Contrôle de recherche d'une localité via Nominatim (instance publique OSM).
@@ -85,9 +101,9 @@ export function createAjoutMap(elId) {
       container.style.boxShadow = "0 1px 5px rgba(0,0,0,0.4)";
       container.innerHTML = `
         <div style="position:relative;">
-          <input type="text" autocomplete="off" placeholder="Rechercher une localité…"
+          <input type="text" autocomplete="off" placeholder="Centre la carte sur…"
             class="input input-bordered input-xs w-full" style="padding-right:1.5rem;"
-            aria-label="Rechercher une localité" />
+            aria-label="Centre la carte sur" />
           <span data-role="spinner" class="text-slate-400"
             style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);display:none;">
             <span class="loading loading-spinner loading-xs"></span>
@@ -123,7 +139,8 @@ export function createAjoutMap(elId) {
         if (options.length === 0) return;
         activeIndex = (idx + options.length) % options.length;
         options.forEach((opt, i) => {
-          opt.style.backgroundColor = i === activeIndex ? "rgba(0,0,0,.08)" : "";
+          opt.style.backgroundColor =
+            i === activeIndex ? "rgba(0,0,0,.08)" : "";
           if (i === activeIndex) opt.scrollIntoView({ block: "nearest" });
         });
       }
@@ -135,8 +152,13 @@ export function createAjoutMap(elId) {
           "https://nominatim.openstreetmap.org/search?format=jsonv2" +
           "&limit=6&countrycodes=fr&addressdetails=1&q=" +
           encodeURIComponent(query);
-        fetch(url, { signal: lastController.signal, headers: { "Accept-Language": "fr" } })
-          .then((r) => (r.ok ? r.json() : Promise.reject(new Error("nominatim failed"))))
+        fetch(url, {
+          signal: lastController.signal,
+          headers: { "Accept-Language": "fr" },
+        })
+          .then((r) =>
+            r.ok ? r.json() : Promise.reject(new Error("nominatim failed")),
+          )
           .then((items) => {
             spinner.style.display = "none";
             if (!Array.isArray(items) || items.length === 0) {
@@ -171,7 +193,13 @@ export function createAjoutMap(elId) {
                 if (!isNaN(lat) && !isNaN(lng)) {
                   if (item.boundingbox && item.boundingbox.length === 4) {
                     const bb = item.boundingbox.map(parseFloat);
-                    map.fitBounds([[bb[0], bb[2]], [bb[1], bb[3]]], { maxZoom: 14 });
+                    map.fitBounds(
+                      [
+                        [bb[0], bb[2]],
+                        [bb[1], bb[3]],
+                      ],
+                      { maxZoom: 14 },
+                    );
                   } else {
                     map.setView([lat, lng], 13);
                   }
@@ -199,7 +227,8 @@ export function createAjoutMap(elId) {
         debounce = setTimeout(() => doSearch(query), 600);
       });
       input.addEventListener("keydown", function (e) {
-        const isOpen = results.style.display !== "none" && getOptions().length > 0;
+        const isOpen =
+          results.style.display !== "none" && getOptions().length > 0;
         switch (e.key) {
           case "ArrowDown":
             if (!isOpen) return;

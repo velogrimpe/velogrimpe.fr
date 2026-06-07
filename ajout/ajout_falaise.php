@@ -287,7 +287,7 @@ if ($falaise_id) {
                   <div style="position:relative;">
                     <input type="text" autocomplete="off" placeholder="Rechercher une localité…"
                       class="input input-bordered input-xs w-full" style="padding-right:1.5rem;"
-                      aria-label="Rechercher une localité" />
+                      aria-label="Centre la carte sur" />
                     <span data-role="spinner" class="text-slate-400"
                       style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);display:none;">
                       <span class="loading loading-spinner loading-xs"></span>
