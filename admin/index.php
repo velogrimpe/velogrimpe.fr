@@ -53,6 +53,8 @@ $falaises_topo = array_values(array_filter(
         un itinéraire train</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_velo.php?admin=<?= $token ?>">Ajouter un
         itinéraire vélo</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_bus.php?admin=<?= $token ?>">Ajouter un
+        arrêt de bus</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/admin/oblyk.php?admin=<?= $token ?>">Créer les liens
         Oblyk</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/admin/tableau_trains.php?admin=<?= $token ?>">Récap.
