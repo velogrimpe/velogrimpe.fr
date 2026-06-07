@@ -413,8 +413,9 @@ if ($falaise_id) {
                       setActive(activeIndex - 1);
                       break;
                     case "Enter":
-                      if (!isOpen) return;
+                      // Toujours empêcher la soumission du formulaire parent depuis ce champ
                       e.preventDefault();
+                      if (!isOpen) return;
                       // Sélectionne l'option active, ou la première à défaut
                       (getOptions()[activeIndex >= 0 ? activeIndex : 0]).click();
                       break;

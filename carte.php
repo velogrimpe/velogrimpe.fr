@@ -29,7 +29,8 @@ $highlight = $_GET['h'] ?? '';
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://velogrimpe.fr/" />
-  <link rel="alternate" type="application/rss+xml" title="Nouveautés Vélogrimpe (falaises &amp; itinéraires)" href="/feed/nouveautes.xml">
+  <link rel="alternate" type="application/rss+xml" title="Nouveautes Velogrimpe (falaises et itineraires)"
+    href="/feed/nouveautes.xml">
   <meta name="description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
   <meta property="og:locale" content="fr_FR">
@@ -77,9 +78,9 @@ $highlight = $_GET['h'] ?? '';
   vg_jsonld(
     vg_organization(),
     [
-      '@type'    => 'WebPage',
-      'name'     => 'Carte des falaises accessibles en vélo et train',
-      'url'      => VG_BASE . '/carte.php',
+      '@type' => 'WebPage',
+      'name' => 'Carte des falaises accessibles en vélo et train',
+      'url' => VG_BASE . '/carte.php',
       'isPartOf' => ['@id' => VG_BASE . '/#website'],
     ],
     vg_breadcrumb([

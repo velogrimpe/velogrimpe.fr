@@ -84,6 +84,9 @@ function parseBusStopsWithRoutes(overpassJson) {
 
     stops.push({
       id: el.id,
+      osm_type: el.type,
+      osm_id: `${el.type}/${el.id}`,
+      tags: el.tags || {},
       name,
       lat,
       lon,
