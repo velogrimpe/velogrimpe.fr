@@ -187,7 +187,13 @@ while ($row = $res->fetch_assoc()) {
 
     const falaises = <?= json_encode($falaises) ?>;
 
-    const { map } = createAjoutMap('map');
+    const { map, leadingButton: overpassBtn } = createAjoutMap('map', {
+      leadingButton: {
+        html: '<img src="/images/map/overpass-turbo.svg" alt="Overpass" style="width:18px;height:18px;" />',
+        title: 'Récupérer les arrêts de bus de la zone visible (OpenStreetMap)',
+        ariaLabel: 'Arrêts de bus OpenStreetMap',
+      },
+    });
     const mapinstructions = document.getElementById('mapinstructions');
     const arretLocInput = document.getElementById('arret_loc');
 
@@ -283,30 +289,19 @@ while ($row = $res->fetch_assoc()) {
       (ids || []).forEach((id) => setFalaiseLinked(Number(id), true));
     };
 
-    // --- Contrôle Overpass (style leaflet-bar carré, comme le zoom) ---
+    // --- Récupération des arrêts via Overpass (bouton à gauche de la recherche) ---
     const overpassLayer = L.layerGroup().addTo(map);
-    const OverpassControl = L.Control.extend({
-      options: { position: 'topleft' },
-      onAdd: function () {
-        const c = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-        const a = L.DomUtil.create('a', '', c);
-        a.href = '#';
-        a.role = 'button';
-        a.title = 'Récupérer les arrêts de bus de la zone visible (OpenStreetMap)';
-        a.setAttribute('aria-label', 'Arrêts de bus OpenStreetMap');
-        a.style.cssText = 'display:flex;align-items:center;justify-content:center;';
-        a.innerHTML = '<img src="/images/map/overpass-turbo.svg" alt="Overpass" style="width:18px;height:18px;" />';
-        L.DomEvent.disableClickPropagation(c);
-        L.DomEvent.on(a, 'click', (ev) => {
-          L.DomEvent.stop(ev);
-          loadOverpassStops();
-        });
-        return c;
-      },
-    });
-    map.addControl(new OverpassControl());
+    const OVERPASS_MIN_ZOOM = 12;
+    if (overpassBtn) {
+      overpassBtn.addEventListener('click', loadOverpassStops);
+    }
 
     async function loadOverpassStops() {
+      // Refuse les zones trop larges (trop de résultats, requête lourde)
+      if (map.getZoom() < OVERPASS_MIN_ZOOM) {
+        alert('Zone trop large : zoomez davantage (au moins niveau ' + OVERPASS_MIN_ZOOM + ') avant de récupérer les arrêts de bus.');
+        return;
+      }
       try {
         overpassLayer.clearLayers();
         const stops = await fetchBusStops(map);

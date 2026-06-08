@@ -10,7 +10,7 @@
  * Usage :
  *   const { map, layerControl } = createAjoutMap("map");
  */
-export function createAjoutMap(elId) {
+export function createAjoutMap(elId, opts = {}) {
   const ignTiles = L.tileLayer(
     "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
     {
@@ -74,7 +74,6 @@ export function createAjoutMap(elId) {
     center: [45.1234, 3.2355],
     zoom: 5,
     fullscreenControl: true,
-    zoomSnap: 0.5,
   });
   L.control.locate().addTo(map);
   const layerControl = L.control
@@ -89,6 +88,10 @@ export function createAjoutMap(elId) {
     })
     .addTo(map);
 
+  // Bouton optionnel (ex: Overpass) rendu à gauche du champ de recherche.
+  // Renseigné dans onAdd, exposé via la valeur de retour de createAjoutMap.
+  let leadingButtonEl = null;
+
   // Contrôle de recherche d'une localité via Nominatim (instance publique OSM).
   const SearchControl = L.Control.extend({
     options: { position: "topright" },
@@ -97,22 +100,46 @@ export function createAjoutMap(elId) {
         "div",
         "leaflet-bar bg-base-100 rounded-md p-1 not-prose border-0",
       );
-      container.style.width = "230px";
+      container.style.width = opts.leadingButton ? "264px" : "230px";
       container.style.boxShadow = "0 1px 5px rgba(0,0,0,0.4)";
-      container.innerHTML = `
-        <div style="position:relative;">
-          <input type="text" autocomplete="off" placeholder="Centre la carte sur…"
-            class="input input-bordered input-xs w-full" style="padding-right:1.5rem;"
-            aria-label="Centre la carte sur" />
-          <span data-role="spinner" class="text-slate-400"
-            style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);display:none;">
-            <span class="loading loading-spinner loading-xs"></span>
-          </span>
-          <div data-role="results" class="bg-base-100 border border-base-300"
-            style="position:absolute;left:0;right:0;top:100%;margin-top:.25rem;max-height:13rem;
-              overflow-y:auto;overflow-x:hidden;z-index:11000;display:none;border-radius:.375rem;
-              box-shadow:0 4px 12px rgba(0,0,0,.25);"></div>
-        </div>`;
+
+      // Ligne flex : [bouton optionnel] [champ de recherche]
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;align-items:center;gap:.25rem;";
+
+      if (opts.leadingButton) {
+        const lb = document.createElement("button");
+        lb.type = "button";
+        lb.setAttribute("data-role", "leading");
+        if (opts.leadingButton.title) lb.title = opts.leadingButton.title;
+        if (opts.leadingButton.ariaLabel)
+          lb.setAttribute("aria-label", opts.leadingButton.ariaLabel);
+        lb.style.cssText =
+          "flex:0 0 auto;width:1.75rem;height:1.75rem;display:flex;align-items:center;" +
+          "justify-content:center;border:1px solid rgba(0,0,0,.2);border-radius:.375rem;" +
+          "background:#fff;cursor:pointer;padding:0;";
+        lb.innerHTML = opts.leadingButton.html || "";
+        row.appendChild(lb);
+        leadingButtonEl = lb;
+      }
+
+      const wrap = document.createElement("div");
+      wrap.style.cssText = "position:relative;flex:1;min-width:0;";
+      wrap.innerHTML = `
+        <input type="text" autocomplete="off" placeholder="Centre la carte sur…"
+          class="input input-bordered input-xs w-full" style="padding-right:1.5rem;"
+          aria-label="Centre la carte sur" />
+        <span data-role="spinner" class="text-slate-400"
+          style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);display:none;">
+          <span class="loading loading-spinner loading-xs"></span>
+        </span>
+        <div data-role="results" class="bg-base-100 border border-base-300"
+          style="position:absolute;left:0;right:0;top:100%;margin-top:.25rem;max-height:13rem;
+            overflow-y:auto;overflow-x:hidden;z-index:11000;display:none;border-radius:.375rem;
+            box-shadow:0 4px 12px rgba(0,0,0,.25);"></div>`;
+      row.appendChild(wrap);
+      container.appendChild(row);
+
       L.DomEvent.disableClickPropagation(container);
       L.DomEvent.disableScrollPropagation(container);
 
@@ -258,5 +285,5 @@ export function createAjoutMap(elId) {
   });
   map.addControl(new SearchControl());
 
-  return { map, layerControl };
+  return { map, layerControl, leadingButton: leadingButtonEl };
 }
