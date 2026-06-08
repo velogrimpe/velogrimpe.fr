@@ -139,7 +139,7 @@ if ($falaise_id) {
       <span class="text-red-700">Les champs obligatoires sont en noir, les champs optionnels en gris.</span>
     </div>
     <form method="post" action="/api/add_falaise.php" enctype="multipart/form-data" class="flex flex-col gap-4"
-      id="form">
+      autocomplete="off" id="form">
       <input type="hidden" id="admin" name="admin" value="0" />
       <!-- Partie Nom / Position / Zone (admin) -->
       <div class="relative flex items-center">
