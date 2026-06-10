@@ -291,7 +291,7 @@ $highlight = $_GET['h'] ?? '';
 
 
   // php import cartes-app-style.json as a JS object, to inject the correct demSource URL in the style's hillshade layer.
-  const style = <?php echo json_encode(json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/bdd/cartes-app-style.json'), true)); ?>;
+  const style = <?php echo json_encode(json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/bdd/styles/cartes-app-style.json'), true)); ?>;
 
   // Visibilité d'origine de chaque couche du style vectoriel : permet de la
   // masquer quand on bascule sur un fond raster, puis de la restaurer telle

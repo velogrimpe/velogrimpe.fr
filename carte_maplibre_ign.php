@@ -3,25 +3,22 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 
-$falaises = $mysqli->query("SELECT falaise_bloc, falaise_cotmax, falaise_cotmin,
-falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb,
-falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM
-falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
-$villes =
-  $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY
-ville_nom")->fetch_all(MYSQLI_ASSOC);
-$gares = $mysqli->query("SELECT g.gare_id,
-g.gare_latlng, g.gare_nom, g.gare_tgv, GROUP_CONCAT(CONCAT(t.ville_id, '|',
-t.train_depart, '|', t.train_temps, '|', t.train_correspmin, '|',
-COALESCE(t.train_tgv, 0)) SEPARATOR '=|=') AS villes FROM gares g LEFT JOIN
-train t ON t.gare_id = g.gare_id WHERE g.deleted = 0 and g.gare_id in (SELECT
-DISTINCT gare_id FROM velo WHERE velo_public >= 1) GROUP BY g.gare_id;"
+$falaises = $mysqli->query("SELECT falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
+$villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
+$gares = $mysqli->query("SELECT
+  g.gare_id, g.gare_latlng, g.gare_nom, g.gare_tgv,
+  GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin, '|', COALESCE(t.train_tgv, 0)) SEPARATOR '=|=') AS villes
+  FROM gares g
+  LEFT JOIN train t ON t.gare_id = g.gare_id
+  WHERE g.deleted = 0 and g.gare_id in (SELECT DISTINCT gare_id FROM velo WHERE velo_public >= 1)
+  GROUP BY g.gare_id;"
 )->fetch_all(MYSQLI_ASSOC);
-$itineraires = $mysqli->query("SELECT * FROM velo
-WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);
-$highlight = $_GET['h'] ??
-  ''; ?>
-<!doctype html>
+$itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);
+
+$highlight = $_GET['h'] ?? '';
+
+?>
+<!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
 
 <head>
@@ -29,31 +26,32 @@ $highlight = $_GET['h'] ??
   <title>Vélogrimpe.fr — MapLibre</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Meta tags for SEO and Social Networks -->
-  <meta name="robots" content="noindex, nofollow" />
+  <meta name="robots" content="noindex, nofollow">
   <link rel="canonical" href="https://velogrimpe.fr/" />
   <meta name="description"
-    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe." />
-  <meta property="og:locale" content="fr_FR" />
-  <meta property="og:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train" />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Velogrimpe.fr" />
-  <meta property="og:url" content="https://velogrimpe.fr/" />
-  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp" />
+    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Velogrimpe.fr">
+  <meta property="og:url" content="https://velogrimpe.fr/">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
   <meta property="og:description"
-    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe." />
-  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp" />
-  <meta name="twitter:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train" />
+    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta name="twitter:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train">
   <meta name="twitter:description"
-    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe." />
+    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
 
   <!-- MapLibre GL JS + PMTiles + GPX protocol (self-hosted bundle, built
        par frontend/build-map.ts). Bundles maplibre-gl + pmtiles +
        maplibre-gl-vector-text-protocol et pré-enregistre les protocols
        `pmtiles://` et `gpx://`. Le filename inclut la version maplibre
        (résolu via dist/map-bundles.json) → cache long-terme safe. -->
-  <script src="https://unpkg.com/maplibre-contour@0.1.0/dist/index.min.js"></script>
-  <?php map_bundle_css('map-maplibre'); ?> <?php
-     map_bundle_js('map-maplibre'); ?> <?php vite_css('main'); ?>
+  <?php map_bundle_css('map-maplibre'); ?>
+  <?php map_bundle_js('map-maplibre'); ?>
+
+  <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <!-- Shared utilities -->
@@ -61,7 +59,8 @@ $highlight = $_GET['h'] ??
   <!-- Velogrimpe Styles -->
   <link rel="stylesheet" href="/global.css" />
   <!-- Vue Component Styles -->
-  <?php vite_css('carte-info'); ?> <?php vite_css('carte-map-filters'); ?>
+  <?php vite_css('carte-info'); ?>
+  <?php vite_css('carte-map-filters'); ?>
   <link rel="stylesheet" href="./index.css" />
   <link rel="manifest" href="./site.webmanifest" />
   <style>
@@ -278,74 +277,33 @@ $highlight = $_GET['h'] ??
     Satellite: { url: "https://data.geopf.fr/wmts?&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", maxzoom: 18, attribution: "IGN-F/Geoportail" },
     Outdoors: { url: "https://a.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", maxzoom: 19, attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>' },
   };
-  let currentBasemap = "Landscape";
+  // Fond cartographique par défaut : le style vectoriel MapLibre. Les entrées
+  // de BASEMAPS sont les fonds raster "alternatifs" qui le remplacent quand on
+  // les sélectionne dans le sélecteur de couches.
+  const MAPLIBRE_BASEMAP = "Carte vélogrimpe";
+  const DEFAULT_RASTER_BASEMAP = "Landscape"; // tuiles initiales de la source `basemap`
+  let currentBasemap = MAPLIBRE_BASEMAP;
 
   // Les protocoles `pmtiles://` et `gpx://` sont enregistrés en amont par
   // /dist/map-maplibre.js (cf. frontend/src/apps/map-maplibre.ts).
 
 
-  const demSource = new mlcontour.DemSource({
-    url: 'https://tiles.mapterhorn.com/{z}/{x}/{y}.webp',
-    encoding: 'terrarium',
-    maxzoom: 12,
-    worker: true,
-  })
-
-  demSource.setupMaplibre(maplibregl)
-
 
   // php import cartes-app-style.json as a JS object, to inject the correct demSource URL in the style's hillshade layer.
-  const style = <?php echo json_encode(json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/bdd/styles/cartes-app-style.json'), true)); ?>;
+  const style = <?php echo json_encode(json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/bdd/styles/ign-plan.json'), true)); ?>;
 
-  const terrainSources = (
-    thresholds = {
-      11: [200, 1000],
-      12: [100, 500],
-      13: [50, 200],
-      14: [20, 100],
-      15: [10, 50],
-    },
-  ) => [
-      [
-        'hillshade',
-        {
-          // Source raster-dem inline : seules les props de la spec MapLibre sont
-          // acceptées. Les champs TileJSON (tilejson/scheme/center) sont rejetés
-          // ("unknown property") et n'ont de toute façon aucun effet ici.
-          type: 'raster-dem',
-          tiles: [demSource.sharedDemProtocolUrl],
-          encoding: 'terrarium',
-          tileSize: 512,
-          maxzoom: 16,
-          bounds: [-180, -85.0511287, 180, 85.0511287],
-          attribution:
-            "<a href='https://mapterhorn.com/attribution'>© Mapterhorn</a>",
-        },
-      ],
-      [
-        'contourSource',
-        {
-          type: 'vector',
-          tiles: [
-            demSource.contourProtocolUrl({
-              thresholds,
-              elevationKey: 'ele',
-              levelKey: 'level',
-              contourLayer: 'contours',
-              buffer: 1,
-              overzoom: 2,
-            }),
-          ],
-          maxzoom: 17,
-        },
-      ],
-    ]
+  // Visibilité d'origine de chaque couche du style vectoriel : permet de la
+  // masquer quand on bascule sur un fond raster, puis de la restaurer telle
+  // quelle (certaines couches — rando/VTT/ski — sont masquées par défaut).
+  const maplibreLayerVisibility = Object.fromEntries(
+    style.layers.map((l) => [l.id, (l.layout && l.layout.visibility) || "visible"])
+  );
 
   const styleWithTerrain = {
     ...style,
     sources: {
       ...style.sources,
-      ...Object.fromEntries(terrainSources()),
+      basemap: { type: "raster", tiles: [BASEMAPS[DEFAULT_RASTER_BASEMAP].url], tileSize: 256, maxzoom: BASEMAPS[DEFAULT_RASTER_BASEMAP].maxzoom, attribution: BASEMAPS[DEFAULT_RASTER_BASEMAP].attribution },
     },
   };
 
@@ -362,93 +320,6 @@ $highlight = $_GET['h'] ??
     center: [5.420, 45.391],
     zoom: 6.5,
   });
-
-  const contourLayers = [
-    {
-      "id": "Hillshade",
-      "type": "hillshade",
-      "source": "hillshade",
-      "layout": { "visibility": "visible" },
-      "paint": {
-        "hillshade-method": "igor",
-        "hillshade-shadow-color": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          16,
-          "hsla(0, 0%, 0%, 0.7)",
-          19,
-          "hsla(0, 0%, 0%, 0.2)"
-        ],
-        "hillshade-highlight-color": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          16,
-          "hsla(0, 0%, 100%, 0.7)",
-          19,
-          "hsla(0, 0%, 100%, 0.2)"
-        ],
-        "hillshade-accent-color": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          16,
-          "hsla(0, 0%, 0%, 0.7)",
-          19,
-          "hsla(0, 0%, 0%, 0.2)"
-        ]
-      }
-    },
-    {
-      "id": "contours",
-      "type": "line",
-      "source": "contourSource",
-      "source-layer": "contours",
-      "paint": {
-        "line-color": "hsla(20, 30%, 50%, 0.5)",
-        "line-width": ["match", ["get", "level"], 1, 1.5, 0.8]
-      }
-    },
-    {
-      "id": "contour-text",
-      "type": "symbol",
-      "source": "contourSource",
-      "source-layer": "contours",
-      "filter": ["==", ["get", "level"], 1],
-      "layout": {
-        "text-size": [
-          "interpolate",
-          ["exponential", 1.3],
-          ["zoom"],
-          11,
-          10,
-          20,
-          24
-        ],
-        "text-field": ["get", "ele"],
-        "text-font": ["RobotoRegular-NotoSansRegular"],
-        "text-padding": 10,
-        "symbol-placement": "line",
-        "symbol-avoid-edges": true,
-        "text-allow-overlap": false,
-        "text-ignore-placement": false,
-        "text-rotation-alignment": "map"
-      },
-      "paint": {
-        "text-color": "hsl(20, 30%, 40%)",
-        "text-halo-color": "hsl(0, 0%, 100%)",
-        "text-halo-width": 0.5,
-        "text-halo-blur": 1
-      }
-    },
-  ];
-
-  map.on("load", () => {
-    // Les sources hillshade et contourSource sont déclarées en amont (avant map.on('load')) pour éviter les problèmes de timing liés à l'ajout de sources dynamiques après le chargement de la carte.
-    contourLayers.forEach((layer) => map.addLayer(layer, 'River'));
-  });
-
 
   // Built-in controls
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
@@ -562,11 +433,31 @@ $highlight = $_GET['h'] ??
   ];
   const overlayChecked = { tgv: true, camping: false, gite: false, biodiv: false };
 
+  // Affiche/masque l'ensemble des couches du style vectoriel MapLibre (fond
+  // cartographique + relief/courbes IGN). Au retour, on restitue la visibilité
+  // d'origine de chaque couche (rando/VTT/ski restent masquées).
+  function setMaplibreStyleVisible(visible) {
+    Object.keys(maplibreLayerVisibility).forEach((id) => {
+      if (!map.getLayer(id)) return;
+      map.setLayoutProperty(id, "visibility", visible ? maplibreLayerVisibility[id] : "none");
+    });
+  }
+
   function setBasemap(name) {
-    if (!BASEMAPS[name]) return;
     currentBasemap = name;
+    if (name === MAPLIBRE_BASEMAP) {
+      // Retour au style vectoriel : on masque le fond raster et on réaffiche le style.
+      if (map.getLayer("basemap")) map.setLayoutProperty("basemap", "visibility", "none");
+      setMaplibreStyleVisible(true);
+      return;
+    }
+    if (!BASEMAPS[name]) return;
+    // Fond raster alternatif : on masque le style vectoriel et on affiche la
+    // couche `basemap` avec les tuiles choisies.
     const src = map.getSource("basemap");
     if (src && src.setTiles) src.setTiles([BASEMAPS[name].url]);
+    setMaplibreStyleVisible(false);
+    if (map.getLayer("basemap")) map.setLayoutProperty("basemap", "visibility", "visible");
   }
   function setOverlayVisibility(overlayId, visible) {
     const ov = OVERLAYS.find(o => o.id === overlayId);
@@ -588,8 +479,8 @@ $highlight = $_GET['h'] ??
       sum.title = "Couches";
       det.appendChild(sum);
       const body = document.createElement("div");
-      // Basemaps (radio)
-      Object.keys(BASEMAPS).forEach((name) => {
+      // Basemaps (radio) : le style vectoriel MapLibre en tête, puis les fonds raster.
+      [MAPLIBRE_BASEMAP, ...Object.keys(BASEMAPS)].forEach((name) => {
         const lab = document.createElement("label");
         const r = document.createElement("input");
         r.type = "radio"; r.name = "vg-basemap"; r.value = name;
@@ -1096,72 +987,34 @@ $highlight = $_GET['h'] ??
         } catch (e) { }
         resolve();
       };
-      img.onerror = () => {
-        console.warn("Icon load failed", name);
-        resolve();
-      };
+      img.onerror = () => { console.warn("Icon load failed", name); resolve(); };
       img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
     });
   }
 
   function addOverlays() {
     // --- TER lines ---
-    map.addSource("trainlines", {
-      type: "vector",
-      url: "pmtiles:///bdd/trains/ter.pmtiles",
-    });
+    map.addSource("trainlines", { type: "vector", url: "pmtiles:///bdd/trains/ter.pmtiles" });
     map.addLayer({
-      id: "trainlines",
-      type: "line",
-      source: "trainlines",
-      "source-layer": "ter",
+      id: "trainlines", type: "line", source: "trainlines", "source-layer": "ter",
       paint: {
         "line-color": "#000",
-        "line-width": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          6,
-          0.5,
-          9,
-          1,
-          12,
-          1.5,
-        ],
+        "line-width": ["interpolate", ["linear"], ["zoom"], 6, 0.5, 9, 1, 12, 1.5],
       },
     });
 
     // --- TGV (line + circle + label) ---
-    map.addSource("tgv", {
-      type: "vector",
-      url: "pmtiles:///bdd/trains/tgv.pmtiles",
-    });
+    map.addSource("tgv", { type: "vector", url: "pmtiles:///bdd/trains/tgv.pmtiles" });
     map.addLayer({
-      id: "tgv-line",
-      type: "line",
-      source: "tgv",
-      "source-layer": "tgv",
+      id: "tgv-line", type: "line", source: "tgv", "source-layer": "tgv",
       filter: ["==", ["geometry-type"], "LineString"],
       paint: {
         "line-color": "#c00",
-        "line-width": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          6,
-          0.5,
-          9,
-          1,
-          12,
-          1.5,
-        ],
+        "line-width": ["interpolate", ["linear"], ["zoom"], 6, 0.5, 9, 1, 12, 1.5],
       },
     });
     map.addLayer({
-      id: "tgv-pt",
-      type: "circle",
-      source: "tgv",
-      "source-layer": "tgv",
+      id: "tgv-pt", type: "circle", source: "tgv", "source-layer": "tgv",
       filter: ["==", ["geometry-type"], "Point"],
       paint: {
         "circle-radius": 3,
@@ -1171,168 +1024,95 @@ $highlight = $_GET['h'] ??
       },
     });
     map.addLayer({
-      id: "tgv-label",
-      type: "symbol",
-      source: "tgv",
-      "source-layer": "tgv",
-      minzoom: 14,
+      id: "tgv-label", type: "symbol", source: "tgv", "source-layer": "tgv", minzoom: 14,
       filter: ["==", ["geometry-type"], "Point"],
       layout: {
         "text-field": ["get", "name"],
-        "text-size": 14,
-        "text-anchor": "top",
-        "text-offset": [0, 0.6],
+        "text-size": 14, "text-anchor": "top", "text-offset": [0, 0.6],
         "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
       },
-      paint: {
-        "text-color": "#c00",
-        "text-halo-color": "#fff",
-        "text-halo-width": 2,
-      },
+      paint: { "text-color": "#c00", "text-halo-color": "#fff", "text-halo-width": 2 },
     });
     // Apply visibility per current state
-    OVERLAYS.find((o) => o.id === "tgv").layers.forEach((lid) =>
-      map.setLayoutProperty(
-        lid,
-        "visibility",
-        overlayChecked.tgv ? "visible" : "none",
-      ),
-    );
+    OVERLAYS.find(o => o.id === "tgv").layers.forEach(lid => map.setLayoutProperty(lid, "visibility", overlayChecked.tgv ? "visible" : "none"));
 
     // --- Campings + Gîtes (même PMTiles, filtre category) ---
-    map.addSource("camping_src", {
-      type: "vector",
-      url: "pmtiles:///bdd/datatourisme/camping_2.pmtiles",
-    });
+    map.addSource("camping_src", { type: "vector", url: "pmtiles:///bdd/datatourisme/camping_2.pmtiles" });
     map.addLayer({
-      id: "camping",
-      type: "symbol",
-      source: "camping_src",
-      "source-layer": "camping",
-      minzoom: 12,
+      id: "camping", type: "symbol", source: "camping_src", "source-layer": "camping", minzoom: 12,
       filter: ["==", ["get", "category"], "Camping"],
       layout: {
-        "icon-image": "camping",
-        "icon-size": 1,
-        "icon-allow-overlap": true,
-        "text-field": ["get", "name"],
-        "text-size": 14,
-        "text-offset": [0, 1.8],
-        "text-anchor": "top",
+        "icon-image": "camping", "icon-size": 1, "icon-allow-overlap": true,
+        "text-field": ["get", "name"], "text-size": 14, "text-offset": [0, 1.8], "text-anchor": "top",
         "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-        visibility: overlayChecked.camping ? "visible" : "none",
+        "visibility": overlayChecked.camping ? "visible" : "none",
       },
       paint: {
-        "text-color": "forestgreen",
-        "text-halo-color": "#fff",
-        "text-halo-width": 2,
+        "text-color": "forestgreen", "text-halo-color": "#fff", "text-halo-width": 2,
         "text-opacity": ["step", ["zoom"], 0, 14, 1],
       },
     });
     map.addLayer({
-      id: "gite",
-      type: "symbol",
-      source: "camping_src",
-      "source-layer": "camping",
-      minzoom: 12,
+      id: "gite", type: "symbol", source: "camping_src", "source-layer": "camping", minzoom: 12,
       filter: ["==", ["get", "category"], "Gite"],
       layout: {
-        "icon-image": "gite",
-        "icon-size": 1,
-        "icon-allow-overlap": true,
-        "text-field": ["get", "name"],
-        "text-size": 14,
-        "text-offset": [0, 1.8],
-        "text-anchor": "top",
+        "icon-image": "gite", "icon-size": 1, "icon-allow-overlap": true,
+        "text-field": ["get", "name"], "text-size": 14, "text-offset": [0, 1.8], "text-anchor": "top",
         "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-        visibility: overlayChecked.gite ? "visible" : "none",
+        "visibility": overlayChecked.gite ? "visible" : "none",
       },
       paint: {
-        "text-color": "forestgreen",
-        "text-halo-color": "#fff",
-        "text-halo-width": 2,
+        "text-color": "forestgreen", "text-halo-color": "#fff", "text-halo-width": 2,
         "text-opacity": ["step", ["zoom"], 0, 14, 1],
       },
     });
 
     // --- Biodiv ---
     // Note: practices/rules sont stockés en JSON-string dans le tile. Filtres approximatifs par substring.
-    map.addSource("biodiv", {
-      type: "vector",
-      url: "pmtiles:///bdd/biodiv/biodiv.pmtiles",
-    });
+    map.addSource("biodiv", { type: "vector", url: "pmtiles:///bdd/biodiv/biodiv.pmtiles" });
     map.addLayer({
-      id: "biodiv-regulated",
-      type: "fill",
-      source: "biodiv",
-      "source-layer": "biodiv",
-      filter: [
-        "all",
+      id: "biodiv-regulated", type: "fill", source: "biodiv", "source-layer": "biodiv",
+      filter: ["all",
         ["==", ["geometry-type"], "Polygon"],
-        [
-          "!",
-          ["in", "CLIMBING-FORBIDDEN", ["coalesce", ["get", "rules"], ""]],
-        ],
+        ["!", ["in", "CLIMBING-FORBIDDEN", ["coalesce", ["get", "rules"], ""]]],
       ],
       paint: { "fill-color": "tomato", "fill-opacity": 0.6 },
-      layout: { visibility: overlayChecked.biodiv ? "visible" : "none" },
+      layout: { "visibility": overlayChecked.biodiv ? "visible" : "none" },
     });
     map.addLayer({
-      id: "biodiv-forbidden",
-      type: "fill",
-      source: "biodiv",
-      "source-layer": "biodiv",
-      filter: [
-        "all",
+      id: "biodiv-forbidden", type: "fill", source: "biodiv", "source-layer": "biodiv",
+      filter: ["all",
         ["==", ["geometry-type"], "Polygon"],
         ["in", "CLIMBING-FORBIDDEN", ["coalesce", ["get", "rules"], ""]],
       ],
       paint: { "fill-color": "darkred", "fill-opacity": 0.7 },
-      layout: { visibility: overlayChecked.biodiv ? "visible" : "none" },
+      layout: { "visibility": overlayChecked.biodiv ? "visible" : "none" },
     });
     map.addLayer({
-      id: "biodiv-label",
-      type: "symbol",
-      source: "biodiv",
-      "source-layer": "biodiv",
-      minzoom: 14,
+      id: "biodiv-label", type: "symbol", source: "biodiv", "source-layer": "biodiv", minzoom: 14,
       layout: {
         "text-field": ["get", "name"],
         "text-size": 14,
         "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-        visibility: overlayChecked.biodiv ? "visible" : "none",
+        "visibility": overlayChecked.biodiv ? "visible" : "none",
       },
-      paint: {
-        "text-color": "tomato",
-        "text-halo-color": "#fff",
-        "text-halo-width": 2,
-      },
+      paint: { "text-color": "tomato", "text-halo-color": "#fff", "text-halo-width": 2 },
     });
 
     // --- Gares hors topo depuis PMTiles (même source que falaise.php).
     // Filtre : on exclut les noms des gares "topo" (déjà rendues comme DOM
     // markers cliquables avec icône train). Ne reste que le complément.
     const topoGareNames = gares
-      .filter((g) => g.access && g.access.length > 0 && g.gare_nom)
-      .map((g) => g.gare_nom);
-    const horsTopoFilter = [
-      "!",
-      ["in", ["get", "name"], ["literal", topoGareNames]],
-    ];
+      .filter(g => g.access && g.access.length > 0 && g.gare_nom)
+      .map(g => g.gare_nom);
+    const horsTopoFilter = ["!", ["in", ["get", "name"], ["literal", topoGareNames]]];
 
-    map.addSource("gares-pm", {
-      type: "vector",
-      url: "pmtiles:///bdd/trains/gares.pmtiles",
-    });
+    map.addSource("gares-pm", { type: "vector", url: "pmtiles:///bdd/trains/gares.pmtiles" });
     // Cercle dès zoom 10 (Leaflet montre la même chose à zoom 11, mais à
     // visuel égal MapLibre est ~1 niveau plus bas — voir comparaison
     // d'icônes falaises entre les deux captures). Label à zoom 11.
     map.addLayer({
-      id: "gares-pm-circle",
-      type: "circle",
-      source: "gares-pm",
-      "source-layer": "gares",
-      minzoom: 10,
+      id: "gares-pm-circle", type: "circle", source: "gares-pm", "source-layer": "gares", minzoom: 10,
       filter: horsTopoFilter,
       paint: {
         "circle-radius": 4,
@@ -1342,11 +1122,7 @@ $highlight = $_GET['h'] ??
       },
     });
     map.addLayer({
-      id: "gares-pm-label",
-      type: "symbol",
-      source: "gares-pm",
-      "source-layer": "gares",
-      minzoom: 11,
+      id: "gares-pm-label", type: "symbol", source: "gares-pm", "source-layer": "gares", minzoom: 11,
       filter: horsTopoFilter,
       layout: {
         "text-field": ["get", "name"],
@@ -1355,11 +1131,7 @@ $highlight = $_GET['h'] ??
         "text-anchor": "top",
         "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
       },
-      paint: {
-        "text-color": "#000",
-        "text-halo-color": "#fff",
-        "text-halo-width": 2,
-      },
+      paint: { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": 2 },
     });
     map.on("click", "gares-pm-circle", (e) => {
       const f = e.features[0];
@@ -1369,20 +1141,13 @@ $highlight = $_GET['h'] ??
         .addTo(map);
       e.preventDefault?.();
     });
-    map.on("mouseenter", "gares-pm-circle", () => {
-      map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mouseleave", "gares-pm-circle", () => {
-      map.getCanvas().style.cursor = "";
-    });
+    map.on("mouseenter", "gares-pm-circle", () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", "gares-pm-circle", () => { map.getCanvas().style.cursor = ""; });
   }
 
   map.on("load", async () => {
     // Charger les icônes
-    await Promise.all([
-      loadIcon("camping", CAMPING_SVG),
-      loadIcon("gite", GITE_SVG),
-    ]);
+    await Promise.all([loadIcon("camping", CAMPING_SVG), loadIcon("gite", GITE_SVG)]);
     addOverlays();
     // Premier rendu des marqueurs DOM
     renderFalaises();
@@ -1394,35 +1159,22 @@ $highlight = $_GET['h'] ??
   // ============================================================
   // Recherche, filtres, info-ready (Vue events)
   // ============================================================
-  window.addEventListener("velogrimpe:search-select", (e) => {
+  window.addEventListener('velogrimpe:search-select', (e) => {
     const { id, type } = e.detail;
-    document
-      .getElementById("map")
-      .scrollIntoView({ behavior: "smooth", block: "nearest" });
+    document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "nearest" });
     let item = null;
-    if (type === "falaise") item = falaises.find((f) => f.falaise_id === id);
-    else if (type === "gare") item = gares.find((g) => g.gare_id === id);
+    if (type === "falaise") item = falaises.find(f => f.falaise_id === id);
+    else if (type === "gare") item = gares.find(g => g.gare_id === id);
     if (!item) return;
 
     if (item.type === "falaise_hors_topo") {
       setFalaiseHTMarker(item, "normal");
-      map.flyTo({
-        center: lngLat(item.falaise_latlng),
-        zoom: 12,
-        duration: 500,
-      });
-      setTimeout(
-        () => item._popup?.setLngLat(lngLat(item.falaise_latlng)).addTo(map),
-        600,
-      );
+      map.flyTo({ center: lngLat(item.falaise_latlng), zoom: 12, duration: 500 });
+      setTimeout(() => item._popup?.setLngLat(lngLat(item.falaise_latlng)).addTo(map), 600);
       return;
     }
     if (item.type === "gare_hors_topo") {
-      map.flyTo({
-        center: lngLat(item.gare_latlng),
-        zoom: 11,
-        duration: 500,
-      });
+      map.flyTo({ center: lngLat(item.gare_latlng), zoom: 11, duration: 500 });
       setTimeout(() => {
         new maplibregl.Popup()
           .setLngLat(lngLat(item.gare_latlng))
@@ -1434,29 +1186,27 @@ $highlight = $_GET['h'] ??
     // Simulate click
     if (item.marker) {
       const el = item.marker.getElement();
-      el.dispatchEvent(
-        new MouseEvent("click", { bubbles: true, cancelable: true }),
-      );
+      el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
     }
   });
 
   // Filtres Vue
-  const falaisesDuTopo = falaises.filter((f) => f.access.length > 0);
-  const falaisesHorsTopo = falaises.filter((f) => f.access.length === 0);
+  const falaisesDuTopo = falaises.filter(f => f.access.length > 0);
+  const falaisesHorsTopo = falaises.filter(f => f.access.length === 0);
 
   const applyVueFilters = (filters) => {
-    const expoN = filters.exposition.includes("N");
-    const expoE = filters.exposition.includes("E");
-    const expoS = filters.exposition.includes("S");
-    const expoO = filters.exposition.includes("O");
-    const cot40 = filters.cotations.includes("40");
-    const cot50 = filters.cotations.includes("50");
-    const cot59 = filters.cotations.includes("59");
-    const cot60 = filters.cotations.includes("60");
-    const cot69 = filters.cotations.includes("69");
-    const cot70 = filters.cotations.includes("70");
-    const cot79 = filters.cotations.includes("79");
-    const cot80 = filters.cotations.includes("80");
+    const expoN = filters.exposition.includes('N');
+    const expoE = filters.exposition.includes('E');
+    const expoS = filters.exposition.includes('S');
+    const expoO = filters.exposition.includes('O');
+    const cot40 = filters.cotations.includes('40');
+    const cot50 = filters.cotations.includes('50');
+    const cot59 = filters.cotations.includes('59');
+    const cot60 = filters.cotations.includes('60');
+    const cot69 = filters.cotations.includes('69');
+    const cot70 = filters.cotations.includes('70');
+    const cot79 = filters.cotations.includes('79');
+    const cot80 = filters.cotations.includes('80');
     const couenne = filters.typeVoies.couenne;
     const avecgv = filters.typeVoies.grandeVoie;
     const bloc = filters.typeVoies.bloc;
@@ -1466,8 +1216,7 @@ $highlight = $_GET['h'] ??
     const distMaxVelo = filters.velo.distMax;
     const denivMaxVelo = filters.velo.denivMax;
     const tempsMaxTrain = filters.train.tempsMax;
-    const nbCorrespMax =
-      filters.train.correspMax !== null ? filters.train.correspMax : 10;
+    const nbCorrespMax = filters.train.correspMax !== null ? filters.train.correspMax : 10;
     const terOnly = filters.train.terOnly;
     const tempsMaxMA = filters.approche.tempsMax;
     const tempsMaxTV = filters.total.tempsTV;
@@ -1476,110 +1225,63 @@ $highlight = $_GET['h'] ??
     const villeSelected = ville !== null;
     const nbVoies = filters.nbVoiesMin;
 
-    const expoFiltered = [expoN, expoE, expoS, expoO].some((e) => e);
-    const cotFiltered = [
-      cot40,
-      cot50,
-      cot59,
-      cot60,
-      cot69,
-      cot70,
-      cot79,
-      cot80,
-    ].some((e) => e);
+    const expoFiltered = [expoN, expoE, expoS, expoO].some(e => e);
+    const cotFiltered = [cot40, cot50, cot59, cot60, cot69, cot70, cot79, cot80].some(e => e);
     const typeVoiesFiltered = couenne || avecgv || bloc || psychobloc;
 
-    if (
-      !expoFiltered &&
-      !cotFiltered &&
-      !typeVoiesFiltered &&
-      nbVoies === 0 &&
-      !apieduniquement &&
-      tempsMaxVelo === null &&
-      denivMaxVelo === null &&
-      distMaxVelo === null &&
-      tempsMaxMA === null &&
-      !villeSelected
-    ) {
-      falaises.forEach((f) => {
-        f.filteredOut = false;
-      });
+    if (!expoFiltered && !cotFiltered && !typeVoiesFiltered && nbVoies === 0 && !apieduniquement
+      && tempsMaxVelo === null && denivMaxVelo === null && distMaxVelo === null && tempsMaxMA === null && !villeSelected) {
+      falaises.forEach(f => { f.filteredOut = false; });
     } else {
-      falaisesHorsTopo.forEach((f) => {
-        f.filteredOut = false;
-      });
-      falaisesDuTopo.forEach((falaise) => {
-        const estCotationsCompatible =
-          (!cot40 || "4+".localeCompare(falaise.falaise_cotmin) >= 0) &&
-          (!cot50 ||
-            ("5-".localeCompare(falaise.falaise_cotmin) >= 0 &&
-              falaise.falaise_cotmax.localeCompare("5-") >= 0)) &&
-          (!cot59 ||
-            ("5+".localeCompare(falaise.falaise_cotmin) >= 0 &&
-              falaise.falaise_cotmax.localeCompare("5+") >= 0)) &&
-          (!cot60 ||
-            ("6-".localeCompare(falaise.falaise_cotmin) >= 0 &&
-              falaise.falaise_cotmax.localeCompare("6-") >= 0)) &&
-          (!cot69 ||
-            ("6+".localeCompare(falaise.falaise_cotmin) >= 0 &&
-              falaise.falaise_cotmax.localeCompare("6+") >= 0)) &&
-          (!cot70 ||
-            ("7-".localeCompare(falaise.falaise_cotmin) >= 0 &&
-              falaise.falaise_cotmax.localeCompare("7-") >= 0)) &&
-          (!cot79 ||
-            ("7+".localeCompare(falaise.falaise_cotmin) >= 0 &&
-              falaise.falaise_cotmax.localeCompare("7+") >= 0)) &&
-          (!cot80 || falaise.falaise_cotmax.localeCompare("8-") >= 0);
-        const estTrainCompatible = falaise.access.some((it) => {
-          const train = it.villes.find((v) => v.ville_id === ville);
-          return (
-            train &&
-            (tempsMaxTrain === null || train.temps <= tempsMaxTrain) &&
-            (nbCorrespMax === 10 || train.nCorresp <= nbCorrespMax) &&
-            (!terOnly || parseInt(train.train_tgv || 0) === 0) &&
-            (tempsMaxTV === null || train.tempsTrainVelo <= tempsMaxTV) &&
-            (tempsMaxTVA === null || train.tempsTotal <= tempsMaxTVA)
+      falaisesHorsTopo.forEach(f => { f.filteredOut = false; });
+      falaisesDuTopo.forEach(falaise => {
+        const estCotationsCompatible = (
+          (!cot40 || ("4+".localeCompare(falaise.falaise_cotmin) >= 0))
+          && (!cot50 || ("5-".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("5-") >= 0))
+          && (!cot59 || ("5+".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("5+") >= 0))
+          && (!cot60 || ("6-".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("6-") >= 0))
+          && (!cot69 || ("6+".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("6+") >= 0))
+          && (!cot70 || ("7-".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("7-") >= 0))
+          && (!cot79 || ("7+".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("7+") >= 0))
+          && (!cot80 || (falaise.falaise_cotmax.localeCompare("8-") >= 0))
+        );
+        const estTrainCompatible = falaise.access.some(it => {
+          const train = it.villes.find(v => v.ville_id === ville);
+          return train && (
+            (tempsMaxTrain === null || train.temps <= tempsMaxTrain)
+            && (nbCorrespMax === 10 || train.nCorresp <= nbCorrespMax)
+            && (!terOnly || parseInt(train.train_tgv || 0) === 0)
+            && (tempsMaxTV === null || train.tempsTrainVelo <= tempsMaxTV)
+            && (tempsMaxTVA === null || train.tempsTotal <= tempsMaxTVA)
           );
         });
-        const estNbVoiesCompatible =
-          parseInt(falaise.falaise_nbvoies) >= nbVoies || nbVoies === 0;
-        const estTypeVoiesCompatible =
-          (couenne && !!!parseInt(falaise.falaise_bloc)) ||
-          (avecgv && !!falaise.falaise_gvnb) ||
-          (bloc && parseInt(falaise.falaise_bloc) === 1) ||
-          (psychobloc && parseInt(falaise.falaise_bloc) === 2);
+        const estNbVoiesCompatible = (parseInt(falaise.falaise_nbvoies) >= nbVoies) || nbVoies === 0;
+        const estTypeVoiesCompatible = (
+          (couenne && !!!parseInt(falaise.falaise_bloc))
+          || (avecgv && !!falaise.falaise_gvnb)
+          || (bloc && parseInt(falaise.falaise_bloc) === 1)
+          || (psychobloc && parseInt(falaise.falaise_bloc) === 2)
+        );
 
         if (
-          (!expoFiltered ||
-            (expoN &&
-              (falaise.falaise_exposhort1.includes("'N") ||
-                falaise.falaise_exposhort2.includes("'N"))) ||
-            (expoE &&
-              (falaise.falaise_exposhort1.match(/('E|'NE'|'SE')/) ||
-                falaise.falaise_exposhort2.match(/('E|'NE'|'SE')/))) ||
-            (expoS &&
-              (falaise.falaise_exposhort1.includes("'S") ||
-                falaise.falaise_exposhort2.includes("'S"))) ||
-            (expoO &&
-              (falaise.falaise_exposhort1.match(/('O|'NO'|'SO')/) ||
-                falaise.falaise_exposhort2.match(/('O|'NO'|'SO')/)))) &&
-          (!cotFiltered || estCotationsCompatible) &&
-          (tempsMaxMA === null ||
-            parseInt(falaise.falaise_maa || 0) <= tempsMaxMA) &&
-          estNbVoiesCompatible &&
-          (!typeVoiesFiltered || estTypeVoiesCompatible) &&
-          (!villeSelected || estTrainCompatible) &&
-          falaise.access.some((it) => {
+          (!expoFiltered || (
+            (expoN && (falaise.falaise_exposhort1.includes("'N") || falaise.falaise_exposhort2.includes("'N")))
+            || (expoE && (falaise.falaise_exposhort1.match(/('E|'NE'|'SE')/) || falaise.falaise_exposhort2.match(/('E|'NE'|'SE')/)))
+            || (expoS && (falaise.falaise_exposhort1.includes("'S") || falaise.falaise_exposhort2.includes("'S")))
+            || (expoO && (falaise.falaise_exposhort1.match(/('O|'NO'|'SO')/) || falaise.falaise_exposhort2.match(/('O|'NO'|'SO')/)))
+          ))
+          && (!cotFiltered || estCotationsCompatible)
+          && (tempsMaxMA === null || parseInt(falaise.falaise_maa || 0) <= tempsMaxMA)
+          && estNbVoiesCompatible
+          && (!typeVoiesFiltered || estTypeVoiesCompatible)
+          && (!villeSelected || estTrainCompatible)
+          && falaise.access.some(it => {
             const duration = calculate_time(it);
             return (
-              (tempsMaxVelo === null || duration <= tempsMaxVelo) &&
-              (denivMaxVelo === null ||
-                parseInt(it.velo_dplus) <= denivMaxVelo) &&
-              (distMaxVelo === null ||
-                parseFloat(it.velo_km) <= distMaxVelo) &&
-              (apieduniquement === false ||
-                it.velo_apieduniquement === "1" ||
-                it.velo_apiedpossible === "1")
+              (tempsMaxVelo === null || duration <= tempsMaxVelo)
+              && (denivMaxVelo === null || parseInt(it.velo_dplus) <= denivMaxVelo)
+              && (distMaxVelo === null || parseFloat(it.velo_km) <= distMaxVelo)
+              && (apieduniquement === false || it.velo_apieduniquement === "1" || it.velo_apiedpossible === "1")
             );
           })
         ) {
@@ -1593,10 +1295,8 @@ $highlight = $_GET['h'] ??
     renderFalaises();
   };
 
-  window.addEventListener("velogrimpe:filters", (e) =>
-    applyVueFilters(e.detail),
-  );
-  window.addEventListener("velogrimpe:info-ready", () => info_update());
+  window.addEventListener('velogrimpe:filters', (e) => applyVueFilters(e.detail));
+  window.addEventListener('velogrimpe:info-ready', () => info_update());
 </script>
 
 <!-- Vue.js Map Filters (search + filters control) -->
