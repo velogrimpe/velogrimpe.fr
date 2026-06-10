@@ -1183,6 +1183,8 @@ $stmtC->close();
     );
 
     const featureMap = {};
+    // Noms d'arrêts de bus déjà affichés (dédup entre legacy GeoJSON et DB).
+    const busStopNames = new Set();
 
     const updateAssociations = () => {
       const features = Object.values(featureMap);
@@ -1214,6 +1216,9 @@ $stmtC->close();
             } else if (feature.properties.type === "parking") {
               obj = new Parking(map, feature);
             } else if (feature.properties.type === "bus_stop") {
+              const nm = (feature.properties.name || "").trim().toLowerCase();
+              if (nm && busStopNames.has(nm)) return; // déjà affiché (DB)
+              if (nm) busStopNames.add(nm);
               obj = new BusStop(map, feature);
             } else if (feature.properties.type === "falaise_voisine") {
               obj = new FalaiseVoisine(map, feature);
@@ -1231,6 +1236,35 @@ $stmtC->close();
       .catch(error => {
         console.error("Erreur lors du chargement des données de falaise :", error);
       });
+
+    // Arrêts de bus liés en base (bus_arrets_falaise). Complète les éventuels
+    // arrêts encore stockés en GeoJSON (legacy). Dédup par nom via busStopNames.
+    fetch(`/api/fetch_bus_arrets.php?falaise_id=${falaise.falaise_id}`)
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("fetch_bus_arrets")))
+      .then(data => {
+        let added = false;
+        (data.arrets || []).forEach(arret => {
+          const nm = (arret.nom || "").trim().toLowerCase();
+          if (nm && busStopNames.has(nm)) return; // déjà affiché (legacy GeoJSON)
+          if (nm) busStopNames.add(nm);
+          const lignes = (arret.lignes || []).join(", ");
+          const descHtml =
+            (lignes ? `<div class="text-xs opacity-70">${lignes}</div>` : "") +
+            (arret.description || "");
+          const feature = {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [arret.lng, arret.lat] },
+            properties: { type: "bus_stop", name: arret.nom, description: descHtml },
+          };
+          const obj = new BusStop(map, feature);
+          obj._element_id = `bus_db_${arret.id}`;
+          featureMap[obj._element_id] = obj;
+          added = true;
+        });
+        if (added) updateAssociations();
+      })
+      .catch(error => console.error("Erreur chargement arrêts bus DB :", error));
+
     window.map = map; // Pour debug
 
     campingLayer.addTo(map);
