@@ -278,7 +278,12 @@ $highlight = $_GET['h'] ?? '';
     Satellite: { url: "https://data.geopf.fr/wmts?&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", maxzoom: 18, attribution: "IGN-F/Geoportail" },
     Outdoors: { url: "https://a.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", maxzoom: 19, attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>' },
   };
-  let currentBasemap = "Landscape";
+  // Fond cartographique par défaut : le style vectoriel MapLibre. Les entrées
+  // de BASEMAPS sont les fonds raster "alternatifs" qui le remplacent quand on
+  // les sélectionne dans le sélecteur de couches.
+  const MAPLIBRE_BASEMAP = "Carte vélogrimpe";
+  const DEFAULT_RASTER_BASEMAP = "Landscape"; // tuiles initiales de la source `basemap`
+  let currentBasemap = MAPLIBRE_BASEMAP;
 
   // Les protocoles `pmtiles://` et `gpx://` sont enregistrés en amont par
   // /dist/map-maplibre.js (cf. frontend/src/apps/map-maplibre.ts).
@@ -287,6 +292,13 @@ $highlight = $_GET['h'] ?? '';
 
   // php import cartes-app-style.json as a JS object, to inject the correct demSource URL in the style's hillshade layer.
   const style = <?php echo json_encode(json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/bdd/cartes-app-style.json'), true)); ?>;
+
+  // Visibilité d'origine de chaque couche du style vectoriel : permet de la
+  // masquer quand on bascule sur un fond raster, puis de la restaurer telle
+  // quelle (certaines couches — rando/VTT/ski — sont masquées par défaut).
+  const maplibreLayerVisibility = Object.fromEntries(
+    style.layers.map((l) => [l.id, (l.layout && l.layout.visibility) || "visible"])
+  );
 
   const terrainSources = {
     "ign-estompage": {
@@ -316,7 +328,7 @@ $highlight = $_GET['h'] ?? '';
     sources: {
       ...style.sources,
       ...terrainSources,
-      basemap: { type: "raster", tiles: [BASEMAPS[currentBasemap].url], tileSize: 256, maxzoom: BASEMAPS[currentBasemap].maxzoom, attribution: BASEMAPS[currentBasemap].attribution },
+      basemap: { type: "raster", tiles: [BASEMAPS[DEFAULT_RASTER_BASEMAP].url], tileSize: 256, maxzoom: BASEMAPS[DEFAULT_RASTER_BASEMAP].maxzoom, attribution: BASEMAPS[DEFAULT_RASTER_BASEMAP].attribution },
     },
   };
 
@@ -350,6 +362,10 @@ $highlight = $_GET['h'] ?? '';
   ];
 
   map.on("load", () => {
+    // Couche raster des fonds alternatifs (Landscape, Satellite, IGN…), tout en
+    // bas de la pile (avant "Background") et masquée par défaut : le fond actif
+    // au démarrage est le style vectoriel MapLibre.
+    map.addLayer({ id: "basemap", type: "raster", source: "basemap", layout: { visibility: "none" } }, "Background");
     // Les sources hillshade et contourSource sont déclarées en amont (avant map.on('load')) pour éviter les problèmes de timing liés à l'ajout de sources dynamiques après le chargement de la carte.
     contourLayers.forEach((layer) => map.addLayer(layer, 'River'));
   });
@@ -467,11 +483,34 @@ $highlight = $_GET['h'] ?? '';
   ];
   const overlayChecked = { tgv: true, camping: false, gite: false, biodiv: false };
 
+  // Affiche/masque l'ensemble des couches du style vectoriel MapLibre (fond
+  // cartographique + relief/courbes IGN). Au retour, on restitue la visibilité
+  // d'origine de chaque couche (rando/VTT/ski restent masquées).
+  function setMaplibreStyleVisible(visible) {
+    Object.keys(maplibreLayerVisibility).forEach((id) => {
+      if (!map.getLayer(id)) return;
+      map.setLayoutProperty(id, "visibility", visible ? maplibreLayerVisibility[id] : "none");
+    });
+    contourLayers.forEach(({ id }) => {
+      if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+    });
+  }
+
   function setBasemap(name) {
-    if (!BASEMAPS[name]) return;
     currentBasemap = name;
+    if (name === MAPLIBRE_BASEMAP) {
+      // Retour au style vectoriel : on masque le fond raster et on réaffiche le style.
+      if (map.getLayer("basemap")) map.setLayoutProperty("basemap", "visibility", "none");
+      setMaplibreStyleVisible(true);
+      return;
+    }
+    if (!BASEMAPS[name]) return;
+    // Fond raster alternatif : on masque le style vectoriel et on affiche la
+    // couche `basemap` avec les tuiles choisies.
     const src = map.getSource("basemap");
     if (src && src.setTiles) src.setTiles([BASEMAPS[name].url]);
+    setMaplibreStyleVisible(false);
+    if (map.getLayer("basemap")) map.setLayoutProperty("basemap", "visibility", "visible");
   }
   function setOverlayVisibility(overlayId, visible) {
     const ov = OVERLAYS.find(o => o.id === overlayId);
@@ -493,8 +532,8 @@ $highlight = $_GET['h'] ?? '';
       sum.title = "Couches";
       det.appendChild(sum);
       const body = document.createElement("div");
-      // Basemaps (radio)
-      Object.keys(BASEMAPS).forEach((name) => {
+      // Basemaps (radio) : le style vectoriel MapLibre en tête, puis les fonds raster.
+      [MAPLIBRE_BASEMAP, ...Object.keys(BASEMAPS)].forEach((name) => {
         const lab = document.createElement("label");
         const r = document.createElement("input");
         r.type = "radio"; r.name = "vg-basemap"; r.value = name;
