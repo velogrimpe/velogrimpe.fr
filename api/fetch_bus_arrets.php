@@ -61,7 +61,9 @@ $stmt->execute();
 $res = $stmt->get_result();
 
 $arrets = [];
+$idToIndex = []; // arret_id => index dans $arrets (pour rattacher les liaisons)
 while ($row = $res->fetch_assoc()) {
+  $idToIndex[(int) $row["id"]] = count($arrets);
   $arrets[] = [
     "id" => (int) $row["id"],
     "nom" => $row["nom"],
@@ -72,8 +74,56 @@ while ($row = $res->fetch_assoc()) {
     "lignes" => $row["lignes"] !== null && $row["lignes"] !== ""
       ? array_map('trim', explode(',', $row["lignes"]))
       : [],
+    "liaisons" => [], // arrêts reliés (coords incluses) — rempli ci-dessous
   ];
 }
 $stmt->close();
+
+// Liaisons : pour chaque arrêt renvoyé, les arrêts reliés (avec coordonnées,
+// pour tracer les arcs). Les arêtes sont non orientées : on attache la liaison
+// au(x) endpoint(s) présent(s) dans le jeu de résultats.
+if (!empty($idToIndex)) {
+  $ids = array_keys($idToIndex);
+  $placeholders = implode(',', array_fill(0, count($ids), '?'));
+  $sql =
+    "SELECT l.arret_1_id, l.arret_2_id, l.description AS liaison_descr, li.nom AS ligne_nom,
+            a1.nom AS a1_nom, ST_Y(a1.loc) AS a1_lat, ST_X(a1.loc) AS a1_lng,
+            a2.nom AS a2_nom, ST_Y(a2.loc) AS a2_lat, ST_X(a2.loc) AS a2_lng
+     FROM bus_liaisons l
+     JOIN bus_lignes li ON li.id = l.ligne_id
+     JOIN bus_arrets a1 ON a1.id = l.arret_1_id
+     JOIN bus_arrets a2 ON a2.id = l.arret_2_id
+     WHERE l.arret_1_id IN ($placeholders) OR l.arret_2_id IN ($placeholders)";
+  $stmt = $mysqli->prepare($sql);
+  $params = array_merge($ids, $ids);
+  $stmt->bind_param(str_repeat('i', count($params)), ...$params);
+  $stmt->execute();
+  $r = $stmt->get_result();
+  while ($lr = $r->fetch_assoc()) {
+    $a1 = (int) $lr["arret_1_id"];
+    $a2 = (int) $lr["arret_2_id"];
+    if (isset($idToIndex[$a1])) {
+      $arrets[$idToIndex[$a1]]["liaisons"][] = [
+        "arret_id" => $a2,
+        "nom" => $lr["a2_nom"],
+        "lat" => (float) $lr["a2_lat"],
+        "lng" => (float) $lr["a2_lng"],
+        "ligne" => $lr["ligne_nom"],
+        "description" => $lr["liaison_descr"],
+      ];
+    }
+    if (isset($idToIndex[$a2])) {
+      $arrets[$idToIndex[$a2]]["liaisons"][] = [
+        "arret_id" => $a1,
+        "nom" => $lr["a1_nom"],
+        "lat" => (float) $lr["a1_lat"],
+        "lng" => (float) $lr["a1_lng"],
+        "ligne" => $lr["ligne_nom"],
+        "description" => $lr["liaison_descr"],
+      ];
+    }
+  }
+  $stmt->close();
+}
 
 echo json_encode(["arrets" => $arrets]);
