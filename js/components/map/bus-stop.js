@@ -15,7 +15,7 @@ export default class BusStop extends Element {
    * @param {Object} [options={}] - Optional parameters for the object.
    */
   constructor(map, busStopFeature, options = {}) {
-    const visibility = options.visibility || { from: 12 };
+    const visibility = options.visibility || { from: 9 };
     const layer = buildBusStopMarker(busStopFeature, options);
     layer.properties = busStopFeature.properties;
     const name = layer.properties?.name || "Arrêt de bus";

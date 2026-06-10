@@ -86,7 +86,8 @@ if (!empty($idToIndex)) {
   $ids = array_keys($idToIndex);
   $placeholders = implode(',', array_fill(0, count($ids), '?'));
   $sql =
-    "SELECT l.arret_1_id, l.arret_2_id, l.description AS liaison_descr, li.nom AS ligne_nom,
+    "SELECT l.arret_1_id, l.arret_2_id, l.description AS liaison_descr,
+            li.nom AS ligne_nom, li.description AS ligne_descr, li.lien AS ligne_lien,
             a1.nom AS a1_nom, ST_Y(a1.loc) AS a1_lat, ST_X(a1.loc) AS a1_lng,
             a2.nom AS a2_nom, ST_Y(a2.loc) AS a2_lat, ST_X(a2.loc) AS a2_lng
      FROM bus_liaisons l
@@ -109,6 +110,8 @@ if (!empty($idToIndex)) {
         "lat" => (float) $lr["a2_lat"],
         "lng" => (float) $lr["a2_lng"],
         "ligne" => $lr["ligne_nom"],
+        "ligne_description" => $lr["ligne_descr"],
+        "ligne_lien" => $lr["ligne_lien"],
         "description" => $lr["liaison_descr"],
       ];
     }
@@ -119,6 +122,8 @@ if (!empty($idToIndex)) {
         "lat" => (float) $lr["a1_lat"],
         "lng" => (float) $lr["a1_lng"],
         "ligne" => $lr["ligne_nom"],
+        "ligne_description" => $lr["ligne_descr"],
+        "ligne_lien" => $lr["ligne_lien"],
         "description" => $lr["liaison_descr"],
       ];
     }

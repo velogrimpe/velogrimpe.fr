@@ -1247,7 +1247,8 @@ $stmtC->close();
       st.textContent =
         ".vg-bus-arc-label{background:#fffbeb;border:1px solid #eab308;color:#713f12;" +
         "border-radius:4px;padding:0 5px;font-size:11px;font-weight:600;white-space:nowrap;" +
-        "box-shadow:0 1px 3px rgba(0,0,0,.25);}.vg-bus-arc-label::before{display:none;}";
+        "box-shadow:0 1px 3px rgba(0,0,0,.25);}.vg-bus-arc-label::before{display:none;}" +
+        ".vg-bus-arc-tip{max-width:260px;font-size:12px;}";
       document.head.appendChild(st);
     }
 
@@ -1294,19 +1295,38 @@ $stmtC->close();
       (arret.liaisons || []).forEach((li) => {
         const dest = [li.lat, li.lng];
         bounds.push(dest);
-        L.polyline(busArcPoints(origin, dest), {
+        // Tooltip (HTML déjà assaini) : ligne qui relie les deux arrêts + son
+        // éventuelle description + le commentaire de la liaison. Affiché sur l'arc
+        // (au survol, suit le curseur) et sur l'arrêt relié.
+        const escHtml = (s) =>
+          String(s ?? "").replace(/[&<>"]/g, (c) =>
+            ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+        const tipParts = [];
+        if (li.ligne) tipParts.push(`<div class="font-bold">${escHtml(li.ligne)}</div>`);
+        if (li.ligne_description) tipParts.push(li.ligne_description);
+        if (li.description) tipParts.push(li.description);
+        const tip = tipParts.join("");
+        const arc = L.polyline(busArcPoints(origin, dest), {
           color: "#eab308",
           weight: 3,
           opacity: 0.9,
           dashArray: "6 8",
-          interactive: false,
         }).addTo(busArcLayer);
+        if (tip) {
+          arc.bindTooltip(tip, { sticky: true, direction: "top", className: "vg-bus-arc-tip" });
+        }
         // Affiche l'arrêt relié s'il n'est pas déjà un marqueur permanent.
         if (!permanentArretIds.has(li.arret_id)) {
-          L.marker(dest, {
+          const m = L.marker(dest, {
             icon: BusStop.busStopIcon(BusStop.iconSize),
-            interactive: false,
           }).addTo(busArcLayer);
+          if (tip) {
+            m.bindTooltip(tip, {
+              direction: "top",
+              offset: [0, -BusStop.iconSize / 2],
+              className: "vg-bus-arc-tip",
+            });
+          }
         }
         busLabel(dest, li.nom);
       });
