@@ -310,16 +310,6 @@ $highlight = $_GET['h'] ?? '';
       "minzoom": 6,
       "maxzoom": 17,
       "attribution": "© IGN"
-    },
-    "ign-contours": {
-      "type": "raster",
-      "tiles": [
-        "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ELEVATION.CONTOUR.LINE&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}"
-      ],
-      "tileSize": 256,
-      "minzoom": 6,
-      "maxzoom": 18,
-      "attribution": "© IGN"
     }
   }
 
@@ -352,22 +342,16 @@ $highlight = $_GET['h'] ?? '';
       "type": "raster",
       "source": "ign-estompage",
       "paint": { "raster-opacity": 0.5 }
-    },
-    {
-      "id": "contours",
-      "type": "raster",
-      "source": "ign-contours",
-      "paint": { "raster-opacity": 0.8 }
-    },
+    }
   ];
 
   map.on("load", () => {
     // Couche raster des fonds alternatifs (Landscape, Satellite, IGN…), tout en
-    // bas de la pile (avant "Background") et masquée par défaut : le fond actif
+    // bas de la pile (avant "bckgrd") et masquée par défaut : le fond actif
     // au démarrage est le style vectoriel MapLibre.
-    map.addLayer({ id: "basemap", type: "raster", source: "basemap", layout: { visibility: "none" } }, "Background");
+    map.addLayer({ id: "basemap", type: "raster", source: "basemap", layout: { visibility: "none" } }, "bckgrd");
     // Les sources hillshade et contourSource sont déclarées en amont (avant map.on('load')) pour éviter les problèmes de timing liés à l'ajout de sources dynamiques après le chargement de la carte.
-    contourLayers.forEach((layer) => map.addLayer(layer, 'River'));
+    contourLayers.forEach((layer) => map.addLayer(layer, 'toponyme - cote de courbe normale'));
   });
 
 
