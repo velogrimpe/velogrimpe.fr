@@ -142,6 +142,73 @@ foreach ($liensResult as $lien) {
   ];
 }
 
+// Pre-load bus stops linked to crags (bus_arrets_falaise), with their lines and
+// liaisons (connections to other stops). Grouped by falaise. A stop can serve
+// several crags: its entry (lines + liaisons) is built once then reused.
+$arretEntryById = [];
+$arretFalaises = []; // [ [falaise_id, arret_id], ... ]
+$arretRows = $mysqli->query("SELECT baf.falaise_id, a.id, a.nom, a.description, a.osm_id,
+    ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng
+  FROM bus_arrets_falaise baf
+  JOIN bus_arrets a ON a.id = baf.arret_id
+  ORDER BY baf.falaise_id, a.nom")->fetch_all(MYSQLI_ASSOC);
+foreach ($arretRows as $r) {
+  $aid = (int) $r['id'];
+  if (!isset($arretEntryById[$aid])) {
+    $arretEntryById[$aid] = [
+      'id' => $aid,
+      'nom' => $r['nom'],
+      'description' => $r['description'],
+      'osm_id' => $r['osm_id'] ?: null,
+      'coordonnees' => [round((float) $r['lng'], 6), round((float) $r['lat'], 6)],
+      'lignes' => [],
+      'liaisons' => [],
+      '_ligneIds' => [],
+    ];
+  }
+  $arretFalaises[] = [(int) $r['falaise_id'], $aid];
+}
+// Attach liaisons + distinct lines to each exported stop (edges are non-oriented :
+// chaque liaison est vue depuis chacun de ses deux arrêts).
+if (!empty($arretEntryById)) {
+  $liaisonRows = $mysqli->query("SELECT l.arret_1_id, l.arret_2_id, l.description AS liaison_descr,
+      li.id AS ligne_id, li.nom AS ligne_nom, li.description AS ligne_descr, li.lien AS ligne_lien,
+      a1.nom AS arret_1_nom, a2.nom AS arret_2_nom
+    FROM bus_liaisons l
+    JOIN bus_lignes li ON li.id = l.ligne_id
+    JOIN bus_arrets a1 ON a1.id = l.arret_1_id
+    JOIN bus_arrets a2 ON a2.id = l.arret_2_id")->fetch_all(MYSQLI_ASSOC);
+  foreach ($liaisonRows as $lr) {
+    $endpoints = [
+      [(int) $lr['arret_1_id'], $lr['arret_2_nom']],
+      [(int) $lr['arret_2_id'], $lr['arret_1_nom']],
+    ];
+    foreach ($endpoints as [$selfId, $otherNom]) {
+      if (!isset($arretEntryById[$selfId])) {
+        continue;
+      }
+      $arretEntryById[$selfId]['liaisons'][] = [
+        'arret_relie' => $otherNom,
+        'ligne' => $lr['ligne_nom'],
+        'description' => $lr['liaison_descr'],
+      ];
+      $arretEntryById[$selfId]['_ligneIds'][(int) $lr['ligne_id']] = [
+        'nom' => $lr['ligne_nom'],
+        'description' => $lr['ligne_descr'],
+        'lien' => $lr['ligne_lien'] ?: null,
+      ];
+    }
+  }
+  foreach ($arretEntryById as $aid => $entry) {
+    $arretEntryById[$aid]['lignes'] = array_values($entry['_ligneIds']);
+    unset($arretEntryById[$aid]['_ligneIds']);
+  }
+}
+$arretsByFalaise = [];
+foreach ($arretFalaises as [$fid, $aid]) {
+  $arretsByFalaise[$fid][] = $arretEntryById[$aid];
+}
+
 $geojson = [
   'type' => 'FeatureCollection',
   'license' => 'CC BY-SA 4.0 et ODbL 1.0',
@@ -192,6 +259,7 @@ foreach ($falaises as $falaise) {
     'remarques' => $falaise['rq'],
     'itineraires_velo' => $velosByFalaise[$falaise['id']] ?? [],
     'liens_externes' => $liensByFalaise[$falaise['id']] ?? [],
+    'arrets_bus' => $arretsByFalaise[$falaise['id']] ?? [],
   ];
 
   // Link to the geometric topo details file only when it exists, and merge its
