@@ -7,6 +7,13 @@ $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 $arret_id = $_GET['arret_id'] ?? null;
 
+// Falaises à pré-lier à l'arrêt (param ?falaise_ids=12,34). Permet par ex. au
+// bouton « ajouter un arrêt » de confirmation_falaise de pré-remplir le lien.
+$preset_falaise_ids = array_values(array_filter(
+  array_map('intval', explode(',', $_GET['falaise_ids'] ?? '')),
+  fn($v) => $v > 0,
+));
+
 // Falaises (toutes) pour la carte
 $falaises = [];
 $res = $mysqli->query("SELECT falaise_id, falaise_nom, falaise_latlng, falaise_nomformate FROM falaises ORDER BY falaise_nom");
@@ -186,6 +193,7 @@ while ($row = $res->fetch_assoc()) {
     import { fetchBusStops } from '/js/components/utils/fetch-bus-stops.js';
 
     const falaises = <?= json_encode($falaises) ?>;
+    const presetFalaiseIds = <?= json_encode($preset_falaise_ids) ?>;
 
     const { map, leadingButton: overpassBtn } = createAjoutMap('map', {
       leadingButton: {
@@ -288,6 +296,14 @@ while ($row = $res->fetch_assoc()) {
     window.busSetLinkedFalaises = (ids) => {
       (ids || []).forEach((id) => setFalaiseLinked(Number(id), true));
     };
+    // Pré-liaison via le paramètre d'URL ?falaise_ids=...
+    if (presetFalaiseIds && presetFalaiseIds.length) {
+      window.busSetLinkedFalaises(presetFalaiseIds);
+      const pts = presetFalaiseIds
+        .map((id) => falaiseMarkers.get(Number(id))?.marker.getLatLng())
+        .filter(Boolean);
+      if (pts.length) map.setView(pts[0], 14);
+    }
 
     // --- Récupération des arrêts via Overpass (bouton à gauche de la recherche) ---
     const overpassLayer = L.layerGroup().addTo(map);

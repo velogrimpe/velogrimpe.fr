@@ -684,12 +684,12 @@ if ($falaise_id) {
             Pour que la mention « Grandes voies » soit effective sur la fiche falaise, merci de bien renseigner les deux
             champs ci-dessous.
           </div>
-          <label class="form-control" for="falaise_gvtxt">
+          <div class="form-control">
             <b class="">Grandes voies - Texte descriptif. <span class="text-error">Important pour les GV !</span></b>
             <div class="vue-richtext" data-name="falaise_gvtxt"></div>
             <i class="text-slate-400 text-sm"> Indiquez s'il y a des grandes voies, et si oui, combien environ, de
               combien à combien de longueurs, jusqu'à quelle hauteur max, éventuellement donner les cotations... </i>
-          </label>
+          </div>
           <label class="form-control" for="falaise_gvnb">
             <b class="">Grandes voies - Texte très court pour le tableau. <span class="text-error">Important pour les GV
                 !</span></b>
@@ -797,12 +797,12 @@ if ($falaise_id) {
         <hr class="my-0 grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
-        <label class="form-control" for="falaise_matxt">
+        <div class="form-control">
           <b>Marche d'approche - Texte descriptif</b>
           <div class="vue-richtext" data-name="falaise_matxt"></div>
           <i class="text-slate-400 text-sm"> Petit texte décrivant la marche d'approche. Ex : "10' en montée", "10'
             aller, 7' retour",... </i>
-        </label>
+        </div>
         <div>
           <b>Temps minimal de marche d'approche (minutes)</b>
           <div class="flex flex-col md:flex-row gap-4">
@@ -830,7 +830,7 @@ if ($falaise_id) {
         <hr class="my-0 grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
-        <label class="form-control" for="falaise_topo">
+        <div class="form-control">
           <b>Topo(s)</b>
           <div class="vue-richtext" data-name="falaise_topo"></div>
           <i class="text-slate-400 text-sm"> Lister les différents topos présentant la falaise.<br> Optionnel : ajouter
@@ -838,24 +838,24 @@ if ($falaise_id) {
             Climbing Away&lt;/a&gt;, en remplaçant "URL" par l'URL de la fiche.<br> Exemple : "Escalade dans le Jura -
             &lt;a href="https://climbingaway.fr/fr/site-escalade/le-trou-de-la-lune"&gt;Fiche Climbing Away&lt;/a&gt;"
           </i>
-        </label>
-        <label class="form-control" for="falaise_rq">
+        </div>
+        <div class="form-control">
           <b class="">Remarque(s) falaise <span class="text-accent opacity-50">(optionnel)</span></b>
           <div class="vue-richtext" data-name="falaise_rq"></div>
           <i class="text-slate-400 text-sm">A compléter si vous avez des informations additionnelles sur la falaise.</i>
-        </label>
-        <label class="form-control" for="falaise_hebergement">
+        </div>
+        <div class="form-control">
           <b class="">Infos Hébergements <span class="text-accent opacity-50">(optionnel)</span></b>
           <div class="vue-richtext" data-name="falaise_hebergement"></div>
           <i class="text-slate-400 text-sm">Informations sur les possibilités d'hébergement à proximité (campings,
             refuges, gîtes...).</i>
-        </label>
-        <label class="form-control" for="falaise_acces_bus">
+        </div>
+        <div class="form-control">
           <b class="">Accès en bus <span class="text-accent opacity-50">(optionnel)</span></b>
           <div class="vue-richtext" data-name="falaise_acces_bus"></div>
           <i class="text-slate-400 text-sm">Informations sur les accès en transports en commun (bus, navettes...) depuis
             la gare ou les villes proches.</i>
-        </label>
+        </div>
         <label class="form-control" for="falaise_voletcarto">
           <b>Résumé de la fiche falaise</b>
           <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voletcarto"
@@ -880,25 +880,25 @@ if ($falaise_id) {
           (voir par exemple la fiche de <a href="/falaise.php?falaise_id=32">Cessens</a> pour avoir une idée) :</p>
         <div class="admin flex flex-col gap-4">
           <pre>NOM FALAISE</pre>
-          <label class="form-control" for="falaise_fermee">
+          <div class="form-control">
             <b class="">Si la falaise est fermée / interdite, explication <span
                 class="text-accent opacity-50">(optionnel)</span></b>
             <div class="vue-richtext" data-name="falaise_fermee"></div>
             <i class="text-slate-400 text-sm">A compléter si vous avez des informations sur la cause de l'interdiction
               ou les perspectives de réouverture.</i>
-          </label>
+          </div>
           <pre>TABLEAU DESCRIPTIF FALAISE</pre>
-          <label class="form-control" for="falaise_txt2">
+          <div class="form-control">
             <span>
               <b class="">Remarques diverses <span class="text-accent opacity-50">(optionnel)</span></b>
               <span class="admin text-xs text-accent">[falaise_txt2]</span></span>
             <div class="vue-richtext" data-name="falaise_txt2"></div>
             <i class="text-slate-400 text-sm">Remarques non incluses dans le tableau descriptif. Typiquement utilisé
               pour décrire les différents secteurs, les modalités de bivouac, camping.</i>
-          </label>
+          </div>
           <pre>Menu déroulant des villes</pre>
           <pre>TABLEAUX DYNAMIQUES ITINERAIRES VILLE->FALAISE</pre>
-          <label class="form-control" for="falaise_txt1">
+          <div class="form-control">
             <span>
               <b class="">Remarque sur les itinéraires <span class="text-accent opacity-50">(optionnel)</span></b>
               (apparaitra entre le tableau des itinéraires et celui de la falaise). <span
@@ -907,7 +907,7 @@ if ($falaise_id) {
             <div class="vue-richtext" data-name="falaise_txt1"></div>
             <i class="text-slate-400 text-sm">Exemple: remarque optionnelle générale sur l’accès falaise, qui s’affiche
               quelle que soit la ville de départ</i>
-          </label>
+          </div>
           <pre>Remarque optionnelle sur l’accès depuis la ville V (s’affiche si V est sélectionnée ;
 champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           <pre>CARTE</pre>
@@ -919,19 +919,19 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         </label>
         <img class="hidden w-full h-auto" id="falaise_img1_preview" src="" alt="Pas d'image 1" />
         <input hidden id="falaise_img1_webp" name="falaise_img1_webp" type="file" accept="image/*" />
-        <label class="form-control" for="falaise_leg1">
+        <div class="form-control">
           <span>
             <b class="">Légende image 1 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent"> [falaise_leg1] </span>
           </span>
           <div class="vue-richtext" data-name="falaise_leg1"></div>
-        </label>
-        <label class="form-control" for="falaise_txt3">
+        </div>
+        <div class="form-control">
           <span>
             <b class="">Texte 1 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_txt3]</span></span>
           <div class="vue-richtext" data-name="falaise_txt3"></div>
-        </label>
+        </div>
         <label class="form-control" for="falaise_img2">
           <b class="">Image 2 <span class="text-accent opacity-50">(optionnel)</span></b>
           <input class="file-input file-file-input-sm" type="file" id="falaise_img2" name="falaise_img2"
@@ -939,18 +939,18 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         </label>
         <img class="hidden w-full h-auto" id="falaise_img2_preview" src="" alt="Pas d'image 2" />
         <input hidden id="falaise_img2_webp" name="falaise_img2_webp" type="file" accept="image/*" />
-        <label class="form-control" for="falaise_leg2">
+        <div class="form-control">
           <span>
             <b class="">Légende image 2 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_leg2]</span></span>
           <div class="vue-richtext" data-name="falaise_leg2"></div>
-        </label>
-        <label class="form-control" for="falaise_txt4">
+        </div>
+        <div class="form-control">
           <span>
             <b class="">Texte 2 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_txt4]</span></span>
           <div class="vue-richtext" data-name="falaise_txt4"></div>
-        </label>
+        </div>
         <label class="form-control" for="falaise_img3">
           <b class="">Image 3 <span class="text-accent opacity-50">(optionnel)</span></b>
           <input class="file-input file-file-input-sm" type="file" id="falaise_img3" name="falaise_img3"
@@ -958,12 +958,12 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         </label>
         <img class="hidden w-full h-auto" id="falaise_img3_preview" src="" alt="Pas d'image 3" />
         <input hidden id="falaise_img3_webp" name="falaise_img3_webp" type="file" accept="image/*" />
-        <label class="form-control" for="falaise_leg3">
+        <div class="form-control">
           <span>
             <b class="">Légende image 3 <span class="text-accent opacity-50">(optionnel)</span></b>
             <span class="admin text-xs text-accent">[falaise_leg3]</span></span>
           <div class="vue-richtext" data-name="falaise_leg3"></div>
-        </label>
+        </div>
       </div>
       <hr class="my-4">
       <?php if ($falaise_id): ?>

@@ -16,6 +16,7 @@ import AccesVelo from "/js/components/map/acces-velo.js";
 import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
 import { getValhallaRoute } from "/js/services/valhalla.js";
 import { fetchBusStops } from "/js/components/utils/fetch-bus-stops.js";
+import { initEditorBusStops } from "/js/components/map/editor-bus-stops.js";
 import { gpx_path } from "/js/components/utils/paths.js";
 
 // Use global contribStorage (loaded via script tag)
@@ -119,6 +120,31 @@ export function initFalaiseDetailsEditor(containerId) {
     if (!contribEmail && stored.email) contribEmail = stored.email;
   }
 
+  // Récupère les infos contributeur (demande via modal si absentes).
+  // Renvoie {nom, email} ou null si annulé.
+  async function ensureContrib() {
+    if (!contribNom || !contribEmail) {
+      const ok = await requestContribInfo();
+      if (!ok) return null;
+    }
+    return { nom: contribNom, email: contribEmail };
+  }
+
+  // Ouvre le dialog Vue d'ajout d'arrêt (création DB), falaise pré-liée.
+  function openBusDialog(detail) {
+    window.dispatchEvent(
+      new CustomEvent("velogrimpe:bus-dialog:open", {
+        detail: {
+          falaise_id: falaise.falaise_id,
+          falaise_nom: falaise.falaise_nom,
+          contrib_nom: contribNom,
+          contrib_email: contribEmail,
+          ...detail,
+        },
+      }),
+    );
+  }
+
   const mapEl = container.querySelector(".editor-map");
   const center = falaise.falaise_latlng.split(",").map(parseFloat);
 
@@ -147,12 +173,15 @@ export function initFalaiseDetailsEditor(containerId) {
   // Feature map and state
   let featureId = 0;
   const featureMap = {};
+  // Anciennes features bus_stop (GeoJSON) conservées telles quelles à la sauvegarde
+  // (l'éditeur ne les édite plus : les arrêts vivent désormais en DB).
+  const passthroughFeatures = [];
 
   const ensureFeatureId = (layer) => {
     if (!layer.properties) layer.properties = {};
     if (!layer.properties.id) {
       layer.properties.id =
-        (typeof crypto !== "undefined" && crypto.randomUUID)
+        typeof crypto !== "undefined" && crypto.randomUUID
           ? crypto.randomUUID()
           : `f-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     }
@@ -447,7 +476,8 @@ export function initFalaiseDetailsEditor(containerId) {
     actions: [
       "cancel",
       {
-        text: "Nouvel arrêt",
+        text: "Placer un arrêt",
+        title: "Cliquez sur la carte pour positionner le nouvel arrêt",
         name: "marker",
         onClick: () => {
           map.pm.enableDraw("Marker", {
@@ -455,7 +485,7 @@ export function initFalaiseDetailsEditor(containerId) {
             snapDistance: 10,
             continueDrawing: false,
             markerStyle: {
-              draggable: true,
+              draggable: false,
               icon: BusStop.busStopIcon(BusStop.iconSize),
             },
             type: "bus_stop",
@@ -581,6 +611,21 @@ export function initFalaiseDetailsEditor(containerId) {
   map.on("pm:create", (e) => {
     const { layer } = e;
     const type = layer.pm.options.type;
+
+    // Arrêt de bus : pas de feature GeoJSON. On retire le marqueur temporaire
+    // et on ouvre le dialog de création (enregistrement en DB, falaise pré-liée).
+    if (type === "bus_stop") {
+      const ll = layer.getLatLng();
+      try {
+        map.removeLayer(layer);
+      } catch (_) {}
+      try {
+        map.pm.disableDraw("Marker");
+      } catch (_) {}
+      openBusDialog({ loc: `${ll.lat.toFixed(6)},${ll.lng.toFixed(6)}` });
+      return;
+    }
+
     layer.properties = { type };
 
     let obj;
@@ -630,8 +675,6 @@ export function initFalaiseDetailsEditor(containerId) {
       obj = Approche.fromLayer(map, layer);
     } else if (type === "parking") {
       obj = Parking.fromLayer(map, layer);
-    } else if (type === "bus_stop") {
-      obj = BusStop.fromLayer(map, layer);
     } else if (type === "acces_velo") {
       obj = AccesVelo.fromLayer(map, layer);
     } else if (type === "falaise_voisine") {
@@ -785,7 +828,9 @@ export function initFalaiseDetailsEditor(containerId) {
       } else if (feature.properties.type === "parking") {
         obj = new Parking(map, feature);
       } else if (feature.properties.type === "bus_stop") {
-        obj = new BusStop(map, feature);
+        // Anciens arrêts GeoJSON : conservés tels quels (non édités ici).
+        passthroughFeatures.push(feature);
+        return;
       } else if (feature.properties.type === "falaise_voisine") {
         obj = new FalaiseVoisine(map, feature);
       }
@@ -807,10 +852,14 @@ export function initFalaiseDetailsEditor(containerId) {
   function exportData() {
     return {
       type: "FeatureCollection",
-      features: Object.values(featureMap).map((feature) => ({
-        ...feature.layer.toGeoJSON(),
-        properties: feature.layer.properties,
-      })),
+      features: [
+        ...Object.values(featureMap).map((feature) => ({
+          ...feature.layer.toGeoJSON(),
+          properties: feature.layer.properties,
+        })),
+        // Anciens arrêts bus conservés tels quels (cf. passthroughFeatures).
+        ...passthroughFeatures,
+      ],
     };
   }
 
@@ -979,7 +1028,6 @@ export function initFalaiseDetailsEditor(containerId) {
             "",
           ],
           parking: ["Nom", "Description", "Accès Vélo", "Type", ""],
-          bus_stop: ["Nom", "Description", "Type", ""],
           acces_velo: ["Nom", "Description", "Type", ""],
           falaise_voisine: ["Nom", "Description", "ID Falaise", "Type", ""],
         };
@@ -1010,12 +1058,6 @@ export function initFalaiseDetailsEditor(containerId) {
           field(fid, "name"),
           field(fid, "description"),
           field(fid, "itineraire_acces"),
-          field(fid, "type"),
-          saveBtn(fid),
-        ],
-        bus_stop: [
-          field(fid, "name"),
-          field(fid, "description"),
           field(fid, "type"),
           saveBtn(fid),
         ],
@@ -1206,15 +1248,30 @@ export function initFalaiseDetailsEditor(containerId) {
 
   container.querySelector(".save-geojson-btn")?.addEventListener("click", save);
 
-  // Fetch bus stops button
+  // Fetch bus stops button (Overpass) → propositions en lecture seule + dialog
+  const OVERPASS_MIN_ZOOM = 12;
   container
     .querySelector(".fetch-bus-stops-btn")
     ?.addEventListener("click", async () => {
+      if (map.getZoom() < OVERPASS_MIN_ZOOM) {
+        alert(
+          "Zone trop large : zoomez davantage (au moins niveau " +
+            OVERPASS_MIN_ZOOM +
+            ") avant de récupérer les arrêts de bus.",
+        );
+        return;
+      }
       try {
         // Clear previous
         searchLayers.busStops.clearLayers();
 
         const stops = await fetchBusStops(map);
+        if (!stops.length) {
+          alert(
+            "Aucun arrêt de bus trouvé dans la zone visible. Dézoomez ou déplacez la carte.",
+          );
+          return;
+        }
 
         stops.forEach((s) => {
           const descLines = (s.routes || [])
@@ -1244,17 +1301,21 @@ export function initFalaiseDetailsEditor(containerId) {
             fillOpacity: 0.7,
           });
 
+          // Affichage en lecture seule (contenu ré-éditable dans le dialog).
+          const descHtml = description
+            ? `<div class="flex flex-col gap-0.5">
+                 <span class="text-xs font-bold">Description</span>
+                 <div class="text-sm whitespace-pre-line">${escapeHtml(description)}</div>
+               </div>`
+            : "";
           const formHtml = `
           <div class="flex flex-col gap-2 w-[260px]">
             <div class="text-sm opacity-70">Arrêt proposé via Overpass</div>
-            <label class="flex flex-col gap-1">
-              <span class="text-sm">Nom</span>
-              <input type=\"text\" class=\"input input-xs w-full\" value=\"${escapeHtml(s.name || "")}\">
-            </label>
-            <label class="flex flex-col gap-1">
-              <span class="text-sm">Description</span>
-              <textarea class=\"textarea textarea-xs w-full\" rows=\"4\">${escapeHtml(description || s.network)}</textarea>
-            </label>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs font-bold">Nom</span>
+              <div class="text-sm">${escapeHtml(s.name || "")}</div>
+            </div>
+            ${descHtml}
           </div>`;
 
           marker.bindPopup(formHtml, { minWidth: 260, maxWidth: 300 });
@@ -1270,44 +1331,25 @@ export function initFalaiseDetailsEditor(containerId) {
               content.appendChild(footer);
             }
             const addBtn = root.querySelector?.(".add-bus-stop-btn");
-            const nameInput = root.querySelector?.("input");
-            const descInput = root.querySelector?.("textarea");
             if (!addBtn) return;
             addBtn.addEventListener(
               "click",
               () => {
-                const name = (nameInput?.value || s.name || "").trim();
-                const description = (descInput?.value || "").trim();
-
-                const feature = {
-                  type: "Feature",
-                  geometry: { type: "Point", coordinates: [s.lon, s.lat] },
-                  properties: { type: "bus_stop", name, description },
-                };
-
-                const obj = new BusStop(map, feature);
-                obj._element_id = featureId++;
-                ensureFeatureId(obj.layer);
-                featureMap[obj._element_id] = obj;
-                attachInvertIndexHandler(obj.layer);
-                createAndBindPopup(obj.layer, obj._element_id);
-                if (obj.label) {
-                  createAndBindPopup(
-                    obj.label.layer,
-                    obj._element_id,
-                    obj.layer,
-                  );
-                }
-                updateAssociations();
-
+                // Description texte multi-lignes → HTML pour le RichText du dialog.
+                const descHtmlValue = description
+                  ? "<p>" +
+                    description.split("\n").map(escapeHtml).join("<br>") +
+                    "</p>"
+                  : "";
+                openBusDialog({
+                  nom: s.name || "",
+                  loc: `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`,
+                  osm_id: s.osm_id || null,
+                  osm_data: JSON.stringify(s.tags || {}),
+                  description: descHtmlValue,
+                });
                 try {
                   marker.closePopup();
-                } catch (_) {}
-                try {
-                  searchLayers.busStops.removeLayer(marker);
-                } catch (_) {}
-                try {
-                  obj.layer.openPopup();
                 } catch (_) {}
               },
               { once: true },
@@ -1358,6 +1400,16 @@ export function initFalaiseDetailsEditor(containerId) {
     map.setView([lat, lng], 17);
     const marker = L.circle([lat, lng], { radius: 20 }).addTo(map);
     map.once("click", () => map.removeLayer(marker));
+  });
+
+  // Calque des arrêts de bus DB (liés / non liés) + écoute de création depuis le dialog
+  const editorBusStops = initEditorBusStops(map, {
+    falaiseId: falaise.falaise_id,
+    ensureContrib,
+  });
+  window.addEventListener("velogrimpe:bus-dialog:created", () => {
+    searchLayers.busStops.clearLayers();
+    editorBusStops.refresh();
   });
 
   // Load initial data

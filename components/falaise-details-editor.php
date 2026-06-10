@@ -53,6 +53,27 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
     }
   }
   $itinerairesJson = htmlspecialchars(json_encode($itineraires), ENT_QUOTES, 'UTF-8');
+
+  // Arrêts + lignes existants pour le dialog d'ajout (autocomplete liaisons/lignes)
+  $busArrets = [];
+  $busLignes = [];
+  if (isset($mysqli)) {
+    $resA = $mysqli->query("SELECT id, nom FROM bus_arrets ORDER BY nom");
+    while ($resA && $row = $resA->fetch_assoc()) {
+      $busArrets[] = ['id' => (int) $row['id'], 'nom' => $row['nom']];
+    }
+    $resL = $mysqli->query("SELECT id, nom, description, lien FROM bus_lignes ORDER BY nom");
+    while ($resL && $row = $resL->fetch_assoc()) {
+      $busLignes[] = [
+        'id' => (int) $row['id'],
+        'nom' => $row['nom'],
+        'description' => $row['description'],
+        'lien' => $row['lien'],
+      ];
+    }
+  }
+  $busArretsJson = htmlspecialchars(json_encode($busArrets), ENT_QUOTES, 'UTF-8');
+  $busLignesJson = htmlspecialchars(json_encode($busLignes), ENT_QUOTES, 'UTF-8');
   ?>
   <style>
     .vg-icon {
@@ -188,8 +209,14 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
         </div>
       </div>
     </dialog>
+    <!-- Point de montage du dialog Vue d'ajout d'arrêt de bus -->
+    <div id="vue-bus-stop-dialog" data-arrets="<?= $busArretsJson ?>" data-lignes="<?= $busLignesJson ?>"></div>
   </div>
   <script src="/js/contrib-storage.js"></script>
+  <?php if (function_exists('vite_css')) {
+    vite_css('bus-stop-dialog');
+  } ?>
+  <script type="module" src="/dist/bus-stop-dialog.js"></script>
   <script type="module">
     import { initFalaiseDetailsEditor } from '/js/components/falaise-details-editor.js';
     initFalaiseDetailsEditor('<?= $containerId ?>');

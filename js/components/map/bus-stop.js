@@ -55,7 +55,7 @@ export default class BusStop extends Element {
       iconUrl: "/images/map/bus.png",
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
-      tooltipAnchor: [0, -size / 2],
+      tooltipAnchor: [0, 0],
       popupAnchor: [0, -size / 2],
       className: "vg-bus-stop-icon border border-white border-2 rounded-lg",
     });

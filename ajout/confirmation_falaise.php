@@ -88,6 +88,12 @@ $falaise_nom = $falaise ? htmlspecialchars($falaise['falaise_nom']) : 'Falaise';
               stroke-width="1">
               <use href="#riding"></use>
             </svg> Ajouter un itinéraire vélo vers cette falaise </a>
+          <!-- Ajout d'un arrêt de bus desservant la falaise (pré-lié via falaise_ids) -->
+          <a href="/ajout/ajout_bus.php?falaise_ids=<?= $falaise_id ?><?= $admin ? '&admin=' . urlencode($config["admin_token"]) : '' ?>"
+            class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 24 24">
+              <use href="#bus-stop"></use>
+            </svg> Ajouter un arrêt de bus desservant cette falaise </a>
           <?php if ($step === 1): ?>
             <!-- Éditer les détails (uniquement après le formulaire initial) -->
             <?php
