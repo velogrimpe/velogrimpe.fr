@@ -49,3 +49,5 @@ if (file_exists($svgSpritePath)) {
       <use href="#instagram-fill"></use>
     </svg> @velogrimpe </a>
 </footer>
+<!-- UI globale de soumission : bouton désactivé + spinner « Envoi en cours… » -->
+<script src="/js/form-submit-ui.js"></script>

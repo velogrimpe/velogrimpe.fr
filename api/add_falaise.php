@@ -1,9 +1,30 @@
 <?php
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
+// Détection d'une soumission AJAX (fetch depuis le formulaire). Si c'est le cas,
+// on répond en JSON pour que le front conserve les données saisies en cas d'échec.
+$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+  && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+/**
+ * Termine la requête sur une erreur : JSON si appel AJAX, sinon texte + retour formulaire.
+ */
+function respondError(string $message, int $code = 400): void
+{
+  global $isAjax;
+  http_response_code($code);
+  if ($isAjax) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
+  } else {
+    echo "<p style='color:red;'>" . htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . "</p>";
+    echo "<a href='/ajout/ajout_falaise.php'>Retour au formulaire</a>";
+  }
+  exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-  http_response_code(405);
-  die(json_encode(["error" => "Method not allowed"]));
+  respondError("Method not allowed", 405);
 }
 // Remplissage des champs obligatoires de la table
 $admin = trim($_POST['admin'] ?? '') == $config["admin_token"];
@@ -56,7 +77,7 @@ foreach ($champs_obligatoires as $champ => $valeur) {
     if ($admin == 1 && $champ != 'falaise_nom' && $champ != 'falaise_latlng') {
       continue;
     }
-    die("Il manque une info obligatoire : " . $champ);
+    respondError("Il manque une info obligatoire : " . $champ);
   }
 }
 
@@ -111,7 +132,7 @@ foreach ([
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 if ($mysqli->connect_error) {
-  die("Erreur de connexion à la base de données : " . $mysqli->connect_error);
+  respondError("Erreur de connexion à la base de données : " . $mysqli->connect_error, 500);
 }
 
 
@@ -258,7 +279,7 @@ $stmt = $mysqli->prepare("INSERT INTO falaises (
   ");
 
 if (!$stmt) {
-  die("Problème de préparation de la requête : " . $mysqli->error);
+  respondError("Problème de préparation de la requête : " . $mysqli->error, 500);
 }
 
 $stmt->bind_param(
@@ -313,7 +334,7 @@ $fullTargetDir = realpath($targetDir); // Chemin absolu
 
 // Vérifiez si le dossier existe
 if (!$fullTargetDir) {
-  die("Le dossier cible $targetDir n'existe pas ou est introuvable.");
+  respondError("Le dossier cible $targetDir n'existe pas ou est introuvable.", 500);
 }
 
 function uploadImage($fileInputName, $targetDir, $falaiseId, $falaiseNomformate, $suffix)
@@ -336,6 +357,7 @@ function uploadImage($fileInputName, $targetDir, $falaiseId, $falaiseNomformate,
   return null;
 }
 
+$errors = [];
 foreach ([
   'falaise_img1' => 'img1',
   'falaise_img2' => 'img2',
@@ -351,14 +373,14 @@ foreach ([
 }
 
 if ($errors) {
-  foreach ($errors as $error) {
-    echo "<p style='color:red;'>" . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . "</p>";
-  }
-  echo "<a href='add_falaise.html'>Retour au formulaire</a>";
-  exit;
+  $msg = "La falaise a bien été " . ($isEdition ? "modifiée" : "ajoutée")
+    . " (ID $falaise_id), mais certaines images n'ont pas pu être téléversées :\n"
+    . implode("\n", $errors)
+    . "\nVous pouvez les ajouter à nouveau en modifiant la falaise.";
+  respondError($msg, 500);
 }
 if (!$res) {
-  die("Erreur lors de l'ajout de la falaise : " . $stmt->error);
+  respondError("Erreur lors de l'ajout de la falaise : " . $stmt->error, 500);
 }
 
 ////// DEBUT GESTION DES CHANGEMENTS
@@ -495,7 +517,13 @@ $params = http_build_query([
   'nom_prenom' => $nom_prenom,
   'email' => $email
 ]);
-header("Location: /ajout/confirmation_falaise.php?" . $params);
+$redirect = "/ajout/confirmation_falaise.php?" . $params;
+if ($isAjax) {
+  header('Content-Type: application/json; charset=utf-8');
+  echo json_encode(['redirect' => $redirect], JSON_UNESCAPED_UNICODE);
+} else {
+  header("Location: " . $redirect);
+}
 exit;
 
 

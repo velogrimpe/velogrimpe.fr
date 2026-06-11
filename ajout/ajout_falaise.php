@@ -184,6 +184,21 @@ if ($falaise_id) {
             </div>
           </div>
         </div>
+        <div id="falaiseDuplicateAlert" class="hidden bg-warning/20 border border-red-900 text-red-900 p-2 rounded-lg">
+          <svg class="w-4 h-4 mb-1 fill-none stroke-current inline-block">
+            <use href="#error-warning-fill"></use>
+          </svg> Une falaise avec ce nom existe déjà (<a id="linkDuplicatedFalaise"
+            class="inline-flex items-center gap-1" target="_blank">
+            <span> consulter la page de cette falaise </span>
+            <svg class="w-4 h-4 fill-none stroke-current">
+              <use href="#external-link"></use>
+            </svg></a>) dans la base de données. Assurez vous de ne pas créer un doublon en vérifiant sa localisation
+          sur la carte. Vous pouvez aussi <a id="linkEditFalaise" target="_blank"
+            class="inline-flex items-center gap-1">la modifier en cliquant ici <svg
+              class="w-4 h-4 fill-none stroke-current">
+              <use href="#external-link"></use>
+            </svg></a>.
+        </div>
         <div id="falaiseExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
           <svg class="w-4 h-4 mb-1 fill-none stroke-current inline-block">
             <use href="#error-warning-fill"></use>
@@ -799,7 +814,7 @@ if ($falaise_id) {
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
         <div class="form-control">
           <b>Marche d'approche - Texte descriptif</b>
-          <div class="vue-richtext" data-name="falaise_matxt"></div>
+          <div class="vue-richtext" data-name="falaise_matxt" <?= $admin ? '' : 'data-required="true"' ?>></div>
           <i class="text-slate-400 text-sm"> Petit texte décrivant la marche d'approche. Ex : "10' en montée", "10'
             aller, 7' retour",... </i>
         </div>
@@ -832,7 +847,7 @@ if ($falaise_id) {
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
         <div class="form-control">
           <b>Topo(s)</b>
-          <div class="vue-richtext" data-name="falaise_topo"></div>
+          <div class="vue-richtext" data-name="falaise_topo" <?= $admin ? '' : 'data-required="true"' ?>></div>
           <i class="text-slate-400 text-sm"> Lister les différents topos présentant la falaise.<br> Optionnel : ajouter
             un lien vers la fiche Climbing Away de la falaise. Pour cela, copiez le code &lt;a href="URL"&gt;Fiche
             Climbing Away&lt;/a&gt;, en remplaçant "URL" par l'URL de la fiche.<br> Exemple : "Escalade dans le Jura -
@@ -1005,6 +1020,13 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           <textarea class="textarea textarea-sm leading-6" id="message" name="message" rows="4"></textarea>
         </label>
         <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/contrib-licence-notice.php"; ?>
+        <div id="submitError"
+          class="hidden items-start gap-2 bg-red-200 border border-red-900 text-red-900 p-3 rounded-lg">
+          <svg class="w-5 h-5 mt-0.5 shrink-0 fill-none stroke-current">
+            <use href="#error-warning-fill"></use>
+          </svg>
+          <span id="submitErrorMessage" class="whitespace-pre-line"></span>
+        </div>
         <button type="submit" id="confirmButton" class="btn btn-primary"><?= $falaise_id ? "Modifier" : "Ajouter" ?> la
           falaise</button>
       </div>
@@ -1119,6 +1141,82 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
     }
   })
 
+</script>
+<script>
+    // Soumission AJAX : en cas d'échec, le formulaire reste en place avec toutes
+    // les données saisies (texte, rich-text, images, position). Pas de perte de données.
+    (function () {
+      const form = document.getElementById('form');
+      const errorBox = document.getElementById('submitError');
+      const errorMsg = document.getElementById('submitErrorMessage');
+      let submitting = false;
+
+      function clearError() {
+        errorBox.classList.add('hidden');
+        errorBox.classList.remove('flex');
+        errorMsg.textContent = '';
+      }
+
+      function showError(message) {
+        errorMsg.textContent = message;
+        errorBox.classList.remove('hidden');
+        errorBox.classList.add('flex');
+        errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      // Validation des champs custom obligatoires (rich-text + autocomplete + expo) :
+      // chaque champ porte son propre `required` et affiche son erreur (cf. Vue).
+      function validateRequiredFields() {
+        const validator = window.validateFalaiseForm;
+        if (typeof validator !== 'function') return true;
+        if (validator()) return true;
+        showError('Merci de remplir les champs obligatoires signalés en rouge ci-dessus.');
+        return false;
+      }
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // queueMicrotask : laisse les autres listeners "submit" synchrones (sauvegarde
+        // contrib, reset GV...) mettre à jour les champs avant de construire le FormData.
+        queueMicrotask(submitFalaise);
+      });
+
+      async function submitFalaise() {
+        if (submitting) return;
+        if (!validateRequiredFields()) return;
+        submitting = true;
+        clearError();
+        // Bouton désactivé + spinner « Envoi en cours… » via l'utilitaire global.
+        window.formSubmitUI?.setSubmitting(form);
+        let succeeded = false;
+        try {
+          const resp = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          });
+          let data = null;
+          try { data = await resp.json(); } catch (_) { /* réponse non-JSON */ }
+          // Toute réponse 2xx est un succès : on ne doit jamais afficher d'erreur.
+          if (resp.ok) {
+            succeeded = true;
+            // succès : redirection vers la confirmation (ou rechargement en dernier recours)
+            window.location.href = (data && data.redirect) ? data.redirect : window.location.href;
+            return; // on quitte en gardant le spinner pendant la navigation
+          }
+          const msg = (data && data.error)
+            || `Une erreur est survenue (code ${resp.status}). Vos données sont conservées, vous pouvez réessayer.`;
+          showError(msg);
+        } catch (err) {
+          showError("Erreur réseau : impossible d'envoyer le formulaire. Vos données sont conservées, vérifiez votre connexion et réessayez.");
+        } finally {
+          if (!succeeded) {
+            submitting = false;
+            window.formSubmitUI?.resetSubmitting(form);
+          }
+        }
+      }
+    })();
 </script>
 <script type="module" src="/dist/ajout-falaise.js"></script>
 

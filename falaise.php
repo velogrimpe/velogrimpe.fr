@@ -1405,9 +1405,11 @@ $stmtC->close();
     function checkEmailAndOpenForm(event) {
       console.log("Vérification de l'email pour le commentaire...");
       event.preventDefault();
+      const form = event.currentTarget;
       const commentId = document.getElementById('emailPromptCommentId').value;
       const email = document.getElementById('emailPromptEmail').value;
 
+      window.formSubmitUI?.setSubmitting(form);
       fetch(`/api/verify_comment_email.php?commentaire_id=${commentId}&email=${encodeURIComponent(email)}`)
         .then(response => response.json())
         .then(data => {
@@ -1449,47 +1451,38 @@ $stmtC->close();
         .catch(error => {
           console.error('Erreur lors de la vérification de l\'email :', error);
           alert('Une erreur est survenue. Veuillez réessayer plus tard.');
+        })
+        .finally(() => {
+          window.formSubmitUI?.resetSubmitting(form);
         });
     }
     document.getElementById('emailPromptForm').addEventListener('submit', checkEmailAndOpenForm);
     document.getElementById('commentForm').addEventListener('submit', function (event) {
       event.preventDefault();
-      const formData = new FormData(this);
-      if (document.getElementById('commentaire_id').value === '') {
-        fetch('/api/add_comment.php', {
-          method: 'POST',
-          body: formData
+      const form = this;
+      const formData = new FormData(form);
+      const endpoint = document.getElementById('commentaire_id').value === ''
+        ? '/api/add_comment.php'
+        : '/api/edit_comment.php';
+      window.formSubmitUI?.setSubmitting(form);
+      fetch(endpoint, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload(); // Recharger la page (le spinner reste affiché)
+          } else {
+            alert(data.error || 'Échec de l\'enregistrement. Veuillez réessayer.');
+            window.formSubmitUI?.resetSubmitting(form);
+          }
         })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              location.reload(); // Recharger la page pour afficher le nouveau commentaire
-            } else {
-              alert(data.error || 'Échec de l\'enregistrement. Veuillez réessayer.');
-            }
-          })
-          .catch(error => {
-            console.error('Erreur lors de l\'enregistrement du commentaire :', error);
-            alert('Une erreur est survenue. Veuillez réessayer plus tard.');
-          });
-      } else {
-        fetch('/api/edit_comment.php', {
-          method: 'POST',
-          body: formData
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              location.reload(); // Recharger la page pour afficher le nouveau commentaire
-            } else {
-              alert(data.error || 'Échec de l\'enregistrement. Veuillez réessayer.');
-            }
-          })
-          .catch(error => {
-            console.error('Erreur lors de l\'enregistrement du commentaire :', error);
-            alert('Une erreur est survenue. Veuillez réessayer plus tard.');
-          });
-      }
+        .catch(error => {
+          console.error('Erreur lors de l\'enregistrement du commentaire :', error);
+          alert('Une erreur est survenue. Veuillez réessayer plus tard.');
+          window.formSubmitUI?.resetSubmitting(form);
+        });
     });
     function deleteComment() {
       if (!confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ? Cette action est irréversible.')) {
