@@ -6,9 +6,9 @@
 // après un appel à /cache_purge.php => la purge X-LiteSpeed-Purge est honorée.
 // À SUPPRIMER une fois le test terminé.
 
+// Page volontairement "normale" : aucun en-tête de cache imposé, pour qu'elle soit
+// traitée par le "Cache automatique" Hostinger exactement comme carte.php.
 header('Content-Type: text/html; charset=utf-8');
-// On demande explicitement à LiteSpeed de mettre cette réponse en cache (5 min).
-header('X-LiteSpeed-Cache-Control: public, max-age=300');
 ?>
 <!doctype html>
 <html lang="fr">
