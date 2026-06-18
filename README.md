@@ -79,4 +79,10 @@ Les contenus publiés sur velogrimpe.fr sont diffusés sous les licences suivant
 - **Images** : [CC BY-NC-ND](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr) → Utilisation commerciale interdite. Diffusion à l'identique et en citant la source. (sauf licence spécifique précisée par l'auteur dans la légende ou sur l'image)
 - **Données** : [ODbL](https://opendatacommons.org/licenses/odbl/1-0/) et [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/deed.fr) → Compatible OpenStreetMap et C2C, permet de réutiliser les données pour enrichir OSM.
 
-Les données des falaises et de leurs intinéraires peuvent être obtenues [ici](https://velogrimpe.fr/open-data/falaises.geojson) et les détails toutes falaises aggrégées sont accessibles [là](https://velogrimpe.fr/open-data/falaises-details.geojson). Les exports sont quotidiens et fait au cours de la nuit. Toutes les données sont exportées au format GeoJSON, exploitable par exemple directement dans [UMAP](https://umap.openstreetmap.fr/)
+Trois exports GeoJSON sont disponibles, regénérés quotidiennement au cours de la nuit et exploitables par exemple directement dans [UMAP](https://umap.openstreetmap.fr/) :
+
+- [falaises.geojson](https://velogrimpe.fr/open-data/falaises.geojson) : les falaises (points) et, embarqués dans leurs propriétés, leurs itinéraires vélo, liens externes et arrêts de bus.
+- [itineraires-velo.geojson](https://velogrimpe.fr/open-data/itineraires-velo.geojson) : les tracés complets des itinéraires vélo (LineString) reconstruits à partir des fichiers GPX, avec distance, dénivelés et gare de départ.
+- [gares.geojson](https://velogrimpe.fr/open-data/gares.geojson) : les gares (points, hors gares supprimées), avec commune, département, codes UIC/OSM et flag TGV.
+- [falaises-details.geojson](https://velogrimpe.fr/open-data/falaises-details.geojson) : les détails géométriques agrégés de toutes les falaises (secteurs, parkings, approches…).
+- [complet.geojson](https://velogrimpe.fr/open-data/complet.geojson) : les collections ci-dessus réunies en un seul fichier. Chaque entité porte une propriété `vg_type` (`falaise`, `itineraire_velo`, `gare` ou `detail`) pour pouvoir les re-filtrer.

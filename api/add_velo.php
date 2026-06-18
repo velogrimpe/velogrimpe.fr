@@ -43,13 +43,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $velo_public = isset($_POST['velo_public']) ? intval($_POST['velo_public']) : 0;
 
   // Gestion des fichiers GPX
-  if (!empty($_FILES['gpx_file']['tmp_name'])) {
+  if (!empty($_FILES['gpx_file']['tmp_name']) && is_uploaded_file($_FILES['gpx_file']['tmp_name'])) {
     $dom = new DOMDocument();
     $dom->loadXML(file_get_contents($_FILES['gpx_file']['tmp_name']));
     // Vérifier que le fichier GPX est valide
     $has_gpx_root = ($dom->getElementsByTagName('gpx')->length > 0) && ($dom->getElementsByTagName('gpx')->item(0)->getNodePath() === '/*');
     if (!$has_gpx_root) {
       die("Le fichier GPX n'est pas valide.");
+    }
+    // Nettoyage : retirer les waypoints <wpt> (marqueurs début/fin, points isolés).
+    // La trace elle-même (<trk>/<trkseg>/<trkpt>) et les routes (<rte>) sont conservées.
+    $wpts = $dom->getElementsByTagName('wpt');
+    for ($i = $wpts->length - 1; $i >= 0; $i--) {
+      $wpt = $wpts->item($i);
+      $wpt->parentNode->removeChild($wpt);
     }
   } else {
     die("Il manque le fichier GPX.");
@@ -86,10 +93,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
     $velo_id = $stmt->insert_id;
 
-    // Déplacer + Renommer le fichier GPX
+    // Enregistrer le fichier GPX nettoyé (waypoints retirés ci-dessus)
     $gpx_target_dir = $_SERVER['DOCUMENT_ROOT'] . "/bdd/gpx/";
     $gpx_target_file = $gpx_target_dir . "{$velo_id}_{$velo_depart}_{$velo_arrivee}_{$velo_varianteformate}.gpx";
-    move_uploaded_file($_FILES['gpx_file']['tmp_name'], $gpx_target_file);
+    if ($dom->save($gpx_target_file) === false) {
+      error_log("add_velo: échec de l'écriture du GPX nettoyé pour velo_id=$velo_id");
+    }
 
     $stmt->close();
 

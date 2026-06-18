@@ -3,27 +3,32 @@ Il faudra aussi changer ajout_velo_db pour ajouter le champ openrunner, et netto
 // Connexion à la base de données
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 // Récupération des gares
-$result_gares = $mysqli->query("SELECT gare_id, gare_nom, gare_nomformate FROM gares WHERE deleted = 0 ORDER BY gare_nom");
+$result_gares = $mysqli->query("SELECT gare_id, gare_nom, gare_nomformate, gare_latlng FROM gares WHERE deleted = 0 ORDER BY gare_nom");
 $gares = [];
 while ($row = $result_gares->fetch_assoc()) {
   $gares[$row['gare_id']] = [
     'id' => (int) $row['gare_id'],
     'nom' => $row['gare_nom'],
-    'nomformate' => $row['gare_nomformate']
+    'nomformate' => $row['gare_nomformate'],
+    'latlng' => $row['gare_latlng']
   ];
 }
 
 // Récupération des falaises
-$result_falaises = $mysqli->query("SELECT falaise_id, falaise_nom, falaise_nomformate FROM falaises ORDER BY falaise_nom");
+$result_falaises = $mysqli->query("SELECT falaise_id, falaise_nom, falaise_nomformate, falaise_latlng, falaise_fermee, falaise_bloc FROM falaises ORDER BY falaise_nom");
 $falaises = [];
 while ($row = $result_falaises->fetch_assoc()) {
   $falaises[$row['falaise_id']] = [
     'id' => (int) $row['falaise_id'],
     'nom' => $row['falaise_nom'],
-    'nomformate' => $row['falaise_nomformate']
+    'nomformate' => $row['falaise_nomformate'],
+    'latlng' => $row['falaise_latlng'],
+    'fermee' => $row['falaise_fermee'],
+    'bloc' => (int) $row['falaise_bloc']
   ];
 }
 
@@ -45,6 +50,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Ajouter un itinéraire vélo - Vélogrimpe.fr</title>
+  <?php map_bundle_js('map'); ?>
+  <?php map_bundle_css('map'); ?>
   <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
@@ -202,6 +209,12 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             accept=".gpx" required>
           <i class="text-red-400">Au format GPX !</i>
         </label>
+        <div class="not-prose">
+          <i class="text-sm">Vérifiez que la gare (départ), la falaise (arrivée) et la trace GPX sont
+            cohérentes. Les éventuels points/marqueurs du GPX (début, fin…) seront automatiquement retirés à
+            l'enregistrement.</i>
+          <div id="velo-map" class="mt-2 rounded-lg border border-base-300 z-0" style="height: 400px;"></div>
+        </div>
         <label class="form-control" for="velo_variante">
           <b class="">Nom de la variante <span class="text-accent opacity-50">(optionnel)</span> :</b>
           <input class="input input-sm" type="text" id="velo_variante" name="velo_variante"
@@ -307,5 +320,83 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 <script type="module" src="/dist/ajout-velo.js"></script>
+<script type="module">
+  import { createAjoutMap } from '/js/components/map/ajout-map.js';
+  import Gare from '/js/components/map/gare.js';
+  import Falaise from '/js/components/map/falaise.js';
+
+  const { map } = createAjoutMap('velo-map');
+
+  let gareLayer = null;
+  let falaiseLayer = null;
+  let gpxLayer = null;
+
+  // Recadre la carte sur l'union des couches présentes (gare, falaise, trace GPX).
+  function refitBounds() {
+    let bounds = null;
+    const extend = (b) => {
+      if (!b || !b.isValid()) return;
+      bounds = bounds ? bounds.extend(b) : L.latLngBounds(b.getSouthWest(), b.getNorthEast());
+    };
+    if (gareLayer) extend(gareLayer.getBounds ? gareLayer.getBounds() : L.latLngBounds([gareLayer.getLatLng(), gareLayer.getLatLng()]));
+    if (falaiseLayer) extend(falaiseLayer.getBounds ? falaiseLayer.getBounds() : L.latLngBounds([falaiseLayer.getLatLng(), falaiseLayer.getLatLng()]));
+    if (gpxLayer) extend(gpxLayer.getBounds && gpxLayer.getBounds());
+    if (bounds && bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+    }
+  }
+
+  // Petit marqueur ponctuel à partir d'une chaîne "lat,lng".
+  function pointMarker(latlng, icon) {
+    const [lat, lng] = String(latlng).split(',').map(parseFloat);
+    if (isNaN(lat) || isNaN(lng)) return null;
+    return L.marker([lat, lng], icon ? { icon } : {});
+  }
+
+  document.addEventListener('velogrimpe:ajout-velo:gare', (e) => {
+    if (gareLayer) { map.removeLayer(gareLayer); gareLayer = null; }
+    const d = e.detail;
+    if (d && d.latlng) {
+      gareLayer = pointMarker(d.latlng, Gare.gareIcon(Gare.iconSize));
+      if (gareLayer) gareLayer.addTo(map);
+    }
+    refitBounds();
+  });
+
+  document.addEventListener('velogrimpe:ajout-velo:falaise', (e) => {
+    if (falaiseLayer) { map.removeLayer(falaiseLayer); falaiseLayer = null; }
+    const d = e.detail;
+    if (d && d.latlng) {
+      const icon = Falaise.falaiseIcon(Falaise.iconSize, d.fermee === '1', d.bloc, 'falaise-icon');
+      falaiseLayer = pointMarker(d.latlng, icon);
+      if (falaiseLayer) falaiseLayer.addTo(map);
+    }
+    refitBounds();
+  });
+
+  // Prévisualisation de la trace GPX uploadée (sans les waypoints, cohérent avec
+  // le nettoyage côté serveur).
+  const gpxInput = document.getElementById('gpx_file');
+  if (gpxInput) {
+    gpxInput.addEventListener('change', () => {
+      if (gpxLayer) { map.removeLayer(gpxLayer); gpxLayer = null; }
+      const file = gpxInput.files && gpxInput.files[0];
+      if (!file) { refitBounds(); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const xml = String(reader.result || '');
+        if (!xml.includes('<')) return;
+        gpxLayer = new L.GPX(xml, {
+          async: true,
+          parseElements: ['track', 'route'],
+          markers: { startIcon: null, endIcon: null },
+          polyline_options: { weight: 4, color: '#2e8b57' },
+        }).on('loaded', () => refitBounds());
+        gpxLayer.addTo(map);
+      };
+      reader.readAsText(file);
+    });
+  }
+</script>
 
 </html>
