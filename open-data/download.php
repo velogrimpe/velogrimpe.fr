@@ -13,6 +13,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/pv.php';
 $exports = [
   'falaises' => 'falaises.geojson',
   'falaises-details' => 'falaises-details.geojson',
+  'itineraires-velo' => 'itineraires-velo.geojson',
+  'gares' => 'gares.geojson',
+  'complet' => 'complet.geojson',
 ];
 
 $slug = $_GET['f'] ?? '';

@@ -53,6 +53,88 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 // aux ré-exports.
 $ATTRIBUTION = '© velogrimpe.fr et contributeurs — CC BY-SA 4.0 / ODbL 1.0';
 
+// Parse un fichier GPX en géométrie GeoJSON. Retourne une LineString (un seul
+// segment) ou une MultiLineString (plusieurs segments), coordonnées au format
+// [lon, lat, ele?] arrondies, ou null si aucun point de tracé exploitable.
+//
+// Robustesse vis-à-vis des formats hétérogènes du dossier (Openrunner, Komoot,
+// GraphHopper, gpxpy…) :
+//  - tracés <trk>/<trkseg>/<trkpt> et, à défaut, routes <rte>/<rtept> ;
+//  - namespace par défaut GPX 1/0 ou 1/1 (SimpleXML lit les enfants par nom) ;
+//  - point ignoré si lat/lon absents ;
+//  - élévation incluse uniquement si TOUS les points en ont une : on évite de
+//    mélanger des positions 2D et 3D dans une même géométrie (GeoJSON invalide
+//    pour les parseurs stricts).
+function gpx_to_geometry(string $path): ?array
+{
+  $xml = @simplexml_load_file($path);
+  if ($xml === false) {
+    return null;
+  }
+
+  // Collecte les points bruts (lat/lon/ele) par segment, sans décider encore de
+  // la dimensionnalité.
+  $rawSegments = [];
+  $collect = function ($points) {
+    $pts = [];
+    foreach ($points as $pt) {
+      if (!isset($pt['lat']) || !isset($pt['lon'])) {
+        continue;
+      }
+      $hasEle = isset($pt->ele) && (string) $pt->ele !== '';
+      $pts[] = [
+        'lon' => round((float) $pt['lon'], 6),
+        'lat' => round((float) $pt['lat'], 6),
+        'ele' => $hasEle ? round((float) $pt->ele, 1) : null,
+      ];
+    }
+    return $pts;
+  };
+
+  foreach ($xml->trk as $trk) {
+    foreach ($trk->trkseg as $seg) {
+      $pts = $collect($seg->trkpt);
+      if (count($pts) >= 2) {
+        $rawSegments[] = $pts;
+      }
+    }
+  }
+  if (empty($rawSegments)) {
+    foreach ($xml->rte as $rte) {
+      $pts = $collect($rte->rtept);
+      if (count($pts) >= 2) {
+        $rawSegments[] = $pts;
+      }
+    }
+  }
+
+  if (empty($rawSegments)) {
+    return null;
+  }
+
+  // 3D seulement si chaque point de chaque segment porte une élévation.
+  $includeEle = true;
+  foreach ($rawSegments as $pts) {
+    foreach ($pts as $p) {
+      if ($p['ele'] === null) {
+        $includeEle = false;
+        break 2;
+      }
+    }
+  }
+
+  $segments = array_map(function ($pts) use ($includeEle) {
+    return array_map(function ($p) use ($includeEle) {
+      return $includeEle ? [$p['lon'], $p['lat'], $p['ele']] : [$p['lon'], $p['lat']];
+    }, $pts);
+  }, $rawSegments);
+
+  if (count($segments) === 1) {
+    return ['type' => 'LineString', 'coordinates' => $segments[0]];
+  }
+  return ['type' => 'MultiLineString', 'coordinates' => $segments];
+}
+
 // Falaises export to geojson
 $falaises = $mysqli->query("SELECT
   falaise_id as id,
@@ -85,7 +167,11 @@ $falaises = $mysqli->query("SELECT
 // filter and for every crag (open data exports everything).
 $velosByFalaise = [];
 $veloResult = $mysqli->query("SELECT
+  v.velo_id,
   v.falaise_id,
+  v.velo_depart,
+  v.velo_arrivee,
+  v.velo_varianteformate,
   v.velo_km,
   v.velo_dplus,
   v.velo_dmoins,
@@ -103,6 +189,27 @@ $veloResult = $mysqli->query("SELECT
   FROM velo v
   LEFT JOIN gares g ON v.gare_id = g.gare_id
   ORDER BY v.falaise_id, v.velo_km ASC")->fetch_all(MYSQLI_ASSOC);
+
+// Lookup falaise_id => nom pour étiqueter les tracés vélo sans relancer de requête.
+$falaiseNomById = [];
+foreach ($falaises as $f) {
+  $falaiseNomById[$f['id']] = $f['nom'];
+}
+
+// Collection des tracés vélo (géométrie issue des GPX), à exporter à part : un
+// fichier de Point (falaises) + un fichier de LineString (itinéraires) est plus
+// digeste pour les clients carto qu'un GeoJSON mixant les types de géométrie.
+$itinerairesGeojson = [
+  'type' => 'FeatureCollection',
+  'license' => 'CC BY-SA 4.0 et ODbL 1.0',
+  'license_note' => 'Le contenu éditorial (descriptions, remarques) est sous CC BY-SA 4.0 ; la base de données (faits : coordonnées, distances, dénivelés, gares) est sous ODbL 1.0. Attribution : © velogrimpe.fr et contributeurs.',
+  'license_url_cc' => 'https://creativecommons.org/licenses/by-sa/4.0/',
+  'license_url_odbl' => 'https://opendatacommons.org/licenses/odbl/1-0/',
+  'attribution' => '© velogrimpe.fr et contributeurs',
+  'features' => [],
+];
+$gpxMissing = 0; // tracés sans fichier GPX exploitable (compté pour le rapport)
+
 foreach ($veloResult as $velo) {
   $itineraire = [
     'distance_km' => $velo['velo_km'] !== null ? round((float) $velo['velo_km'], 1) : null,
@@ -129,6 +236,32 @@ foreach ($veloResult as $velo) {
     $itineraire['gare_depart'] = $gare;
   }
   $velosByFalaise[$velo['falaise_id']][] = $itineraire;
+
+  // Tracé GPX : même convention de nommage que falaise.php / paths.js
+  // ({velo_id}_{depart}_{arrivee}_{varianteformate}.gpx). Les itinéraires sans
+  // GPX (ou GPX vide) sont simplement omis de l'export géométrique.
+  $gpxName = $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . '.gpx';
+  $gpxPath = $_SERVER['DOCUMENT_ROOT'] . '/bdd/gpx/' . $gpxName;
+  $geometry = is_file($gpxPath) ? gpx_to_geometry($gpxPath) : null;
+  if ($geometry === null) {
+    $gpxMissing++;
+    continue;
+  }
+  $itinerairesGeojson['features'][] = [
+    'type' => 'Feature',
+    'properties' => array_merge(
+      [
+        'velo_id' => (int) $velo['velo_id'],
+        'falaise_id' => (int) $velo['falaise_id'],
+        'falaise_nom' => $falaiseNomById[$velo['falaise_id']] ?? null,
+        'attribution' => $ATTRIBUTION,
+        'url' => 'https://velogrimpe.fr/falaise.php?falaise_id=' . (int) $velo['falaise_id'],
+        'gpx_url' => 'https://velogrimpe.fr/bdd/gpx/' . $gpxName,
+      ],
+      $itineraire
+    ),
+    'geometry' => $geometry,
+  ];
 }
 
 // Pre-load external partner links (oblyk, etc.), grouped by falaise.
@@ -314,6 +447,54 @@ foreach ($falaises as $falaise) {
   ];
   $geojson['features'][] = $feature;
 }
+
+// Gares (référentiel complet hors gares supprimées) : un point par gare, avec
+// commune/département, codes d'identification (UIC SNCF, OSM) et flag TGV.
+$garesGeojson = [
+  'type' => 'FeatureCollection',
+  'license' => 'CC BY-SA 4.0 et ODbL 1.0',
+  'license_note' => 'Le contenu éditorial (descriptions, remarques) est sous CC BY-SA 4.0 ; la base de données (faits : coordonnées, distances, dénivelés, gares) est sous ODbL 1.0. Attribution : © velogrimpe.fr et contributeurs.',
+  'license_url_cc' => 'https://creativecommons.org/licenses/by-sa/4.0/',
+  'license_url_odbl' => 'https://opendatacommons.org/licenses/odbl/1-0/',
+  'attribution' => '© velogrimpe.fr et contributeurs',
+  'features' => [],
+];
+$garesResult = $mysqli->query("SELECT
+  gare_id,
+  gare_nom,
+  gare_latlng,
+  gare_departement,
+  gare_commune,
+  gare_codeuic,
+  gare_codeosm,
+  gare_tgv
+  FROM gares
+  WHERE deleted = 0
+  ORDER BY gare_id")->fetch_all(MYSQLI_ASSOC);
+foreach ($garesResult as $gare) {
+  if (empty($gare['gare_latlng']) || strpos($gare['gare_latlng'], ',') === false) {
+    continue;
+  }
+  [$glat, $glng] = explode(',', $gare['gare_latlng']);
+  $garesGeojson['features'][] = [
+    'type' => 'Feature',
+    'properties' => [
+      'id' => (int) $gare['gare_id'],
+      'nom' => $gare['gare_nom'],
+      'attribution' => $ATTRIBUTION,
+      'commune' => $gare['gare_commune'],
+      'departement' => $gare['gare_departement'],
+      'code_uic' => $gare['gare_codeuic'] ?: null,
+      'code_osm' => $gare['gare_codeosm'] ?: null,
+      'tgv' => (bool) $gare['gare_tgv'],
+    ],
+    'geometry' => [
+      'type' => 'Point',
+      'coordinates' => [round((float) $glng, 6), round((float) $glat, 6)],
+    ],
+  ];
+}
+
 // Save to file
 $file = $_SERVER['DOCUMENT_ROOT'] . '/open-data/falaises.geojson';
 file_put_contents($file, json_encode($geojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -322,9 +503,52 @@ file_put_contents($file, json_encode($geojson, JSON_PRETTY_PRINT | JSON_UNESCAPE
 $details_export = $_SERVER['DOCUMENT_ROOT'] . '/open-data/falaises-details.geojson';
 file_put_contents($details_export, json_encode($detailsGeojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
+// Save the bike itineraries collection (GPX tracks merged into one GeoJSON)
+$itineraires_export = $_SERVER['DOCUMENT_ROOT'] . '/open-data/itineraires-velo.geojson';
+file_put_contents($itineraires_export, json_encode($itinerairesGeojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+// Save the gares collection
+$gares_export = $_SERVER['DOCUMENT_ROOT'] . '/open-data/gares.geojson';
+file_put_contents($gares_export, json_encode($garesGeojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+// Export complet : fusionne les collections en une seule, en taguant
+// chaque feature d'un `vg_type` pour pouvoir les re-filtrer (les géométries sont
+// mélangées : Point pour les falaises, LineString pour les itinéraires, types
+// variés pour les détails). Les FeatureCollection sources restent disponibles
+// séparément pour les clients qui ne veulent qu'une couche.
+$completGeojson = [
+  'type' => 'FeatureCollection',
+  'license' => 'CC BY-SA 4.0 et ODbL 1.0',
+  'license_note' => 'Le contenu éditorial (descriptions, remarques) est sous CC BY-SA 4.0 ; la base de données (faits : coordonnées, distances, dénivelés, gares) est sous ODbL 1.0. Attribution : © velogrimpe.fr et contributeurs.',
+  'license_url_cc' => 'https://creativecommons.org/licenses/by-sa/4.0/',
+  'license_url_odbl' => 'https://opendatacommons.org/licenses/odbl/1-0/',
+  'attribution' => '© velogrimpe.fr et contributeurs',
+  'features' => [],
+];
+$sources = [
+  'falaise' => $geojson['features'],
+  'itineraire_velo' => $itinerairesGeojson['features'],
+  'gare' => $garesGeojson['features'],
+  'detail' => $detailsGeojson['features'],
+];
+foreach ($sources as $vgType => $features) {
+  foreach ($features as $feature) {
+    $feature['properties']['vg_type'] = $vgType;
+    $completGeojson['features'][] = $feature;
+  }
+}
+$complet_export = $_SERVER['DOCUMENT_ROOT'] . '/open-data/complet.geojson';
+file_put_contents($complet_export, json_encode($completGeojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
 // Respond with success
 http_response_code(200);
 echo json_encode([
   'status' => 'success',
   'message' => 'Open data exported successfully',
+  'falaises' => count($geojson['features']),
+  'itineraires_velo' => count($itinerairesGeojson['features']),
+  'itineraires_velo_sans_gpx' => $gpxMissing,
+  'gares' => count($garesGeojson['features']),
+  'details' => count($detailsGeojson['features']),
+  'complet' => count($completGeojson['features']),
 ]);

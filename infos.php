@@ -132,13 +132,20 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 
     <h2 id="opendata">DONNÉES</h2>
 
-    Les données des falaises et de leurs intinéraires peuvent être obtenues
-    <a target="_blank" href="/open-data/falaises.geojson">ici
-    </a> et les détails toutes falaises aggrégées sont accessibles
-    <a target="_blank" href="/open-data/falaises-details.geojson">là</a>. Les exports sont quotidiens et fait au
-    cours
-    de la
-    nuit.
+    Les données des falaises, des itinéraires et les détails agrégés sont accessibles via les liens ci-dessous. Les
+    exports sont quotidiens et faits au cours de la nuit.
+    <ul>
+      <li><a target="_blank" href="/open-data/falaises.geojson">Données falaises (GeoJSON)</a></li>
+      <li><a target="_blank" href="/open-data/itineraires-velo.geojson">Itinéraires vélo, tracés complets
+          (GeoJSON)</a></li>
+      <li><a target="_blank" href="/open-data/gares.geojson">Gares (GeoJSON)</a></li>
+      <li><a target="_blank" href="/open-data/falaises-details.geojson">Détails agrégés de toutes les falaises
+          (GeoJSON)</a></li>
+      <li><a target="_blank" href="/open-data/complet.geojson">Export complet : falaises, itinéraires, gares et
+          détails réunis (GeoJSON)</a></li>
+    </ul>
+    Dans le dernier export (complet), chaque objet est typé par sa propriété chaque entité porte une propriété
+    <code>vg_type</code>.
 
     <p>Si vous réutilisez ces données sur une carte, voir ci-dessous.</p>
 
