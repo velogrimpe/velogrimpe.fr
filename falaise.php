@@ -102,6 +102,7 @@ $falaise_txt3 = $dataF['falaise_txt3'] ?? null;
 $falaise_txt4 = $dataF['falaise_txt4'] ?? null;
 $falaise_leg2 = $dataF['falaise_leg2'] ?? null;
 $falaise_leg3 = $dataF['falaise_leg3'] ?? null;
+$falaise_zonename = $dataF['falaise_zonename'] ?? null;
 $latlng = $dataF['falaise_latlng'];
 $lat = trim(explode(",", $latlng)[0]);
 $lng = trim(explode(",", $latlng)[1]);
@@ -408,9 +409,19 @@ $stmtC->close();
             <?php endif; ?>
             <?php if ($falaise_altitude !== null && $falaise_altitude !== ''): ?>
               <div class="flex flex-col items-center justify-start gap-2">
-                <img src="/images/icons/mountain_color.png" alt=" Localisation" class="h-12 w-12 mx-auto" />
+                <img src="/images/icons/map.png" alt=" Localisation" class="h-12 w-12 mx-auto" />
                 <div class="font-bold text-center text-lg leading-tight">
-                  <div><?= (int) $falaise_altitude ?> m</div>
+                  <div class="font-bold text-center text-lg">
+                    <?php if (!empty($falaise_zonename)): ?>
+                      <?= htmlspecialchars($falaise_zonename, ENT_QUOTES, 'UTF-8') ?>
+                    <?php else: ?>
+                      <?= htmlspecialchars($falaise_deptname, ENT_QUOTES, 'UTF-8') ?>
+                    <?php endif; ?>
+                  </div>
+                  <div class="flex items-center gap-1"><svg class="h-4 w-4 stroke-2 inline stroke-current fill-none"
+                      aria-hidden="true">
+                      <use href="#altitude"></use>
+                    </svg><?= (int) $falaise_altitude ?> m</div>
                 </div>
               </div>
             <?php endif; ?>
