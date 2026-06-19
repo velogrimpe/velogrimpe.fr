@@ -410,7 +410,7 @@ $stmtC->close();
             <?php if ($falaise_altitude !== null && $falaise_altitude !== ''): ?>
               <div class="flex flex-col items-center justify-start gap-2">
                 <img src="/images/icons/map.png" alt=" Localisation" class="h-12 w-12 mx-auto" />
-                <div class="font-bold text-center text-lg leading-tight">
+                <div class="font-bold flex flex-col items-center text-lg leading-tight">
                   <div class="font-bold text-center text-lg">
                     <?php if (!empty($falaise_zonename)): ?>
                       <?= htmlspecialchars($falaise_zonename, ENT_QUOTES, 'UTF-8') ?>

@@ -28,6 +28,9 @@ function convertHtmlToEmailHtml(string $html, string $utm = ''): string
   // Replace <h3> with inline styles
   $html = preg_replace('/<h3>/', '<h3 style="color: #2c3e50; margin-bottom: 2px; margin-top: 8px;">', $html);
 
+  // Replace <p class="vg-caption"> (légende d'image : centré, italique, gris, collé à l'image)
+  $html = preg_replace('/<p class="vg-caption">/', '<p style="margin-top: 0; padding-top: 0; text-align: center; font-style: italic; color: #6b7280; font-size: 0.875em;">', $html);
+
   // Replace <a> with inline styles (preserve all attributes, strip any existing style)
   $html = preg_replace_callback('/<a ([^>]*)>/', function ($m) {
     $attrs = preg_replace('/\s*style="[^"]*"/', '', $m[1]);
