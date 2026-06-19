@@ -91,6 +91,14 @@ function convertHtmlToEmailHtml(string $html, string $utm = ''): string
     return '<img style="' . $imgStyle . '"' . $attrs . '>';
   }, $html);
 
+  // Coller la légende à l'image qui la précède : annuler la marge basse de la
+  // table d'image lorsqu'elle est immédiatement suivie d'une légende.
+  $html = preg_replace(
+    '#(<table[^>]*?style="margin: )10px 0;("[^>]*>(?:(?!</table>).)*</table>\s*<p style="margin-top: 0; padding-top: 0; text-align: center; font-style: italic)#s',
+    '${1}10px 0 0;$2',
+    $html
+  );
+
   return $html;
 }
 
