@@ -105,6 +105,7 @@ $falaise_leg3 = $dataF['falaise_leg3'] ?? null;
 $latlng = $dataF['falaise_latlng'];
 $lat = trim(explode(",", $latlng)[0]);
 $lng = trim(explode(",", $latlng)[1]);
+$falaise_altitude = $dataF['falaise_altitude'] ?? null;
 $falaise_contrib_name = preg_replace("(^'|'$)", "", explode(',', $dataF['falaise_contrib'])[0]);
 
 $ville_id_get = (int) ($_GET['ville_id'] ?? 0);
@@ -405,6 +406,15 @@ $stmtC->close();
                 </div>
               </div>
             <?php endif; ?>
+            <div class="flex flex-col items-center justify-start gap-2">
+              <img src="/images/icons/mountain_color.png" alt=" Localisation" class="h-12 w-12 mx-auto" />
+              <div class="font-bold text-center text-lg leading-tight">
+                <div><?= htmlspecialchars($lat, ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars($lng, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php if ($falaise_altitude !== null && $falaise_altitude !== ''): ?>
+                  <div><?= (int) $falaise_altitude ?> m</div>
+                <?php endif; ?>
+              </div>
+            </div>
           </div>
           <div class="flex flex-row gap-2 items-center justify-center mx-auto">
             <div class='w-full grid grid-cols-[auto_auto] gap-4 md:gap-y-6 items-center'>

@@ -144,6 +144,24 @@ $result = $stmt->get_result();
 $oldFalaise = $result->fetch_assoc();
 $stmt->close();
 
+// Récupération de l'altitude IGN (en mètres) du point lat,lng.
+// En édition, on ne (re)calcule que si les coordonnées ont changé ou si
+// l'altitude est encore absente, pour limiter les appels API.
+// L'appel est robuste : tout échec laisse $falaise_altitude à null sans bloquer.
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/altitude_lib.php';
+
+$falaise_altitude = null;
+$latlngChanged = !$oldFalaise || trim($oldFalaise['falaise_latlng'] ?? '') !== $falaise_latlng;
+$oldAlt = $oldFalaise['falaise_altitude'] ?? null;
+
+if ($latlngChanged || $oldAlt === null || $oldAlt === '') {
+  $parts = array_map('trim', explode(',', $falaise_latlng));
+  if (count($parts) === 2 && is_numeric($parts[0]) && is_numeric($parts[1])) {
+    $falaise_altitude = fetch_ign_altitude((float) $parts[0], (float) $parts[1]);
+  }
+} else {
+  $falaise_altitude = (int) $oldAlt; // inchangé en édition sans déplacement
+}
 
 $falaise_gvnb = $champs['falaise_gvnb'];
 $falaise_exposhort2 = $champs['falaise_exposhort2'];
@@ -169,6 +187,7 @@ $stmt = $mysqli->prepare("INSERT INTO falaises (
     falaise_mar,
     falaise_nbvoies,
     falaise_public,
+    falaise_altitude,
     -- strings
     falaise_acces_bus,
     falaise_contrib,
@@ -208,6 +227,7 @@ $stmt = $mysqli->prepare("INSERT INTO falaises (
     ?,
     ?,
     ?,
+    ?, -- falaise_altitude
     ?,
     ?,
     ?,
@@ -244,6 +264,7 @@ $stmt = $mysqli->prepare("INSERT INTO falaises (
   -- falaise_contrib = VALUES(falaise_contrib), -- ne pas modifier le contributeur en edition
   -- falaise_nom = VALUES(falaise_nom), -- ne pas modifier le nom
   falaise_acces_bus = VALUES(falaise_acces_bus),
+  falaise_altitude = VALUES(falaise_altitude),
   falaise_bloc = VALUES(falaise_bloc),
   falaise_cotmax = VALUES(falaise_cotmax),
   falaise_cotmin = VALUES(falaise_cotmin),
@@ -283,7 +304,7 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-  "iiiiiissssssssssssssssssssssssssssss",
+  "iiiiiiissssssssssssssssssssssssssssss",
   $falaise_id,
   // integers
   $falaise_bloc,
@@ -291,6 +312,7 @@ $stmt->bind_param(
   $falaise_mar,
   $falaise_nbvoies,
   $falaise_public,
+  $falaise_altitude,
   // strings
   $falaise_acces_bus,
   $falaise_contrib,
