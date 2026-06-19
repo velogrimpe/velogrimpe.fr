@@ -242,24 +242,24 @@ $stmtC->close();
     : VG_BASE . '/images/mw/velogrimpe-social-60.webp';
 
   $attraction = [
-    '@type'              => 'TouristAttraction',
-    'name'               => 'Escalade à ' . $falaise_nom,
-    'description'        => $jsonld_desc,
-    'url'                => $jsonld_url,
-    'image'              => $jsonld_image,
+    '@type' => 'TouristAttraction',
+    'name' => 'Escalade à ' . $falaise_nom,
+    'description' => $jsonld_desc,
+    'url' => $jsonld_url,
+    'image' => $jsonld_image,
     'isAccessibleForFree' => true,
-    'touristType'        => 'Escalade / Climbing',
-    'geo'                => [
-      '@type'     => 'GeoCoordinates',
-      'latitude'  => (float) $lat,
+    'touristType' => 'Escalade / Climbing',
+    'geo' => [
+      '@type' => 'GeoCoordinates',
+      'latitude' => (float) $lat,
       'longitude' => (float) $lng,
     ],
   ];
   $falaise_deptname = $dataF['falaise_deptname'] ?? null;
   if (!empty($falaise_deptname)) {
     $attraction['address'] = [
-      '@type'          => 'PostalAddress',
-      'addressRegion'  => $falaise_deptname,
+      '@type' => 'PostalAddress',
+      'addressRegion' => $falaise_deptname,
       'addressCountry' => 'FR',
     ];
   }
@@ -406,15 +406,14 @@ $stmtC->close();
                 </div>
               </div>
             <?php endif; ?>
-            <div class="flex flex-col items-center justify-start gap-2">
-              <img src="/images/icons/mountain_color.png" alt=" Localisation" class="h-12 w-12 mx-auto" />
-              <div class="font-bold text-center text-lg leading-tight">
-                <div><?= htmlspecialchars($lat, ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars($lng, ENT_QUOTES, 'UTF-8') ?></div>
-                <?php if ($falaise_altitude !== null && $falaise_altitude !== ''): ?>
+            <?php if ($falaise_altitude !== null && $falaise_altitude !== ''): ?>
+              <div class="flex flex-col items-center justify-start gap-2">
+                <img src="/images/icons/mountain_color.png" alt=" Localisation" class="h-12 w-12 mx-auto" />
+                <div class="font-bold text-center text-lg leading-tight">
                   <div><?= (int) $falaise_altitude ?> m</div>
-                <?php endif; ?>
+                </div>
               </div>
-            </div>
+            <?php endif; ?>
           </div>
           <div class="flex flex-row gap-2 items-center justify-center mx-auto">
             <div class='w-full grid grid-cols-[auto_auto] gap-4 md:gap-y-6 items-center'>
@@ -434,7 +433,9 @@ $stmtC->close();
                 <img src="/images/icons/guidebook_color.png" alt="Topo" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Topo(s)</div> -->
                 <div class="">
-                  <div><div class="vg-rt"><?= rt_display($falaise_topo) ?></div></div>
+                  <div>
+                    <div class="vg-rt"><?= rt_display($falaise_topo) ?></div>
+                  </div>
                   <?php if (count($liensOblyk) > 1): ?>
                     <div class="dropdown w-fit">
                       <a tabindex="0" role="button"
@@ -485,17 +486,23 @@ $stmtC->close();
               <?php if (!empty($falaise_rq)): ?>
                 <img src="/images/icons/note_color.png" alt=" Remarques" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Remarques</div> -->
-                <div class=""><div class="vg-rt"><?= rt_display($falaise_rq) ?></div></div>
+                <div class="">
+                  <div class="vg-rt"><?= rt_display($falaise_rq) ?></div>
+                </div>
               <?php endif; ?>
               <?php if (!empty($falaise_hebergement)): ?>
                 <img src="/images/icons/camping.png" alt=" Hébergement" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Hébergement</div> -->
-                <div class=""><div class="vg-rt"><?= rt_display($falaise_hebergement) ?></div></div>
+                <div class="">
+                  <div class="vg-rt"><?= rt_display($falaise_hebergement) ?></div>
+                </div>
               <?php endif; ?>
               <?php if (!empty($falaise_acces_bus)): ?>
                 <img src="/images/icons/bus.png" alt=" Accès en bus" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold ">Accès en bus</div> -->
-                <div class=""><div class="vg-rt"><?= rt_display($falaise_acces_bus) ?></div></div>
+                <div class="">
+                  <div class="vg-rt"><?= rt_display($falaise_acces_bus) ?></div>
+                </div>
               <?php endif; ?>
             </div>
           </div>
@@ -893,7 +900,11 @@ $stmtC->close();
         <?php endif; ?>
       <?php endif; ?>
       <div class="flex flex-col items-center gap-2 w-full mb-4">
-        <div id="map" class="h-150 w-full bg-black rounded-lg"></div>
+        <div id="map" class="h-150 w-full bg-black rounded-lg">
+          <div id="vue-sun-simulator" class="absolute inset-0 z-[1000] pointer-events-none"
+            data-lat="<?= htmlspecialchars(explode(',', $latlng)[0]) ?>"
+            data-lng="<?= htmlspecialchars(explode(',', $latlng)[1]) ?>"></div>
+        </div>
       </div>
       <!-- Image optionnelle 1 -->
       <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img1.webp"; ?>
@@ -901,7 +912,9 @@ $stmtC->close();
         <div class="flex flex-col items-center gap-1">
           <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg1)): ?>
-            <div class="text-base-content"><div class="vg-rt"><?= rt_display($falaise_leg1) ?></div></div>
+            <div class="text-base-content">
+              <div class="vg-rt"><?= rt_display($falaise_leg1) ?></div>
+            </div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
@@ -916,7 +929,9 @@ $stmtC->close();
         <div class="flex flex-col items-center gap-1">
           <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg2)): ?>
-            <div class="text-base-content"><div class="vg-rt"><?= rt_display($falaise_leg2) ?></div></div>
+            <div class="text-base-content">
+              <div class="vg-rt"><?= rt_display($falaise_leg2) ?></div>
+            </div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
@@ -932,7 +947,9 @@ $stmtC->close();
         <div class="flex flex-col items-center gap-1">
           <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg3)): ?>
-            <div class="text-base-content"><div class="vg-rt"><?= rt_display($falaise_leg3) ?></div></div>
+            <div class="text-base-content">
+              <div class="vg-rt"><?= rt_display($falaise_leg3) ?></div>
+            </div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
@@ -1394,6 +1411,7 @@ $stmtC->close();
   </script>
   <script type="module" src="/dist/falaise-comment.js"></script>
   <script type="module" src="/dist/falaise-rose.js"></script>
+  <script type="module" src="/dist/falaise-sun.js"></script>
   <script>
     const comments = <?= json_encode($comments) ?>;
     function editComment(commentId) {

@@ -53,9 +53,9 @@
       "_runtime-dom.esm-bundler-CDFooLvb.js"
     ]
   },
-  "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00i}~.js": {
+  "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00j}~.js": {
     "file": "assets/SectionTextEditor-C0v8Af-y.css",
-    "src": "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00i}~.js"
+    "src": "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00j}~.js"
   },
   "_SectionTextEditor.vue_vue_type_style_index_0_lang-9C2nlZjh.js": {
     "file": "chunks/SectionTextEditor.vue_vue_type_style_index_0_lang-9C2nlZjh.js",
@@ -68,9 +68,9 @@
       "assets/SectionTextEditor-C0v8Af-y.css"
     ]
   },
-  "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00f}~.js": {
+  "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00g}~.js": {
     "file": "assets/SortieDrawer-CfeI_V3B.css",
-    "src": "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00f}~.js"
+    "src": "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00g}~.js"
   },
   "_ToastContainer.vue_vue_type_script_setup_true_lang-uNdLBaj0.js": {
     "file": "chunks/ToastContainer.vue_vue_type_script_setup_true_lang-uNdLBaj0.js",
@@ -79,6 +79,10 @@
       "_useToast-Cy7pbBJ4.js",
       "_runtime-dom.esm-bundler-CDFooLvb.js"
     ]
+  },
+  "__commonjsHelpers-Cpj98o6Y.js": {
+    "file": "chunks/_commonjsHelpers-Cpj98o6Y.js",
+    "name": "_commonjsHelpers"
   },
   "__plugin-vue_export-helper-DlAUqK2U.js": {
     "file": "chunks/_plugin-vue_export-helper-DlAUqK2U.js",
@@ -314,13 +318,24 @@
       "__plugin-vue_export-helper-DlAUqK2U.js"
     ]
   },
+  "src/apps/falaise-sun.ts": {
+    "file": "falaise-sun.js",
+    "name": "falaise-sun",
+    "src": "src/apps/falaise-sun.ts",
+    "isEntry": true,
+    "imports": [
+      "_runtime-dom.esm-bundler-CDFooLvb.js",
+      "__commonjsHelpers-Cpj98o6Y.js",
+      "_Icon.vue_vue_type_script_setup_true_lang-DTUAX0BA.js"
+    ]
+  },
   "src/apps/main.ts": {
     "file": "main.js",
     "name": "main",
     "src": "src/apps/main.ts",
     "isEntry": true,
     "css": [
-      "assets/main-DUxrilUW.css"
+      "assets/main-D2UQCoa-.css"
     ]
   },
   "src/apps/newsletter-admin.ts": {
@@ -357,6 +372,7 @@
     "imports": [
       "_runtime-dom.esm-bundler-CDFooLvb.js",
       "_pinia-B3GFdQIx.js",
+      "__commonjsHelpers-Cpj98o6Y.js",
       "_ToastContainer.vue_vue_type_script_setup_true_lang-uNdLBaj0.js",
       "_useToast-Cy7pbBJ4.js"
     ]
