@@ -407,24 +407,6 @@ $stmtC->close();
                 </div>
               </div>
             <?php endif; ?>
-            <?php if ($falaise_altitude !== null && $falaise_altitude !== ''): ?>
-              <div class="flex flex-col items-center justify-start gap-2">
-                <img src="/images/icons/map.png" alt=" Localisation" class="h-12 w-12 mx-auto" />
-                <div class="font-bold flex flex-col items-center text-lg leading-tight">
-                  <div class="font-bold text-center text-lg">
-                    <?php if (!empty($falaise_zonename)): ?>
-                      <?= htmlspecialchars($falaise_zonename, ENT_QUOTES, 'UTF-8') ?>
-                    <?php else: ?>
-                      <?= htmlspecialchars($falaise_deptname, ENT_QUOTES, 'UTF-8') ?>
-                    <?php endif; ?>
-                  </div>
-                  <div class="flex items-center gap-1"><svg class="h-4 w-4 stroke-2 inline stroke-current fill-none"
-                      aria-hidden="true">
-                      <use href="#altitude"></use>
-                    </svg><?= (int) $falaise_altitude ?> m</div>
-                </div>
-              </div>
-            <?php endif; ?>
           </div>
           <div class="flex flex-row gap-2 items-center justify-center mx-auto">
             <div class='w-full grid grid-cols-[auto_auto] gap-4 md:gap-y-6 items-center'>
@@ -437,6 +419,9 @@ $stmtC->close();
                     <div><span>Cotations</span> :
                       <?= nl2br(htmlspecialchars(mb_strtolower(substr($falaise_cottxt, 0, 1)) . substr($falaise_cottxt, 1), ENT_QUOTES, 'UTF-8')) ?>
                     </div>
+                  <?php endif ?>
+                  <?php if (!empty($falaise_altitude)): ?>
+                    <div><span>Altitude</span> : <?= htmlspecialchars($falaise_altitude, ENT_QUOTES, 'UTF-8') ?> m</div>
                   <?php endif ?>
                 </div>
               <?php endif; ?>
