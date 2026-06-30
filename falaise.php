@@ -1271,7 +1271,7 @@ $stmtC->close();
         ".vg-bus-arc-label{background:#fffbeb;border:1px solid #eab308;color:#713f12;" +
         "border-radius:4px;padding:0 5px;font-size:11px;font-weight:600;white-space:nowrap;" +
         "box-shadow:0 1px 3px rgba(0,0,0,.25);}.vg-bus-arc-label::before{display:none;}" +
-        ".vg-bus-arc-tip{max-width:260px;font-size:12px;}";
+        ".vg-bus-arc-tip{max-width:260px;font-size:12px;text-wrap:wrap;max-width:260px;width:max-content;}v";
       document.head.appendChild(st);
     }
 
