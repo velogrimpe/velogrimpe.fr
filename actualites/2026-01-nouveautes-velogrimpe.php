@@ -146,13 +146,13 @@ $nouvellesFalaises = [
   require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
   $news_url = VG_BASE . '/actualites/' . basename(__FILE__);
   $news_article = [
-    '@type'            => 'Article',
-    'headline'         => $page_title,
-    'description'      => $description,
-    'url'              => $news_url,
+    '@type' => 'Article',
+    'headline' => $page_title,
+    'description' => $description,
+    'url' => $news_url,
     'mainEntityOfPage' => $news_url,
-    'author'           => ['@id' => VG_BASE . '/#organization'],
-    'publisher'        => ['@id' => VG_BASE . '/#organization'],
+    'author' => ['@id' => VG_BASE . '/#organization'],
+    'publisher' => ['@id' => VG_BASE . '/#organization'],
   ];
   if (preg_match('/^(\d{4})-(\d{2})/', $slug, $m)) {
     $news_article['datePublished'] = $m[1] . '-' . $m[2] . '-01';
@@ -319,7 +319,7 @@ $nouvellesFalaises = [
             <td style="<?= $nouvellesFalaiseStyle ?>">
               <?php foreach ($nouvellesFalaises as $region => $content): ?>
                 <!-- <a
-                  href="http://localhost:4002/carte.php?h=<?= join(',', array_column($content['falaises'], 'id')) ?>">HIGHLIGHT</a> -->
+                  href="http://localhost:4000/carte.php?h=<?= join(',', array_column($content['falaises'], 'id')) ?>">HIGHLIGHT</a> -->
                 <h3 style="<?= $h3Style ?>"><?= $region ?></h3>
                 <table cellpadding="0" cellspacing="0" border="0" style="<?= $imgTableStyle ?>">
                   <tr>

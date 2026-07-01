@@ -1,6 +1,6 @@
 <?php
 // Allow CORS from all origins
-header('Access-Control-Allow-Origin: localhost:4002, https://velogrimpe.fr, https://www.velogrimpe.fr');
+header('Access-Control-Allow-Origin: localhost:4000, https://velogrimpe.fr, https://www.velogrimpe.fr');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 
 // Handle preflight requests
@@ -37,10 +37,12 @@ function summarizeFalaiseDetailsChanges($oldFeatures, $newFeatures)
   };
 
   $labelOf = function ($f) {
-    $name = trim((string)($f['properties']['name'] ?? ''));
-    if ($name !== '') return $name;
+    $name = trim((string) ($f['properties']['name'] ?? ''));
+    if ($name !== '')
+      return $name;
     $id = $f['properties']['id'] ?? null;
-    if (is_string($id) && $id !== '') return '#' . substr($id, 0, 8);
+    if (is_string($id) && $id !== '')
+      return '#' . substr($id, 0, 8);
     return '?';
   };
 
@@ -67,10 +69,13 @@ function summarizeFalaiseDetailsChanges($oldFeatures, $newFeatures)
   // match by (type, name) for named features, bag-count by type for the rest.
   $oldHasIds = false;
   foreach ($oldFeatures as $f) {
-    if ($idOf($f) !== null) { $oldHasIds = true; break; }
+    if ($idOf($f) !== null) {
+      $oldHasIds = true;
+      break;
+    }
   }
   if (!$oldHasIds && !empty($oldFeatures)) {
-    $nameOf = fn($f) => trim((string)($f['properties']['name'] ?? ''));
+    $nameOf = fn($f) => trim((string) ($f['properties']['name'] ?? ''));
     $partition = function ($features) use ($typeOf, $nameOf) {
       $named = [];
       $unnamed = [];
@@ -88,7 +93,9 @@ function summarizeFalaiseDetailsChanges($oldFeatures, $newFeatures)
     [$oldNamed, $oldUnnamed] = $partition($oldFeatures);
     [$newNamed, $newUnnamed] = $partition($newFeatures);
 
-    $added = 0; $removed = 0; $modified = 0;
+    $added = 0;
+    $removed = 0;
+    $modified = 0;
     foreach ($oldNamed as $key => $oldFeature) {
       if (isset($newNamed[$key])) {
         if ($contentSignature($oldFeature) !== $contentSignature($newNamed[$key])) {
@@ -105,8 +112,10 @@ function summarizeFalaiseDetailsChanges($oldFeatures, $newFeatures)
     foreach ($types as $t) {
       $o = $oldUnnamed[$t] ?? 0;
       $n = $newUnnamed[$t] ?? 0;
-      if ($n > $o) $added += $n - $o;
-      elseif ($o > $n) $removed += $o - $n;
+      if ($n > $o)
+        $added += $n - $o;
+      elseif ($o > $n)
+        $removed += $o - $n;
     }
     return [
       'preMigration' => true,
@@ -120,12 +129,14 @@ function summarizeFalaiseDetailsChanges($oldFeatures, $newFeatures)
   $oldById = [];
   foreach ($oldFeatures as $f) {
     $id = $idOf($f);
-    if ($id !== null) $oldById[$id] = $f;
+    if ($id !== null)
+      $oldById[$id] = $f;
   }
   $newById = [];
   foreach ($newFeatures as $f) {
     $id = $idOf($f);
-    if ($id !== null) $newById[$id] = $f;
+    if ($id !== null)
+      $newById[$id] = $f;
   }
 
   $added = 0;
@@ -173,9 +184,9 @@ function renderChangeSummaryHtml($summary, $isUpdate)
     $html .= '<p><em>Premier enregistrement après attribution des identifiants — bilan détaillé non disponible.</em></p>';
   } else {
     $html .= '<p>';
-    $html .= '<strong>' . (int)$summary['added'] . '</strong> ajoutée(s), ';
-    $html .= '<strong>' . (int)$summary['removed'] . '</strong> supprimée(s), ';
-    $html .= '<strong>' . (int)$summary['modified'] . '</strong> modifiée(s).';
+    $html .= '<strong>' . (int) $summary['added'] . '</strong> ajoutée(s), ';
+    $html .= '<strong>' . (int) $summary['removed'] . '</strong> supprimée(s), ';
+    $html .= '<strong>' . (int) $summary['modified'] . '</strong> modifiée(s).';
     $html .= '</p>';
   }
 
@@ -191,15 +202,15 @@ function renderChangeSummaryHtml($summary, $isUpdate)
     foreach ($summary['perType'] as $type => $counts) {
       $label = $typeLabels[$type] ?? $type;
       $delta = $counts['new'] - $counts['old'];
-      $deltaStr = $delta > 0 ? '+' . $delta : (string)$delta;
+      $deltaStr = $delta > 0 ? '+' . $delta : (string) $delta;
       $edited = $counts['edited'] ?? [];
       $editedHtml = empty($edited)
         ? '<span style="color:#999">—</span>'
         : htmlspecialchars(implode(', ', $edited));
       $html .= '<tr>'
         . '<td style="border:1px solid #ccc">' . htmlspecialchars($label) . '</td>'
-        . '<td style="border:1px solid #ccc;text-align:right">' . (int)$counts['old'] . '</td>'
-        . '<td style="border:1px solid #ccc;text-align:right">' . (int)$counts['new'] . '</td>'
+        . '<td style="border:1px solid #ccc;text-align:right">' . (int) $counts['old'] . '</td>'
+        . '<td style="border:1px solid #ccc;text-align:right">' . (int) $counts['new'] . '</td>'
         . '<td style="border:1px solid #ccc;text-align:right">' . htmlspecialchars($deltaStr) . '</td>'
         . '<td style="border:1px solid #ccc">' . $editedHtml . '</td>'
         . '</tr>';

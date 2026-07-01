@@ -1,4 +1,4 @@
-@host = http://localhost:4002
+@host = http://localhost:4000
 
 ### Flux RSS Actualités (articles + newsletters + pages /p/)
 GET {{host}}/feed/actualites.xml

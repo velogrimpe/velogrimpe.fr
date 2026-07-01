@@ -2,7 +2,7 @@
 
 $_newsletterConfig = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $_newsletterBaseUrl = rtrim($_newsletterConfig['base_url'] ?? 'http://localhost', '/');
-$_newsletterHost = strpos($_newsletterBaseUrl, 'localhost') !== false ? $_newsletterBaseUrl . ':4002' : $_newsletterBaseUrl;
+$_newsletterHost = strpos($_newsletterBaseUrl, 'localhost') !== false ? $_newsletterBaseUrl . ':4000' : $_newsletterBaseUrl;
 
 /**
  * Convert TipTap semantic HTML to email-compatible HTML with inline styles.
@@ -212,10 +212,10 @@ function renderNewsletterEmail(array $newsletter): string
     <tr>
       <td>
         <h1 style="' . $h1Style . '">' . (
-          str_contains($title, ' - ')
-            ? explode(' - ', $title, 2)[0] . '<br /><span style="font-size: 0.75em;">' . explode(' - ', $title, 2)[1] . '</span>'
-            : $title
-        ) . '</h1>';
+    str_contains($title, ' - ')
+    ? explode(' - ', $title, 2)[0] . '<br /><span style="font-size: 0.75em;">' . explode(' - ', $title, 2)[1] . '</span>'
+    : $title
+  ) . '</h1>';
 
   // Render sections
   $sections = $newsletter['sections'] ?? [];
@@ -260,14 +260,14 @@ function renderNewsletterWeb(array $newsletter): string
   // (renderNewsletterEmail est partagé avec l'email, qui ne doit pas les porter).
   $news_url = VG_BASE . '/actualites/' . rawurlencode($newsletter['slug']);
   $article = [
-    '@type'            => 'Article',
-    'headline'         => $newsletter['title'],
-    'description'      => $newsletter['description'] ?? '',
-    'url'              => $news_url,
+    '@type' => 'Article',
+    'headline' => $newsletter['title'],
+    'description' => $newsletter['description'] ?? '',
+    'url' => $news_url,
     'mainEntityOfPage' => $news_url,
-    'image'            => VG_BASE . '/images/mw/velogrimpe-social-60.webp',
-    'author'           => ['@id' => VG_BASE . '/#organization'],
-    'publisher'        => ['@id' => VG_BASE . '/#organization'],
+    'image' => VG_BASE . '/images/mw/velogrimpe-social-60.webp',
+    'author' => ['@id' => VG_BASE . '/#organization'],
+    'publisher' => ['@id' => VG_BASE . '/#organization'],
   ];
   $date = $newsletter['date_sent'] ?? $newsletter['date_creation'] ?? null;
   if (!empty($date)) {

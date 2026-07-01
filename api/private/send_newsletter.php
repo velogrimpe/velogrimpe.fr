@@ -52,7 +52,7 @@ $errorCount = 0;
 // send one by one
 foreach ($recipients as $recipient) {
 
-  $hostWithPort = strpos($host, 'localhost') !== false ? "$host:4002" : $host;
+  $hostWithPort = strpos($host, 'localhost') !== false ? "$host:4000" : $host;
   $unsubscribeLink = $hostWithPort . "/actualites/gestion/unsubscribe.php?mail=" . urlencode($recipient['mail']) . "&token=" . urlencode($recipient['token']);
 
   $mailBodyForRecipient = $mailBody;

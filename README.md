@@ -55,8 +55,8 @@ docker run --platform linux/x86_64 --name myXampp -p 4003:22 -p 4002:80 -d -v $R
 
 Une fois lancé, ce conteneur est synchronisé avec votre dossier local et sert :
 
-- Sur le port 4002, le site déployé en local (http://localhost:4002)
-- Sur http://localhost:4002/phpmyadmin l'interface pour administrer la base de donnée locale (éphémère, supprimée à chaque re-création du conteneur)
+- Sur le port 4002, le site déployé en local (http://localhost:4000)
+- Sur http://localhost:4000/phpmyadmin l'interface pour administrer la base de donnée locale (éphémère, supprimée à chaque re-création du conteneur)
 
 À partir de là, tout ce que vous changez dans votre éditeur de code est répecuté sur le serveur local (pas de refresh automatique, il faut faire un Cmd/Ctrl+R pour voir les changements).
 

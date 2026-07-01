@@ -58,7 +58,7 @@ $mailBody = renderNewsletterEmail($newsletter);
 $mailBody = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $mailBody);
 
 $baseUrl = rtrim($config['base_url'] ?? 'http://localhost', '/');
-$host = strpos($baseUrl, 'localhost') !== false ? $baseUrl . ':4002' : $baseUrl;
+$host = strpos($baseUrl, 'localhost') !== false ? $baseUrl . ':4000' : $baseUrl;
 
 // Get recipients: confirmed, not unsubscribed, not already sent for this slug
 $recipientsStmt = $mysqli->prepare("SELECT
