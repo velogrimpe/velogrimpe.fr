@@ -849,9 +849,7 @@ if ($falaise_id) {
           <b>Topo(s)</b>
           <div class="vue-richtext" data-name="falaise_topo" <?= $admin ? '' : 'data-required="true"' ?>></div>
           <i class="text-slate-400 text-sm"> Lister les différents topos présentant la falaise.<br> Optionnel : ajouter
-            un lien vers la fiche Climbing Away de la falaise. Pour cela, copiez le code &lt;a href="URL"&gt;Fiche
-            Climbing Away&lt;/a&gt;, en remplaçant "URL" par l'URL de la fiche.<br> Exemple : "Escalade dans le Jura -
-            &lt;a href="https://climbingaway.fr/fr/site-escalade/le-trou-de-la-lune"&gt;Fiche Climbing Away&lt;/a&gt;"
+            un lien vers la fiche Climbing Away de la falaise.
           </i>
         </div>
         <div class="form-control">
