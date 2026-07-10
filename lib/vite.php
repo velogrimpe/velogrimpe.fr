@@ -40,17 +40,40 @@ function vite_js_path(string $entry): ?string {
 }
 
 /**
- * Get CSS file paths for an entry point
+ * Collecte récursivement le CSS d'un chunk et de ses imports statiques.
+ *
+ * Vite éclate le CSS par chunk : le CSS d'un composant importé statiquement
+ * (ex. l'éditeur `SectionTextEditor`) vit dans l'entrée de ce sous-chunk, pas
+ * dans celle de l'app. En prod, ce CSS n'est PAS injecté au runtime (contrairement
+ * aux imports dynamiques) : il faut donc remonter la chaîne `imports` pour le
+ * retrouver, sinon les styles du composant manquent. On ignore `dynamicImports`
+ * (chargés + injectés à la volée par le runtime Vite).
+ */
+function _vite_collect_css(array $manifest, string $key, array &$seen, array &$css): void {
+    if (isset($seen[$key]) || !isset($manifest[$key])) {
+        return;
+    }
+    $seen[$key] = true;
+    foreach ($manifest[$key]['css'] ?? [] as $c) {
+        $css[$c] = true; // clé => dédoublonnage en conservant l'ordre d'insertion
+    }
+    foreach ($manifest[$key]['imports'] ?? [] as $import) {
+        _vite_collect_css($manifest, $import, $seen, $css);
+    }
+}
+
+/**
+ * Get CSS file paths for an entry point (inclut le CSS des imports statiques).
  */
 function vite_css_paths(string $entry): array {
     $manifest = vite_manifest();
     $key = "src/apps/{$entry}.ts";
 
-    if (isset($manifest[$key]['css'])) {
-        return array_map(fn($css) => '/dist/' . $css, $manifest[$key]['css']);
-    }
+    $seen = [];
+    $css = [];
+    _vite_collect_css($manifest, $key, $seen, $css);
 
-    return [];
+    return array_map(fn($c) => '/dist/' . $c, array_keys($css));
 }
 
 /**
