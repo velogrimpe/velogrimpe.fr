@@ -22,11 +22,22 @@ function convertHtmlToEmailHtml(string $html, string $utm = ''): string
     return 'href="' . $url . '"';
   }, $html);
 
-  // Replace <h2> with inline styles
-  $html = preg_replace('/<h2>/', '<h2 style="color: #2e8b57; margin-bottom: 4px;">', $html);
+  // Helper : extrait un éventuel `text-align:` du bloc d'attributs d'un titre.
+  $headingAlign = function (string $attrs): string {
+    return preg_match('/text-align:\s*(left|center|right|justify)/', $attrs, $m)
+      ? 'text-align: ' . $m[1] . '; '
+      : '';
+  };
 
-  // Replace <h3> with inline styles
-  $html = preg_replace('/<h3>/', '<h3 style="color: #2c3e50; margin-bottom: 2px; margin-top: 8px;">', $html);
+  // Replace <h2> with inline styles (préserve un alignement éventuel)
+  $html = preg_replace_callback('/<h2([^>]*)>/', function ($m) use ($headingAlign) {
+    return '<h2 style="' . $headingAlign($m[1]) . 'color: #2e8b57; margin-bottom: 4px;">';
+  }, $html);
+
+  // Replace <h3> with inline styles (préserve un alignement éventuel)
+  $html = preg_replace_callback('/<h3([^>]*)>/', function ($m) use ($headingAlign) {
+    return '<h3 style="' . $headingAlign($m[1]) . 'color: #2c3e50; margin-bottom: 2px; margin-top: 8px;">';
+  }, $html);
 
   // Replace <p class="vg-caption"> (légende d'image : centré, italique, gris, collé à l'image)
   $html = preg_replace('/<p class="vg-caption">/', '<p style="margin-top: 0; padding-top: 0; text-align: center; font-style: italic; color: #6b7280; font-size: 0.875em;">', $html);
@@ -65,14 +76,20 @@ function convertHtmlToEmailHtml(string $html, string $utm = ''): string
   // Replace <hr> with email-compatible horizontal rule
   $html = preg_replace('/<hr\s*\/?>/', '<table cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 16px 0;"><tr><td style="border-top: 1px solid #ccc;"></td></tr></table>', $html);
 
-  // Handle images - wrap centered images in table, leave others inline
+  // Handle images - align via table (center/right), left = inline
   $html = preg_replace_callback('/<img([^>]*)>/', function ($matches) {
     $attrs = $matches[1];
 
-    // Check for style with text-align center or data-text-align center
-    $isCentered = preg_match('/text-align:\s*center/', $attrs) ||
-      preg_match('/data-text-align="center"/', $attrs) ||
-      !preg_match('/text-align/', $attrs); // default: centered
+    // Alignement : `data-align` prioritaire (survit au nettoyage de style),
+    // puis `data-text-align`/`text-align` inline. Défaut historique : centré.
+    $align = 'center';
+    if (preg_match('/data-align="(left|center|right)"/', $attrs, $m)) {
+      $align = $m[1];
+    } elseif (preg_match('/data-text-align="(left|center|right)"/', $attrs, $m)) {
+      $align = $m[1];
+    } elseif (preg_match('/text-align:\s*(left|center|right)/', $attrs, $m)) {
+      $align = $m[1];
+    }
 
     // Clean existing style, add email styles
     $attrs = preg_replace('/style="[^"]*"/', '', $attrs);
@@ -84,11 +101,11 @@ function convertHtmlToEmailHtml(string $html, string $utm = ''): string
     }
     $attrs .= ' height="auto"';
 
-    if ($isCentered) {
-      return '<table cellpadding="0" cellspacing="0" border="0" style="margin: 10px 0;"><tr><td style="width: 700px; text-align: center;"><img style="' . $imgStyle . '"' . $attrs . '></td></tr></table>';
+    if ($align === 'left') {
+      return '<img style="' . $imgStyle . '"' . $attrs . '>';
     }
 
-    return '<img style="' . $imgStyle . '"' . $attrs . '>';
+    return '<table cellpadding="0" cellspacing="0" border="0" style="margin: 10px 0;"><tr><td style="width: 700px; text-align: ' . $align . ';"><img style="' . $imgStyle . '"' . $attrs . '></td></tr></table>';
   }, $html);
 
   // Coller la légende à l'image qui la précède : annuler la marge basse de la
