@@ -2,8 +2,9 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 
-$falaises = $mysqli->query("SELECT falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
+$falaises = $mysqli->query("SELECT falaise_altitude, falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 $gares = $mysqli->query("SELECT
   g.gare_id, g.gare_latlng, g.gare_nom, g.gare_tgv,
@@ -28,6 +29,8 @@ $highlight = $_GET['h'] ?? '';
   <!-- Meta tags for SEO and Social Networks -->
   <meta name="robots" content="noindex, nofollow">
   <link rel="canonical" href="https://velogrimpe.fr/" />
+  <link rel="alternate" type="application/rss+xml" title="Nouveautes Velogrimpe (falaises et itineraires)"
+    href="/feed/nouveautes.xml">
   <meta name="description"
     content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
   <meta property="og:locale" content="fr_FR">
@@ -230,6 +233,21 @@ $highlight = $_GET['h'] ?? '';
       border-top: 1px solid #eee;
     }
   </style>
+  <?php
+  vg_jsonld(
+    vg_organization(),
+    [
+      '@type' => 'WebPage',
+      'name' => 'Carte des falaises accessibles en vélo et train',
+      'url' => VG_BASE . '/carte_maplibre.php',
+      'isPartOf' => ['@id' => VG_BASE . '/#website'],
+    ],
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'Carte', 'url' => '/carte_maplibre.php'],
+    ])
+  );
+  ?>
 </head>
 
 <body>
@@ -1148,6 +1166,16 @@ $highlight = $_GET['h'] ?? '';
   const falaisesDuTopo = falaises.filter(f => f.access.length > 0);
   const falaisesHorsTopo = falaises.filter(f => f.access.length === 0);
 
+  // Altitude (m) dans l'intervalle [min, max] (bornes incluses, optionnelles).
+  // Altitude inconnue (null) exclue dès qu'une borne est définie.
+  const altitudeMatches = (altitude, min, max) => {
+    if (min === null && max === null) return true;
+    if (altitude === null || altitude === undefined || altitude === "") return false;
+    const a = Number(altitude);
+    if (!Number.isFinite(a)) return false;
+    return (min === null || a >= min) && (max === null || a <= max);
+  };
+
   const applyVueFilters = (filters) => {
     const expoN = filters.exposition.includes('N');
     const expoE = filters.exposition.includes('E');
@@ -1178,19 +1206,24 @@ $highlight = $_GET['h'] ?? '';
     const ville = filters.villeId;
     const villeSelected = ville !== null;
     const nbVoies = filters.nbVoiesMin;
+    const altMin = filters.altitude.min;
+    const altMax = filters.altitude.max;
+    const altFiltered = altMin !== null || altMax !== null;
 
     const expoFiltered = [expoN, expoE, expoS, expoO].some(e => e);
     const cotFiltered = [cot40, cot50, cot59, cot60, cot69, cot70, cot79, cot80].some(e => e);
     const typeVoiesFiltered = couenne || avecgv || bloc || psychobloc;
 
-    if (!expoFiltered && !cotFiltered && !typeVoiesFiltered && nbVoies === 0 && !apieduniquement
+    if (!expoFiltered && !altFiltered && !cotFiltered && !typeVoiesFiltered && nbVoies === 0 && !apieduniquement
       && tempsMaxVelo === null && denivMaxVelo === null && distMaxVelo === null && tempsMaxMA === null && !villeSelected) {
       falaises.forEach(f => { f.filteredOut = false; });
     } else {
       falaisesHorsTopo.forEach(f => { f.filteredOut = false; });
       falaisesDuTopo.forEach(falaise => {
         const estCotationsCompatible = (
-          (!cot40 || ("4+".localeCompare(falaise.falaise_cotmin) >= 0))
+          // Exclure les falaises sans cotation min/max renseignée quand on filtre par cotation
+          !!falaise.falaise_cotmin && !!falaise.falaise_cotmax
+          && (!cot40 || ("4+".localeCompare(falaise.falaise_cotmin) >= 0))
           && (!cot50 || ("5-".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("5-") >= 0))
           && (!cot59 || ("5+".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("5+") >= 0))
           && (!cot60 || ("6-".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("6-") >= 0))
@@ -1224,6 +1257,7 @@ $highlight = $_GET['h'] ?? '';
             || (expoS && (falaise.falaise_exposhort1.includes("'S") || falaise.falaise_exposhort2.includes("'S")))
             || (expoO && (falaise.falaise_exposhort1.match(/('O|'NO'|'SO')/) || falaise.falaise_exposhort2.match(/('O|'NO'|'SO')/)))
           ))
+          && altitudeMatches(falaise.falaise_altitude, altMin, altMax)
           && (!cotFiltered || estCotationsCompatible)
           && (tempsMaxMA === null || parseInt(falaise.falaise_maa || 0) <= tempsMaxMA)
           && estNbVoiesCompatible
