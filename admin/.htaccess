@@ -1,0 +1,5 @@
+AuthType Basic
+AuthName "Authorization required"
+AuthUserFile /home/u829510062/domains/velogrimpe.fr/.htpasswd
+require valid-user
+CGIPassAuth On
