@@ -81,6 +81,14 @@ foreach ($champs_obligatoires as $champ => $valeur) {
   }
 }
 
+// falaise_nomformate sert de nom de fichier pour les images (cf. uploadImage) et
+// falaise.php reconstruit ce chemin depuis la valeur stockée en base : les deux
+// doivent rester identiques, on valide donc le slug au lieu de le reformater.
+// Même forme que formatNomFalaise() côté formulaire.
+if ($falaise_nomformate !== '' && !preg_match('/^[a-z0-9-]{1,255}$/', $falaise_nomformate)) {
+  respondError("falaise_nomformate invalide : seuls les caractères a-z, 0-9 et le tiret sont acceptés.");
+}
+
 // Remplissage par défaut des champs non obligatoires
 $champs = [
   'falaise_exposhort2' => null,
@@ -359,6 +367,16 @@ if (!$fullTargetDir) {
   respondError("Le dossier cible $targetDir n'existe pas ou est introuvable.", 500);
 }
 
+// L'extension est déduite du type réel du fichier, jamais du nom envoyé par le
+// client : le dossier de destination est servi par le serveur web, un `.php`
+// déposé ici serait exécuté.
+const IMAGE_EXTENSIONS_AUTORISEES = [
+  IMAGETYPE_JPEG => 'jpg',
+  IMAGETYPE_PNG  => 'png',
+  IMAGETYPE_WEBP => 'webp',
+];
+const IMAGE_TAILLE_MAX = 10 * 1024 * 1024;
+
 function uploadImage($fileInputName, $targetDir, $falaiseId, $falaiseNomformate, $suffix)
 {
   if (!isset($_FILES[$fileInputName]) || $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_OK) {
@@ -366,7 +384,20 @@ function uploadImage($fileInputName, $targetDir, $falaiseId, $falaiseNomformate,
   }
 
   $fileTmpName = $_FILES[$fileInputName]['tmp_name'];
-  $fileExtension = strtolower(pathinfo($_FILES[$fileInputName]['name'], PATHINFO_EXTENSION));
+  if (!is_uploaded_file($fileTmpName)) {
+    return "$fileInputName n'est pas un téléversement valide.";
+  }
+
+  if ($_FILES[$fileInputName]['size'] > IMAGE_TAILLE_MAX) {
+    return "$fileInputName dépasse la taille maximale de " . (IMAGE_TAILLE_MAX / 1024 / 1024) . " Mo.";
+  }
+
+  $imageInfos = @getimagesize($fileTmpName);
+  $imageType = is_array($imageInfos) ? $imageInfos[2] : null;
+  if (!isset(IMAGE_EXTENSIONS_AUTORISEES[$imageType])) {
+    return "$fileInputName n'est pas une image JPEG, PNG ou WebP.";
+  }
+  $fileExtension = IMAGE_EXTENSIONS_AUTORISEES[$imageType];
 
   $targetFileName = "{$falaiseId}_{$falaiseNomformate}_{$suffix}.{$fileExtension}";
   $targetFilePath = $targetDir . DIRECTORY_SEPARATOR . $targetFileName;

@@ -1,0 +1,39 @@
+# Dossier de données : contenus téléversés (images de falaises, traces GPX) et
+# fichiers générés (GeoJSON). Aucun script ne doit jamais s'exécuter ici.
+#
+# Contexte : en juillet 2026 un webshell a été déposé dans bdd/images_falaises/
+# via le formulaire d'ajout de falaise, puis exécuté par simple appel HTTP.
+# La faille d'upload est corrigée (api/add_falaise.php), ce fichier est la
+# seconde barrière : il neutralise la classe d'attaque entière, y compris pour
+# un fichier qui aurait échappé à la validation.
+
+# Barrière principale : refuser de servir les extensions exécutables. Portable,
+# indépendante du mode d'exécution de PHP (mod_php, LSAPI, PHP-FPM). Les deux
+# syntaxes d'autorisation sont présentes car le .htaccess parent utilise encore
+# `Allow from all` (syntaxe 2.2), qui serait sinon susceptible de reprendre le
+# dessus via mod_access_compat.
+<FilesMatch "(?i)\.(php|phar|phtml|php[0-9]|phps|pht|inc|shtml|cgi|pl|py|rb|sh|lua)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule mod_access_compat.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Renfort : couper l'interpréteur PHP pour tout le dossier. Encadré par IfModule
+# car `php_flag` déclenche une erreur 500 quand PHP n'est pas chargé en module
+# (PHP-FPM) — ce qui rendrait tout le dossier d'images inaccessible.
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+
+# Pas de listing du contenu des dossiers de données.
+Options -Indexes

@@ -2,6 +2,8 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
+const GPX_TAILLE_MAX = 10 * 1024 * 1024;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $admin = trim($_POST['admin'] ?? '') == $config["admin_token"];
   $gare_id = $_POST['gare_id'] ?? null;
@@ -42,10 +44,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $velo_apiedpossible = isset($_POST['velo_apiedpossible']) ? 1 : 0;
   $velo_public = isset($_POST['velo_public']) ? intval($_POST['velo_public']) : 0;
 
+  // Ces trois champs composent le nom du fichier GPX écrit plus bas, et
+  // falaise.php:835 comme gpx_path() côté JS reconstruisent ce chemin depuis les
+  // valeurs stockées en base : on valide les slugs au lieu de les reformater, pour
+  // que la base et le disque restent cohérents (cf. docs/plans/DECISIONS.md D002).
+  // velo_depart et velo_arrivee reprennent les nomformate de la gare et de la
+  // falaise, velo_varianteformate vient de formatVariante() côté formulaire :
+  // tous sont de la forme [a-z0-9-].
+  $slugs_nom_fichier = [
+    'velo_depart' => $velo_depart,
+    'velo_arrivee' => $velo_arrivee,
+    'velo_varianteformate' => $velo_varianteformate,
+  ];
+  foreach ($slugs_nom_fichier as $champ => $valeur) {
+    if (!preg_match('/^[a-z0-9-]{0,255}$/', (string) $valeur)) {
+      die("Champ $champ invalide : seuls les caractères a-z, 0-9 et le tiret sont acceptés.");
+    }
+  }
+
   // Gestion des fichiers GPX
   if (!empty($_FILES['gpx_file']['tmp_name']) && is_uploaded_file($_FILES['gpx_file']['tmp_name'])) {
+    // La plus grosse trace en base fait 553 Ko : ce plafond borne la mémoire du
+    // parseur XML sans gêner une contribution légitime.
+    if ($_FILES['gpx_file']['size'] > GPX_TAILLE_MAX) {
+      die("Le fichier GPX dépasse la taille maximale de " . (GPX_TAILLE_MAX / 1024 / 1024) . " Mo.");
+    }
+
     $dom = new DOMDocument();
-    $dom->loadXML(file_get_contents($_FILES['gpx_file']['tmp_name']));
+    // LIBXML_NONET : interdit tout accès réseau pendant l'analyse.
+    if (!@$dom->loadXML(file_get_contents($_FILES['gpx_file']['tmp_name']), LIBXML_NONET)) {
+      die("Le fichier GPX n'est pas un XML valide.");
+    }
     // Vérifier que le fichier GPX est valide
     $has_gpx_root = ($dom->getElementsByTagName('gpx')->length > 0) && ($dom->getElementsByTagName('gpx')->item(0)->getNodePath() === '/*');
     if (!$has_gpx_root) {
@@ -93,7 +122,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
     $velo_id = $stmt->insert_id;
 
-    // Enregistrer le fichier GPX nettoyé (waypoints retirés ci-dessus)
+    // Sans cette garde, un insert_id à 0 ferait écrire la trace sous « 0_… », en
+    // écrasant celle d'une précédente contribution ratée. mysqli lève une exception
+    // en cas d'erreur SQL depuis PHP 8.1, mais le nom du fichier ne doit pas
+    // dépendre de ce réglage.
+    if (!$velo_id) {
+      die("Erreur lors de l'insertion : identifiant d'itinéraire non attribué.");
+    }
+
+    // Enregistrer le fichier GPX nettoyé (waypoints retirés ci-dessus).
+    // velo_id vient d'insert_id et les trois autres segments sont validés en amont :
+    // le chemin ne peut pas sortir du dossier.
     $gpx_target_dir = $_SERVER['DOCUMENT_ROOT'] . "/bdd/gpx/";
     $gpx_target_file = $gpx_target_dir . "{$velo_id}_{$velo_depart}_{$velo_arrivee}_{$velo_varianteformate}.gpx";
     if ($dom->save($gpx_target_file) === false) {
