@@ -39,7 +39,7 @@ if (!$authHeader) {
   exit;
 }
 // hash_equals : comparaison à temps constant, et évite le piège du `==` lâche.
-if (!hash_equals('Bearer ' . $config['admin_token'], $authHeader)) {
+if (!hash_equals('Bearer ' . $config['vg_token'], $authHeader)) {
   http_response_code(403);
   echo json_encode(['error' => 'Forbidden']);
   exit;
