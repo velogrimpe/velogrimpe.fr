@@ -5,7 +5,7 @@ bdd/**/*.gpx
 bdd/**/*.geojson
 bdd/**/*.pmtiles
 bdd/**/*.zip
-images/news/
-images/articles/
-images/grave26/
+# images/news/
+# images/articles/
+# images/grave26/
 .DS_Store
