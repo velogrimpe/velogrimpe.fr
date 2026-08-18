@@ -313,17 +313,17 @@ $stmtC->close();
             </div>
             <div class="dropdown-content gap-1 menu bg-base-200 rounded-box z-1 m-1 w-64 p-2 shadow-lg" tabindex="1">
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout/ajout_falaise.php?falaise_id=<?= $falaise_id ?>"> Modifier la fiche falaise </a>
+                href="/ajout/ajout_falaise.php?falaise_id=<?= $falaise_id ?>">Modifier la fiche falaise </a>
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout/edit_details_falaise.php?falaise_id=<?= $falaise_id ?>"> Ajouter des détails (secteurs,
+                href="/ajout/edit_details_falaise.php?falaise_id=<?= $falaise_id ?>">Ajouter des détails (secteurs,
                 parking...) </a>
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>"> Ajouter un accès vélo </a>
-              <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>"> Modifier un accès vélo </a>
-              <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
-                href="/ajout/ajout_train.php?falaise_id=<?= $falaise_id ?>"> Demander l'ajout d'un accès train depuis
-                une nouvelle ville </a>
+                href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>">Ajouter un accès vélo </a>
+              <!-- <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
+                href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>">Modifier un accès vélo </a> -->
+              <!-- <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
+                href="/ajout/ajout_train.php?falaise_id=<?= $falaise_id ?>">Demander l'ajout d'un accès train depuis
+                une nouvelle ville </a> -->
             </div>
           </div>
         </div>
