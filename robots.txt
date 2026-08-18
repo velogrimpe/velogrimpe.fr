@@ -1,6 +1,7 @@
 User-agent: *
 Disallow: /ajout/
 Disallow: /open-data/
+Disallow: /bdd/
 
 Sitemap: https://velogrimpe.fr/sitemap.php
 
