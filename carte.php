@@ -4,7 +4,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 
-$falaises = $mysqli->query("SELECT falaise_altitude, falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
+$falaises = $mysqli->query("SELECT falaise_altitude, falaise_voletcarto, falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 $gares = $mysqli->query("SELECT
   g.gare_id, g.gare_latlng, g.gare_nom, g.gare_tgv,

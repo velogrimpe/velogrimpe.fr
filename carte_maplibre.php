@@ -4,7 +4,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 
-$falaises = $mysqli->query("SELECT falaise_altitude, falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
+$falaises = $mysqli->query("SELECT falaise_altitude, falaise_voletcarto, falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 $gares = $mysqli->query("SELECT
   g.gare_id, g.gare_latlng, g.gare_nom, g.gare_tgv,
@@ -231,6 +231,50 @@ $highlight = $_GET['h'] ?? '';
       margin: 6px 0;
       border: none;
       border-top: 1px solid #eee;
+    }
+
+    /* Popups : le rendu MapLibre par défaut (coins à 3px, padding 15px/10px,
+       ombre quasi invisible, croix minuscule) est loin de celui de Leaflet
+       sur carte.php. On réaligne sur les valeurs de leaflet.css pour que les
+       deux cartes soient iso. */
+    .maplibregl-popup-content {
+      padding: 13px 24px 13px 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+      color: #333;
+      font-size: 1.08333em;
+      line-height: 1.3;
+      text-align: left;
+    }
+
+    /* MapLibre carre le coin côté ancre (border-*-radius: 0) : Leaflet garde
+       les 4 coins arrondis, on rétablit. */
+    .maplibregl-popup-anchor-top-left .maplibregl-popup-content,
+    .maplibregl-popup-anchor-top-right .maplibregl-popup-content,
+    .maplibregl-popup-anchor-bottom-left .maplibregl-popup-content,
+    .maplibregl-popup-anchor-bottom-right .maplibregl-popup-content {
+      border-radius: 12px;
+    }
+
+    .maplibregl-popup-close-button {
+      width: 24px;
+      height: 24px;
+      border-radius: 0 12px 0 0;
+      font: 16px/24px Tahoma, Verdana, sans-serif;
+      color: #757575;
+    }
+
+    .maplibregl-popup-close-button:hover,
+    .maplibregl-popup-close-button:focus {
+      background-color: transparent;
+      color: #585858;
+    }
+
+    /* Le tip Leaflet est un carré tourné qui porte la même ombre que le
+       wrapper ; ici on se contente d'assombrir légèrement le triangle pour
+       ne pas laisser un liseré blanc net sous l'ombre du contenu. */
+    .maplibregl-popup-tip {
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
     }
   </style>
   <?php
@@ -516,7 +560,30 @@ $highlight = $_GET['h'] ?? '';
   let selected = null;
   const itinerairesLines = []; // [{ id, marker }]
 
+  // MapLibre n'a pas l'équivalent du `autoClose` de Leaflet : les popups
+  // s'empilent. Et comme chaque handler de clic marker fait stopPropagation(),
+  // l'event `click` de la map — seul déclencheur du `closeOnClick` interne —
+  // n'est jamais atteint. On centralise donc l'ouverture pour n'avoir qu'un
+  // popup ouvert à la fois, avec toggle sur re-clic (comme bindPopup).
+  let openedPopup = null;
+  function closePopup() {
+    const p = openedPopup;
+    openedPopup = null;
+    p?.remove();
+  }
+  // `toggle` : re-cliquer le marker déjà ouvert referme (comportement bindPopup).
+  // Depuis la recherche on force l'ouverture, sans toggle.
+  function openPopup(popup, coords, toggle = false) {
+    if (toggle && openedPopup === popup) { closePopup(); return; }
+    closePopup();
+    openedPopup = popup;
+    popup.setLngLat(coords).addTo(map);
+    // Fermeture via la croix ou le clic carte : on ne garde pas de ref morte.
+    popup.once("close", () => { if (openedPopup === popup) openedPopup = null; });
+  }
+
   function teardown() {
+    closePopup();
     if (selected !== null && selected.type === "falaise" && selected.filteredOut) {
       // hide previously-shown filtered-out selected falaise
       selected.marker?.remove(); selected.labelMarker?.remove();
@@ -652,6 +719,7 @@ $highlight = $_GET['h'] ?? '';
 
       el.addEventListener("click", (ev) => {
         ev.stopPropagation();
+        closePopup();
         if (selected === null || selected.falaise_id !== falaise.falaise_id) {
           teardown();
           selected = falaise;
@@ -756,11 +824,14 @@ $highlight = $_GET['h'] ?? '';
         + `  <a href="/ajout/ajout_falaise.php?falaise_id=${falaise.falaise_id}" class="btn btn-xs btn-primary">Renseigner la falaise</a>`
         + `  <a href="/ajout/ajout_velo.php?falaise_id=${falaise.falaise_id}" class="btn btn-xs btn-primary">Ajouter accès</a>`
         + `</div></div>`;
-      falaise._popup = new maplibregl.Popup({ offset: 20, closeButton: true });
+      // focusAfterOpen: MapLibre focus le 1er élément focusable du contenu (ici le
+      // bouton "Renseigner la falaise"), ce qui affiche un focus ring daisyUI que
+      // Leaflet n'a pas — on le désactive pour rester iso avec carte.php.
+      falaise._popup = new maplibregl.Popup({ offset: 20, closeButton: true, maxWidth: "300px", focusAfterOpen: false });
       falaise._popup.setHTML(popupHtml);
       el.addEventListener("click", (ev) => {
         ev.stopPropagation();
-        falaise._popup.setLngLat(lngLat(falaise.falaise_latlng)).addTo(map);
+        openPopup(falaise._popup, lngLat(falaise.falaise_latlng), true);
       });
     };
     if (!falaise.marker) init();
@@ -1107,10 +1178,10 @@ $highlight = $_GET['h'] ?? '';
     });
     map.on("click", "gares-pm-circle", (e) => {
       const f = e.features[0];
-      new maplibregl.Popup()
-        .setLngLat(f.geometry.coordinates)
-        .setHTML(escapeHtml(f.properties.name || ""))
-        .addTo(map);
+      openPopup(
+        new maplibregl.Popup({ maxWidth: "300px" }).setHTML(escapeHtml(f.properties.name || "")),
+        f.geometry.coordinates
+      );
       e.preventDefault?.();
     });
     map.on("mouseenter", "gares-pm-circle", () => { map.getCanvas().style.cursor = "pointer"; });
@@ -1142,16 +1213,16 @@ $highlight = $_GET['h'] ?? '';
     if (item.type === "falaise_hors_topo") {
       setFalaiseHTMarker(item, "normal");
       map.flyTo({ center: lngLat(item.falaise_latlng), zoom: 12, duration: 500 });
-      setTimeout(() => item._popup?.setLngLat(lngLat(item.falaise_latlng)).addTo(map), 600);
+      setTimeout(() => item._popup && openPopup(item._popup, lngLat(item.falaise_latlng)), 600);
       return;
     }
     if (item.type === "gare_hors_topo") {
       map.flyTo({ center: lngLat(item.gare_latlng), zoom: 11, duration: 500 });
       setTimeout(() => {
-        new maplibregl.Popup()
-          .setLngLat(lngLat(item.gare_latlng))
-          .setHTML(escapeHtml(item.gare_nom))
-          .addTo(map);
+        openPopup(
+          new maplibregl.Popup({ maxWidth: "300px" }).setHTML(escapeHtml(item.gare_nom)),
+          lngLat(item.gare_latlng)
+        );
       }, 600);
       return;
     }
