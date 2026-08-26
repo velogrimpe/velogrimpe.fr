@@ -256,7 +256,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
             method: "GET",
             headers: {
               "Accept": "application/json",
-              "HttpApiAccessToken": "${config['oblyk_api_token']}",
+              "HttpApiAccessToken": "<?= $config['oblyk_api_token'] ?>",
             },
           })
             .then((response) => response.json())
