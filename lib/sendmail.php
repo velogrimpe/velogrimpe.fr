@@ -25,6 +25,13 @@ function sendMail($data)
     $data["from"] = $from;
   }
 
+  // En dev (base_url sur localhost, même convention que newsletter_renderer /
+  // fetch_mail_template), préfixer le sujet pour distinguer ces mails en boîte.
+  $isDev = strpos($config['base_url'] ?? 'http://localhost', 'localhost') !== false;
+  if ($isDev && !str_starts_with((string) ($data['subject'] ?? ''), '[DEV]')) {
+    $data['subject'] = '[DEV] ' . ($data['subject'] ?? '');
+  }
+
   $url = "$mailgun_baseurl/v3/$mailgun_domain/messages";
   $to = is_array($data['to'] ?? null) ? implode(',', $data['to']) : ($data['to'] ?? '?');
   $maxAttempts = 2; // 1 essai + 1 retry

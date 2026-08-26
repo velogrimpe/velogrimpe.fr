@@ -14,7 +14,9 @@ Toutes les pages principales sont à la racine du dépôt:
 - `infos.php`, `contribuer.php` et `communaute.php` sont des pages annexes.
 - `header.html` est le code pour la barre de navigation, importé par toutes les autres pages.
 - `robots.txt`et `sitemap.php` sont les fichiers qui liste l'ensemble des page et qui expliquent aux robots d'indexation des moteurs de recherche comment trouver nos pages.
-- Le dossier `ajout/` contient les différentes pages et routes API de contribution de données.
+- Le dossier `ajout/` contient les différentes pages de contribution de données (ajout de falaise, d'itinéraire vélo, de train… et édition d'un itinéraire vélo via `ajout/edit_velo.php`).
+- Le dossier `api/` contient les routes appelées par ces formulaires et par le front (`add_*.php`, `edit_velo.php`, `fetch_*.php`…) ; `api/private/` regroupe celles réservées à l'admin.
+- Le dossier `lib/` contient le code PHP partagé entre plusieurs pages ou routes (ex. `velo_lib.php` pour la validation / nettoyage des GPX).
 - Le dossier `js/` contient les quelques scripts utilisés sur le site.
 - Le dossier `symbols/` contient les icones utilisés sur le site.
 - Le dossier `images/` contient les images statiques, hors contenus falaises.
@@ -59,6 +61,21 @@ Une fois lancé, ce conteneur est synchronisé avec votre dossier local et sert 
 - Sur http://localhost:4000/phpmyadmin l'interface pour administrer la base de donnée locale (éphémère, supprimée à chaque re-création du conteneur)
 
 À partir de là, tout ce que vous changez dans votre éditeur de code est répecuté sur le serveur local (pas de refresh automatique, il faut faire un Cmd/Ctrl+R pour voir les changements).
+
+**Accès à `/admin/` en local.** `public_html/admin/.htaccess` protège l'admin par Basic Auth et pointe vers un `AuthUserFile` au chemin absolu de la prod (`/home/u829510062/domains/velogrimpe.fr/.htpasswd`). Ne modifiez pas ce fichier : fournissez plutôt un `.htpasswd` de dev à ce même chemin dans le conteneur.
+
+Le fichier `.htpasswd.dev` à la racine du repo (versionné, identifiants `dev` / `dev`, jamais servi ni déployé) est prévu pour ça.
+
+```bash
+# Option A — conteneur déjà lancé : copier le fichier dedans (persiste aux redémarrages, pas à une re-création)
+docker exec velogrimpe mkdir -p /home/u829510062/domains/velogrimpe.fr
+docker cp .htpasswd.dev velogrimpe:/home/u829510062/domains/velogrimpe.fr/.htpasswd
+
+# Option B — à la création du conteneur : ajouter ce mount au `docker run` ci-dessus
+#   --mount type=bind,source=$ROOTPARENT/velo-grimpe/.htpasswd.dev,target=/home/u829510062/domains/velogrimpe.fr/.htpasswd,readonly
+```
+
+http://localhost:4000/admin/ demande alors `dev` / `dev`.
 
 5. Sur l'interface de phpmyadmin, créez deux nouvelles bases de données : `velogrimpe` et `sncf` ainsi que deux utilisateurs portant les même noms et ayant accès à ces bases de données.
 6. Demandez nous un export de la base ou au moins du schéma et importez les dans les bases respectives.

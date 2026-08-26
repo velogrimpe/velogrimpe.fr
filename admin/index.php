@@ -17,6 +17,14 @@ $falaises_ht = array_values(array_filter(
   $falaises,
   fn($falaise) => $falaise['falaise_public'] === "3"
 ));
+$velos_a_valider = $mysqli->query("SELECT v.velo_id, v.gare_id, v.falaise_id, v.velo_variante, g.gare_nom, f.falaise_nom
+  FROM velo v
+  LEFT JOIN gares g ON g.gare_id = v.gare_id
+  LEFT JOIN falaises f ON f.falaise_id = v.falaise_id
+  WHERE v.velo_public = 2
+  ORDER BY f.falaise_nom, g.gare_nom, v.velo_variante")->fetch_all(MYSQLI_ASSOC);
+$nb_velos_a_valider = count($velos_a_valider);
+
 $falaises_topo = array_values(array_filter(
   $falaises,
   fn($falaise) => $falaise['falaise_public'] === "1"
@@ -72,6 +80,23 @@ $falaises_topo = array_values(array_filter(
     </div>
     <h2 class="text-3xl font-bold text-wrap text-center">Modifier des données</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectVelo">
+        <b class="text-base-100 text-lg">🚲 Itinéraires vélo à vérifier<?= $nb_velos_a_valider ? " ($nb_velos_a_valider)" : '' ?></b>
+        <?php if (count($velos_a_valider) === 0): ?>
+          <p class="text-base-100 text-lg">Aucun itinéraire à vérifier 💪</p>
+        <?php else: ?>
+          <select id="selectVelo" name="selectVelo" class="select select-primary select-sm w-full"
+            onchange="if (this.value) window.location.href = '/ajout/edit_velo.php?admin=<?= $token ?>&' + this.value">
+            <option value="">Sélectionner un itinéraire</option>
+            <?php foreach ($velos_a_valider as $v): ?>
+              <option value="<?= http_build_query(['falaise_id' => $v['falaise_id'], 'gare_id' => $v['gare_id'], 'velo_id' => $v['velo_id']]) ?>">
+                <?= htmlspecialchars(($v['gare_nom'] ?? '?') . ' → ' . ($v['falaise_nom'] ?? '?') . ($v['velo_variante'] !== '' ? ' (' . $v['velo_variante'] . ')' : ''), ENT_QUOTES, 'UTF-8') ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        <?php endif; ?>
+        <a class="link text-base-100 text-sm" href="/ajout/edit_velo.php?admin=<?= $token ?>">ou modifier n'importe quel itinéraire</a>
+      </label>
       <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectFalaise1">
         <b class="text-base-100 text-lg">⚠️ Falaises à vérifier</b>
         <?php if (count($falaises_contrib) === 0): ?>

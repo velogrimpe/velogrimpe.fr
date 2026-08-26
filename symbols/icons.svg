@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
   <symbol id="arrow-down" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"/></symbol>
+  <symbol id="download" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></symbol>
   <symbol id="arrow-left" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></symbol>
   <symbol id="arrow-right" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></symbol>
   <symbol id="arrow-up" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></symbol>

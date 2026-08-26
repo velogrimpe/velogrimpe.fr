@@ -25,7 +25,11 @@ RewriteRule ^open-data/(falaises|falaises-details|itineraires-velo|gares|complet
 ErrorDocument 404 /404.php
 
 <FilesMatch ".*\.gpx$">
+  # Les GPX sont des XML fournis par les contributeurs : attachment + nosniff
+  # empêchent le navigateur de les rendre (XSS via xml-stylesheet / XHTML
+  # embarqué) sur l'origine du site. N'affecte pas les fetch() de la carte.
   Header set Content-Disposition attachment
+  Header set X-Content-Type-Options nosniff
   #Header set Content-Type application/gpx+xml
   ForceType application/gpx+xml
   Header set Cache-Control "max-age=31536000, public, must-revalidate"

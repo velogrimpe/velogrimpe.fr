@@ -53,9 +53,9 @@
       "_runtime-dom.esm-bundler-CDFooLvb.js"
     ]
   },
-  "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00j}~.js": {
+  "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00k}~.js": {
     "file": "assets/SectionTextEditor-DO6on47h.css",
-    "src": "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00j}~.js"
+    "src": "_SectionTextEditor.vue_vue_type_style_index_0_lang-!~{00k}~.js"
   },
   "_SectionTextEditor.vue_vue_type_style_index_0_lang-_Y6nsDgd.js": {
     "file": "chunks/SectionTextEditor.vue_vue_type_style_index_0_lang-_Y6nsDgd.js",
@@ -68,9 +68,9 @@
       "assets/SectionTextEditor-DO6on47h.css"
     ]
   },
-  "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00g}~.js": {
+  "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00h}~.js": {
     "file": "assets/SortieDrawer-CfeI_V3B.css",
-    "src": "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00g}~.js"
+    "src": "_SortieDrawer.vue_vue_type_style_index_0_scoped_5496c5ff_lang-!~{00h}~.js"
   },
   "_ToastContainer.vue_vue_type_script_setup_true_lang-uNdLBaj0.js": {
     "file": "chunks/ToastContainer.vue_vue_type_script_setup_true_lang-uNdLBaj0.js",
@@ -143,6 +143,13 @@
       "_runtime-dom.esm-bundler-CDFooLvb.js"
     ]
   },
+  "_velo-form-Cy_6F0YN.js": {
+    "file": "chunks/velo-form-Cy_6F0YN.js",
+    "name": "velo-form",
+    "imports": [
+      "_runtime-dom.esm-bundler-CDFooLvb.js"
+    ]
+  },
   "src/apps/ajout-bus.ts": {
     "file": "ajout-bus.js",
     "name": "ajout-bus",
@@ -211,6 +218,7 @@
     "imports": [
       "_runtime-dom.esm-bundler-CDFooLvb.js",
       "_FormAutocomplete.vue_vue_type_script_setup_true_lang-BfXOGAqR.js",
+      "_velo-form-Cy_6F0YN.js",
       "_Autocomplete.vue_vue_type_script_setup_true_lang-BO5SQzG3.js"
     ]
   },
@@ -285,6 +293,18 @@
       "_Autocomplete.vue_vue_type_script_setup_true_lang-BO5SQzG3.js"
     ]
   },
+  "src/apps/edit-velo.ts": {
+    "file": "edit-velo.js",
+    "name": "edit-velo",
+    "src": "src/apps/edit-velo.ts",
+    "isEntry": true,
+    "imports": [
+      "_runtime-dom.esm-bundler-CDFooLvb.js",
+      "_FormAutocomplete.vue_vue_type_script_setup_true_lang-BfXOGAqR.js",
+      "_velo-form-Cy_6F0YN.js",
+      "_Autocomplete.vue_vue_type_script_setup_true_lang-BO5SQzG3.js"
+    ]
+  },
   "src/apps/emport.ts": {
     "file": "emport.js",
     "name": "emport",
@@ -335,7 +355,7 @@
     "src": "src/apps/main.ts",
     "isEntry": true,
     "css": [
-      "assets/main-CYvZToi8.css"
+      "assets/main-CV-KqH6H.css"
     ]
   },
   "src/apps/newsletter-admin.ts": {

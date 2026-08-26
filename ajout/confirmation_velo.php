@@ -7,6 +7,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $falaise_id = isset($_GET['falaise_id']) ? (int) $_GET['falaise_id'] : null;
 $gare_id = isset($_GET['gare_id']) ? (int) $_GET['gare_id'] : null;
 $admin = isset($_GET['admin']) && $_GET['admin'] == $config["admin_token"];
+$is_update = ($_GET['type'] ?? '') === 'update';
+$is_suggestion = ($_GET['type'] ?? '') === 'suggestion';
+$velo_id = isset($_GET['velo_id']) ? (int) $_GET['velo_id'] : null;
 
 // Récupérer les infos de la falaise
 $falaise = null;
@@ -41,7 +44,7 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Confirmation d'ajout d'itinéraire vélo - Vélogrimpe.fr">
-  <title>Itinéraire ajouté - <?= $gare_nom ?> → <?= $falaise_nom ?> - Vélogrimpe.fr</title>
+  <title><?= $is_suggestion ? 'Suggestion transmise' : ('Itinéraire ' . ($is_update ? 'modifié' : 'ajouté')) ?> - <?= $gare_nom ?> → <?= $falaise_nom ?> - Vélogrimpe.fr</title>
   <?php vite_css('main'); ?>
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
@@ -60,7 +63,16 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
           </svg>
         </div>
         <!-- Message -->
-        <h2 class="card-title text-2xl">Itinéraire ajouté avec succès !</h2>
+        <?php if ($is_suggestion): ?>
+          <h2 class="card-title text-2xl">Suggestion bien reçue, merci !</h2>
+          <p class="text-base-content/70 mb-2 text-left">
+            Cet itinéraire étant déjà <b>validé</b>, votre modification n'est pas appliquée immédiatement : un
+            administrateur va examiner votre proposition (description et/ou trace GPX) et la mettre en ligne après
+            vérification.
+          </p>
+        <?php else: ?>
+          <h2 class="card-title text-2xl">Itinéraire <?= $is_update ? 'modifié' : 'ajouté' ?> avec succès !</h2>
+        <?php endif; ?>
         <p class="text-base-content/70 mb-4">
           <?= $gare_nom ?> → <?= $falaise_nom ?>
         </p>
@@ -72,6 +84,10 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
               stroke-width="2">
               <use href="#eye"></use>
             </svg> Voir la falaise </a>
+          <?php if (($is_update || $is_suggestion) && $velo_id): ?>
+            <a href="/ajout/edit_velo.php?<?= http_build_query(array_filter(['falaise_id' => $falaise_id, 'gare_id' => $gare_id, 'velo_id' => $velo_id, 'admin' => $admin ? $config["admin_token"] : null])) ?>"
+              class="btn btn-outline btn-sm">Modifier à nouveau cet itinéraire</a>
+          <?php endif; ?>
           <!-- Ajouter un autre itinéraire pour la même falaise -->
           <a href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?><?= $admin ? '&admin=' . $config["admin_token"] : '' ?>"
             class="btn btn-secondary">

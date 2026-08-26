@@ -321,82 +321,8 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 </body>
 <script type="module" src="/dist/ajout-velo.js"></script>
 <script type="module">
-  import { createAjoutMap } from '/js/components/map/ajout-map.js';
-  import Gare from '/js/components/map/gare.js';
-  import Falaise from '/js/components/map/falaise.js';
-
-  const { map } = createAjoutMap('velo-map');
-
-  let gareLayer = null;
-  let falaiseLayer = null;
-  let gpxLayer = null;
-
-  // Recadre la carte sur l'union des couches présentes (gare, falaise, trace GPX).
-  function refitBounds() {
-    let bounds = null;
-    const extend = (b) => {
-      if (!b || !b.isValid()) return;
-      bounds = bounds ? bounds.extend(b) : L.latLngBounds(b.getSouthWest(), b.getNorthEast());
-    };
-    if (gareLayer) extend(gareLayer.getBounds ? gareLayer.getBounds() : L.latLngBounds([gareLayer.getLatLng(), gareLayer.getLatLng()]));
-    if (falaiseLayer) extend(falaiseLayer.getBounds ? falaiseLayer.getBounds() : L.latLngBounds([falaiseLayer.getLatLng(), falaiseLayer.getLatLng()]));
-    if (gpxLayer) extend(gpxLayer.getBounds && gpxLayer.getBounds());
-    if (bounds && bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
-    }
-  }
-
-  // Petit marqueur ponctuel à partir d'une chaîne "lat,lng".
-  function pointMarker(latlng, icon) {
-    const [lat, lng] = String(latlng).split(',').map(parseFloat);
-    if (isNaN(lat) || isNaN(lng)) return null;
-    return L.marker([lat, lng], icon ? { icon } : {});
-  }
-
-  document.addEventListener('velogrimpe:ajout-velo:gare', (e) => {
-    if (gareLayer) { map.removeLayer(gareLayer); gareLayer = null; }
-    const d = e.detail;
-    if (d && d.latlng) {
-      gareLayer = pointMarker(d.latlng, Gare.gareIcon(Gare.iconSize));
-      if (gareLayer) gareLayer.addTo(map);
-    }
-    refitBounds();
-  });
-
-  document.addEventListener('velogrimpe:ajout-velo:falaise', (e) => {
-    if (falaiseLayer) { map.removeLayer(falaiseLayer); falaiseLayer = null; }
-    const d = e.detail;
-    if (d && d.latlng) {
-      const icon = Falaise.falaiseIcon(Falaise.iconSize, d.fermee === '1', d.bloc, 'falaise-icon');
-      falaiseLayer = pointMarker(d.latlng, icon);
-      if (falaiseLayer) falaiseLayer.addTo(map);
-    }
-    refitBounds();
-  });
-
-  // Prévisualisation de la trace GPX uploadée (sans les waypoints, cohérent avec
-  // le nettoyage côté serveur).
-  const gpxInput = document.getElementById('gpx_file');
-  if (gpxInput) {
-    gpxInput.addEventListener('change', () => {
-      if (gpxLayer) { map.removeLayer(gpxLayer); gpxLayer = null; }
-      const file = gpxInput.files && gpxInput.files[0];
-      if (!file) { refitBounds(); return; }
-      const reader = new FileReader();
-      reader.onload = () => {
-        const xml = String(reader.result || '');
-        if (!xml.includes('<')) return;
-        gpxLayer = new L.GPX(xml, {
-          async: true,
-          parseElements: ['track', 'route'],
-          markers: { startIcon: null, endIcon: null },
-          polyline_options: { weight: 4, color: '#2e8b57' },
-        }).on('loaded', () => refitBounds());
-        gpxLayer.addTo(map);
-      };
-      reader.readAsText(file);
-    });
-  }
+  import { initVeloFormMap } from '/js/components/map/velo-form-map.js';
+  initVeloFormMap({ mapElId: 'velo-map', gpxInputId: 'gpx_file' });
 </script>
 
 </html>

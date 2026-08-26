@@ -1,8 +1,7 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/velo_lib.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
-
-const GPX_TAILLE_MAX = 10 * 1024 * 1024;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $admin = trim($_POST['admin'] ?? '') == $config["admin_token"];
@@ -10,17 +9,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $falaise_id = $_POST['falaise_id'] ?? null;
   $velo_depart = $_POST['velo_depart'] ?? null;
   $velo_arrivee = $_POST['velo_arrivee'] ?? null;
-  $velo_km = (isset($_POST['velo_km']) && $_POST['velo_km'] !== '') ? floatval($_POST['velo_km']) : null;
-  $velo_dplus = (isset($_POST['velo_dplus']) && $_POST['velo_dplus'] !== '') ? intval($_POST['velo_dplus']) : null;
-  $velo_dmoins = (isset($_POST['velo_dmoins']) && $_POST['velo_dmoins'] !== '') ? intval($_POST['velo_dmoins']) : null;
+  [$velo_km, $velo_dplus, $velo_dmoins] = velo_lire_indicateurs($_POST);
   $velo_descr = $_POST['velo_descr'] ?? null;
   $nom_prenom = trim($_POST['nom_prenom'] ?? '');
   $email = trim($_POST['email'] ?? '');
   $message = trim($_POST['message'] ?? '');
-  $velo_contrib = trim("'" . $nom_prenom . "','" . $email . "'");
+  $velo_contrib = velo_contrib_string($nom_prenom, $email);
 
   // Vérification des champs obligatoires
-  $champs_obligatoires = [
+  velo_verifier_obligatoires([
     'gare_id' => $gare_id,
     'falaise_id' => $falaise_id,
     'velo_depart' => $velo_depart,
@@ -28,15 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     'velo_km' => $velo_km,
     'velo_dplus' => $velo_dplus,
     'velo_dmoins' => $velo_dmoins,
-  ];
+  ]);
 
-  foreach ($champs_obligatoires as $champ => $valeur) {
-    if (empty($valeur) && !is_numeric($valeur)) {
-      die("Il manque une info obligatoire : " . $champ);
-    }
-  }
-
-  $velo_descr = $_POST['velo_descr'] ?? null;
   $velo_variante = $_POST['velo_variante'] ?? null;
   $velo_varianteformate = $_POST['velo_varianteformate'] ?? null;
   $velo_openrunner = $_POST['velo_openrunner'] ?? null;
@@ -44,53 +34,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $velo_apiedpossible = isset($_POST['velo_apiedpossible']) ? 1 : 0;
   $velo_public = isset($_POST['velo_public']) ? intval($_POST['velo_public']) : 0;
 
-  // Ces trois champs composent le nom du fichier GPX écrit plus bas, et
-  // falaise.php:835 comme gpx_path() côté JS reconstruisent ce chemin depuis les
-  // valeurs stockées en base : on valide les slugs au lieu de les reformater, pour
-  // que la base et le disque restent cohérents (cf. docs/plans/DECISIONS.md D002).
+  // Ces trois champs composent le nom du fichier GPX écrit plus bas (cf. D002).
   // velo_depart et velo_arrivee reprennent les nomformate de la gare et de la
-  // falaise, velo_varianteformate vient de formatVariante() côté formulaire :
-  // tous sont de la forme [a-z0-9-].
-  $slugs_nom_fichier = [
+  // falaise, velo_varianteformate vient de formatVariante() côté formulaire.
+  velo_verifier_slugs([
     'velo_depart' => $velo_depart,
     'velo_arrivee' => $velo_arrivee,
     'velo_varianteformate' => $velo_varianteformate,
-  ];
-  foreach ($slugs_nom_fichier as $champ => $valeur) {
-    if (!preg_match('/^[a-z0-9-]{0,255}$/', (string) $valeur)) {
-      die("Champ $champ invalide : seuls les caractères a-z, 0-9 et le tiret sont acceptés.");
-    }
-  }
+  ]);
 
-  // Gestion des fichiers GPX
-  if (!empty($_FILES['gpx_file']['tmp_name']) && is_uploaded_file($_FILES['gpx_file']['tmp_name'])) {
-    // La plus grosse trace en base fait 553 Ko : ce plafond borne la mémoire du
-    // parseur XML sans gêner une contribution légitime.
-    if ($_FILES['gpx_file']['size'] > GPX_TAILLE_MAX) {
-      die("Le fichier GPX dépasse la taille maximale de " . (GPX_TAILLE_MAX / 1024 / 1024) . " Mo.");
-    }
-
-    $dom = new DOMDocument();
-    // LIBXML_NONET : interdit tout accès réseau pendant l'analyse.
-    if (!@$dom->loadXML(file_get_contents($_FILES['gpx_file']['tmp_name']), LIBXML_NONET)) {
-      die("Le fichier GPX n'est pas un XML valide.");
-    }
-    // Vérifier que le fichier GPX est valide
-    $has_gpx_root = ($dom->getElementsByTagName('gpx')->length > 0) && ($dom->getElementsByTagName('gpx')->item(0)->getNodePath() === '/*');
-    if (!$has_gpx_root) {
-      die("Le fichier GPX n'est pas valide.");
-    }
-    // Nettoyage : retirer les waypoints <wpt> (marqueurs début/fin, points isolés).
-    // La trace elle-même (<trk>/<trkseg>/<trkpt>) et les routes (<rte>) sont conservées.
-    $wpts = $dom->getElementsByTagName('wpt');
-    for ($i = $wpts->length - 1; $i >= 0; $i--) {
-      $wpt = $wpts->item($i);
-      $wpt->parentNode->removeChild($wpt);
-    }
-  } else {
+  // Gestion du fichier GPX (obligatoire à l'ajout)
+  $dom = velo_charger_gpx_upload('gpx_file');
+  if ($dom === null) {
     die("Il manque le fichier GPX.");
   }
-
 
   // Préparer la requête
   $stmt = $mysqli->prepare("INSERT INTO velo 
@@ -123,18 +80,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $velo_id = $stmt->insert_id;
 
     // Sans cette garde, un insert_id à 0 ferait écrire la trace sous « 0_… », en
-    // écrasant celle d'une précédente contribution ratée. mysqli lève une exception
-    // en cas d'erreur SQL depuis PHP 8.1, mais le nom du fichier ne doit pas
-    // dépendre de ce réglage.
+    // écrasant celle d'une précédente contribution ratée.
     if (!$velo_id) {
       die("Erreur lors de l'insertion : identifiant d'itinéraire non attribué.");
     }
 
-    // Enregistrer le fichier GPX nettoyé (waypoints retirés ci-dessus).
-    // velo_id vient d'insert_id et les trois autres segments sont validés en amont :
-    // le chemin ne peut pas sortir du dossier.
-    $gpx_target_dir = $_SERVER['DOCUMENT_ROOT'] . "/bdd/gpx/";
-    $gpx_target_file = $gpx_target_dir . "{$velo_id}_{$velo_depart}_{$velo_arrivee}_{$velo_varianteformate}.gpx";
+    // Enregistrer le fichier GPX nettoyé. velo_id vient d'insert_id et les trois
+    // autres segments sont validés en amont : le chemin ne peut pas sortir du dossier.
+    $gpx_target_file = velo_gpx_chemin((int) $velo_id, $velo_depart, $velo_arrivee, (string) $velo_varianteformate);
     if ($dom->save($gpx_target_file) === false) {
       error_log("add_velo: échec de l'écriture du GPX nettoyé pour velo_id=$velo_id");
     }
@@ -160,24 +113,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       "velo_apiedpossible" => $velo_apiedpossible,
       "velo_contrib" => $velo_contrib
     ];
-    $collection = 'velo';
-    $type = 'insert';
-    $record_id = $mysqli->insert_id;
     logChanges(
       $nom_prenom,
       $email,
-      $type,
-      $collection,
-      $record_id,
+      'insert',
+      'velo',
+      $velo_id,
       $falaise_id,
       $new_comment
     );
 
-
-    // Envoi du mail de confirmation seulement si admin = 0
-    if ($admin == 0) {
+    // Mail de notification : admin_mail en mode admin, contact_mail sinon
+    // (même schéma que add_falaise.php / add_bus.php).
+    {
       require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
-      $to = $config["contact_mail"];
+      $to = $admin ? $config["admin_mail"] : $config["contact_mail"];
 
       $subject = "🚲 Itinéraire $velo_depart ⇢ $velo_arrivee ajouté par $nom_prenom";
 
@@ -200,6 +150,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $html .= "<li><b>A pied possible</b>: " . ($velo_apiedpossible ? 'Oui' : 'Non') . "</li>";
       $html .= "<li><b>Description</b>: " . htmlspecialchars(nl2br(trim($velo_descr))) . "</li>";
       $html .= "</ul>";
+      $html .= "<h2>Actions</h2>";
+      if ($velo_public !== 1) {
+        $html .= "<p>Pour valider cet itinéraire, cliquez sur le lien suivant :</p>";
+        $html .= "<p><a href='" . velo_lien_validation($config, (int) $velo_id) . "'>Valider l'itinéraire</a></p>";
+      }
+      $html .= "<p>Pour le vérifier / modifier :</p>";
+      $html .= "<p><a href='" . velo_lien_edition_admin($config, ['falaise_id' => $falaise_id, 'gare_id' => $gare_id, 'velo_id' => $velo_id]) . "'>Modifier l'itinéraire</a></p>";
       $html .= "</body></html>";
 
       $data = [
