@@ -191,6 +191,8 @@ while ($row = $res->fetch_assoc()) {
   <script type="module">
     import { createAjoutMap } from '/js/components/map/ajout-map.js';
     import { fetchBusStops } from '/js/components/utils/fetch-bus-stops.js';
+    import { overpassErrorMessage } from '/js/components/utils/overpass.js';
+    import { showToast } from '/js/components/utils/toast.js';
 
     const falaises = <?= json_encode($falaises) ?>;
     const presetFalaiseIds = <?= json_encode($preset_falaise_ids) ?>;
@@ -318,6 +320,17 @@ while ($row = $res->fetch_assoc()) {
         alert('Zone trop large : zoomez davantage (au moins niveau ' + OVERPASS_MIN_ZOOM + ') avant de récupérer les arrêts de bus.');
         return;
       }
+      if (overpassBtn?.disabled) return;
+      // Etat loading : bouton désactivé + spinner à la place de l'icône
+      const icon = overpassBtn?.querySelector('img');
+      const spinner = document.createElement('span');
+      spinner.className = 'loading loading-spinner loading-xs';
+      if (overpassBtn) {
+        overpassBtn.disabled = true;
+        overpassBtn.style.opacity = '.6';
+        overpassBtn.style.cursor = 'wait';
+        icon?.replaceWith(spinner);
+      }
       try {
         overpassLayer.clearLayers();
         const stops = await fetchBusStops(map);
@@ -353,7 +366,14 @@ while ($row = $res->fetch_assoc()) {
         });
       } catch (e) {
         console.error('Erreur Overpass:', e);
-        alert('Impossible de récupérer les arrêts de bus pour la zone visible.');
+        showToast(overpassErrorMessage(e), 'error', 8000);
+      } finally {
+        if (icon) spinner.replaceWith(icon); else spinner.remove();
+        if (overpassBtn) {
+          overpassBtn.disabled = false;
+          overpassBtn.style.opacity = '';
+          overpassBtn.style.cursor = 'pointer';
+        }
       }
     }
     function useOverpassStop(s, m) {

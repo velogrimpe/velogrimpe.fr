@@ -51,6 +51,31 @@ export function resolveBounds(mapOrBounds) {
 }
 
 /**
+ * Error thrown when Overpass answers with a non-2xx HTTP status.
+ * `status` lets callers distinguish e.g. 429 (rate limited) from other failures.
+ */
+export class OverpassError extends Error {
+  constructor(status, statusText, body) {
+    super(`Overpass request failed: ${status} ${statusText} ${body}`);
+    this.name = "OverpassError";
+    this.status = status;
+  }
+}
+
+/**
+ * Build a user-facing French message for an Overpass failure.
+ */
+export function overpassErrorMessage(err) {
+  if (err instanceof OverpassError && err.status === 429) {
+    return "Service Overpass surchargé, ré-essayez dans 1 minute.";
+  }
+  if (err instanceof OverpassError && err.status === 504) {
+    return "Service Overpass trop lent (timeout), ré-essayez dans quelques instants.";
+  }
+  return "Impossible de récupérer les arrêts de bus pour la zone visible.";
+}
+
+/**
  * Query Overpass API for the current map/bounds using a query builder.
  *
  * Usage with Leaflet map:
@@ -85,9 +110,7 @@ export async function overpassFetch(
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(
-      `Overpass request failed: ${res.status} ${res.statusText} ${text}`,
-    );
+    throw new OverpassError(res.status, res.statusText, text);
   }
 
   return res.json();

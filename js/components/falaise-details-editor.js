@@ -16,6 +16,8 @@ import AccesVelo from "/js/components/map/acces-velo.js";
 import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
 import { getValhallaRoute } from "/js/services/valhalla.js";
 import { fetchBusStops } from "/js/components/utils/fetch-bus-stops.js";
+import { overpassErrorMessage } from "/js/components/utils/overpass.js";
+import { showToast } from "/js/components/utils/toast.js";
 import { initEditorBusStops } from "/js/components/map/editor-bus-stops.js";
 import { gpx_path } from "/js/components/utils/paths.js";
 
@@ -1250,9 +1252,9 @@ export function initFalaiseDetailsEditor(containerId) {
 
   // Fetch bus stops button (Overpass) → propositions en lecture seule + dialog
   const OVERPASS_MIN_ZOOM = 12;
-  container
-    .querySelector(".fetch-bus-stops-btn")
-    ?.addEventListener("click", async () => {
+  const fetchBusStopsBtn = container.querySelector(".fetch-bus-stops-btn");
+  fetchBusStopsBtn?.addEventListener("click", async () => {
+      if (fetchBusStopsBtn.disabled) return;
       if (map.getZoom() < OVERPASS_MIN_ZOOM) {
         alert(
           "Zone trop large : zoomez davantage (au moins niveau " +
@@ -1261,6 +1263,12 @@ export function initFalaiseDetailsEditor(containerId) {
         );
         return;
       }
+      // Etat loading : bouton désactivé + spinner à la place de l'icône
+      const icon = fetchBusStopsBtn.querySelector("svg");
+      const spinner = document.createElement("span");
+      spinner.className = "loading loading-spinner loading-xs";
+      fetchBusStopsBtn.disabled = true;
+      icon?.replaceWith(spinner);
       try {
         // Clear previous
         searchLayers.busStops.clearLayers();
@@ -1359,9 +1367,11 @@ export function initFalaiseDetailsEditor(containerId) {
         });
       } catch (e) {
         console.error("Erreur récupération arrêts bus:", e);
-        alert(
-          "Impossible de récupérer les arrêts de bus pour la zone visible.",
-        );
+        showToast(overpassErrorMessage(e), "error", 8000);
+      } finally {
+        if (icon) spinner.replaceWith(icon);
+        else spinner.remove();
+        fetchBusStopsBtn.disabled = false;
       }
     });
 
