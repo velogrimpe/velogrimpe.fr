@@ -42,6 +42,18 @@ ErrorDocument 404 /404.php
   Header set Cache-Control "max-age=31536000, public, must-revalidate"
 </FilesMatch>
 
+<FilesMatch ".*\.pmtiles$">
+  # PMTiles = archives binaires lues par requêtes Range (HTTP Byte Serving).
+  # Sans MIME connu, Apache les sert en text/plain → la règle DEFLATE (et la
+  # compression du CDN Hostinger) gzippe la réponse : plus de Content-Length,
+  # Range ignoré → erreur "no content-length header" côté pmtiles.js.
+  # On force un type binaire et on désactive explicitement la compression.
+  ForceType application/octet-stream
+  SetEnv no-gzip 1
+  SetEnv dont-vary 1
+  Header set Cache-Control "max-age=86400, public, must-revalidate"
+</FilesMatch>
+
 <FilesMatch ".*\.(webp|png|jpg|jpeg)">
   Header set Cache-Control "max-age=31536000, public, must-revalidate"
 </FilesMatch>
