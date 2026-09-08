@@ -93,6 +93,29 @@ while ($row = $res->fetch_assoc()) {
       <?= $arret_id ? "Modifier" : "Ajouter" ?> un arrêt de bus<span class='text-red-900 admin'> (version admin)</span>
     </h1>
 
+    <?php if ($admin): ?>
+      <!-- Admin : Sélecteur pour modifier un arrêt de bus -->
+      <div class="relative flex items-center">
+        <div class="flex items-center justify-center">
+          <span class="px-2 text-red-900 italic bg-unset rounded-full">Modifier un arrêt existant</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2 bg-base-100 p-4 rounded-lg border border-red-900 shadow-xs">
+        <label class="form-control not-prose" for="select-arret">
+          <select id="select-arret" class="select select-primary select-sm w-full"
+            onchange="if (this.value) window.location.href = '/ajout/ajout_bus.php?admin=<?= urlencode($config['admin_token']) ?>&' + this.value">
+            <option value="">Sélectionner un arrêt à modifier…</option>
+            <?php foreach ($arrets as $a): ?>
+              <option value="<?= http_build_query(['arret_id' => $a['id']]) ?>" <?= $a['id'] === (int) $arret_id ? 'selected' : '' ?>>
+                <?= htmlspecialchars($a['nom'], ENT_QUOTES, 'UTF-8') ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+        <i class="text-sm">Choisir un arrêt recharge la page en mode édition : les saisies en cours seront perdues.</i>
+      </div>
+    <?php endif; ?>
+
     <form method="post" action="/api/add_bus.php" class="flex flex-col gap-4" id="form">
       <input type="hidden" id="admin" name="admin" value="0" />
       <input type="hidden" id="arret_id" name="arret_id" value="<?= $arret_id ? (int) $arret_id : '' ?>" />

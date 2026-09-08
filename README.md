@@ -30,9 +30,14 @@ Toutes les pages principales sont à la racine du dépôt:
 
 ### Procédure
 
-1. créer un dossier `velo-grimpe` qui servira de dossier racine.
-1. Dans ce dossier, cloner ce dépôt `git clone https://github.com/velogrimpe/velogrimpe.fr.git -d public_html` (ou via ssh)
-1. Dans le dossier racine, créer un fichier nommé `config.php` contenant les lignes suivantes:
+1. Cloner ce dépôt : `git clone https://github.com/velogrimpe/velogrimpe.fr.git velo-grimpe` (ou via ssh). Le dossier obtenu est le dossier racine, et le code du site vit dans son sous-dossier `public_html/`.
+1. À la racine, créer le dossier de données (hors web root, cible du symlink `public_html/public`) :
+
+```bash
+mkdir -p public/{bdd,images,open-data}
+```
+
+3. À la racine, créer un fichier nommé `config.php` en partant de `config.sample.php`. Le minimum pour démarrer :
 
 ```php
 <?php
@@ -40,20 +45,24 @@ return [
   'db_name' => 'velogrimpe',
   'db_user' => 'velogrimpe',
   'db_pass' => 'velogrimpe',
-  'sncf_db_name' => 'sncf',
-  'sncf_db_user' => 'sncf',
-  'sncf_db_pass' => 'sncf',
   'admin_token' => "admin",
   'contact_mail' => "votre.email@club-internet.fr",
+  'base_url' => 'http://localhost',
 ];
 ```
 
-4. Démarrez un conteneur `docker-xampp`:
+4. Démarrez un conteneur `docker-xampp`, **depuis le dossier racine** :
 
 ```bash
-export ROOTPARENT=/chemin/vers/dossier/velo-grimpe
-docker run --platform linux/x86_64 --name myXampp -p 4003:22 -p 4000:80 -d -v $ROOTPARENT/velo-grimpe/public_html:/opt/lampp/htdocs --mount type=bind,source=$ROOTPARENT$/velo-grimpe/config.php,target=/opt/lampp/config.php,readonly tomsik68/xampp:8
+docker run --platform linux/x86_64 --name velogrimpe -p 4001:22 -p 4000:80 -d \
+  -v $PWD/public_html:/opt/lampp/htdocs \
+  -v $PWD/public:/opt/lampp/public \
+  --mount type=bind,source=$PWD/config.php,target=/opt/lampp/config.php,readonly \
+  --mount type=bind,source=$PWD/.htpasswd.dev,target=/home/u829510062/domains/velogrimpe.fr/.htpasswd,readonly \
+  tomsik68/xampp:8
 ```
+
+`public/` est monté en lecture/écriture : c'est là que le site écrit les contenus téléversés (images de falaises, GPX) et les GeoJSON générés.
 
 Une fois lancé, ce conteneur est synchronisé avec votre dossier local et sert :
 
@@ -77,8 +86,30 @@ docker cp .htpasswd.dev velogrimpe:/home/u829510062/domains/velogrimpe.fr/.htpas
 
 http://localhost:4000/admin/ demande alors `dev` / `dev`.
 
-5. Sur l'interface de phpmyadmin, créez deux nouvelles bases de données : `velogrimpe` et `sncf` ainsi que deux utilisateurs portant les même noms et ayant accès à ces bases de données.
-6. Demandez nous un export de la base ou au moins du schéma et importez les dans les bases respectives.
+5. Créez la base et son utilisateur, en reprenant les valeurs mises dans `config.php`. Soit depuis phpMyAdmin, soit en ligne de commande :
+
+```bash
+docker exec velogrimpe /opt/lampp/bin/mysql -uroot -e "
+  CREATE DATABASE IF NOT EXISTS velogrimpe
+    DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+  CREATE USER IF NOT EXISTS 'velogrimpe'@'localhost' IDENTIFIED BY 'velogrimpe';
+  GRANT ALL PRIVILEGES ON velogrimpe.* TO 'velogrimpe'@'localhost';
+  FLUSH PRIVILEGES;"
+```
+
+6. Demandez nous un export de la base, ou au moins du schéma, et importez-le. L'export ne portant pas de `CREATE DATABASE`, le nom de la base se passe en argument :
+
+```bash
+docker exec -i velogrimpe /opt/lampp/bin/mysql -uroot velogrimpe < db_backup.sql
+```
+
+Vérifiez ensuite que le site répond avec des données :
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4000/carte.php   # 200 attendu
+```
+
+L'export ne contient que les données SQL. Les fichiers associés (images de falaises, GPX, GeoJSON des barres, tuiles de lignes de train) se récupèrent séparément et se déposent dans `public/`.
 
 ## Partage et réutilisation
 
