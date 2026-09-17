@@ -159,6 +159,10 @@ while ($row = $res->fetch_assoc()) {
           </div>
         </div>
 
+        <!-- Liste des falaises liées (Vue) : alternative à la carte pour lier/délier.
+             Les données arrivent par window.busFalaises, posé par le script carte. -->
+        <div id="vue-falaises-liees"></div>
+
         <details class="border border-base-200 rounded-lg p-2">
           <summary class="cursor-pointer font-bold text-sm">Commentaire sur l'arrêt <i
               class="opacity-50 font-normal">(optionnel)</i></summary>
@@ -290,6 +294,11 @@ while ($row = $res->fetch_assoc()) {
       const entry = falaiseMarkers.get(id);
       if (entry) entry.marker.setIcon(falaiseIcon(linked));
       syncFalaiseHidden();
+      // Seul point de sortie : clic sur un marqueur, prefill et liste Vue passent
+      // tous par ici, donc la liste reste synchro sans état parallèle.
+      document.dispatchEvent(new CustomEvent('velogrimpe:bus-falaises-changed', {
+        detail: { ids: Array.from(linkedFalaises) },
+      }));
     }
     falaises.forEach((f) => {
       const coords = (f.latlng || '').split(',');
@@ -320,6 +329,23 @@ while ($row = $res->fetch_assoc()) {
     // Exposé pour le prefill (ajout-bus.ts)
     window.busSetLinkedFalaises = (ids) => {
       (ids || []).forEach((id) => setFalaiseLinked(Number(id), true));
+    };
+    // Pont vers la liste Vue des falaises liées (#vue-falaises-liees)
+    window.busFalaises = falaises;
+    window.busSetFalaiseLinked = (id, linked) => setFalaiseLinked(Number(id), !!linked);
+    window.busFocusFalaise = (id) => {
+      const ll = falaiseMarkers.get(Number(id))?.marker.getLatLng();
+      if (ll) map.setView(ll, 14);
+    };
+    // Cadre sur l'ensemble « arrêt + falaises liées », pour qu'un ajout depuis la
+    // liste montre la géographie complète plutôt que la seule falaise ajoutée.
+    window.busFitLinkedFalaises = () => {
+      const pts = Array.from(linkedFalaises)
+        .map((id) => falaiseMarkers.get(Number(id))?.marker.getLatLng())
+        .filter(Boolean);
+      if (arretMarker) pts.push(arretMarker.getLatLng());
+      if (!pts.length) return;
+      map.fitBounds(L.latLngBounds(pts), { maxZoom: 16, padding: [30, 30] });
     };
     // Pré-liaison via le paramètre d'URL ?falaise_ids=...
     if (presetFalaiseIds && presetFalaiseIds.length) {
