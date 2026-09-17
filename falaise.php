@@ -12,6 +12,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/richtext.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/velo_lib.php';
 
 /**
  * Chemin de données d'une photo de falaise (cf. lib/paths.php).
@@ -844,13 +845,14 @@ $stmtC->close();
                         altimétrique </a>
                     <?php endif; ?>
                     <?php
-                    $gpx_path = "/public/gpx/" . $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . ".gpx";
-                    $exists = file_exists($gpx_path);
+                    $gpx_rel = velo_gpx_rel((int) $velo['velo_id'], $velo['velo_depart'], $velo['velo_arrivee'], (string) $velo['velo_varianteformate']);
+                    $gpx_url = vg_data_url($gpx_rel);
+                    $exists = vg_data_exists($gpx_rel);
                     if ($velo['velo_openrunner'] && $exists): ?> | <?php endif; ?>
                     <?php
                     if ($exists):
                       ?>
-                      <a class="font-bold text-primary" href="<?= htmlspecialchars($gpx_path) ?>" target='_blank'>Trace
+                      <a class="font-bold text-primary" href="<?= htmlspecialchars($gpx_url) ?>" target='_blank'>Trace
                         GPS</a>
                     <?php endif; ?>
                     <!-- Desktop : div en dessous -->
@@ -918,7 +920,8 @@ $stmtC->close();
       <?php $img_rel = falaise_img_rel($falaise_id, $falaise_nomformate, 1); ?>
       <?php if (vg_data_exists($img_rel)): ?>
         <div class="flex flex-col items-center gap-1">
-          <img src="<?= htmlspecialchars(vg_data_url($img_rel)) ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <img src="<?= htmlspecialchars(vg_data_url($img_rel)) ?>"
+            class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg1)): ?>
             <div class="text-base-content">
               <div class="vg-rt"><?= rt_display($falaise_leg1) ?></div>
@@ -935,7 +938,8 @@ $stmtC->close();
       <?php $img_rel = falaise_img_rel($falaise_id, $falaise_nomformate, 2); ?>
       <?php if (vg_data_exists($img_rel)): ?>
         <div class="flex flex-col items-center gap-1">
-          <img src="<?= htmlspecialchars(vg_data_url($img_rel)) ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <img src="<?= htmlspecialchars(vg_data_url($img_rel)) ?>"
+            class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg2)): ?>
             <div class="text-base-content">
               <div class="vg-rt"><?= rt_display($falaise_leg2) ?></div>
@@ -953,7 +957,8 @@ $stmtC->close();
       <?php $img_rel = falaise_img_rel($falaise_id, $falaise_nomformate, 3); ?>
       <?php if (vg_data_exists($img_rel)): ?>
         <div class="flex flex-col items-center gap-1">
-          <img src="<?= htmlspecialchars(vg_data_url($img_rel)) ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <img src="<?= htmlspecialchars(vg_data_url($img_rel)) ?>"
+            class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg3)): ?>
             <div class="text-base-content">
               <div class="vg-rt"><?= rt_display($falaise_leg3) ?></div>

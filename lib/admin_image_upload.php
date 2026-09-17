@@ -68,7 +68,6 @@ function handleAdminImageUpload(string $baseRel, string $slug): void
     $filename = $basename . '.jpg';
     $ecrit = imagejpeg($img, vg_data_path($relDir . '/' . $filename), 80);
   }
-  imagedestroy($img);
 
   // Le retour était ignoré : on renvoyait une URL vers un fichier inexistant,
   // qui partait ensuite en base.

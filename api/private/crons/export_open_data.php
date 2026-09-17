@@ -46,6 +46,7 @@ sendEvent($_SERVER['REQUEST_URI'], "vg", "vg-crons", 'event: export-open-data');
 
 // Cron logic
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/velo_lib.php'; // velo_gpx_rel()
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';   // VG_BASE
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
@@ -217,7 +218,10 @@ $itinerairesGeojson = [
   'attribution' => '© velogrimpe.fr et contributeurs',
   'features' => [],
 ];
-$gpxMissing = 0; // tracés sans fichier GPX exploitable (compté pour le rapport)
+// Tracés sans fichier GPX exploitable. On garde de quoi les retrouver (velo_id,
+// falaise, nom de fichier attendu) : un simple compteur oblige à re-croiser les
+// exports à la main pour savoir lequel est en cause.
+$gpxSansTrace = [];
 
 foreach ($veloResult as $velo) {
   $itineraire = [
@@ -249,11 +253,17 @@ foreach ($veloResult as $velo) {
   // Tracé GPX : même convention de nommage que falaise.php / paths.js
   // ({velo_id}_{depart}_{arrivee}_{varianteformate}.gpx). Les itinéraires sans
   // GPX (ou GPX vide) sont simplement omis de l'export géométrique.
-  $gpxName = $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . '.gpx';
-  $gpxPath = vg_data_path('gpx/' . $gpxName);
+  $gpxRel = velo_gpx_rel((int) $velo['velo_id'], $velo['velo_depart'], $velo['velo_arrivee'], (string) $velo['velo_varianteformate']);
+  $gpxPath = vg_data_path($gpxRel);
   $geometry = is_file($gpxPath) ? gpx_to_geometry($gpxPath) : null;
   if ($geometry === null) {
-    $gpxMissing++;
+    $gpxSansTrace[] = [
+      'velo_id' => (int) $velo['velo_id'],
+      'falaise_id' => (int) $velo['falaise_id'],
+      'falaise_nom' => $falaiseNomById[$velo['falaise_id']] ?? null,
+      'gpx_attendu' => $gpxRel,
+      'raison' => is_file($gpxPath) ? 'GPX illisible ou sans point' : 'fichier absent',
+    ];
     continue;
   }
   $itinerairesGeojson['features'][] = [
@@ -265,7 +275,7 @@ foreach ($veloResult as $velo) {
         'falaise_nom' => $falaiseNomById[$velo['falaise_id']] ?? null,
         'attribution' => $ATTRIBUTION,
         'url' => 'https://velogrimpe.fr/falaise.php?falaise_id=' . (int) $velo['falaise_id'],
-        'gpx_url' => VG_BASE . vg_data_url('gpx/' . $gpxName),
+        'gpx_url' => VG_BASE . vg_data_url($gpxRel),
       ],
       $itineraire
     ),
@@ -556,7 +566,8 @@ echo json_encode([
   'message' => 'Open data exported successfully',
   'falaises' => count($geojson['features']),
   'itineraires_velo' => count($itinerairesGeojson['features']),
-  'itineraires_velo_sans_gpx' => $gpxMissing,
+  'itineraires_velo_sans_gpx' => count($gpxSansTrace),
+  'itineraires_velo_sans_gpx_details' => $gpxSansTrace,
   'gares' => count($garesGeojson['features']),
   'details' => count($detailsGeojson['features']),
   'complet' => count($completGeojson['features']),

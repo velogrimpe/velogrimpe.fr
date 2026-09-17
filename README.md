@@ -162,10 +162,10 @@ Deux points à respecter :
 Deux sous-arbres de `public/` ont une URL publique qui ne suit pas
 `vg_data_url()`. Aucun appelant n'utilise le helper pour eux ; ne pas commencer.
 
-| Dossier | URL publique | Pourquoi |
-| --- | --- | --- |
-| `open-data/` | `/open-data/*.geojson` | servie par `open-data/download.php`, qui trace les téléchargements. Le `.htaccess` y réécrit en interne. |
-| `images/` | `/images/…` | encore dupliqué entre `public_html/images` (assets versionnés : logos, icônes de carte) et `public/images` (le reste). |
+| Dossier      | URL publique           | Pourquoi                                                                                                               |
+| ------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `open-data/` | `/open-data/*.geojson` | servie par `open-data/download.php`, qui trace les téléchargements. Le `.htaccess` y réécrit en interne.               |
+| `images/`    | `/images/…`            | encore dupliqué entre `public_html/images` (assets versionnés : logos, icônes de carte) et `public/images` (le reste). |
 
 Pour `images/`, le `.htaccess` racine arbitre fichier par fichier :
 
@@ -217,7 +217,7 @@ Les contenus publiés sur velogrimpe.fr sont diffusés sous les licences suivant
 - **Images** : [CC BY-NC-ND](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr) → Utilisation commerciale interdite. Diffusion à l'identique et en citant la source. (sauf licence spécifique précisée par l'auteur dans la légende ou sur l'image)
 - **Données** : [ODbL](https://opendatacommons.org/licenses/odbl/1-0/) et [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/deed.fr) → Compatible OpenStreetMap et C2C, permet de réutiliser les données pour enrichir OSM.
 
-Trois exports GeoJSON sont disponibles, regénérés quotidiennement au cours de la nuit et exploitables par exemple directement dans [UMAP](https://umap.openstreetmap.fr/) :
+Cinq exports GeoJSON sont disponibles, regénérés quotidiennement au cours de la nuit et exploitables par exemple directement dans [UMAP](https://umap.openstreetmap.fr/) :
 
 - [falaises.geojson](https://velogrimpe.fr/open-data/falaises.geojson) : les falaises (points) et, embarqués dans leurs propriétés, leurs itinéraires vélo, liens externes et arrêts de bus.
 - [itineraires-velo.geojson](https://velogrimpe.fr/open-data/itineraires-velo.geojson) : les tracés complets des itinéraires vélo (LineString) reconstruits à partir des fichiers GPX, avec distance, dénivelés et gare de départ.
