@@ -7,32 +7,59 @@
  *
  * Toute lecture et toute écriture d'un fichier de données passe par ici.
  *
- * Les chemins manipulés sont ceux de l'ESPACE D'URL — 'bdd/gpx/12_x_y_.gpx' —
- * et non des chemins disque. La conversion chemin <-> URL en devient triviale,
- * et l'emplacement de stockage n'a aucune influence sur les URL publiques.
+ * Les chemins manipulés sont relatifs à la racine des données — 'gpx/12_x_y_.gpx'
+ * — et non des chemins disque absolus. vg_data_path() et vg_data_url() en
+ * dérivent respectivement l'emplacement sur disque et l'URL publique.
  */
 
 /**
- * Racine des données, relative à DOCUMENT_ROOT.
+ * Racine des données, relative à DOCUMENT_ROOT — et préfixe de leurs URL.
  *
  * Les données vivent hors du dossier déployé, atteintes par le lien symbolique
  * versionné `public_html/public -> ../public`. C'est ce qui les met hors de
  * portée du `rsync --delete` de déploiement : la branche `deploy` ne contient
  * que du code, et rien de ce qu'elle écrase n'est une donnée.
  *
- * Les URL publiques, elles, restent `/bdd/…` et `/images/…` : la règle de repli
- * de `public_html/.htaccess` les résout vers le point de montage.
+ * `/public/…` est aussi la forme CANONIQUE de leurs URL : chemin disque et URL
+ * coïncident, il n'y a qu'une adresse par fichier. Les anciennes URL `/bdd/…`
+ * sont redirigées par `public_html/.htaccess`.
  */
 const VG_DATA_MOUNT = '/public';
 
 /**
- * Racines de premier niveau autorisées.
+ * Dossiers de données de premier niveau.
  *
- * Porte la garantie d'isolement : seuls ces trois sous-arbres sont accessibles
- * par ce helper, ce qui borne ce qu'un nom de fichier issu de la base ou d'un
- * formulaire peut atteindre.
+ * Sert de garde-fou de nommage plutôt que de barrière de sécurité : l'isolement
+ * est assuré par le rejet des remontées dans vg_data_rel(), et tout ce qui vit
+ * sous le point de montage est de la donnée. Cette liste transforme en erreur
+ * bruyante un appel qui passerait un chemin d'une autre convention — typiquement
+ * l'ancien préfixe `bdd/`, qui créerait sinon un `public/bdd/` fantôme sans que
+ * rien ne le signale.
+ *
+ * Deux dossiers ont une URL publique qui ne suit PAS vg_data_url() :
+ *   - `open-data/` : servi par open-data/download.php, URL /open-data/*.geojson
+ *   - `images/`    : encore dupliqué avec public_html/images, URL /images/…
+ * Aucun appelant n'y fait appel à vg_data_url() ; ne pas commencer.
  */
-const VG_DATA_PREFIXES = ['bdd', 'images', 'open-data'];
+const VG_DATA_PREFIXES = [
+  'barres',
+  'barres-historique',
+  'biodiv',
+  'ca',
+  'cartotrain',
+  'fichiers_news',
+  'fichiers_pages',
+  'gpx',
+  'gpx-historique',
+  'images',
+  'images_falaises',
+  'images_news',
+  'images_pages',
+  'open-data',
+  'styles',
+  'trains',
+  'zones',
+];
 
 /** Échec d'une opération sur le stockage de données. */
 class VgDataException extends RuntimeException {}
@@ -41,7 +68,7 @@ class VgDataException extends RuntimeException {}
  * Valide et normalise un chemin de données relatif.
  *
  * Refuse : chemin vide, octet nul, segment '.' ou '..', segment vide (cas réel
- * quand un slug se réduit à la chaîne vide : 'bdd/images_news//x.webp' écrirait
+ * quand un slug se réduit à la chaîne vide : 'images_news//x.webp' écrirait
  * dans le dossier parent), racine hors VG_DATA_PREFIXES.
  */
 function vg_data_rel(string $rel): string
@@ -68,20 +95,18 @@ function vg_data_path(string $rel = ''): string
 }
 
 /**
- * URL publique : '/bdd/gpx/12_x_y_.gpx'.
+ * URL publique canonique : '/public/gpx/12_x_y_.gpx'.
  *
- * Ne dépend volontairement PAS de VG_DATA_MOUNT, et ne doit jamais en dépendre.
  * Ces URL sont stockées en base (newsletters.sections, pages.sections,
- * pages.banner_img), publiées dans les exports open data et envoyées par mail :
- * elles doivent survivre à tout déplacement du stockage.
+ * pages.banner_img), publiées dans les exports open data et envoyées par mail.
  *
- * Corollaire : ne jamais reconstruire une URL en soustrayant DOCUMENT_ROOT d'un
- * chemin disque. À travers le lien symbolique, la cible est hors DOCUMENT_ROOT
- * et la soustraction ne matche pas.
+ * Toujours passer par cette fonction, jamais reconstruire une URL en
+ * soustrayant DOCUMENT_ROOT d'un chemin disque : à travers le lien symbolique,
+ * la cible est hors DOCUMENT_ROOT et la soustraction ne matche pas.
  */
 function vg_data_url(string $rel): string
 {
-  return '/' . vg_data_rel($rel);
+  return VG_DATA_MOUNT . '/' . vg_data_rel($rel);
 }
 
 /** Le fichier de données existe-t-il ? */
@@ -94,8 +119,8 @@ function vg_data_exists(string $rel): bool
  * Chemin réel, ou null si le chemin résolu sort de sa racine de données (lien
  * symbolique piégé, remontée) ou si le fichier n'existe pas.
  *
- * L'ancrage se fait sur le premier segment (bdd/, images/, open-data/) et non
- * sur le point de montage : c'est le sous-arbre qui borne, pas la racine.
+ * L'ancrage se fait sur le premier segment (gpx/, barres/, images_falaises/…)
+ * et non sur le point de montage : c'est le sous-arbre qui borne, pas la racine.
  */
 function vg_data_realpath(string $rel): ?string
 {

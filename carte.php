@@ -229,7 +229,7 @@ $highlight = $_GET['h'] ?? '';
       },
       polyline_options: lopts,
     };
-    return new L.GPX("./bdd/gpx/" + gpx_path(it), options)
+    return new L.GPX("/public/gpx/" + gpx_path(it), options)
       .addTo(map)
       .on('loaded', e => {
         e.target.bindTooltip(

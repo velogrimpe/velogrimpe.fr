@@ -12,8 +12,12 @@ function convertHtmlToEmailHtml(string $html, string $utm = ''): string
   global $_newsletterHost;
   $host = $_newsletterHost;
 
-  // Prefix relative URLs with base URL and append UTM
-  $html = preg_replace('/src="(\/bdd\/[^"]*)"/', 'src="' . $host . '$1"', $html);
+  // Prefix relative URLs with base URL and append UTM.
+  // Toute source relative est absolutisée, pas seulement un préfixe connu : le
+  // dossier des images a déjà changé une fois (/bdd/… -> /public/…) et une URL
+  // restée relative dans un mail est une image cassée chez le destinataire.
+  // Le (?!\/) épargne les URL protocol-relative (//cdn…), qui sont déjà absolues.
+  $html = preg_replace('/src="(\/(?!\/)[^"]*)"/', 'src="' . $host . '$1"', $html);
   $html = preg_replace_callback('/href="(\/[^"]*)"/', function ($m) use ($host, $utm) {
     $url = $host . $m[1];
     if ($utm) {

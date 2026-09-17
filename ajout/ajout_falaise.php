@@ -446,7 +446,7 @@ if ($falaise_id) {
             });
             map.addControl(new SearchControl());
           })();
-          fetch("/bdd/zones/zones.geojson")
+          fetch("/public/zones/zones.geojson")
             .then(r => r.ok ? r.json() : Promise.reject(new Error('zones load failed')))
             .then(zonesData => {
               const zonesLayer = L.geoJSON(zonesData, {
@@ -1081,9 +1081,9 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         if (window.setRichText) window.setRichText('falaise_leg3', falaise.falaise_leg3 || '');
         if (window.setRichText) window.setRichText('falaise_fermee', falaise.falaise_fermee || '');
         document.getElementById("falaise_voletcarto").value = falaise.falaise_voletcarto;
-        document.getElementById("falaise_img1_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img1.webp`;
-        document.getElementById("falaise_img2_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img2.webp`;
-        document.getElementById("falaise_img3_preview").src = `https://www.velogrimpe.fr/bdd/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img3.webp`;
+        document.getElementById("falaise_img1_preview").src = `https://www.velogrimpe.fr/public/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img1.webp`;
+        document.getElementById("falaise_img2_preview").src = `https://www.velogrimpe.fr/public/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img2.webp`;
+        document.getElementById("falaise_img3_preview").src = `https://www.velogrimpe.fr/public/images_falaises/${falaise.falaise_id}_${falaise.falaise_nomformate}_img3.webp`;
         document.getElementById("falaise_img1_preview").classList.remove("hidden");
         document.getElementById("falaise_img2_preview").classList.remove("hidden");
         document.getElementById("falaise_img3_preview").classList.remove("hidden");

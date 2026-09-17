@@ -21,7 +21,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
  */
 function falaise_img_rel(int|string $falaise_id, string $nomformate, int $n): string
 {
-  return 'bdd/images_falaises/' . $falaise_id . '_' . $nomformate . '_img' . $n . '.webp';
+  return 'images_falaises/' . $falaise_id . '_' . $nomformate . '_img' . $n . '.webp';
 }
 
 $stmtF = $mysqli->prepare("SELECT * FROM falaises WHERE falaise_id = ?");
@@ -844,7 +844,7 @@ $stmtC->close();
                         altimétrique </a>
                     <?php endif; ?>
                     <?php
-                    $gpx_path = "./bdd/gpx/" . $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . ".gpx";
+                    $gpx_path = "/public/gpx/" . $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . ".gpx";
                     $exists = file_exists($gpx_path);
                     if ($velo['velo_openrunner'] && $exists): ?> | <?php endif; ?>
                     <?php

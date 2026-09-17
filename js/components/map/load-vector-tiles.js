@@ -9,7 +9,7 @@ const paintRules = [
   },
 ];
 const trainlinesLayer = protomapsL.leafletLayer({
-  url: "/bdd/trains/ter.pmtiles",
+  url: "/public/trains/ter.pmtiles",
   paintRules,
   maxDataZoom: 16,
   pane: "overlayPane",
@@ -54,7 +54,7 @@ const tgvLabelRules = [
   },
 ];
 const tgvLayer = protomapsL.leafletLayer({
-  url: "/bdd/trains/tgv.pmtiles",
+  url: "/public/trains/tgv.pmtiles",
   paintRules: tgvPaintRules,
   labelRules: tgvLabelRules,
   maxDataZoom: 16,
@@ -230,7 +230,7 @@ const campingLabelRules = [
   },
 ];
 const campingLayer = protomapsL.leafletLayer({
-  url: "/bdd/datatourisme/camping_2.pmtiles",
+  url: "/public/datatourisme/camping_2.pmtiles",
   tasks: [sheet.load()],
   labelRules: campingLabelRules,
   minZoom: 12,
@@ -255,7 +255,7 @@ const gitesLabelRules = [
 ];
 
 const giteLayer = protomapsL.leafletLayer({
-  url: "/bdd/datatourisme/camping_2.pmtiles",
+  url: "/public/datatourisme/camping_2.pmtiles",
   tasks: [sheet.load()],
   labelRules: gitesLabelRules,
   minZoom: 12,
@@ -318,7 +318,7 @@ const biodivLabelRules = [
   },
 ];
 const biodivLayer = protomapsL.leafletLayer({
-  url: "/bdd/biodiv/biodiv.pmtiles",
+  url: "/public/biodiv/biodiv.pmtiles",
   paintRules: biodivPaintRules,
   labelRules: biodivLabelRules,
   // minZoom: 12,
@@ -361,7 +361,7 @@ const garesLabelRules = [
   },
 ];
 const garesLayer = protomapsL.leafletLayer({
-  url: "/bdd/trains/gares.pmtiles",
+  url: "/public/trains/gares.pmtiles",
   labelRules: garesLabelRules,
   maxDataZoom: 16,
   pane: "overlayPane",

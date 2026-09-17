@@ -145,7 +145,7 @@ if ($mysqli->connect_error) {
 }
 
 /** Dossier de données des photos de falaise, au sens de lib/paths.php. */
-const FALAISE_IMAGES_DIR = 'bdd/images_falaises';
+const FALAISE_IMAGES_DIR = 'images_falaises';
 
 // Préflight AVANT l'INSERT. Le contrôle d'existence du dossier se faisait
 // auparavant après, si bien qu'un dossier absent laissait une falaise créée

@@ -206,7 +206,7 @@ export function initFalaiseDetailsEditor(containerId) {
   // Read-only context: itinéraires vélos arrivant à cette falaise
   const itineraires = JSON.parse(container.dataset.itineraires || "[]");
   itineraires.forEach((velo) => {
-    new L.GPX("/bdd/gpx/" + gpx_path(velo), {
+    new L.GPX("/public/gpx/" + gpx_path(velo), {
       async: true,
       markers: { startIcon: null, endIcon: null },
       polyline_options: {

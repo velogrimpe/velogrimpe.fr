@@ -62,7 +62,7 @@ $est_valide = intval($old['velo_public']) === 1;
 $mode = $admin ? 'admin' : ($est_valide ? 'suggestion' : 'contrib');
 
 // Les slugs viennent de la base, mais le fichier est écrit sous ce nom : on les
-// valide comme à l'ajout, pour ne jamais écrire hors de /bdd/gpx/.
+// valide comme à l'ajout, pour ne jamais écrire hors du dossier gpx/.
 velo_verifier_slugs([
   'velo_depart' => $old['velo_depart'],
   'velo_arrivee' => $old['velo_arrivee'],
@@ -247,7 +247,7 @@ if ($admin) {
   $html .= "<li><b>Openrunner</b>: " . htmlspecialchars($velo_openrunner) . "</li>";
 }
 $html .= "<li><b>Trace GPX</b>: " . match ($gpx_statut) {
-  'remplacée' => 'remplacée (ancienne version archivée dans bdd/gpx-historique)',
+  'remplacée' => 'remplacée (ancienne version archivée dans gpx-historique/)',
   'échec'     => "⚠️ <b>non enregistrée</b> — le fichier envoyé n'a pas pu être écrit sur le serveur. "
     . "L'itinéraire garde sa trace précédente, ou n'en a plus du tout s'il n'en avait pas. "
     . "Redemander le fichier au contributeur.",

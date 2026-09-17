@@ -20,7 +20,7 @@ Toutes les pages principales sont à la racine du dépôt:
 - Le dossier `js/` contient les quelques scripts utilisés sur le site.
 - Le dossier `symbols/` contient les icones utilisés sur le site.
 - Le dossier `images/` contient les images statiques, hors contenus falaises.
-- Le lien symbolique `public/` pointe vers le dossier de données hors dépôt (`../public`) : images des falaises, GPX, GeoJSON des barres, exports open data, et `bdd/trains` avec le GeoJSON des lignes de train françaises et sa version en tuiles (`.pmtiles`, pour ne charger que la partie visible). Voir « Chemins de données ».
+- Le lien symbolique `public/` pointe vers le dossier de données hors dépôt (`../public`) : images des falaises, GPX, GeoJSON des barres, exports open data, et `trains/` avec le GeoJSON des lignes de train françaises et sa version en tuiles (`.pmtiles`, pour ne charger que la partie visible). Voir « Chemins de données ».
 
 ## Mise en place d'un environnement de développement
 
@@ -34,7 +34,7 @@ Toutes les pages principales sont à la racine du dépôt:
 1. À la racine, créer le dossier de données (hors web root, cible du symlink `public_html/public`) :
 
 ```bash
-mkdir -p public/{bdd,images,open-data}
+mkdir -p public/{gpx,barres,images_falaises,images,open-data}
 ```
 
 3. À la racine, créer un fichier nommé `config.php` en partant de `config.sample.php`. Le minimum pour démarrer :
@@ -113,10 +113,16 @@ L'export ne contient que les données SQL. Les fichiers associés (images de fal
 
 ## Chemins de données
 
-Les contenus téléversés (images de falaises, images d'articles et de newsletters,
+Les contenus téléversés (images de falaises, images de newsletters et de pages,
 traces GPX) et les fichiers générés (GeoJSON de barres, exports open data) sont
-des **données**, pas du code : ils ne sont pas versionnés et ne doivent pas vivre
-dans le dossier déployé, qu'un déploiement peut effacer.
+des **données**, pas du code : ils ne sont pas versionnés et ne vivent pas dans
+le dossier déployé, qu'un déploiement peut effacer.
+
+Ils sont stockés dans `public/` — à la racine du dépôt en local, `~/public` sur
+le serveur — atteint par le lien symbolique versionné
+`public_html/public -> ../public`. **Chemin disque et URL coïncident** : le
+fichier `public/gpx/12_x_y_.gpx` est servi à `/public/gpx/12_x_y_.gpx`. Une
+seule adresse par fichier.
 
 **Règle : aucun chemin de données ne se construit à la main.** Tout passe par
 `lib/paths.php`, en lecture comme en écriture.
@@ -124,65 +130,72 @@ dans le dossier déployé, qu'un déploiement peut effacer.
 ```php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 
-vg_data_path('bdd/gpx/12_x_y_.gpx');   // chemin absolu sur disque
-vg_data_url('bdd/gpx/12_x_y_.gpx');    // '/bdd/gpx/12_x_y_.gpx' — URL publique
-vg_data_exists('bdd/barres/1_x.geojson');
-vg_data_prepare('bdd/images_news/mon-slug');  // crée le dossier, vérifie l'écriture
+vg_data_path('gpx/12_x_y_.gpx');   // /…/public_html/public/gpx/12_x_y_.gpx
+vg_data_url('gpx/12_x_y_.gpx');    // /public/gpx/12_x_y_.gpx — URL publique
+vg_data_exists('barres/1_x.geojson');
+vg_data_prepare('images_news/mon-slug');  // crée le dossier, vérifie l'écriture
 ```
 
-Les chemins passés sont ceux de **l'espace d'URL** (`bdd/…`, `images/…`,
-`open-data/…`), jamais des chemins disque. `vg_data_rel()` refuse les remontées
-(`..`), les segments vides et les racines inconnues.
+Les chemins passés sont relatifs à la racine des données (`gpx/…`, `barres/…`,
+`images_falaises/…`), jamais des chemins disque absolus. `vg_data_rel()` refuse
+les remontées (`..`), les segments vides et les dossiers de premier niveau
+inconnus — cette dernière vérification transforme en erreur bruyante un appel
+resté sur l'ancienne convention `bdd/…`.
 
 Deux points à respecter :
 
-- **`vg_data_url()` ne dépend pas de l'emplacement des fichiers** et ne doit
-  jamais en dépendre. Les URL produites partent en base (`newsletters.sections`,
-  `pages.sections`, `pages.banner_img`), dans les exports open data et dans des
-  mails déjà envoyés. Ne jamais reconstruire une URL par soustraction du
-  `DOCUMENT_ROOT` d'un chemin disque : à travers le lien symbolique, la cible est
-  hors `DOCUMENT_ROOT` et la soustraction ne matche plus.
+- **Toujours produire les URL avec `vg_data_url()`.** Elles partent en base
+  (`newsletters.sections`, `pages.sections`, `pages.banner_img`), dans les
+  exports open data et dans les mails. Ne jamais reconstruire une URL par
+  soustraction du `DOCUMENT_ROOT` d'un chemin disque : à travers le lien
+  symbolique, la cible est hors `DOCUMENT_ROOT` et la soustraction ne matche pas.
 - **`vg_data_prepare()` s'appelle avant la première mutation de la requête** —
   avant l'`INSERT`, avant `move_uploaded_file`. C'est le seul moment où un échec
   ne laisse pas de ligne en base sans son fichier.
 
-### Où vivent les fichiers
+### Les deux exceptions
 
-Les données sont stockées **hors du dossier déployé**, dans `~/public` sur le
-serveur et à la racine du dépôt en local (dossier git-ignoré). Elles y sont
-atteintes par le lien symbolique versionné `public_html/public -> ../public`,
-et `VG_DATA_MOUNT` (dans `lib/paths.php`) porte ce préfixe.
+Deux sous-arbres de `public/` ont une URL publique qui ne suit pas
+`vg_data_url()`. Aucun appelant n'utilise le helper pour eux ; ne pas commencer.
 
-Les URL publiques, elles, restent `/bdd/…` et `/images/…`. Le `.htaccess` racine
-fait le lien :
+| Dossier | URL publique | Pourquoi |
+| --- | --- | --- |
+| `open-data/` | `/open-data/*.geojson` | servie par `open-data/download.php`, qui trace les téléchargements. Le `.htaccess` y réécrit en interne. |
+| `images/` | `/images/…` | encore dupliqué entre `public_html/images` (assets versionnés : logos, icônes de carte) et `public/images` (le reste). |
+
+Pour `images/`, le `.htaccess` racine arbitre fichier par fichier :
 
 ```apache
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(bdd|images)/(.+)$ /public/$1/$2 [L]
+RewriteRule ^images/(.+)$ /public/images/$1 [L]
 ```
 
-La condition `!-f` fait cohabiter les deux natures de fichiers : les **assets
-versionnés** restés dans le dossier déployé (logos, icônes de carte, styles de
-carte, `bdd/trains/gares.json`) sont trouvés sur place, les **données** sont
-résolues vers le point de montage.
+L'asset versionné est trouvé dans le dossier déployé, le reste est résolu vers
+les données. Le mélange étant au niveau des fichiers (`images/mw/` contient les
+deux natures), cette duplication n'est pas encore tranchée.
 
-> **Corollaire à connaître** : une donnée qui traînerait dans le dossier déployé
-> au même chemin relatif serait servie **à la place** de celle du point de
-> montage, sans erreur. Règle : dans `public_html/bdd`, `public_html/images` et
-> `public_html/open-data`, rien qui ne soit versionné.
+### Anciennes URL
 
-Attention aussi aux fichiers **versionnés lus par PHP** à travers le helper :
-eux sont cherchés dans le point de montage, sans repli possible (le repli est
-une règle Apache, elle ne joue que pour les requêtes HTTP). C'est le cas de
-`bdd/cartotrain/tableau.xlsx`, lu par `api/private/crons/ingest_cartotrain.php` :
-il doit exister dans `~/public/bdd/cartotrain/`.
+Les données vivaient auparavant sous `public_html/bdd/`, servies à `/bdd/…`. Ce
+dossier intermédiaire a disparu, son contenu est remonté à la racine du point de
+montage. Le `.htaccess` racine redirige :
 
-Le même `.htaccess` refuse toute exécution de script et tout listing sous
-`/public/` (motif cherchant l'extension n'importe où dans le nom, pour couvrir
-`shell.php.jpg`). Ces garanties sont posées à la racine et pas seulement dans le
-`.htaccess` de la cible : derrière un lien symbolique pointant hors du
-`DocumentRoot`, un `.htaccess` enfant peut être ignoré selon la portée
-d'`AllowOverride`.
+```apache
+RewriteRule ^bdd/(.+)$ /public/$1 [R=301,L]
+```
+
+301 et non réécriture interne : `/public/…` est la forme canonique. La
+redirection couvre ce qui a déjà été publié — mails envoyés, exports open data
+téléchargés par des tiers, index des moteurs.
+
+### Sécurité
+
+Le `.htaccess` racine refuse toute exécution de script et tout listing sous
+`/public/` **et** sous l'ancien `/bdd/`, avec un motif qui cherche l'extension
+n'importe où dans le nom (pour couvrir `shell.php.jpg`). Ces garanties sont
+posées à la racine et pas seulement dans `public/.htaccess` : derrière un lien
+symbolique pointant hors du `DocumentRoot`, un `.htaccess` enfant peut être
+ignoré selon la portée d'`AllowOverride`.
 
 ## Partage et réutilisation
 

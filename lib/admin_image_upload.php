@@ -1,18 +1,18 @@
 <?php
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/admin_upload.php';
 
 /**
  * Handle an admin image upload (auth, validation, GD compression, save).
  *
  * Expects POST multipart with:
  * - $_FILES['image']
- * - $_POST['slug'] (already validated by caller, also defensively here)
+ * - $_POST['slug'] (nettoyé par vg_admin_upload_guard())
  *
  * Writes JSON response and exits.
  *
  * @param string $baseRel Dossier de données, relatif à la racine au sens de
- *                        lib/paths.php (ex. 'bdd/images_news'). L'URL publique
+ *                        lib/paths.php (ex. 'images_news'). L'URL publique
  *                        en est dérivée par vg_data_url().
  *
  *                        Volontairement RELATIF : la version précédente prenait
@@ -26,40 +26,13 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
  */
 function handleAdminImageUpload(string $baseRel, string $slug): void
 {
-  $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
+  $safeSlug = vg_admin_upload_guard($slug);
 
-  header('Content-Type: application/json');
-  header('Access-Control-Allow-Methods: POST, OPTIONS');
-
-  if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit;
+  if (!isset($_FILES['image'])) {
+    vg_admin_upload_fail(400, 'No image uploaded');
   }
-
-  $headers = getallheaders();
-  $authHeader = $headers['authorization'] ?? $headers['Authorization'] ?? null;
-  if (!$authHeader || $authHeader !== 'Bearer ' . $config['admin_token']) {
-    http_response_code(403);
-    echo json_encode(['error' => 'Forbidden']);
-    exit;
-  }
-
-  if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method Not Allowed']);
-    exit;
-  }
-
-  $slug = trim($slug);
-  if (empty($slug)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'slug is required']);
-    exit;
-  }
-
-  if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-    http_response_code(400);
-    echo json_encode(['error' => 'No image uploaded']);
-    exit;
+  if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+    vg_admin_upload_fail(400, vg_admin_upload_error_message($_FILES['image']['error']));
   }
 
   $tmp = $_FILES['image']['tmp_name'];
@@ -74,20 +47,7 @@ function handleAdminImageUpload(string $baseRel, string $slug): void
   };
 
   if (!$img) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Unsupported image format: ' . $mime]);
-    exit;
-  }
-
-  $safeSlug = preg_replace('/[^a-zA-Z0-9_-]/', '', str_replace('/', '_', $slug));
-
-  // Un slug entièrement composé de caractères exclus se réduit à '' et donnait
-  // un chemin 'bdd/images_news//fichier.webp', donc une écriture dans le dossier
-  // parent. vg_data_rel() le refuserait, mais autant traiter la cause.
-  if ($safeSlug === '') {
-    http_response_code(400);
-    echo json_encode(['error' => 'slug invalide']);
-    exit;
+    vg_admin_upload_fail(400, 'Unsupported image format: ' . $mime);
   }
 
   $relDir = rtrim($baseRel, '/') . '/' . $safeSlug;
@@ -96,9 +56,7 @@ function handleAdminImageUpload(string $baseRel, string $slug): void
     vg_data_prepare($relDir);
   } catch (VgDataException $e) {
     error_log('[admin_image_upload] ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['error' => "Dossier d'images indisponible"]);
-    exit;
+    vg_admin_upload_fail(500, "Dossier d'images indisponible");
   }
 
   $basename = time() . '-' . bin2hex(random_bytes(4));
@@ -116,9 +74,7 @@ function handleAdminImageUpload(string $baseRel, string $slug): void
   // qui partait ensuite en base.
   if (!$ecrit) {
     error_log("[admin_image_upload] échec de l'écriture de $relDir/$filename");
-    http_response_code(500);
-    echo json_encode(['error' => "L'image n'a pas pu être enregistrée"]);
-    exit;
+    vg_admin_upload_fail(500, "L'image n'a pas pu être enregistrée");
   }
 
   echo json_encode(['url' => vg_data_url($relDir . '/' . $filename)]);

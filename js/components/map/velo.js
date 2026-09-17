@@ -63,7 +63,7 @@ function renderGpx(velo, options = {}) {
     },
     polyline_options: lopts,
   };
-  return new L.GPX("/bdd/gpx/" + gpx_path(velo), gpxOptions).on(
+  return new L.GPX("/public/gpx/" + gpx_path(velo), gpxOptions).on(
     "loaded",
     (e) => {
       e.target.bindTooltip(

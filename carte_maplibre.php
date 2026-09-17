@@ -627,7 +627,7 @@ $highlight = $_GET['h'] ?? '';
   async function renderGpx(it, color) {
     const id = `gpx-${it.velo_id}-${Math.random().toString(36).slice(2, 7)}`;
     if (map.getSource(id)) { try { map.removeLayer(id); map.removeSource(id); } catch (e) { } }
-    map.addSource(id, { type: "geojson", data: "gpx://./bdd/gpx/" + gpx_path(it) });
+    map.addSource(id, { type: "geojson", data: "gpx:///public/gpx/" + gpx_path(it) });
     map.addLayer({
       id, type: "line", source: id,
       layout: { "line-cap": "round", "line-join": "round" },
@@ -1037,7 +1037,7 @@ $highlight = $_GET['h'] ?? '';
 
   function addOverlays() {
     // --- TER lines ---
-    map.addSource("trainlines", { type: "vector", url: "pmtiles:///bdd/trains/ter.pmtiles" });
+    map.addSource("trainlines", { type: "vector", url: "pmtiles:///public/trains/ter.pmtiles" });
     map.addLayer({
       id: "trainlines", type: "line", source: "trainlines", "source-layer": "ter",
       paint: {
@@ -1047,7 +1047,7 @@ $highlight = $_GET['h'] ?? '';
     });
 
     // --- TGV (line + circle + label) ---
-    map.addSource("tgv", { type: "vector", url: "pmtiles:///bdd/trains/tgv.pmtiles" });
+    map.addSource("tgv", { type: "vector", url: "pmtiles:///public/trains/tgv.pmtiles" });
     map.addLayer({
       id: "tgv-line", type: "line", source: "tgv", "source-layer": "tgv",
       filter: ["==", ["geometry-type"], "LineString"],
@@ -1080,7 +1080,7 @@ $highlight = $_GET['h'] ?? '';
     OVERLAYS.find(o => o.id === "tgv").layers.forEach(lid => map.setLayoutProperty(lid, "visibility", overlayChecked.tgv ? "visible" : "none"));
 
     // --- Campings + Gîtes (même PMTiles, filtre category) ---
-    map.addSource("camping_src", { type: "vector", url: "pmtiles:///bdd/datatourisme/camping_2.pmtiles" });
+    map.addSource("camping_src", { type: "vector", url: "pmtiles:///public/datatourisme/camping_2.pmtiles" });
     map.addLayer({
       id: "camping", type: "symbol", source: "camping_src", "source-layer": "camping", minzoom: 12,
       filter: ["==", ["get", "category"], "Camping"],
@@ -1112,7 +1112,7 @@ $highlight = $_GET['h'] ?? '';
 
     // --- Biodiv ---
     // Note: practices/rules sont stockés en JSON-string dans le tile. Filtres approximatifs par substring.
-    map.addSource("biodiv", { type: "vector", url: "pmtiles:///bdd/biodiv/biodiv.pmtiles" });
+    map.addSource("biodiv", { type: "vector", url: "pmtiles:///public/biodiv/biodiv.pmtiles" });
     map.addLayer({
       id: "biodiv-regulated", type: "fill", source: "biodiv", "source-layer": "biodiv",
       filter: ["all",
@@ -1150,7 +1150,7 @@ $highlight = $_GET['h'] ?? '';
       .map(g => g.gare_nom);
     const horsTopoFilter = ["!", ["in", ["get", "name"], ["literal", topoGareNames]]];
 
-    map.addSource("gares-pm", { type: "vector", url: "pmtiles:///bdd/trains/gares.pmtiles" });
+    map.addSource("gares-pm", { type: "vector", url: "pmtiles:///public/trains/gares.pmtiles" });
     // Cercle dès zoom 10 (Leaflet montre la même chose à zoom 11, mais à
     // visuel égal MapLibre est ~1 niveau plus bas — voir comparaison
     // d'icônes falaises entre les deux captures). Label à zoom 11.

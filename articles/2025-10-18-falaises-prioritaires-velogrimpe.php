@@ -152,7 +152,7 @@ $falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")
       .then(response => response.json())
       .catch(error => console.error('Error fetching data:', error));
   }
-  fetchData('/bdd/ca/6km.geojson').then(data => {
+  fetchData('/public/ca/6km.geojson').then(data => {
     /**
      * Format example
      * { "type": "Feature", "properties": { "falaise_nom": "L'horloge", "falaise_caid": 6296, "falaise_latlng": "44.79125061350171,6.554983556270599", "lat": 44.79125061350171, "lng": 6.554983556270599, "gares": "", "gare_loc": "44.7909832093243,6.556249737151198", "gare_dist": 104.51012306 }, "geometry": { "type": "Point", "coordinates": [6.554983556270599, 44.79125061350171] } }

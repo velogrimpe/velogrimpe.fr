@@ -52,7 +52,7 @@ $mysqli->query("CREATE TABLE IF NOT EXISTS cartotrain_emport (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
 // Parser le fichier XLSX
-$xlsxPath = vg_data_path('bdd/cartotrain/tableau.xlsx');
+$xlsxPath = vg_data_path('cartotrain/tableau.xlsx');
 if (!file_exists($xlsxPath)) {
   http_response_code(404);
   echo json_encode(['success' => false, 'error' => 'Fichier tableau.xlsx introuvable']);

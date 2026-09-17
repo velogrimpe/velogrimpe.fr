@@ -37,8 +37,8 @@ foreach ($alterSqls as $sql) {
 }
 
 // Paths to GeoJSON files (cf. lib/paths.php)
-$zonesPath = vg_data_path('bdd/zones/zones.geojson');
-$deptsPath = vg_data_path('bdd/zones/departements.geojson');
+$zonesPath = vg_data_path('zones/zones.geojson');
+$deptsPath = vg_data_path('zones/departements.geojson');
 
 $zones = geojson_load($zonesPath);
 $depts = geojson_load($deptsPath);

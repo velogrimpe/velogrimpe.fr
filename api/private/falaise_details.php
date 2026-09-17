@@ -259,8 +259,8 @@ $stmt->close();
 $mysqli->close();
 
 // Check existance of falaise details geojson file and load it if exists
-const BARRES_DIR = 'bdd/barres';
-const BARRES_ARCHIVE_DIR = 'bdd/barres-historique';
+const BARRES_DIR = 'barres';
+const BARRES_ARCHIVE_DIR = 'barres-historique';
 $geojson_rel = BARRES_DIR . '/' . $falaise["falaise_id"] . "_" . $falaise["falaise_nomformate"] . ".geojson";
 $geojson_file = vg_data_path($geojson_rel);
 

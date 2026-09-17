@@ -61,10 +61,10 @@ function velo_gpx_nom_fichier(int $velo_id, string $velo_depart, string $velo_ar
 }
 
 /** Dossier de données des traces GPX, au sens de lib/paths.php. */
-const VELO_GPX_DIR = 'bdd/gpx';
+const VELO_GPX_DIR = 'gpx';
 
 /** Dossier de données des versions archivées. */
-const VELO_GPX_ARCHIVE_DIR = 'bdd/gpx-historique';
+const VELO_GPX_ARCHIVE_DIR = 'gpx-historique';
 
 /** Chemin de données du fichier GPX, relatif à la racine (cf. lib/paths.php). */
 function velo_gpx_rel(int $velo_id, string $velo_depart, string $velo_arrivee, string $velo_varianteformate): string
@@ -129,8 +129,8 @@ function velo_contrib_string(string $nom_prenom, string $email): string
 }
 
 /**
- * Archive le GPX courant avant remplacement, dans bdd/gpx-historique/
- * (même principe que bdd/barres-historique pour les GeoJSON de falaise).
+ * Archive le GPX courant avant remplacement, dans gpx-historique/
+ * (même principe que barres-historique pour les GeoJSON de falaise).
  *
  * Prend et rend un chemin de données relatif (cf. lib/paths.php). Retourne null
  * s'il n'y avait rien à archiver. Le dossier est supposé prêt : l'appelant a

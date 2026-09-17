@@ -46,6 +46,7 @@ sendEvent($_SERVER['REQUEST_URI'], "vg", "vg-crons", 'event: export-open-data');
 
 // Cron logic
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';   // VG_BASE
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 /** Dossier de données des exports, au sens de lib/paths.php. */
@@ -249,7 +250,7 @@ foreach ($veloResult as $velo) {
   // ({velo_id}_{depart}_{arrivee}_{varianteformate}.gpx). Les itinéraires sans
   // GPX (ou GPX vide) sont simplement omis de l'export géométrique.
   $gpxName = $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . '.gpx';
-  $gpxPath = vg_data_path('bdd/gpx/' . $gpxName);
+  $gpxPath = vg_data_path('gpx/' . $gpxName);
   $geometry = is_file($gpxPath) ? gpx_to_geometry($gpxPath) : null;
   if ($geometry === null) {
     $gpxMissing++;
@@ -264,7 +265,7 @@ foreach ($veloResult as $velo) {
         'falaise_nom' => $falaiseNomById[$velo['falaise_id']] ?? null,
         'attribution' => $ATTRIBUTION,
         'url' => 'https://velogrimpe.fr/falaise.php?falaise_id=' . (int) $velo['falaise_id'],
-        'gpx_url' => 'https://velogrimpe.fr/bdd/gpx/' . $gpxName,
+        'gpx_url' => VG_BASE . vg_data_url('gpx/' . $gpxName),
       ],
       $itineraire
     ),
@@ -405,9 +406,9 @@ foreach ($falaises as $falaise) {
 
   // Link to the geometric topo details file only when it exists, and merge its
   // features into the global details collection (tagging each with falaise_id).
-  $details_file = vg_data_path('bdd/barres/' . $falaise['id'] . '_' . $falaise['nomformate'] . '.geojson');
+  $details_file = vg_data_path('barres/' . $falaise['id'] . '_' . $falaise['nomformate'] . '.geojson');
   if (file_exists($details_file)) {
-    $properties['details_url'] = 'https://velogrimpe.fr/bdd/barres/' . $falaise['id'] . '_' . $falaise['nomformate'] . '.geojson';
+    $properties['details_url'] = VG_BASE . vg_data_url('barres/' . $falaise['id'] . '_' . $falaise['nomformate'] . '.geojson');
 
     $details_content = json_decode(file_get_contents($details_file), true);
     if (is_array($details_content) && !empty($details_content['features']) && is_array($details_content['features'])) {
