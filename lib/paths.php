@@ -9,35 +9,28 @@
  *
  * Les chemins manipulés sont ceux de l'ESPACE D'URL — 'bdd/gpx/12_x_y_.gpx' —
  * et non des chemins disque. La conversion chemin <-> URL en devient triviale,
- * et le stockage peut se déplacer sans qu'une seule URL publique change.
- *
- * Voir docs/plans/2026-08-25-migration-dossier-public.md.
+ * et l'emplacement de stockage n'a aucune influence sur les URL publiques.
  */
 
 /**
  * Racine des données, relative à DOCUMENT_ROOT.
  *
- *   ''         -> dossier déployé (public_html/bdd, public_html/images, …)
- *   '/public'  -> point de montage hors dépôt, via le lien symbolique
- *                 public_html/public -> ../public
+ * Les données vivent hors du dossier déployé, atteintes par le lien symbolique
+ * versionné `public_html/public -> ../public`. C'est ce qui les met hors de
+ * portée du `rsync --delete` de déploiement : la branche `deploy` ne contient
+ * que du code, et rien de ce qu'elle écrase n'est une donnée.
  *
- * C'EST LA SEULE LIGNE À CHANGER POUR BASCULER, dans un sens comme dans
- * l'autre. Aucun site d'appel n'est concerné, y compris pour un rollback.
- *
- * Le repli déclaré dans public_html/.htaccess sert les fichiers depuis l'un ou
- * l'autre emplacement, donc les URL publiques fonctionnent pendant et après la
- * bascule. Attention : ce repli est conditionné par `!-f`, donc un fichier resté
- * dans le dossier déployé GAGNE sur son homologue du point de montage. Le
- * déplacement des données doit être un déplacement, pas une copie.
+ * Les URL publiques, elles, restent `/bdd/…` et `/images/…` : la règle de repli
+ * de `public_html/.htaccess` les résout vers le point de montage.
  */
-const VG_DATA_MOUNT = '';
+const VG_DATA_MOUNT = '/public';
 
 /**
  * Racines de premier niveau autorisées.
  *
- * Porte la garantie d'isolement : tant que VG_DATA_MOUNT vaut '', la base est
- * DOCUMENT_ROOT et un contrôle d'évasion ancré sur elle ne prouverait rien — il
- * laisserait passer 'api/add_velo.php'. C'est cette liste qui borne réellement.
+ * Porte la garantie d'isolement : seuls ces trois sous-arbres sont accessibles
+ * par ce helper, ce qui borne ce qu'un nom de fichier issu de la base ou d'un
+ * formulaire peut atteindre.
  */
 const VG_DATA_PREFIXES = ['bdd', 'images', 'open-data'];
 
@@ -75,12 +68,16 @@ function vg_data_path(string $rel = ''): string
 }
 
 /**
- * URL publique. INVARIANTE sur toute la migration : '/bdd/gpx/12_x_y_.gpx'.
+ * URL publique : '/bdd/gpx/12_x_y_.gpx'.
  *
- * Ne consulte volontairement PAS VG_DATA_MOUNT. C'est cette propriété qui fait
- * que la bascule ne réécrit ni le code front, ni les URL stockées en base
- * (newsletters.sections, pages.sections, pages.banner_img), ni les mails déjà
- * envoyés. Ne jamais la rendre dépendante de la constante.
+ * Ne dépend volontairement PAS de VG_DATA_MOUNT, et ne doit jamais en dépendre.
+ * Ces URL sont stockées en base (newsletters.sections, pages.sections,
+ * pages.banner_img), publiées dans les exports open data et envoyées par mail :
+ * elles doivent survivre à tout déplacement du stockage.
+ *
+ * Corollaire : ne jamais reconstruire une URL en soustrayant DOCUMENT_ROOT d'un
+ * chemin disque. À travers le lien symbolique, la cible est hors DOCUMENT_ROOT
+ * et la soustraction ne matche pas.
  */
 function vg_data_url(string $rel): string
 {
@@ -97,8 +94,8 @@ function vg_data_exists(string $rel): bool
  * Chemin réel, ou null si le chemin résolu sort de sa racine de données (lien
  * symbolique piégé, remontée) ou si le fichier n'existe pas.
  *
- * Ancré sur le premier segment et non sur la base, pour garder le même pouvoir
- * avant et après la bascule (cf. VG_DATA_PREFIXES).
+ * L'ancrage se fait sur le premier segment (bdd/, images/, open-data/) et non
+ * sur le point de montage : c'est le sous-arbre qui borne, pas la racine.
  */
 function vg_data_realpath(string $rel): ?string
 {
@@ -114,7 +111,7 @@ function vg_data_realpath(string $rel): ?string
 
 /**
  * Crée le dossier de données s'il manque et vérifie qu'il est accessible en
- * écriture. Remplace les mkdir dispersés dans les endpoints.
+ * écriture.
  *
  * À appeler AVANT la première mutation de la requête — avant l'INSERT, avant
  * move_uploaded_file. C'est le seul moment où l'on peut échouer sans laisser

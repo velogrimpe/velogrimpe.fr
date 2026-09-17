@@ -43,14 +43,20 @@ RewriteRule ^public/.*\.(php|phar|phtml|php[0-9]|phps|pht|inc|shtml|cgi|pl|py|rb
 # Pas de listing du point de montage.
 RewriteRule ^public/(.*/)?$ - [F,L]
 
-# Repli : un fichier absent du dossier déployé est cherché dans les données.
-# C'est ce qui préserve l'espace d'URL historique (/bdd/…, /images/…) quel que
-# soit l'emplacement physique du fichier — aucune URL publique à réécrire, ni
-# dans le code, ni en base, ni dans les mails déjà envoyés.
+# Résolution des URL de données vers le point de montage. Les fichiers vivent
+# dans ~/public ; leurs URL publiques restent /bdd/… et /images/…, telles
+# qu'elles sont stockées en base, publiées dans les exports open data et
+# envoyées par mail. C'est cette règle qui fait le lien.
 #
-# Ordre : la règle [F] ci-dessus est AVANT le repli, et une réécriture interne
-# relance le jeu de règles, donc /bdd/…/x.php est bloqué lui aussi. Le repli ne
-# boucle pas : sur /public/bdd/… le motif ^(bdd|images)/ ne matche plus.
+# Ordre : la règle [F] ci-dessus est AVANT celle-ci, et une réécriture interne
+# relance le jeu de règles, donc /bdd/…/x.php est bloqué lui aussi. Pas de
+# boucle : sur /public/bdd/… le motif ^(bdd|images)/ ne matche plus.
+#
+# La condition !-f sert aussi les assets versionnés restés dans le dossier
+# déployé (logos, icônes de carte, styles) : ils sont trouvés sur place et la
+# règle ne s'applique pas. Revers de la médaille, une DONNÉE qui traînerait au
+# même chemin relatif masquerait sans erreur celle du point de montage — d'où
+# la règle : dans bdd/, images/ et open-data/, rien qui ne soit versionné.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(bdd|images)/(.+)$ /public/$1/$2 [L]
 

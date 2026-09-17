@@ -20,8 +20,7 @@ Toutes les pages principales sont à la racine du dépôt:
 - Le dossier `js/` contient les quelques scripts utilisés sur le site.
 - Le dossier `symbols/` contient les icones utilisés sur le site.
 - Le dossier `images/` contient les images statiques, hors contenus falaises.
-- Le dossier `bdd/` contient, une fois peuplé, les images des falaises, les gpx, les geojson des barres et le dossier `bdd/trains` contient le geojson des lignes de train françaises ainsi que la version convertie en tuiles (le .pmtiles) pour permettre de charger seulement la partie visible.
-- Le lien symbolique `public/` pointe vers le dossier de données hors dépôt (`../public`). Il permet de sortir `bdd/`, `images/` et `open-data/` du dossier déployé, qu'un `rsync --delete` peut effacer. Voir « Chemins de données ».
+- Le lien symbolique `public/` pointe vers le dossier de données hors dépôt (`../public`) : images des falaises, GPX, GeoJSON des barres, exports open data, et `bdd/trains` avec le GeoJSON des lignes de train françaises et sa version en tuiles (`.pmtiles`, pour ne charger que la partie visible). Voir « Chemins de données ».
 
 ## Mise en place d'un environnement de développement
 
@@ -63,9 +62,7 @@ docker run --platform linux/x86_64 --name velogrimpe -p 4001:22 -p 4000:80 -d \
   tomsik68/xampp:8
 ```
 
-`public/` est monté en lecture/écriture : c'est la cible du symlink `public_html/public`, destinée à accueillir les contenus téléversés (images de falaises, GPX) et les GeoJSON générés.
-
-**État actuel de la migration** : le code accède à ces fichiers exclusivement via `lib/paths.php`, mais la constante `VG_DATA_MOUNT` y vaut encore `''` — les données sont donc lues et écrites dans `public_html/bdd`, `public_html/images` et `public_html/open-data`. La bascule vers `public/` se fera en changeant cette seule ligne, une fois les données déplacées sur le serveur. Voir « Chemins de données » ci-dessous.
+`public/` est monté en lecture/écriture : c'est la cible du symlink `public_html/public`, et c'est là que le site lit et écrit les contenus téléversés (images de falaises, GPX) et les GeoJSON générés. Voir « Chemins de données » ci-dessous.
 
 Une fois lancé, ce conteneur est synchronisé avec votre dossier local et sert :
 
@@ -151,29 +148,34 @@ Deux points à respecter :
 
 ### Où vivent les fichiers
 
-`VG_DATA_MOUNT`, dans `lib/paths.php`, est la seule ligne qui décide :
+Les données sont stockées **hors du dossier déployé**, dans `~/public` sur le
+serveur et à la racine du dépôt en local (dossier git-ignoré). Elles y sont
+atteintes par le lien symbolique versionné `public_html/public -> ../public`,
+et `VG_DATA_MOUNT` (dans `lib/paths.php`) porte ce préfixe.
 
-| Valeur | Emplacement |
-| --- | --- |
-| `''` (actuel) | `public_html/bdd`, `public_html/images`, `public_html/open-data` |
-| `'/public'` | le point de montage hors dépôt, via le symlink `public_html/public -> ../public` |
-
-La bascule se fait en changeant cette constante, dans un sens comme dans l'autre.
-Elle suppose que les données aient été **déplacées** au préalable sur le serveur.
-
-Le `.htaccess` racine porte la règle de repli qui rend l'opération transparente :
+Les URL publiques, elles, restent `/bdd/…` et `/images/…`. Le `.htaccess` racine
+fait le lien :
 
 ```apache
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(bdd|images)/(.+)$ /public/$1/$2 [L]
 ```
 
-Un fichier est donc servi sur son URL historique où qu'il se trouve — aucune URL
-publique ne change.
+La condition `!-f` fait cohabiter les deux natures de fichiers : les **assets
+versionnés** restés dans le dossier déployé (logos, icônes de carte, styles de
+carte, `bdd/trains/gares.json`) sont trouvés sur place, les **données** sont
+résolues vers le point de montage.
 
-> **Piège** : cette règle est conditionnée par `!-f`, donc **un fichier resté dans
-> le dossier déployé gagne** sur son homologue du point de montage, silencieusement.
-> Le transfert des données doit être un déplacement, pas une copie.
+> **Corollaire à connaître** : une donnée qui traînerait dans le dossier déployé
+> au même chemin relatif serait servie **à la place** de celle du point de
+> montage, sans erreur. Règle : dans `public_html/bdd`, `public_html/images` et
+> `public_html/open-data`, rien qui ne soit versionné.
+
+Attention aussi aux fichiers **versionnés lus par PHP** à travers le helper :
+eux sont cherchés dans le point de montage, sans repli possible (le repli est
+une règle Apache, elle ne joue que pour les requêtes HTTP). C'est le cas de
+`bdd/cartotrain/tableau.xlsx`, lu par `api/private/crons/ingest_cartotrain.php` :
+il doit exister dans `~/public/bdd/cartotrain/`.
 
 Le même `.htaccess` refuse toute exécution de script et tout listing sous
 `/public/` (motif cherchant l'extension n'importe où dans le nom, pour couvrir
