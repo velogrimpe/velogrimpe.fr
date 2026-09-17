@@ -32,18 +32,27 @@ function saveContribInfo(nom, email) {
 }
 
 /**
- * Pre-remplit les champs nom_prenom et email du formulaire
- * avec les valeurs du localStorage (si non deja remplis)
+ * Ids des champs nom / email, surchargeables par les formulaires qui
+ * n'utilisent pas la convention nom_prenom + email (ex : recits de falaise)
+ * @typedef {{nomId?: string, emailId?: string}} ContribFieldIds
  */
-function prefillContribInputs() {
+const DEFAULT_FIELD_IDS = { nomId: 'nom_prenom', emailId: 'email' };
+
+/**
+ * Pre-remplit les champs nom et email du formulaire
+ * avec les valeurs du localStorage (si non deja remplis)
+ * @param {ContribFieldIds} [fields]
+ */
+function prefillContribInputs(fields) {
+  const { nomId, emailId } = { ...DEFAULT_FIELD_IDS, ...fields };
   const { nom, email } = getContribInfo();
 
-  const nomInput = document.getElementById('nom_prenom');
+  const nomInput = document.getElementById(nomId);
   if (nomInput && !nomInput.value && nom) {
     nomInput.value = nom;
   }
 
-  const emailInput = document.getElementById('email');
+  const emailInput = document.getElementById(emailId);
   if (emailInput && !emailInput.value && email) {
     emailInput.value = email;
   }
@@ -52,13 +61,16 @@ function prefillContribInputs() {
 /**
  * Attache un listener au formulaire pour sauvegarder les infos a la soumission
  * @param {HTMLFormElement} form
+ * @param {ContribFieldIds} [fields]
  */
-function attachFormSaveListener(form) {
+function attachFormSaveListener(form, fields) {
   if (!form) return;
 
+  const { nomId, emailId } = { ...DEFAULT_FIELD_IDS, ...fields };
+
   form.addEventListener('submit', () => {
-    const nomInput = document.getElementById('nom_prenom');
-    const emailInput = document.getElementById('email');
+    const nomInput = document.getElementById(nomId);
+    const emailInput = document.getElementById(emailId);
 
     if (nomInput?.value) {
       saveContribInfo(nomInput.value, emailInput?.value || '');

@@ -251,7 +251,7 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
           selected = falaise;
           const [lat, lng] = falaise.falaise_latlng.split(",").map(parseFloat)
           console.log("Selected falaise:", [lat, lng]);
-          map.flyTo([lat, lng], 14, { duration: 0.5 });
+          map.flyTo([lat, lng], 14, { duration: 0.3 });
           fetch(`https://api.oblyk.org/api/v1/public/crags/crags_around?latitude=${lat}&longitude=${lng}&distance=${3}`, {
             method: "GET",
             headers: {
@@ -288,8 +288,42 @@ $itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetc
   let falaisesOblyk = []
 
   var map = L.map("map", {
-    layers: [landscapeTiles], center, zoom, fullscreenControl: true, zoomSnap: 0.5
+    layers: [landscapeTiles], center, zoom, fullscreenControl: true,
+    zoomSnap: 0,            // zoom continu : plus de palier à franchir
+    zoomDelta: 1,           // les boutons +/- gardent un pas entier
+    scrollWheelZoom: false, // remplacé par le handler direct ci-dessous
   });
+
+  // Zoom molette immédiat. Leaflet attend la fin du scroll (wheelDebounceTime,
+  // 40 ms) puis joue une animation de 250 ms : sur cette carte (~290 marqueurs)
+  // ça donne une impression de blocage, et une rafale de crans ne rapporte
+  // qu'un niveau et demi. Ici chaque évènement est cumulé et appliqué à la
+  // frame suivante, sans animation : la carte bouge dès le premier cran.
+  (function fastWheelZoom(map) {
+    const PX_PER_LEVEL = 200; // ~0.6 niveau par cran de molette
+    const MAX_PER_FRAME = 1;  // garde-fou contre les rafales de trackpad
+    let delta = 0;
+    let point = null;
+    let scheduled = false;
+
+    map.getContainer().addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const unit = e.deltaMode === 1 ? 20 : e.deltaMode === 2 ? 60 : 1;
+      // le pincement trackpad arrive en wheel + ctrlKey, avec de petits deltas
+      delta += -e.deltaY * unit * (e.ctrlKey ? 4 : 1);
+      point = map.mouseEventToContainerPoint(e);
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        const step = Math.max(-MAX_PER_FRAME, Math.min(MAX_PER_FRAME, delta / PX_PER_LEVEL));
+        delta = 0;
+        const current = map.getZoom();
+        const next = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), current + step));
+        if (next !== current) map.setZoomAround(point, next, { animate: false });
+      });
+    }, { passive: false });
+  })(map);
   var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
   L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
 

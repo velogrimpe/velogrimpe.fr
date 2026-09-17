@@ -241,6 +241,8 @@ $stmtC->close();
   <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
+  <!-- Contrib storage -->
+  <script src="/js/contrib-storage.js"></script>
   <link rel="stylesheet" href="/global.css">
   <link rel="stylesheet" href="falaise.css">
   <?php
@@ -1427,9 +1429,12 @@ $stmtC->close();
   <script type="module" src="/dist/falaise-sun.js"></script>
   <script>
     const comments = <?= json_encode($comments) ?>;
+    // Le formulaire de recit utilise `nom` / `email`, pas la convention `nom_prenom`
+    const COMMENT_CONTRIB_FIELDS = { nomId: 'nom', emailId: 'email' };
     function editComment(commentId) {
       document.getElementById('emailPromptDialog').showModal();
       document.getElementById('emailPromptCommentId').value = commentId;
+      window.contribStorage?.prefillContribInputs({ emailId: 'emailPromptEmail' });
     }
     function newComment() {
       // Réinitialiser le formulaire
@@ -1440,6 +1445,8 @@ $stmtC->close();
       document.getElementById('commentFormEditTitle').classList.add('hidden');
       // Cacher le bouton de suppression
       document.querySelector('#commentFormModal .btn.btn-error').classList.add('hidden');
+      // Pre-remplir nom/email a partir des infos contributeur memorisees
+      window.contribStorage?.prefillContribInputs(COMMENT_CONTRIB_FIELDS);
       // Ouvrir le formulaire de commentaire
       document.getElementById('commentFormModal').showModal();
     }
@@ -1498,6 +1505,7 @@ $stmtC->close();
         });
     }
     document.getElementById('emailPromptForm').addEventListener('submit', checkEmailAndOpenForm);
+    window.contribStorage?.attachFormSaveListener(document.getElementById('commentForm'), COMMENT_CONTRIB_FIELDS);
     document.getElementById('commentForm').addEventListener('submit', function (event) {
       event.preventDefault();
       const form = this;
