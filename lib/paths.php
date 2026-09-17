@@ -26,61 +26,36 @@
  */
 const VG_DATA_MOUNT = '/public';
 
-/**
- * Dossiers de données de premier niveau.
- *
- * Sert de garde-fou de nommage plutôt que de barrière de sécurité : l'isolement
- * est assuré par le rejet des remontées dans vg_data_rel(), et tout ce qui vit
- * sous le point de montage est de la donnée. Cette liste transforme en erreur
- * bruyante un appel qui passerait un chemin d'une autre convention — typiquement
- * l'ancien préfixe `bdd/`, qui créerait sinon un `public/bdd/` fantôme sans que
- * rien ne le signale.
- *
- * Deux dossiers ont une URL publique qui ne suit PAS vg_data_url() :
- *   - `open-data/` : servi par open-data/download.php, URL /open-data/*.geojson
- *   - `images/`    : encore dupliqué avec public_html/images, URL /images/…
- * Aucun appelant n'y fait appel à vg_data_url() ; ne pas commencer.
- */
-const VG_DATA_PREFIXES = [
-  'barres',
-  'barres-historique',
-  'biodiv',
-  'ca',
-  'cartotrain',
-  'fichiers_news',
-  'fichiers_pages',
-  'gpx',
-  'gpx-historique',
-  'images',
-  'images_falaises',
-  'images_news',
-  'images_pages',
-  'open-data',
-  'styles',
-  'trains',
-  'zones',
-];
-
 /** Échec d'une opération sur le stockage de données. */
 class VgDataException extends RuntimeException {}
 
 /**
  * Valide et normalise un chemin de données relatif.
  *
- * Refuse : chemin vide, octet nul, segment '.' ou '..', segment vide (cas réel
- * quand un slug se réduit à la chaîne vide : 'images_news//x.webp' écrirait
- * dans le dossier parent), racine hors VG_DATA_PREFIXES.
+ * Refuse : chemin vide, octet nul, segment vide (cas réel quand un slug se
+ * réduit à la chaîne vide : 'images_news//x.webp' écrirait dans le dossier
+ * parent), et tout segment commençant par un point.
+ *
+ * Ce rejet des segments en `.` fait trois choses d'un coup : il couvre `.` et
+ * `..`, donc aucun chemin ne peut sortir du point de montage ; et il met
+ * `public/.htaccess` hors d'atteinte — ce fichier est la barrière qui interdit
+ * l'exécution de scripts dans les données, un helper d'écriture n'a aucune
+ * raison de pouvoir l'écraser.
+ *
+ * Il n'y a volontairement PAS de liste blanche de dossiers : tout ce qui vit
+ * sous le point de montage est de la donnée, et l'isolement est assuré par les
+ * contrôles ci-dessus. Un nouveau dossier de données ne demande donc aucune
+ * modification ici.
  */
 function vg_data_rel(string $rel): string
 {
   $rel = ltrim($rel, '/');
-  $segments = explode('/', $rel);
 
-  if ($rel === '' || str_contains($rel, "\0") || !in_array($segments[0], VG_DATA_PREFIXES, true)) {
+  if ($rel === '' || str_contains($rel, "\0")) {
     throw new VgDataException("Chemin de données invalide : « $rel »");
   }
-  foreach ($segments as $segment) {
-    if ($segment === '' || $segment === '.' || $segment === '..') {
+  foreach (explode('/', $rel) as $segment) {
+    if ($segment === '' || str_starts_with($segment, '.')) {
       throw new VgDataException("Chemin de données invalide : « $rel »");
     }
   }
@@ -113,25 +88,6 @@ function vg_data_url(string $rel): string
 function vg_data_exists(string $rel): bool
 {
   return file_exists(vg_data_path($rel));
-}
-
-/**
- * Chemin réel, ou null si le chemin résolu sort de sa racine de données (lien
- * symbolique piégé, remontée) ou si le fichier n'existe pas.
- *
- * L'ancrage se fait sur le premier segment (gpx/, barres/, images_falaises/…)
- * et non sur le point de montage : c'est le sous-arbre qui borne, pas la racine.
- */
-function vg_data_realpath(string $rel): ?string
-{
-  $rel = vg_data_rel($rel);
-  $base = realpath(vg_data_path(explode('/', $rel)[0]));
-  $target = realpath(vg_data_path($rel));
-
-  if ($base === false || $target === false) {
-    return null;
-  }
-  return str_starts_with($target . DIRECTORY_SEPARATOR, $base . DIRECTORY_SEPARATOR) ? $target : null;
 }
 
 /**

@@ -138,9 +138,13 @@ vg_data_prepare('images_news/mon-slug');  // crée le dossier, vérifie l'écrit
 
 Les chemins passés sont relatifs à la racine des données (`gpx/…`, `barres/…`,
 `images_falaises/…`), jamais des chemins disque absolus. `vg_data_rel()` refuse
-les remontées (`..`), les segments vides et les dossiers de premier niveau
-inconnus — cette dernière vérification transforme en erreur bruyante un appel
-resté sur l'ancienne convention `bdd/…`.
+les segments vides et tout segment commençant par un point — ce qui couvre `.`
+et `..`, et met `public/.htaccess` hors d'atteinte d'une écriture.
+
+Il n'y a **pas** de liste blanche de dossiers : tout ce qui vit sous le point de
+montage est de la donnée, et l'isolement tient entièrement aux contrôles
+ci-dessus. Un nouveau dossier de données s'utilise directement, sans rien
+déclarer.
 
 Deux points à respecter :
 
