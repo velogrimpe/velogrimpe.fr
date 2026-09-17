@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 header('Content-Type: application/json');
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 // Créer la table si elle n'existe pas
@@ -51,7 +52,7 @@ $mysqli->query("CREATE TABLE IF NOT EXISTS cartotrain_emport (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
 // Parser le fichier XLSX
-$xlsxPath = $_SERVER['DOCUMENT_ROOT'] . '/bdd/cartotrain/tableau.xlsx';
+$xlsxPath = vg_data_path('bdd/cartotrain/tableau.xlsx');
 if (!file_exists($xlsxPath)) {
   http_response_code(404);
   echo json_encode(['success' => false, 'error' => 'Fichier tableau.xlsx introuvable']);

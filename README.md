@@ -21,6 +21,7 @@ Toutes les pages principales sont à la racine du dépôt:
 - Le dossier `symbols/` contient les icones utilisés sur le site.
 - Le dossier `images/` contient les images statiques, hors contenus falaises.
 - Le dossier `bdd/` contient, une fois peuplé, les images des falaises, les gpx, les geojson des barres et le dossier `bdd/trains` contient le geojson des lignes de train françaises ainsi que la version convertie en tuiles (le .pmtiles) pour permettre de charger seulement la partie visible.
+- Le lien symbolique `public/` pointe vers le dossier de données hors dépôt (`../public`). Il permet de sortir `bdd/`, `images/` et `open-data/` du dossier déployé, qu'un `rsync --delete` peut effacer. Voir « Chemins de données ».
 
 ## Mise en place d'un environnement de développement
 
@@ -62,7 +63,9 @@ docker run --platform linux/x86_64 --name velogrimpe -p 4001:22 -p 4000:80 -d \
   tomsik68/xampp:8
 ```
 
-`public/` est monté en lecture/écriture : c'est là que le site écrit les contenus téléversés (images de falaises, GPX) et les GeoJSON générés.
+`public/` est monté en lecture/écriture : c'est la cible du symlink `public_html/public`, destinée à accueillir les contenus téléversés (images de falaises, GPX) et les GeoJSON générés.
+
+**État actuel de la migration** : le code accède à ces fichiers exclusivement via `lib/paths.php`, mais la constante `VG_DATA_MOUNT` y vaut encore `''` — les données sont donc lues et écrites dans `public_html/bdd`, `public_html/images` et `public_html/open-data`. La bascule vers `public/` se fera en changeant cette seule ligne, une fois les données déplacées sur le serveur. Voir « Chemins de données » ci-dessous.
 
 Une fois lancé, ce conteneur est synchronisé avec votre dossier local et sert :
 
@@ -110,6 +113,74 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4000/carte.php   # 200
 ```
 
 L'export ne contient que les données SQL. Les fichiers associés (images de falaises, GPX, GeoJSON des barres, tuiles de lignes de train) se récupèrent séparément et se déposent dans `public/`.
+
+## Chemins de données
+
+Les contenus téléversés (images de falaises, images d'articles et de newsletters,
+traces GPX) et les fichiers générés (GeoJSON de barres, exports open data) sont
+des **données**, pas du code : ils ne sont pas versionnés et ne doivent pas vivre
+dans le dossier déployé, qu'un déploiement peut effacer.
+
+**Règle : aucun chemin de données ne se construit à la main.** Tout passe par
+`lib/paths.php`, en lecture comme en écriture.
+
+```php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
+
+vg_data_path('bdd/gpx/12_x_y_.gpx');   // chemin absolu sur disque
+vg_data_url('bdd/gpx/12_x_y_.gpx');    // '/bdd/gpx/12_x_y_.gpx' — URL publique
+vg_data_exists('bdd/barres/1_x.geojson');
+vg_data_prepare('bdd/images_news/mon-slug');  // crée le dossier, vérifie l'écriture
+```
+
+Les chemins passés sont ceux de **l'espace d'URL** (`bdd/…`, `images/…`,
+`open-data/…`), jamais des chemins disque. `vg_data_rel()` refuse les remontées
+(`..`), les segments vides et les racines inconnues.
+
+Deux points à respecter :
+
+- **`vg_data_url()` ne dépend pas de l'emplacement des fichiers** et ne doit
+  jamais en dépendre. Les URL produites partent en base (`newsletters.sections`,
+  `pages.sections`, `pages.banner_img`), dans les exports open data et dans des
+  mails déjà envoyés. Ne jamais reconstruire une URL par soustraction du
+  `DOCUMENT_ROOT` d'un chemin disque : à travers le lien symbolique, la cible est
+  hors `DOCUMENT_ROOT` et la soustraction ne matche plus.
+- **`vg_data_prepare()` s'appelle avant la première mutation de la requête** —
+  avant l'`INSERT`, avant `move_uploaded_file`. C'est le seul moment où un échec
+  ne laisse pas de ligne en base sans son fichier.
+
+### Où vivent les fichiers
+
+`VG_DATA_MOUNT`, dans `lib/paths.php`, est la seule ligne qui décide :
+
+| Valeur | Emplacement |
+| --- | --- |
+| `''` (actuel) | `public_html/bdd`, `public_html/images`, `public_html/open-data` |
+| `'/public'` | le point de montage hors dépôt, via le symlink `public_html/public -> ../public` |
+
+La bascule se fait en changeant cette constante, dans un sens comme dans l'autre.
+Elle suppose que les données aient été **déplacées** au préalable sur le serveur.
+
+Le `.htaccess` racine porte la règle de repli qui rend l'opération transparente :
+
+```apache
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(bdd|images)/(.+)$ /public/$1/$2 [L]
+```
+
+Un fichier est donc servi sur son URL historique où qu'il se trouve — aucune URL
+publique ne change.
+
+> **Piège** : cette règle est conditionnée par `!-f`, donc **un fichier resté dans
+> le dossier déployé gagne** sur son homologue du point de montage, silencieusement.
+> Le transfert des données doit être un déplacement, pas une copie.
+
+Le même `.htaccess` refuse toute exécution de script et tout listing sous
+`/public/` (motif cherchant l'extension n'importe où dans le nom, pour couvrir
+`shell.php.jpg`). Ces garanties sont posées à la racine et pas seulement dans le
+`.htaccess` de la cible : derrière un lien symbolique pointant hors du
+`DocumentRoot`, un `.htaccess` enfant peut être ignoré selon la portée
+d'`AllowOverride`.
 
 ## Partage et réutilisation
 

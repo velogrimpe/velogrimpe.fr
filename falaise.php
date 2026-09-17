@@ -11,6 +11,18 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/richtext.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
+
+/**
+ * Chemin de données d'une photo de falaise (cf. lib/paths.php).
+ * $n vaut 1, 2 ou 3. Utiliser vg_data_exists() pour tester sa présence et
+ * vg_data_url() pour l'attribut src — le chemin disque et l'URL ne coïncident
+ * plus dès que les données vivent hors du dossier déployé.
+ */
+function falaise_img_rel(int|string $falaise_id, string $nomformate, int $n): string
+{
+  return 'bdd/images_falaises/' . $falaise_id . '_' . $nomformate . '_img' . $n . '.webp';
+}
 
 $stmtF = $mysqli->prepare("SELECT * FROM falaises WHERE falaise_id = ?");
 if (!$stmtF) {
@@ -237,9 +249,9 @@ $stmtC->close();
     . ($ville_id_get && $selected_ville_nom ? ' au départ de ' . $selected_ville_nom : '')
     . '. Découvrez les accès en vélo et en train, les topos et les informations pratiques pour une sortie vélo-grimpe en mobilité douce.';
 
-  $img1_path = '/bdd/images_falaises/' . $falaise_id . '_' . $falaise_nomformate . '_img1.webp';
-  $jsonld_image = file_exists($_SERVER['DOCUMENT_ROOT'] . $img1_path)
-    ? VG_BASE . $img1_path
+  $img1_rel = falaise_img_rel($falaise_id, $falaise_nomformate, 1);
+  $jsonld_image = vg_data_exists($img1_rel)
+    ? VG_BASE . vg_data_url($img1_rel)
     : VG_BASE . '/images/mw/velogrimpe-social-60.webp';
 
   $attraction = [
@@ -903,10 +915,10 @@ $stmtC->close();
         </div>
       </div>
       <!-- Image optionnelle 1 -->
-      <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img1.webp"; ?>
-      <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
+      <?php $img_rel = falaise_img_rel($falaise_id, $falaise_nomformate, 1); ?>
+      <?php if (vg_data_exists($img_rel)): ?>
         <div class="flex flex-col items-center gap-1">
-          <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <img src="<?= htmlspecialchars(vg_data_url($img_rel)) ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg1)): ?>
             <div class="text-base-content">
               <div class="vg-rt"><?= rt_display($falaise_leg1) ?></div>
@@ -920,10 +932,10 @@ $stmtC->close();
         </div>
       <?php endif; ?>
       <!-- Image optionnelle 2 -->
-      <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img2.webp"; ?>
-      <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
+      <?php $img_rel = falaise_img_rel($falaise_id, $falaise_nomformate, 2); ?>
+      <?php if (vg_data_exists($img_rel)): ?>
         <div class="flex flex-col items-center gap-1">
-          <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <img src="<?= htmlspecialchars(vg_data_url($img_rel)) ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg2)): ?>
             <div class="text-base-content">
               <div class="vg-rt"><?= rt_display($falaise_leg2) ?></div>
@@ -938,10 +950,10 @@ $stmtC->close();
         </div>
       <?php endif; ?>
       <!-- Image optionnelle 3 -->
-      <?php $path = "/bdd/images_falaises/" . htmlspecialchars($falaise_id) . "_" . htmlspecialchars($falaise_nomformate) . "_img3.webp"; ?>
-      <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)): ?>
+      <?php $img_rel = falaise_img_rel($falaise_id, $falaise_nomformate, 3); ?>
+      <?php if (vg_data_exists($img_rel)): ?>
         <div class="flex flex-col items-center gap-1">
-          <img src="<?= $path ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
+          <img src="<?= htmlspecialchars(vg_data_url($img_rel)) ?>" class="border border-base-300 rounded-xl shadow-lg md:w-4/5">
           <?php if (!empty($falaise_leg3)): ?>
             <div class="text-base-content">
               <div class="vg-rt"><?= rt_display($falaise_leg3) ?></div>

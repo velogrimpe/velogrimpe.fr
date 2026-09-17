@@ -22,6 +22,7 @@ if (empty($falaise_id)) {
 header('Content-Type: application/json');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
 
@@ -258,7 +259,10 @@ $stmt->close();
 $mysqli->close();
 
 // Check existance of falaise details geojson file and load it if exists
-$geojson_file = $_SERVER['DOCUMENT_ROOT'] . "/bdd/barres/" . $falaise["falaise_id"] . "_" . $falaise["falaise_nomformate"] . ".geojson";
+const BARRES_DIR = 'bdd/barres';
+const BARRES_ARCHIVE_DIR = 'bdd/barres-historique';
+$geojson_rel = BARRES_DIR . '/' . $falaise["falaise_id"] . "_" . $falaise["falaise_nomformate"] . ".geojson";
+$geojson_file = vg_data_path($geojson_rel);
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
@@ -308,27 +312,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   // Track if this is an update or new file
   $isUpdate = file_exists($geojson_file);
 
-  // Load previous features (for change summary) and create backup before saving
+  // Load previous features (for change summary) and create backup before saving.
   $previousFeatures = [];
-  if (file_exists($geojson_file)) {
-    $previousContent = file_get_contents($geojson_file);
-    $previousData = json_decode($previousContent, true);
-    if (is_array($previousData) && isset($previousData['features']) && is_array($previousData['features'])) {
-      $previousFeatures = $previousData['features'];
+  $ecriture_ok = false;
+  try {
+    vg_data_prepare(BARRES_DIR);
+    if ($isUpdate) {
+      vg_data_prepare(BARRES_ARCHIVE_DIR);
     }
 
-    $backup_dir = $_SERVER['DOCUMENT_ROOT'] . "/bdd/barres-historique";
-    if (!is_dir($backup_dir)) {
-      mkdir($backup_dir, 0755, true);
+    if ($isUpdate) {
+      $previousContent = file_get_contents($geojson_file);
+      $previousData = json_decode($previousContent, true);
+      if (is_array($previousData) && isset($previousData['features']) && is_array($previousData['features'])) {
+        $previousFeatures = $previousData['features'];
+      }
+
+      $date_suffix = date('Y-m-d-H\Hi');
+      $base_name = $falaise["falaise_id"] . "_" . $falaise["falaise_nomformate"];
+      $backup_rel = BARRES_ARCHIVE_DIR . '/' . $base_name . '-' . $date_suffix . '.geojson';
+      if (!copy($geojson_file, vg_data_path($backup_rel))) {
+        throw new VgDataException("Sauvegarde de la version précédente impossible : $backup_rel");
+      }
     }
-    $date_suffix = date('Y-m-d-H\Hi');
-    $base_name = $falaise["falaise_id"] . "_" . $falaise["falaise_nomformate"];
-    $backup_file = $backup_dir . "/" . $base_name . "-" . $date_suffix . ".geojson";
-    copy($geojson_file, $backup_file);
+
+    // `=== false` et non un test booléen : file_put_contents renvoie le nombre
+    // d'octets écrits, et 0 (fichier tronqué) est un échec silencieux en
+    // booléen alors que l'écriture a bien eu lieu.
+    $ecriture_ok = file_put_contents($geojson_file, json_encode($data, JSON_PRETTY_PRINT)) !== false;
+  } catch (VgDataException $e) {
+    error_log('[falaise_details] ' . $e->getMessage());
   }
 
   // Save the updated geojson content
-  if (file_put_contents($geojson_file, json_encode($data, JSON_PRETTY_PRINT))) {
+  if ($ecriture_ok) {
     // Log the modification
     logChanges(
       $author,

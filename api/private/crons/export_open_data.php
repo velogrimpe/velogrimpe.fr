@@ -45,7 +45,15 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/pv.php';
 sendEvent($_SERVER['REQUEST_URI'], "vg", "vg-crons", 'event: export-open-data');
 
 // Cron logic
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+
+/** Dossier de données des exports, au sens de lib/paths.php. */
+const OPEN_DATA_DIR = 'open-data';
+
+// Préflight avant l'agrégation : inutile de passer ~30 s à construire les
+// collections si le dossier de destination n'est pas écrivable.
+vg_data_prepare(OPEN_DATA_DIR);
 
 // Attribution embarquée sur chaque Feature : les membres racine du
 // FeatureCollection ne sont lus par aucun client carto (Leaflet/MapLibre/uMap),
@@ -241,7 +249,7 @@ foreach ($veloResult as $velo) {
   // ({velo_id}_{depart}_{arrivee}_{varianteformate}.gpx). Les itinéraires sans
   // GPX (ou GPX vide) sont simplement omis de l'export géométrique.
   $gpxName = $velo['velo_id'] . '_' . $velo['velo_depart'] . '_' . $velo['velo_arrivee'] . '_' . $velo['velo_varianteformate'] . '.gpx';
-  $gpxPath = $_SERVER['DOCUMENT_ROOT'] . '/bdd/gpx/' . $gpxName;
+  $gpxPath = vg_data_path('bdd/gpx/' . $gpxName);
   $geometry = is_file($gpxPath) ? gpx_to_geometry($gpxPath) : null;
   if ($geometry === null) {
     $gpxMissing++;
@@ -397,7 +405,7 @@ foreach ($falaises as $falaise) {
 
   // Link to the geometric topo details file only when it exists, and merge its
   // features into the global details collection (tagging each with falaise_id).
-  $details_file = $_SERVER['DOCUMENT_ROOT'] . '/bdd/barres/' . $falaise['id'] . '_' . $falaise['nomformate'] . '.geojson';
+  $details_file = vg_data_path('bdd/barres/' . $falaise['id'] . '_' . $falaise['nomformate'] . '.geojson');
   if (file_exists($details_file)) {
     $properties['details_url'] = 'https://velogrimpe.fr/bdd/barres/' . $falaise['id'] . '_' . $falaise['nomformate'] . '.geojson';
 
@@ -496,19 +504,19 @@ foreach ($garesResult as $gare) {
 }
 
 // Save to file
-$file = $_SERVER['DOCUMENT_ROOT'] . '/open-data/falaises.geojson';
+$file = vg_data_path(OPEN_DATA_DIR . '/falaises.geojson');
 file_put_contents($file, json_encode($geojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
 // Save the merged details collection
-$details_export = $_SERVER['DOCUMENT_ROOT'] . '/open-data/falaises-details.geojson';
+$details_export = vg_data_path(OPEN_DATA_DIR . '/falaises-details.geojson');
 file_put_contents($details_export, json_encode($detailsGeojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
 // Save the bike itineraries collection (GPX tracks merged into one GeoJSON)
-$itineraires_export = $_SERVER['DOCUMENT_ROOT'] . '/open-data/itineraires-velo.geojson';
+$itineraires_export = vg_data_path(OPEN_DATA_DIR . '/itineraires-velo.geojson');
 file_put_contents($itineraires_export, json_encode($itinerairesGeojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
 // Save the gares collection
-$gares_export = $_SERVER['DOCUMENT_ROOT'] . '/open-data/gares.geojson';
+$gares_export = vg_data_path(OPEN_DATA_DIR . '/gares.geojson');
 file_put_contents($gares_export, json_encode($garesGeojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
 // Export complet : fusionne les collections en une seule, en taguant
@@ -537,7 +545,7 @@ foreach ($sources as $vgType => $features) {
     $completGeojson['features'][] = $feature;
   }
 }
-$complet_export = $_SERVER['DOCUMENT_ROOT'] . '/open-data/complet.geojson';
+$complet_export = vg_data_path(OPEN_DATA_DIR . '/complet.geojson');
 file_put_contents($complet_export, json_encode($completGeojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
 // Respond with success

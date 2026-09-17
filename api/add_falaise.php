@@ -137,10 +137,24 @@ foreach ([
   }
 }
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 if ($mysqli->connect_error) {
   respondError("Erreur de connexion à la base de données : " . $mysqli->connect_error, 500);
+}
+
+/** Dossier de données des photos de falaise, au sens de lib/paths.php. */
+const FALAISE_IMAGES_DIR = 'bdd/images_falaises';
+
+// Préflight AVANT l'INSERT. Le contrôle d'existence du dossier se faisait
+// auparavant après, si bien qu'un dossier absent laissait une falaise créée
+// sans ses images (cf. la note dans tests/add_falaise.http).
+try {
+  vg_data_prepare(FALAISE_IMAGES_DIR);
+} catch (VgDataException $e) {
+  error_log('[add_falaise] ' . $e->getMessage());
+  respondError("Le dossier des images de falaises est indisponible, rien n'a été enregistré.", 500);
 }
 
 
@@ -359,25 +373,18 @@ $falaise_id = $mysqli->insert_id;
 $stmt->close();
 $mysqli->close();
 
-$targetDir = '../bdd/images_falaises/'; // Chemin relatif au script PHP
-$fullTargetDir = realpath($targetDir); // Chemin absolu
-
-// Vérifiez si le dossier existe
-if (!$fullTargetDir) {
-  respondError("Le dossier cible $targetDir n'existe pas ou est introuvable.", 500);
-}
 
 // L'extension est déduite du type réel du fichier, jamais du nom envoyé par le
 // client : le dossier de destination est servi par le serveur web, un `.php`
 // déposé ici serait exécuté.
 const IMAGE_EXTENSIONS_AUTORISEES = [
   IMAGETYPE_JPEG => 'jpg',
-  IMAGETYPE_PNG  => 'png',
+  IMAGETYPE_PNG => 'png',
   IMAGETYPE_WEBP => 'webp',
 ];
 const IMAGE_TAILLE_MAX = 10 * 1024 * 1024;
 
-function uploadImage($fileInputName, $targetDir, $falaiseId, $falaiseNomformate, $suffix)
+function uploadImage($fileInputName, $relDir, $falaiseId, $falaiseNomformate, $suffix)
 {
   if (!isset($_FILES[$fileInputName]) || $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_OK) {
     return null;
@@ -400,7 +407,7 @@ function uploadImage($fileInputName, $targetDir, $falaiseId, $falaiseNomformate,
   $fileExtension = IMAGE_EXTENSIONS_AUTORISEES[$imageType];
 
   $targetFileName = "{$falaiseId}_{$falaiseNomformate}_{$suffix}.{$fileExtension}";
-  $targetFilePath = $targetDir . DIRECTORY_SEPARATOR . $targetFileName;
+  $targetFilePath = vg_data_path($relDir . '/' . $targetFileName);
 
   // store original and webp without format conversion
   if (!move_uploaded_file($fileTmpName, $targetFilePath)) {
@@ -419,7 +426,7 @@ foreach ([
   'falaise_img2_webp' => 'img2',
   'falaise_img3_webp' => 'img3'
 ] as $fileInputName => $suffix) {
-  $uploadError = uploadImage($fileInputName, $targetDir, $falaise_id, $falaise_nomformate, $suffix);
+  $uploadError = uploadImage($fileInputName, FALAISE_IMAGES_DIR, $falaise_id, $falaise_nomformate, $suffix);
   if ($uploadError) {
     $errors[] = $uploadError;
   }

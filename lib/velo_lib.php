@@ -8,6 +8,8 @@
  * répondent à une soumission de formulaire classique (navigation), pas en JSON.
  */
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
+
 const GPX_TAILLE_MAX = 10 * 1024 * 1024;
 
 /**
@@ -58,16 +60,28 @@ function velo_gpx_nom_fichier(int $velo_id, string $velo_depart, string $velo_ar
   return "{$velo_id}_{$velo_depart}_{$velo_arrivee}_{$velo_varianteformate}.gpx";
 }
 
+/** Dossier de données des traces GPX, au sens de lib/paths.php. */
+const VELO_GPX_DIR = 'bdd/gpx';
+
+/** Dossier de données des versions archivées. */
+const VELO_GPX_ARCHIVE_DIR = 'bdd/gpx-historique';
+
+/** Chemin de données du fichier GPX, relatif à la racine (cf. lib/paths.php). */
+function velo_gpx_rel(int $velo_id, string $velo_depart, string $velo_arrivee, string $velo_varianteformate): string
+{
+  return VELO_GPX_DIR . '/' . velo_gpx_nom_fichier($velo_id, $velo_depart, $velo_arrivee, $velo_varianteformate);
+}
+
 /** Chemin absolu sur disque du fichier GPX. */
 function velo_gpx_chemin(int $velo_id, string $velo_depart, string $velo_arrivee, string $velo_varianteformate): string
 {
-  return $_SERVER['DOCUMENT_ROOT'] . "/bdd/gpx/" . velo_gpx_nom_fichier($velo_id, $velo_depart, $velo_arrivee, $velo_varianteformate);
+  return vg_data_path(velo_gpx_rel($velo_id, $velo_depart, $velo_arrivee, $velo_varianteformate));
 }
 
 /** URL publique du fichier GPX. */
 function velo_gpx_url(int $velo_id, string $velo_depart, string $velo_arrivee, string $velo_varianteformate): string
 {
-  return "/bdd/gpx/" . velo_gpx_nom_fichier($velo_id, $velo_depart, $velo_arrivee, $velo_varianteformate);
+  return vg_data_url(velo_gpx_rel($velo_id, $velo_depart, $velo_arrivee, $velo_varianteformate));
 }
 
 /**
@@ -117,19 +131,18 @@ function velo_contrib_string(string $nom_prenom, string $email): string
 /**
  * Archive le GPX courant avant remplacement, dans bdd/gpx-historique/
  * (même principe que bdd/barres-historique pour les GeoJSON de falaise).
- * Retourne le chemin de l'archive, ou null s'il n'y avait rien à archiver.
+ *
+ * Prend et rend un chemin de données relatif (cf. lib/paths.php). Retourne null
+ * s'il n'y avait rien à archiver. Le dossier est supposé prêt : l'appelant a
+ * appelé vg_data_prepare(VELO_GPX_ARCHIVE_DIR) avant toute mutation.
  */
-function velo_archiver_gpx(string $chemin_actuel): ?string
+function velo_archiver_gpx(string $rel_actuel): ?string
 {
-  if (!file_exists($chemin_actuel)) {
+  if (!vg_data_exists($rel_actuel)) {
     return null;
   }
-  $dir = $_SERVER['DOCUMENT_ROOT'] . "/bdd/gpx-historique";
-  if (!is_dir($dir)) {
-    mkdir($dir, 0755, true);
-  }
-  $archive = $dir . "/" . basename($chemin_actuel, ".gpx") . "-" . date('Y-m-d-H\Hi') . ".gpx";
-  return copy($chemin_actuel, $archive) ? $archive : null;
+  $rel_archive = VELO_GPX_ARCHIVE_DIR . '/' . basename($rel_actuel, '.gpx') . '-' . date('Y-m-d-H\Hi') . '.gpx';
+  return copy(vg_data_path($rel_actuel), vg_data_path($rel_archive)) ? $rel_archive : null;
 }
 
 /** Lien de validation d'un itinéraire, pour les mails aux admins. */

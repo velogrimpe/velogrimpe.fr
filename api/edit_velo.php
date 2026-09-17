@@ -87,7 +87,7 @@ if (!$admin) {
 $dom = velo_charger_gpx_upload('gpx_file');
 
 $gpx_nom = velo_gpx_nom_fichier((int) $old['velo_id'], $old['velo_depart'], $old['velo_arrivee'], (string) $old['velo_varianteformate']);
-$gpx_chemin = velo_gpx_chemin((int) $old['velo_id'], $old['velo_depart'], $old['velo_arrivee'], (string) $old['velo_varianteformate']);
+$gpx_rel = velo_gpx_rel((int) $old['velo_id'], $old['velo_depart'], $old['velo_arrivee'], (string) $old['velo_varianteformate']);
 $lien_falaise = "https://velogrimpe.fr/falaise.php?falaise_id={$old['falaise_id']}";
 $titre = htmlspecialchars(($old['gare_nom'] ?? $old['velo_depart']) . " → " . ($old['falaise_nom'] ?? $old['velo_arrivee'])
   . ($old['velo_variante'] !== '' ? " (" . $old['velo_variante'] . ")" : ''));
@@ -165,6 +165,18 @@ if ($mode === 'suggestion') {
 // ---------------------------------------------------------------------------
 $velo_public = $admin ? 1 : intval($old['velo_public']);
 
+// Préflight avant l'UPDATE : un dossier de données inutilisable est détecté
+// pendant qu'il est encore sans conséquence de renvoyer le formulaire.
+if ($dom !== null) {
+  try {
+    vg_data_prepare(VELO_GPX_DIR);
+    vg_data_prepare(VELO_GPX_ARCHIVE_DIR);
+  } catch (VgDataException $e) {
+    error_log('[edit_velo] ' . $e->getMessage());
+    die("Le dossier des traces GPX est indisponible, la modification n'a pas été enregistrée. Merci de réessayer plus tard.");
+  }
+}
+
 $stmt = $mysqli->prepare("UPDATE velo
   SET velo_km = ?, velo_dplus = ?, velo_dmoins = ?, velo_descr = ?, velo_openrunner = ?, velo_public = ?,
       date_modification = CURRENT_TIMESTAMP
@@ -176,13 +188,19 @@ $stmt->bind_param("diissii", $velo_km, $velo_dplus, $velo_dmoins, $velo_descr, $
 $stmt->execute();
 $stmt->close();
 
-$gpx_remplace = false;
+// Trois états distincts, et pas un booléen : « inchangée » (aucun GPX soumis)
+// et « échec » (GPX soumis mais non écrit) doivent être discernables dans le
+// mail admin comme dans le journal des modifications.
+$gpx_statut = 'inchangée';
 if ($dom !== null) {
-  velo_archiver_gpx($gpx_chemin);
-  if ($dom->save($gpx_chemin) === false) {
+  velo_archiver_gpx($gpx_rel);
+  // Même dégradation volontaire qu'à l'ajout : l'UPDATE a déjà eu lieu et le
+  // fichier téléversé est perdu avec la requête. La panne remonte par mail.
+  if ($dom->save(vg_data_path($gpx_rel)) === false) {
     error_log("edit_velo: échec de l'écriture du GPX nettoyé pour velo_id=$velo_id");
+    $gpx_statut = 'échec';
   } else {
-    $gpx_remplace = true;
+    $gpx_statut = 'remplacée';
   }
 }
 
@@ -195,7 +213,7 @@ logChanges($nom_prenom, $email, 'update', 'velo', $velo_id, $old['falaise_id'], 
   "velo_descr" => $velo_descr,
   "velo_openrunner" => $velo_openrunner,
   "velo_public" => $velo_public,
-  "gpx_file" => $gpx_remplace ? 'remplacé' : 'inchangé',
+  "gpx_file" => $gpx_statut,
 ], [
   "velo_km" => (string) (float) $old['velo_km'],
   "velo_dplus" => $old['velo_dplus'],
@@ -203,7 +221,9 @@ logChanges($nom_prenom, $email, 'update', 'velo', $velo_id, $old['falaise_id'], 
   "velo_descr" => $old['velo_descr'],
   "velo_openrunner" => (string) ($old['velo_openrunner'] ?? ''),
   "velo_public" => intval($old['velo_public']),
-  "gpx_file" => 'inchangé',
+  // Doit rester la valeur « pas de changement » de $gpx_statut, au caractère
+  // près, sinon chaque édition journalise un faux changement de GPX.
+  "gpx_file" => 'inchangée',
 ]);
 
 // Notification : admin_mail en mode admin, contact_mail sinon (même schéma que
@@ -226,7 +246,13 @@ $html .= "<li><b>Description</b>: " . nl2br(htmlspecialchars($velo_descr)) . "</
 if ($admin) {
   $html .= "<li><b>Openrunner</b>: " . htmlspecialchars($velo_openrunner) . "</li>";
 }
-$html .= "<li><b>Trace GPX</b>: " . ($gpx_remplace ? 'remplacée (ancienne version archivée dans bdd/gpx-historique)' : 'inchangée') . "</li>";
+$html .= "<li><b>Trace GPX</b>: " . match ($gpx_statut) {
+  'remplacée' => 'remplacée (ancienne version archivée dans bdd/gpx-historique)',
+  'échec'     => "⚠️ <b>non enregistrée</b> — le fichier envoyé n'a pas pu être écrit sur le serveur. "
+    . "L'itinéraire garde sa trace précédente, ou n'en a plus du tout s'il n'en avait pas. "
+    . "Redemander le fichier au contributeur.",
+  default     => 'inchangée',
+} . "</li>";
 $html .= "</ul>";
 $html .= "<h2>Actions</h2>";
 if (!$admin) {

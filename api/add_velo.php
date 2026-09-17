@@ -49,6 +49,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     die("Il manque le fichier GPX.");
   }
 
+  // Le nom du GPX contient insert_id : le fichier ne peut pas être écrit avant
+  // l'INSERT, on ne peut donc que préflighter son dossier. C'est le seul moment
+  // où un échec ne laisse pas de ligne orpheline — le contributeur renvoie son
+  // formulaire, fichier compris.
+  try {
+    vg_data_prepare(VELO_GPX_DIR);
+  } catch (VgDataException $e) {
+    error_log('[add_velo] ' . $e->getMessage());
+    die("Le dossier des traces GPX est indisponible, l'itinéraire n'a pas été enregistré. Merci de réessayer plus tard.");
+  }
+
   // Préparer la requête
   $stmt = $mysqli->prepare("INSERT INTO velo 
         (gare_id, falaise_id, velo_depart, velo_arrivee, velo_km, velo_dplus, velo_dmoins,
@@ -88,7 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Enregistrer le fichier GPX nettoyé. velo_id vient d'insert_id et les trois
     // autres segments sont validés en amont : le chemin ne peut pas sortir du dossier.
     $gpx_target_file = velo_gpx_chemin((int) $velo_id, $velo_depart, $velo_arrivee, (string) $velo_varianteformate);
-    if ($dom->save($gpx_target_file) === false) {
+    // Dégradation volontaire : la ligne est déjà insérée et le fichier téléversé
+    // est perdu avec la requête, donc une erreur fatale ici coûterait plus au
+    // contributeur qu'elle ne rapporte (il ne pourrait pas réessayer sans créer
+    // un doublon). L'itinéraire s'affiche sans tracé — fetch_velos renvoie
+    // gpx_url: null, le front le gère. La panne est remontée à l'admin par mail.
+    $gpx_ecrit = $dom->save($gpx_target_file) !== false;
+    if (!$gpx_ecrit) {
       error_log("add_velo: échec de l'écriture du GPX nettoyé pour velo_id=$velo_id");
     }
 
@@ -150,6 +167,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $html .= "<li><b>A pied possible</b>: " . ($velo_apiedpossible ? 'Oui' : 'Non') . "</li>";
       $html .= "<li><b>Description</b>: " . htmlspecialchars(nl2br(trim($velo_descr))) . "</li>";
       $html .= "</ul>";
+      if (!$gpx_ecrit) {
+        $html .= "<p>⚠️ <b>La trace GPX n'a pas pu être enregistrée sur le serveur.</b> "
+          . "L'itinéraire est visible sans tracé ni lien de téléchargement, et il est "
+          . "absent de l'export open data. Redemander le fichier au contributeur, puis "
+          . "le déposer via le lien de modification ci-dessous.</p>";
+      }
       $html .= "<h2>Actions</h2>";
       if ($velo_public !== 1) {
         $html .= "<p>Pour valider cet itinéraire, cliquez sur le lien suivant :</p>";

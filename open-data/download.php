@@ -7,6 +7,7 @@
 // affichage inline. mod_deflate compresse la sortie (cf. .htaccess).
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/pv.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 
 // Whitelist slug => fichier réel : interdit tout path traversal et borne le
 // tracking aux exports officiels.
@@ -26,7 +27,7 @@ if (!isset($exports[$slug])) {
 }
 
 $file = $exports[$slug];
-$path = $_SERVER['DOCUMENT_ROOT'] . '/open-data/' . $file;
+$path = vg_data_path('open-data/' . $file);
 
 if (!is_file($path)) {
   http_response_code(404);

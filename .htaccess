@@ -22,6 +22,38 @@ RewriteRule ^p/([a-z0-9/-]+)/?$ /p/dispatch.php?slug=$1 [L,QSA]
 # lit le fichier sur disque (readfile), donc aucune boucle de réécriture.
 RewriteRule ^open-data/(falaises|falaises-details|itineraires-velo|gares|complet)\.geojson$ /open-data/download.php?f=$1 [L,QSA]
 
+# --- Point de montage des données (public -> ../public) -----------------------
+# `public` est un lien symbolique versionné vers un dossier hors du dossier
+# déployé : aucun déploiement ne peut effacer les contenus téléversés (images de
+# falaises, GPX) ni les fichiers générés (GeoJSON de barres).
+#
+# Les deux garanties — aucun exécutable, aucun listing — sont posées ICI et pas
+# seulement dans le .htaccess de la cible : derrière un lien symbolique dont la
+# cible est hors DocumentRoot, un .htaccess enfant peut être ignoré selon la
+# portée d'AllowOverride. Ce fichier-ci est toujours lu, et `[F,L]` est évalué
+# avant l'autorisation — donc le `<Limit GET POST> Allow from all` (syntaxe 2.2)
+# en fin de fichier ne peut pas le contredire via mod_access_compat.
+#
+# Le motif matche l'extension N'IMPORTE OÙ dans le nom, pas seulement en fin :
+# sous une config à base d'`AddHandler`, Apache exécute `shell.php.jpg`, que le
+# motif ancré `\.php$` de bdd/.htaccess laissait passer (cf. l'incident de
+# juillet 2026, docs/incident-2026-07-29-compromission.md).
+RewriteRule ^public/.*\.(php|phar|phtml|php[0-9]|phps|pht|inc|shtml|cgi|pl|py|rb|sh|lua)(\.|$) - [F,L,NC]
+
+# Pas de listing du point de montage.
+RewriteRule ^public/(.*/)?$ - [F,L]
+
+# Repli : un fichier absent du dossier déployé est cherché dans les données.
+# C'est ce qui préserve l'espace d'URL historique (/bdd/…, /images/…) quel que
+# soit l'emplacement physique du fichier — aucune URL publique à réécrire, ni
+# dans le code, ni en base, ni dans les mails déjà envoyés.
+#
+# Ordre : la règle [F] ci-dessus est AVANT le repli, et une réécriture interne
+# relance le jeu de règles, donc /bdd/…/x.php est bloqué lui aussi. Le repli ne
+# boucle pas : sur /public/bdd/… le motif ^(bdd|images)/ ne matche plus.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(bdd|images)/(.+)$ /public/$1/$2 [L]
+
 ErrorDocument 404 /404.php
 
 <FilesMatch ".*\.gpx$">

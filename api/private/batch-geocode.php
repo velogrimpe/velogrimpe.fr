@@ -6,6 +6,7 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/geocode_lib.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $adminToken = $config['admin_token'] ?? null;
@@ -35,9 +36,9 @@ foreach ($alterSqls as $sql) {
   $mysqli->query($sql);
 }
 
-// Paths to GeoJSON files
-$zonesPath = $_SERVER['DOCUMENT_ROOT'] . '/bdd/zones/zones.geojson';
-$deptsPath = $_SERVER['DOCUMENT_ROOT'] . '/bdd/zones/departements.geojson';
+// Paths to GeoJSON files (cf. lib/paths.php)
+$zonesPath = vg_data_path('bdd/zones/zones.geojson');
+$deptsPath = vg_data_path('bdd/zones/departements.geojson');
 
 $zones = geojson_load($zonesPath);
 $depts = geojson_load($deptsPath);

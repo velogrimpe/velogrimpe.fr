@@ -1,5 +1,7 @@
 <?php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
+
 /**
  * Handle an admin image upload (auth, validation, GD compression, save).
  *
@@ -9,13 +11,20 @@
  *
  * Writes JSON response and exits.
  *
- * @param string $baseDir Absolute filesystem path under which to create the slug folder
- *                        (e.g. $_SERVER['DOCUMENT_ROOT'] . '/bdd/images_news').
- *                        The corresponding public URL prefix is derived by stripping
- *                        DOCUMENT_ROOT from $baseDir.
+ * @param string $baseRel Dossier de données, relatif à la racine au sens de
+ *                        lib/paths.php (ex. 'bdd/images_news'). L'URL publique
+ *                        en est dérivée par vg_data_url().
+ *
+ *                        Volontairement RELATIF : la version précédente prenait
+ *                        un chemin absolu et reconstruisait l'URL par
+ *                        str_replace(DOCUMENT_ROOT, '', $baseDir). À travers le
+ *                        lien symbolique du point de montage, ce str_replace ne
+ *                        matche plus — et l'URL renvoyée part en base
+ *                        (newsletters.sections, pages.sections). Ne jamais
+ *                        revenir à une dérivation d'URL par soustraction.
  * @param string $slug    Slug used as subfolder; will be sanitized.
  */
-function handleAdminImageUpload(string $baseDir, string $slug): void
+function handleAdminImageUpload(string $baseRel, string $slug): void
 {
   $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
@@ -71,27 +80,46 @@ function handleAdminImageUpload(string $baseDir, string $slug): void
   }
 
   $safeSlug = preg_replace('/[^a-zA-Z0-9_-]/', '', str_replace('/', '_', $slug));
-  $dir = rtrim($baseDir, '/') . '/' . $safeSlug;
 
-  if (!is_dir($dir)) {
-    mkdir($dir, 0755, true);
+  // Un slug entièrement composé de caractères exclus se réduit à '' et donnait
+  // un chemin 'bdd/images_news//fichier.webp', donc une écriture dans le dossier
+  // parent. vg_data_rel() le refuserait, mais autant traiter la cause.
+  if ($safeSlug === '') {
+    http_response_code(400);
+    echo json_encode(['error' => 'slug invalide']);
+    exit;
+  }
+
+  $relDir = rtrim($baseRel, '/') . '/' . $safeSlug;
+
+  try {
+    vg_data_prepare($relDir);
+  } catch (VgDataException $e) {
+    error_log('[admin_image_upload] ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['error' => "Dossier d'images indisponible"]);
+    exit;
   }
 
   $basename = time() . '-' . bin2hex(random_bytes(4));
 
   if (function_exists('imagewebp')) {
     $filename = $basename . '.webp';
-    $destPath = $dir . '/' . $filename;
-    imagewebp($img, $destPath, 80);
+    $ecrit = imagewebp($img, vg_data_path($relDir . '/' . $filename), 80);
   } else {
     $filename = $basename . '.jpg';
-    $destPath = $dir . '/' . $filename;
-    imagejpeg($img, $destPath, 80);
+    $ecrit = imagejpeg($img, vg_data_path($relDir . '/' . $filename), 80);
   }
   imagedestroy($img);
 
-  $urlPrefix = str_replace($_SERVER['DOCUMENT_ROOT'], '', rtrim($baseDir, '/'));
-  $url = $urlPrefix . '/' . $safeSlug . '/' . $filename;
+  // Le retour était ignoré : on renvoyait une URL vers un fichier inexistant,
+  // qui partait ensuite en base.
+  if (!$ecrit) {
+    error_log("[admin_image_upload] échec de l'écriture de $relDir/$filename");
+    http_response_code(500);
+    echo json_encode(['error' => "L'image n'a pas pu être enregistrée"]);
+    exit;
+  }
 
-  echo json_encode(['url' => $url]);
+  echo json_encode(['url' => vg_data_url($relDir . '/' . $filename)]);
 }

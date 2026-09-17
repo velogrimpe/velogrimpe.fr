@@ -5,6 +5,7 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/geocode_lib.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 
 // Simple input parsing and validation
 $lat = isset($_GET['lat']) ? floatval($_GET['lat']) : null;
@@ -15,9 +16,9 @@ if ($lat === null || $lng === null || !is_finite($lat) || !is_finite($lng) || $l
   exit;
 }
 
-// Paths to GeoJSON files (relative to public_html)
-$zonesPath = $_SERVER['DOCUMENT_ROOT'] . '/bdd/zones/zones.geojson';
-$deptsPath = $_SERVER['DOCUMENT_ROOT'] . '/bdd/zones/departements.geojson';
+// Paths to GeoJSON files (cf. lib/paths.php)
+$zonesPath = vg_data_path('bdd/zones/zones.geojson');
+$deptsPath = vg_data_path('bdd/zones/departements.geojson');
 
 $zones = geojson_load($zonesPath);
 $depts = geojson_load($deptsPath);
