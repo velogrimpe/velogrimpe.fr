@@ -1251,72 +1251,72 @@ export function initFalaiseDetailsEditor(containerId) {
   container.querySelector(".save-geojson-btn")?.addEventListener("click", save);
 
   // Fetch bus stops button (Overpass) → propositions en lecture seule + dialog
-  const OVERPASS_MIN_ZOOM = 12;
+  const OVERPASS_MIN_ZOOM = 11;
   const fetchBusStopsBtn = container.querySelector(".fetch-bus-stops-btn");
   fetchBusStopsBtn?.addEventListener("click", async () => {
-      if (fetchBusStopsBtn.disabled) return;
-      if (map.getZoom() < OVERPASS_MIN_ZOOM) {
+    if (fetchBusStopsBtn.disabled) return;
+    if (map.getZoom() < OVERPASS_MIN_ZOOM) {
+      alert(
+        "Zone trop large : zoomez davantage (au moins niveau " +
+          OVERPASS_MIN_ZOOM +
+          ") avant de récupérer les arrêts de bus.",
+      );
+      return;
+    }
+    // Etat loading : bouton désactivé + spinner à la place de l'icône
+    const icon = fetchBusStopsBtn.querySelector("svg");
+    const spinner = document.createElement("span");
+    spinner.className = "loading loading-spinner loading-xs";
+    fetchBusStopsBtn.disabled = true;
+    icon?.replaceWith(spinner);
+    try {
+      // Clear previous
+      searchLayers.busStops.clearLayers();
+
+      const stops = await fetchBusStops(map);
+      if (!stops.length) {
         alert(
-          "Zone trop large : zoomez davantage (au moins niveau " +
-            OVERPASS_MIN_ZOOM +
-            ") avant de récupérer les arrêts de bus.",
+          "Aucun arrêt de bus trouvé dans la zone visible. Dézoomez ou déplacez la carte.",
         );
         return;
       }
-      // Etat loading : bouton désactivé + spinner à la place de l'icône
-      const icon = fetchBusStopsBtn.querySelector("svg");
-      const spinner = document.createElement("span");
-      spinner.className = "loading loading-spinner loading-xs";
-      fetchBusStopsBtn.disabled = true;
-      icon?.replaceWith(spinner);
-      try {
-        // Clear previous
-        searchLayers.busStops.clearLayers();
 
-        const stops = await fetchBusStops(map);
-        if (!stops.length) {
-          alert(
-            "Aucun arrêt de bus trouvé dans la zone visible. Dézoomez ou déplacez la carte.",
-          );
-          return;
-        }
+      stops.forEach((s) => {
+        const descLines = (s.routes || [])
+          .map((r) => {
+            const network = (r.network || "").trim();
+            const ref = (r.ref || "").trim();
+            const name = (r.name || "").trim();
+            if (network && ref) return `${network} : Ligne ${ref}`;
+            if (ref) return `Ligne ${ref}`;
+            return name;
+          })
+          .filter((t) => t && t.length > 0);
 
-        stops.forEach((s) => {
-          const descLines = (s.routes || [])
-            .map((r) => {
-              const network = (r.network || "").trim();
-              const ref = (r.ref || "").trim();
-              const name = (r.name || "").trim();
-              if (network && ref) return `${network} : Ligne ${ref}`;
-              if (ref) return `Ligne ${ref}`;
-              return name;
-            })
-            .filter((t) => t && t.length > 0);
+        const escapeHtml = (str) =>
+          String(str)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;");
 
-          const escapeHtml = (str) =>
-            String(str)
-              .replaceAll("&", "&amp;")
-              .replaceAll("<", "&lt;")
-              .replaceAll(">", "&gt;")
-              .replaceAll('"', "&quot;");
+        const description = descLines.length > 0 ? descLines.join("\n") : "";
+        const marker = L.circleMarker([s.lat, s.lon], {
+          radius: 6,
+          weight: 2,
+          color: "#2563eb",
+          fillColor: "#60a5fa",
+          fillOpacity: 0.7,
+        });
 
-          const description = descLines.length > 0 ? descLines.join("\n") : "";
-          const marker = L.circleMarker([s.lat, s.lon], {
-            radius: 6,
-            weight: 2,
-            color: "#2563eb",
-            fillColor: "#60a5fa",
-            fillOpacity: 0.7,
-          });
-
-          // Affichage en lecture seule (contenu ré-éditable dans le dialog).
-          const descHtml = description
-            ? `<div class="flex flex-col gap-0.5">
+        // Affichage en lecture seule (contenu ré-éditable dans le dialog).
+        const descHtml = description
+          ? `<div class="flex flex-col gap-0.5">
                  <span class="text-xs font-bold">Description</span>
                  <div class="text-sm whitespace-pre-line">${escapeHtml(description)}</div>
                </div>`
-            : "";
-          const formHtml = `
+          : "";
+        const formHtml = `
           <div class="flex flex-col gap-2 w-[260px]">
             <div class="text-sm opacity-70">Arrêt proposé via Overpass</div>
             <div class="flex flex-col gap-0.5">
@@ -1326,54 +1326,54 @@ export function initFalaiseDetailsEditor(containerId) {
             ${descHtml}
           </div>`;
 
-          marker.bindPopup(formHtml, { minWidth: 260, maxWidth: 300 });
-          marker.on("popupopen", (e) => {
-            const root = e?.popup?.getElement?.() || document;
-            const content = root.querySelector?.(".leaflet-popup-content");
-            // Append action button if not already present
-            if (content && !root.querySelector?.(".add-bus-stop-btn")) {
-              const footer = document.createElement("div");
-              footer.className = "flex justify-end";
-              footer.innerHTML =
-                '<button class="btn btn-xs btn-primary add-bus-stop-btn" type="button">Ajouter cet arrêt</button>';
-              content.appendChild(footer);
-            }
-            const addBtn = root.querySelector?.(".add-bus-stop-btn");
-            if (!addBtn) return;
-            addBtn.addEventListener(
-              "click",
-              () => {
-                // Description texte multi-lignes → HTML pour le RichText du dialog.
-                const descHtmlValue = description
-                  ? "<p>" +
-                    description.split("\n").map(escapeHtml).join("<br>") +
-                    "</p>"
-                  : "";
-                openBusDialog({
-                  nom: s.name || "",
-                  loc: `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`,
-                  osm_id: s.osm_id || null,
-                  osm_data: JSON.stringify(s.tags || {}),
-                  description: descHtmlValue,
-                });
-                try {
-                  marker.closePopup();
-                } catch (_) {}
-              },
-              { once: true },
-            );
-          });
-          searchLayers.busStops.addLayer(marker);
+        marker.bindPopup(formHtml, { minWidth: 260, maxWidth: 300 });
+        marker.on("popupopen", (e) => {
+          const root = e?.popup?.getElement?.() || document;
+          const content = root.querySelector?.(".leaflet-popup-content");
+          // Append action button if not already present
+          if (content && !root.querySelector?.(".add-bus-stop-btn")) {
+            const footer = document.createElement("div");
+            footer.className = "flex justify-end";
+            footer.innerHTML =
+              '<button class="btn btn-xs btn-primary add-bus-stop-btn" type="button">Ajouter cet arrêt</button>';
+            content.appendChild(footer);
+          }
+          const addBtn = root.querySelector?.(".add-bus-stop-btn");
+          if (!addBtn) return;
+          addBtn.addEventListener(
+            "click",
+            () => {
+              // Description texte multi-lignes → HTML pour le RichText du dialog.
+              const descHtmlValue = description
+                ? "<p>" +
+                  description.split("\n").map(escapeHtml).join("<br>") +
+                  "</p>"
+                : "";
+              openBusDialog({
+                nom: s.name || "",
+                loc: `${s.lat.toFixed(6)},${s.lon.toFixed(6)}`,
+                osm_id: s.osm_id || null,
+                osm_data: JSON.stringify(s.tags || {}),
+                description: descHtmlValue,
+              });
+              try {
+                marker.closePopup();
+              } catch (_) {}
+            },
+            { once: true },
+          );
         });
-      } catch (e) {
-        console.error("Erreur récupération arrêts bus:", e);
-        showToast(overpassErrorMessage(e), "error", 8000);
-      } finally {
-        if (icon) spinner.replaceWith(icon);
-        else spinner.remove();
-        fetchBusStopsBtn.disabled = false;
-      }
-    });
+        searchLayers.busStops.addLayer(marker);
+      });
+    } catch (e) {
+      console.error("Erreur récupération arrêts bus:", e);
+      showToast(overpassErrorMessage(e), "error", 8000);
+    } finally {
+      if (icon) spinner.replaceWith(icon);
+      else spinner.remove();
+      fetchBusStopsBtn.disabled = false;
+    }
+  });
 
   // Save and navigate to next step
   const saveAndNextBtn = container.querySelector(".save-and-next-btn");

@@ -1,24 +1,25 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
-$config = require $_SERVER['DOCUMENT_ROOT']
-  . '/../config.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . "/database/velogrimpe.php";
+require_once $_SERVER["DOCUMENT_ROOT"] . "/lib/vite.php";
+require_once $_SERVER["DOCUMENT_ROOT"] . "/lib/map-bundle.php";
+$config = require $_SERVER["DOCUMENT_ROOT"] . "/../config.php";
 // Read the admin search parameter
-$admin = ($_GET['admin'] ?? false) == $config["admin_token"];
-$falaise_id = $_GET['falaise_id'] ?? null;
+$admin = ($_GET["admin"] ?? false) == $config["admin_token"];
+$falaise_id = $_GET["falaise_id"] ?? null;
 
 if ($falaise_id) {
   $falaises = [];
   if (!$admin) {
-    $is_locked_stmt = $mysqli->prepare("SELECT falaise_id FROM falaises WHERE falaise_id = ? AND falaise_public = 4");
+    $is_locked_stmt = $mysqli->prepare(
+      "SELECT falaise_id FROM falaises WHERE falaise_id = ? AND falaise_public = 4",
+    );
     $is_locked_stmt->bind_param("i", $falaise_id);
     $is_locked_stmt->execute();
     $is_locked = $is_locked_stmt->get_result()->num_rows > 0;
     if ($is_locked) {
       http_response_code(403);
       echo "<h1>Cette falaise est verrouillée</h1>";
-      exit;
+      exit();
     }
   }
 } else {
@@ -36,15 +37,14 @@ if ($falaise_id) {
   $falaises = [];
   while ($row = $result_falaises->fetch_assoc()) {
     $falaises[] = [
-      'nom' => $row['falaise_nom'],
-      'id' => $row['falaise_id'],
-      'latlng' => $row['falaise_latlng'],
-      'status' => $row['status'],
-      'nomformate' => $row['falaise_nomformate'],
+      "nom" => $row["falaise_nom"],
+      "id" => $row["falaise_id"],
+      "latlng" => $row["falaise_latlng"],
+      "status" => $row["status"],
+      "nomformate" => $row["falaise_nomformate"],
     ];
   }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -53,29 +53,31 @@ if ($falaise_id) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title><?= $falaise_id ? "Modifier" : "Ajouter" ?> une falaise - Vélogrimpe.fr</title>
+  <title><?= $falaise_id
+    ? "Modifier"
+    : "Ajouter" ?> une falaise - Vélogrimpe.fr</title>
   <!-- Map libraries bundle (Leaflet, Fullscreen, Locate) -->
-  <?php map_bundle_js('map'); ?>
-  <?php map_bundle_css('map'); ?>
-  <?php vite_css('main'); ?>
+  <?php map_bundle_js("map"); ?>
+  <?php map_bundle_css("map"); ?>
+  <?php vite_css("main"); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
   <!-- Contrib storage -->
   <script src="/js/contrib-storage.js"></script>
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
-  <?php vite_css('ajout-falaise'); ?>
+  <?php vite_css("ajout-falaise"); ?>
   <style>
     .admin {
-      <?= !$admin ? 'display: none !important;' : '' ?>
+      <?= !$admin ? "display: none !important;" : "" ?>
     }
 
     .notadmin {
-      <?= $admin ? 'display: none !important;' : '' ?>
+      <?= $admin ? "display: none !important;" : "" ?>
     }
 
     :not(span).admin {
-      <?= $admin ? 'border-left: solid 1px darkred; padding-left: 4px;' : '' ?>
+      <?= $admin ? "border-left: solid 1px darkred; padding-left: 4px;" : "" ?>
     }
   </style>
   <script>
@@ -87,9 +89,17 @@ if ($falaise_id) {
         document.querySelectorAll("textarea").forEach(el => { el.required = false });
         document.querySelectorAll("select").forEach(el => { el.required = false });
         document.getElementById('falaise_public').value = '1';
-        document.getElementById('admin').value = "<?= $config["admin_token"] ?>";
-        document.getElementById('nom_prenom').value = "<?= isset($_SERVER["REMOTE_USER"]) ? $_SERVER["REMOTE_USER"] : "Florent" ?>";
-        document.getElementById('email').value = "<?= $config['contact_mail'] ?>";
+        document.getElementById('admin').value = "<?= $config[
+          "admin_token"
+        ] ?>";
+        document.getElementById('nom_prenom').value = "<?= isset(
+          $_SERVER["REMOTE_USER"],
+        )
+          ? $_SERVER["REMOTE_USER"]
+          : "Florent" ?>";
+        document.getElementById('email').value = "<?= $config[
+          "contact_mail"
+        ] ?>";
       <?php else: ?>
         document.getElementById('falaise_public').value = '2';
         document.getElementById('admin').value = '0';
@@ -124,11 +134,13 @@ if ($falaise_id) {
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/header.html"; ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4
               prose-pre:my-0 prose-pre:text-center prose-img:my-0">
     <h1 class="text-4xl font-bold text-wrap text-center">
-      <?= $falaise_id ? "Modifier" : "Ajouter" ?> une falaise<span class='text-red-900 admin'> (version admin)</span>
+      <?= $falaise_id
+        ? "Modifier"
+        : "Ajouter" ?> une falaise<span class='text-red-900 admin'> (version admin)</span>
     </h1>
     <div class="notadmin rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-xs text-base-content">
       <b>Il s'agit ici d'ajouter une falaise au site web.</b><br> Commencez par vérifier qu'elle n'est pas déjà sur le
@@ -156,8 +168,14 @@ if ($falaise_id) {
               <label class="form-control">
                 <b aria-label="intitulé du site d'escalade">Nom de la falaise</b>
                 <div id="vue-ajout-falaise"
-                  data-falaises="<?= htmlspecialchars(json_encode($falaises), ENT_QUOTES, 'UTF-8') ?>"
-                  data-admin="<?= $admin ? 'true' : 'false' ?>" <?php if ($falaise_id): ?>data-preset-falaise-id="<?= $falaise_id ?>" <?php endif; ?>>
+                  data-falaises="<?= htmlspecialchars(
+                    json_encode($falaises),
+                    ENT_QUOTES,
+                    "UTF-8",
+                  ) ?>"
+                  data-admin="<?= $admin ? "true" : "false" ?>" <?php if (
+  $falaise_id
+): ?>data-preset-falaise-id="<?= $falaise_id ?>" <?php endif; ?>>
                 </div>
               </label>
             </div>
@@ -224,228 +242,41 @@ if ($falaise_id) {
             <input class="input input-primary input-sm" type="text" id="falaise_latlng" name="falaise_latlng"
               placeholder="ex: 45.1234,6.2355" required autocomplete="off">
           </label>
-          <div id="map" class="w-full h-64 rounded-lg relative" title="Cliquez pour placer la falaise">
-            <div id="mapinstructions" class="h-full w-full bg-[#3333] flex items-center justify-center
-              pointer-events-none z-[10000] absolute top-0 left-0 rounded-lg text-black text-xl">
-              <span class="bg-[#fff8] rounded-lg px-2 py-1 max-w-50 sm:max-w-full">Cliquez pour placer la falaise</span>
+          <div id="map" class="w-full h-[36rem] rounded-lg relative">
+            <div id="mapinstructions" class="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-[10000]">
+              <span
+                class="bg-base-100/90 border border-base-300 shadow rounded-full px-3 py-1 text-sm font-medium">Cliquez
+                sur la carte pour placer la falaise</span>
             </div>
           </div>
-          <i class="text-slate-400 text-sm"> Cliquez sur la carte pour placer la position. Les coordonnées doivent être
-            sous la forme "45.1234,6.2355" par exemple (au moins 4 décimales).<br> Pour trouver les coordonnées GPS :
-            sur la fiche Climbing Away de la falaise (bas de page, "plus de coordonnées", degrés décimaux), ou clic
-            droit sur Google Maps, puis cliquer sur les coordonnées qui s'affichent pour les copier.</i>
+          <i class="text-slate-400 text-sm"> Cliquez sur la carte pour placer la falaise, ou utilisez le bouton
+            « Falaises OSM » pour récupérer une falaise existante via OpenStreetMap. Les coordonnées
+            doivent être sous la forme "45.1234,6.2355" par exemple (au moins 4 décimales).<br> Pour trouver les
+            coordonnées GPS : sur la fiche Climbing Away de la falaise (bas de page, "plus de coordonnées", degrés
+            décimaux), ou clic droit sur Google Maps, puis cliquer sur les coordonnées qui s'affichent pour les
+            copier.</i>
         </div>
-        <script>
+        <script type="module">
+          import { createAjoutMap } from '/js/components/map/ajout-map.js';
+          import { fetchCliffs } from '/js/components/utils/fetch-cliffs.js';
+          import { overpassErrorMessage } from '/js/components/utils/overpass.js';
+          import { showToast } from '/js/components/utils/toast.js';
 
-          const ignTiles = L.tileLayer(
-            "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
-            maxZoom: 19,
-            minZoom: 0,
-            attribution: "IGN-F/Geoportail",
-            crossOrigin: true,
-          })
-          const ignOrthoTiles = L.tileLayer(
-            "https://data.geopf.fr/wmts?&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
-            maxZoom: 18,
-            minZoom: 0,
-            tileSize: 256,
-            attribution: "IGN-F/Geoportail",
-            crossOrigin: true,
-          })
-          const landscapeTiles = L.tileLayer(
-            "https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
-            maxZoom: 19,
-            minZoom: 0,
-            attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
-            crossOrigin: true,
-          })
-          const opencyclemapTiles = L.tileLayer(
-            "https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
-            maxZoom: 19,
-            minZoom: 0,
-            attribution: '<a href="http://www.thunderforest.com/opencyclemap/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
-            crossOrigin: true,
-          })
-          const outdoorsTiles = L.tileLayer(
-            "https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
-            maxZoom: 19,
-            minZoom: 0,
-            attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
-            crossOrigin: true,
-          })
-          var baseMaps = {
-            "Landscape": landscapeTiles,
-            'OpenCycleMap': opencyclemapTiles,
-            'IGNv2': ignTiles,
-            'Satellite': ignOrthoTiles,
-            'Outdoors': outdoorsTiles,
-          };
-          const map = L.map("map", {
-            layers: [landscapeTiles], center: [45.1234, 3.2355], zoom: 5, fullscreenControl: true, zoomSnap: 0.5
+          const OVERPASS_MIN_ZOOM = 11;
+
+          const { map, layerControl, searchButton: overpassBtn } = createAjoutMap('map', {
+            searchButton: {
+              html: '<img src="/images/map/overpass-turbo.svg" alt="" style="width:16px;height:16px;" />',
+              label: 'Falaises OSM',
+              title: 'Récupérer les falaises de la zone visible (OpenStreetMap)',
+              ariaLabel: 'Falaises OSM',
+              minZoom: OVERPASS_MIN_ZOOM,
+            },
           });
-          L.control.locate().addTo(map);
-          var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
-          L.control.scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
 
-          // Contrôle de recherche d'une localité via Nominatim (instance publique OSM).
-          // Permet de centrer la carte sur une commune/lieu sans poser de marqueur.
-          (function () {
-            const SearchControl = L.Control.extend({
-              options: { position: "topright" },
-              onAdd: function () {
-                const container = L.DomUtil.create("div", "leaflet-bar bg-base-100 rounded-md p-1 not-prose border-0");
-                container.style.width = "230px";
-                container.style.boxShadow = "0 1px 5px rgba(0,0,0,0.4)";
-                // Positionnement et clipping en styles inline : les classes Tailwind
-                // utilisées ici ne sont pas générées (chaîne JS dans un fichier PHP non scanné).
-                container.innerHTML = `
-                  <div style="position:relative;">
-                    <input type="text" autocomplete="off" placeholder="Rechercher une localité…"
-                      class="input input-bordered input-xs w-full" style="padding-right:1.5rem;"
-                      aria-label="Centre la carte sur" />
-                    <span data-role="spinner" class="text-slate-400"
-                      style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);display:none;">
-                      <span class="loading loading-spinner loading-xs"></span>
-                    </span>
-                    <div data-role="results" class="bg-base-100 border border-base-300"
-                      style="position:absolute;left:0;right:0;top:100%;margin-top:.25rem;max-height:13rem;
-                        overflow-y:auto;overflow-x:hidden;z-index:11000;display:none;border-radius:.375rem;
-                        box-shadow:0 4px 12px rgba(0,0,0,.25);"></div>
-                  </div>`;
-                // Empêche les interactions sur le contrôle de se propager à la carte
-                L.DomEvent.disableClickPropagation(container);
-                L.DomEvent.disableScrollPropagation(container);
+          const escapeHtml = (s) => String(s ?? '')
+            .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 
-                const input = container.querySelector("input");
-                const results = container.querySelector('[data-role="results"]');
-                const spinner = container.querySelector('[data-role="spinner"]');
-                let debounce = null;
-                let lastController = null;
-                let activeIndex = -1;
-
-                function hideResults() {
-                  results.style.display = "none";
-                  results.innerHTML = "";
-                  activeIndex = -1;
-                }
-
-                function showResults() {
-                  results.style.display = "block";
-                }
-
-                function getOptions() {
-                  return Array.from(results.querySelectorAll("button"));
-                }
-
-                function setActive(idx) {
-                  const options = getOptions();
-                  if (options.length === 0) return;
-                  // Boucle sur les bornes
-                  activeIndex = (idx + options.length) % options.length;
-                  options.forEach((opt, i) => {
-                    opt.style.backgroundColor = i === activeIndex ? "rgba(0,0,0,.08)" : "";
-                    if (i === activeIndex) opt.scrollIntoView({ block: "nearest" });
-                  });
-                }
-
-                function doSearch(query) {
-                  if (lastController) lastController.abort();
-                  lastController = new AbortController();
-                  spinner.style.display = "inline-block";
-                  const url = "https://nominatim.openstreetmap.org/search?format=jsonv2"
-                    + "&limit=6&countrycodes=fr&addressdetails=1&q=" + encodeURIComponent(query);
-                  fetch(url, {
-                    signal: lastController.signal,
-                    headers: { "Accept-Language": "fr" },
-                  })
-                    .then(r => r.ok ? r.json() : Promise.reject(new Error("nominatim failed")))
-                    .then(items => {
-                      spinner.style.display = "none";
-                      if (!Array.isArray(items) || items.length === 0) {
-                        results.innerHTML = '<div style="padding:.375rem .5rem;font-size:.75rem;" class="text-slate-400">Aucun résultat</div>';
-                        showResults();
-                        return;
-                      }
-                      results.innerHTML = "";
-                      activeIndex = -1;
-                      items.forEach(item => {
-                        const a = document.createElement("button");
-                        a.type = "button";
-                        a.className = "text-left cursor-pointer";
-                        a.style.cssText = "display:block;width:100%;max-width:100%;padding:.375rem .5rem;"
-                          + "font-size:.75rem;line-height:1.25;white-space:nowrap;overflow:hidden;"
-                          + "text-overflow:ellipsis;border:0;background:transparent;";
-                        a.addEventListener("mouseenter", () => { a.style.backgroundColor = "rgba(0,0,0,.08)"; });
-                        a.addEventListener("mouseleave", () => { a.style.backgroundColor = ""; });
-                        a.textContent = item.display_name;
-                        a.title = item.display_name;
-                        a.addEventListener("click", function () {
-                          const lat = parseFloat(item.lat);
-                          const lng = parseFloat(item.lon);
-                          if (!isNaN(lat) && !isNaN(lng)) {
-                            if (item.boundingbox && item.boundingbox.length === 4) {
-                              const bb = item.boundingbox.map(parseFloat);
-                              map.fitBounds([[bb[0], bb[2]], [bb[1], bb[3]]], { maxZoom: 14 });
-                            } else {
-                              map.setView([lat, lng], 13);
-                            }
-                          }
-                          input.value = "";
-                          hideResults();
-                        });
-                        results.appendChild(a);
-                      });
-                      showResults();
-                    })
-                    .catch(err => {
-                      spinner.style.display = "none";
-                      if (err.name !== "AbortError") hideResults();
-                    });
-                }
-
-                input.addEventListener("input", function () {
-                  const query = input.value.trim();
-                  if (debounce) clearTimeout(debounce);
-                  if (query.length < 3) {
-                    hideResults();
-                    return;
-                  }
-                  // Débounce pour respecter la politique d'usage de Nominatim (1 req/s max)
-                  debounce = setTimeout(() => doSearch(query), 600);
-                });
-
-                input.addEventListener("keydown", function (e) {
-                  const isOpen = results.style.display !== "none" && getOptions().length > 0;
-                  switch (e.key) {
-                    case "ArrowDown":
-                      if (!isOpen) return;
-                      e.preventDefault();
-                      setActive(activeIndex + 1);
-                      break;
-                    case "ArrowUp":
-                      if (!isOpen) return;
-                      e.preventDefault();
-                      setActive(activeIndex - 1);
-                      break;
-                    case "Enter":
-                      // Toujours empêcher la soumission du formulaire parent depuis ce champ
-                      e.preventDefault();
-                      if (!isOpen) return;
-                      // Sélectionne l'option active, ou la première à défaut
-                      (getOptions()[activeIndex >= 0 ? activeIndex : 0]).click();
-                      break;
-                    case "Escape":
-                      input.value = "";
-                      hideResults();
-                      break;
-                  }
-                });
-
-                return container;
-              },
-            });
-            map.addControl(new SearchControl());
-          })();
           fetch("/public/zones/zones.geojson")
             .then(r => r.ok ? r.json() : Promise.reject(new Error('zones load failed')))
             .then(zonesData => {
@@ -484,6 +315,9 @@ if ($falaise_id) {
             }
           })
 
+          const mapinstructions = document.getElementById("mapinstructions");
+          const falaiseLatlngInput = document.getElementById("falaise_latlng");
+
           var marker = undefined;
           const size = 24;
 
@@ -493,12 +327,17 @@ if ($falaise_id) {
               map.removeLayer(marker);
             }
             marker = L.marker([lat, lng], {
-              drag: true, icon: L.icon({
+              draggable: true, icon: L.icon({
                 iconUrl: "/images/map/icone_falaise_carte.png",
                 iconSize: [size, size],
                 iconAnchor: [size / 2, size],
               })
             }).addTo(map);
+            marker.on('dragend', () => {
+              const ll = marker.getLatLng();
+              falaiseLatlngInput.value = ll.lat.toFixed(6) + ',' + ll.lng.toFixed(6);
+              updateZoneAndDepartment(ll.lat, ll.lng);
+            });
           }
 
           function updateZoneAndDepartment(lat, lng) {
@@ -519,7 +358,7 @@ if ($falaise_id) {
           }
 
           function updateMarker() {
-            const coords = document.getElementById("falaise_latlng").value.split(',');
+            const coords = falaiseLatlngInput.value.split(',');
             if (coords.length === 2) {
               const lat = parseFloat(coords[0]);
               const lng = parseFloat(coords[1]);
@@ -534,27 +373,99 @@ if ($falaise_id) {
                 map.removeLayer(marker);
                 marker = undefined;
               }
-              mapinstructions.style.display = "flex";
+              mapinstructions.style.display = "block";
             }
           }
+
+          // Le clic sur la carte n'écrase pas directement la position : il ouvre
+          // une popup de confirmation, pour éviter les déplacements accidentels.
+          const placementPopup = L.popup({ closeButton: false, className: 'vg-placement-popup' });
           map.on("click", function (e) {
-            createMarker(e.latlng.lat, e.latlng.lng);
-            updateZoneAndDepartment(e.latlng.lat, e.latlng.lng);
-            document.getElementById("falaise_latlng").value = String(e.latlng.lat).slice(0, 8) + "," + String(e.latlng.lng).slice(0, 8);
+            const label = marker ? "Déplacer la falaise ici" : "Placer la falaise ici";
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-xs btn-primary';
+            btn.textContent = label;
+            btn.addEventListener('click', () => {
+              createMarker(e.latlng.lat, e.latlng.lng);
+              updateZoneAndDepartment(e.latlng.lat, e.latlng.lng);
+              falaiseLatlngInput.value = String(e.latlng.lat).slice(0, 8) + "," + String(e.latlng.lng).slice(0, 8);
+              map.closePopup(placementPopup);
+            });
+            placementPopup.setLatLng(e.latlng).setContent(btn).openOn(map);
           });
 
-          document.getElementById("falaise_latlng").addEventListener("input", updateMarker);
-          document.addEventListener("DOMContentLoaded", function () {
-            const coords = document.getElementById("falaise_latlng").value.split(',');
-            if (coords.length === 2) {
-              const lat = parseFloat(coords[0]);
-              const lng = parseFloat(coords[1]);
-              if (!isNaN(lat) && !isNaN(lng)) {
-                createMarker(lat, lng);
-                map.flyTo([lat, lng], 11);
+          falaiseLatlngInput.addEventListener("input", updateMarker);
+          // Appelé depuis le script (non-module) de prefill par nom de falaise existante.
+          window.updateMarker = updateMarker;
+
+          // --- Récupération des falaises via Overpass (bouton "Falaises OSM") ---
+          const overpassLayer = L.layerGroup().addTo(map);
+          if (overpassBtn) {
+            overpassBtn.addEventListener('click', loadOverpassCliffs);
+          }
+
+          async function loadOverpassCliffs() {
+            if (map.getZoom() < OVERPASS_MIN_ZOOM) {
+              alert('Zone trop large : zoomez davantage (au moins niveau ' + OVERPASS_MIN_ZOOM + ') avant de récupérer les falaises.');
+              return;
+            }
+            if (overpassBtn?.disabled) return;
+            const icon = overpassBtn?.querySelector('img');
+            const spinner = document.createElement('span');
+            spinner.className = 'loading loading-spinner loading-xs';
+            if (overpassBtn) {
+              overpassBtn.disabled = true;
+              overpassBtn.style.opacity = '.6';
+              overpassBtn.style.cursor = 'wait';
+              icon?.replaceWith(spinner);
+            }
+            try {
+              overpassLayer.clearLayers();
+              const cliffs = await fetchCliffs(map);
+              if (!cliffs.length) {
+                alert('Aucune falaise trouvée dans la zone visible. Dézoomez ou déplacez la carte.');
+                return;
+              }
+              cliffs.forEach((c) => {
+                const m = L.circleMarker([c.lat, c.lon], {
+                  radius: 6, weight: 2, color: '#2563eb', fillColor: '#60a5fa', fillOpacity: 0.7,
+                });
+                const popup = document.createElement('div');
+                popup.className = 'flex flex-col gap-1 text-base-content';
+                popup.style.minWidth = '200px';
+                popup.innerHTML =
+                  `<div class="text-xs opacity-70">Falaise OpenStreetMap</div><b>${escapeHtml(c.name)}</b>`;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-xs btn-primary mt-1';
+                btn.textContent = 'Utiliser cette position';
+                btn.addEventListener('click', () => {
+                  falaiseLatlngInput.value = c.lat.toFixed(6) + ',' + c.lon.toFixed(6);
+                  createMarker(c.lat, c.lon);
+                  map.setView([c.lat, c.lon], 16);
+                  updateZoneAndDepartment(c.lat, c.lon);
+                  try { m.closePopup(); } catch (_) { /* noop */ }
+                });
+                popup.appendChild(btn);
+                m.bindPopup(popup, { minWidth: 200 });
+                overpassLayer.addLayer(m);
+              });
+            } catch (e) {
+              console.error('Erreur Overpass:', e);
+              showToast(overpassErrorMessage(e), 'error', 8000);
+            } finally {
+              if (icon) spinner.replaceWith(icon); else spinner.remove();
+              if (overpassBtn) {
+                overpassBtn.disabled = false;
+                overpassBtn.style.opacity = '';
+                overpassBtn.style.cursor = 'pointer';
               }
             }
-          });
+          }
+
+          // Initialise le marqueur si des coordonnées sont déjà présentes
+          updateMarker();
         </script>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
           <div class="form-control">
@@ -814,7 +725,9 @@ if ($falaise_id) {
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
         <div class="form-control">
           <b>Marche d'approche - Texte descriptif</b>
-          <div class="vue-richtext" data-name="falaise_matxt" <?= $admin ? '' : 'data-required="true"' ?>></div>
+          <div class="vue-richtext" data-name="falaise_matxt" <?= $admin
+            ? ""
+            : 'data-required="true"' ?>></div>
           <i class="text-slate-400 text-sm"> Petit texte décrivant la marche d'approche. Ex : "10' en montée", "10'
             aller, 7' retour",... </i>
         </div>
@@ -847,7 +760,9 @@ if ($falaise_id) {
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
         <div class="form-control">
           <b>Topo(s)</b>
-          <div class="vue-richtext" data-name="falaise_topo" <?= $admin ? '' : 'data-required="true"' ?>></div>
+          <div class="vue-richtext" data-name="falaise_topo" <?= $admin
+            ? ""
+            : 'data-required="true"' ?>></div>
           <i class="text-slate-400 text-sm"> Lister les différents topos présentant la falaise.<br> Optionnel : ajouter
             un lien vers la fiche Climbing Away de la falaise.
           </i>
@@ -1017,7 +932,8 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           </span>
           <textarea class="textarea textarea-sm leading-6" id="message" name="message" rows="4"></textarea>
         </label>
-        <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/contrib-licence-notice.php"; ?>
+        <?php include $_SERVER["DOCUMENT_ROOT"] .
+          "/components/contrib-licence-notice.php"; ?>
         <div id="submitError"
           class="hidden items-start gap-2 bg-red-200 border border-red-900 text-red-900 p-3 rounded-lg">
           <svg class="w-5 h-5 mt-0.5 shrink-0 fill-none stroke-current">
@@ -1025,12 +941,14 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
           </svg>
           <span id="submitErrorMessage" class="whitespace-pre-line"></span>
         </div>
-        <button type="submit" id="confirmButton" class="btn btn-primary"><?= $falaise_id ? "Modifier" : "Ajouter" ?> la
+        <button type="submit" id="confirmButton" class="btn btn-primary"><?= $falaise_id
+          ? "Modifier"
+          : "Ajouter" ?> la
           falaise</button>
       </div>
     </form>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
+  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/footer.php"; ?>
 </body>
 <script>
   function fetchAndPrefillData(id) {

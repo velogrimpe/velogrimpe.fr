@@ -1,28 +1,32 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
-$config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . "/database/velogrimpe.php";
+require_once $_SERVER["DOCUMENT_ROOT"] . "/lib/vite.php";
+require_once $_SERVER["DOCUMENT_ROOT"] . "/lib/map-bundle.php";
+$config = require $_SERVER["DOCUMENT_ROOT"] . "/../config.php";
 
-$admin = ($_GET['admin'] ?? false) == $config["admin_token"];
-$arret_id = $_GET['arret_id'] ?? null;
+$admin = ($_GET["admin"] ?? false) == $config["admin_token"];
+$arret_id = $_GET["arret_id"] ?? null;
 
 // Falaises à pré-lier à l'arrêt (param ?falaise_ids=12,34). Permet par ex. au
 // bouton « ajouter un arrêt » de confirmation_falaise de pré-remplir le lien.
-$preset_falaise_ids = array_values(array_filter(
-  array_map('intval', explode(',', $_GET['falaise_ids'] ?? '')),
-  fn($v) => $v > 0,
-));
+$preset_falaise_ids = array_values(
+  array_filter(
+    array_map("intval", explode(",", $_GET["falaise_ids"] ?? "")),
+    fn($v) => $v > 0,
+  ),
+);
 
 // Falaises (toutes) pour la carte
 $falaises = [];
-$res = $mysqli->query("SELECT falaise_id, falaise_nom, falaise_latlng, falaise_nomformate FROM falaises ORDER BY falaise_nom");
+$res = $mysqli->query(
+  "SELECT falaise_id, falaise_nom, falaise_latlng, falaise_nomformate FROM falaises ORDER BY falaise_nom",
+);
 while ($row = $res->fetch_assoc()) {
   $falaises[] = [
-    'id' => (int) $row['falaise_id'],
-    'nom' => $row['falaise_nom'],
-    'latlng' => $row['falaise_latlng'],
-    'nomformate' => $row['falaise_nomformate'],
+    "id" => (int) $row["falaise_id"],
+    "nom" => $row["falaise_nom"],
+    "latlng" => $row["falaise_latlng"],
+    "nomformate" => $row["falaise_nomformate"],
   ];
 }
 
@@ -30,18 +34,20 @@ while ($row = $res->fetch_assoc()) {
 $arrets = [];
 $res = $mysqli->query("SELECT id, nom FROM bus_arrets ORDER BY nom");
 while ($row = $res->fetch_assoc()) {
-  $arrets[] = ['id' => (int) $row['id'], 'nom' => $row['nom']];
+  $arrets[] = ["id" => (int) $row["id"], "nom" => $row["nom"]];
 }
 
 // Lignes de bus existantes (pour l'autocomplete des lignes)
 $lignes = [];
-$res = $mysqli->query("SELECT id, nom, description, lien FROM bus_lignes ORDER BY nom");
+$res = $mysqli->query(
+  "SELECT id, nom, description, lien FROM bus_lignes ORDER BY nom",
+);
 while ($row = $res->fetch_assoc()) {
   $lignes[] = [
-    'id' => (int) $row['id'],
-    'nom' => $row['nom'],
-    'description' => $row['description'],
-    'lien' => $row['lien'],
+    "id" => (int) $row["id"],
+    "nom" => $row["nom"],
+    "description" => $row["description"],
+    "lien" => $row["lien"],
   ];
 }
 ?>
@@ -52,18 +58,20 @@ while ($row = $res->fetch_assoc()) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title><?= $arret_id ? "Modifier" : "Ajouter" ?> un arrêt de bus - Vélogrimpe.fr</title>
-  <?php map_bundle_js('map'); ?>
-  <?php map_bundle_css('map'); ?>
-  <?php vite_css('main'); ?>
+  <title><?= $arret_id
+    ? "Modifier"
+    : "Ajouter" ?> un arrêt de bus - Vélogrimpe.fr</title>
+  <?php map_bundle_js("map"); ?>
+  <?php map_bundle_css("map"); ?>
+  <?php vite_css("main"); ?>
   <script async defer src="/js/pv.js"></script>
   <script src="/js/contrib-storage.js"></script>
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
-  <?php vite_css('ajout-bus'); ?>
+  <?php vite_css("ajout-bus"); ?>
   <style>
     .admin {
-      <?= !$admin ? 'display: none !important;' : '' ?>
+      <?= !$admin ? "display: none !important;" : "" ?>
     }
 
     .linked-falaise {
@@ -73,9 +81,17 @@ while ($row = $res->fetch_assoc()) {
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       <?php if ($admin): ?>
-        document.getElementById('admin').value = "<?= $config["admin_token"] ?>";
-        document.getElementById('nom_prenom').value = "<?= isset($_SERVER["REMOTE_USER"]) ? $_SERVER["REMOTE_USER"] : "Florent" ?>";
-        document.getElementById('email').value = "<?= $config['contact_mail'] ?>";
+        document.getElementById('admin').value = "<?= $config[
+          "admin_token"
+        ] ?>";
+        document.getElementById('nom_prenom').value = "<?= isset(
+          $_SERVER["REMOTE_USER"],
+        )
+          ? $_SERVER["REMOTE_USER"]
+          : "Florent" ?>";
+        document.getElementById('email').value = "<?= $config[
+          "contact_mail"
+        ] ?>";
       <?php else: ?>
         document.getElementById('admin').value = '0';
         if (window.contribStorage) {
@@ -87,10 +103,12 @@ while ($row = $res->fetch_assoc()) {
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/header.html"; ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4 prose-pre:my-0">
     <h1 class="text-4xl font-bold text-wrap text-center">
-      <?= $arret_id ? "Modifier" : "Ajouter" ?> un arrêt de bus<span class='text-red-900 admin'> (version admin)</span>
+      <?= $arret_id
+        ? "Modifier"
+        : "Ajouter" ?> un arrêt de bus<span class='text-red-900 admin'> (version admin)</span>
     </h1>
 
     <?php if ($admin): ?>
@@ -103,11 +121,15 @@ while ($row = $res->fetch_assoc()) {
       <div class="flex flex-col gap-2 bg-base-100 p-4 rounded-lg border border-red-900 shadow-xs">
         <label class="form-control not-prose" for="select-arret">
           <select id="select-arret" class="select select-primary select-sm w-full"
-            onchange="if (this.value) window.location.href = '/ajout/ajout_bus.php?admin=<?= urlencode($config['admin_token']) ?>&' + this.value">
+            onchange="if (this.value) window.location.href = '/ajout/ajout_bus.php?admin=<?= urlencode(
+              $config["admin_token"],
+            ) ?>&' + this.value">
             <option value="">Sélectionner un arrêt à modifier…</option>
             <?php foreach ($arrets as $a): ?>
-              <option value="<?= http_build_query(['arret_id' => $a['id']]) ?>" <?= $a['id'] === (int) $arret_id ? 'selected' : '' ?>>
-                <?= htmlspecialchars($a['nom'], ENT_QUOTES, 'UTF-8') ?>
+              <option value="<?= http_build_query([
+                "arret_id" => $a["id"],
+              ]) ?>" <?= $a["id"] === (int) $arret_id ? "selected" : "" ?>>
+                <?= htmlspecialchars($a["nom"], ENT_QUOTES, "UTF-8") ?>
               </option>
             <?php endforeach; ?>
           </select>
@@ -118,7 +140,9 @@ while ($row = $res->fetch_assoc()) {
 
     <form method="post" action="/api/add_bus.php" class="flex flex-col gap-4" id="form">
       <input type="hidden" id="admin" name="admin" value="0" />
-      <input type="hidden" id="arret_id" name="arret_id" value="<?= $arret_id ? (int) $arret_id : '' ?>" />
+      <input type="hidden" id="arret_id" name="arret_id" value="<?= $arret_id
+        ? (int) $arret_id
+        : "" ?>" />
       <input type="hidden" id="arret_falaise_ids" name="arret_falaise_ids" value="" />
       <input type="hidden" id="arret_osm_id" name="arret_osm_id" value="" />
       <input type="hidden" id="arret_osm_data" name="arret_osm_data" value="" />
@@ -143,15 +167,16 @@ while ($row = $res->fetch_assoc()) {
             <input class="input input-primary input-sm" type="text" id="arret_loc" name="arret_loc"
               placeholder="ex: 43.8270,5.3830" required autocomplete="off">
           </label>
-          <div id="map" class="w-full h-72 rounded-lg relative" title="Cliquez pour placer l'arrêt">
-            <div id="mapinstructions" class="h-full w-full bg-[#3333] flex items-center justify-center
-              pointer-events-none z-[10000] absolute top-0 left-0 rounded-lg text-black text-xl">
-              <span class="bg-[#fff8] rounded-lg px-2 py-1 max-w-50 sm:max-w-full">Cliquez pour placer l'arrêt</span>
+          <div id="map" class="w-full h-[36rem] rounded-lg relative">
+            <div id="mapinstructions" class="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-[10000]">
+              <span
+                class="bg-base-100/90 border border-base-300 shadow rounded-full px-3 py-1 text-sm font-medium">Cliquez
+                sur la carte pour placer l'arrêt</span>
             </div>
           </div>
           <i class="text-slate-400 text-sm">Cliquez sur la carte pour placer l'arrêt, ou utilisez le bouton
-            « Arrêts OSM de la zone » pour récupérer les arrêts existants via OpenStreetMap. Vous pouvez aussi cliquer
-            sur une falaise pour la lier à cet arrêt.</i>
+            « Interroger open-data » pour récupérer les arrêts existants via OpenStreetMap. Vous pouvez aussi
+            cliquer sur une falaise pour la lier à cet arrêt.</i>
           <div id="arret_osm_props_wrap" class="hidden">
             <b class="text-sm">Données OpenStreetMap de l'arrêt :</b>
             <pre
@@ -173,8 +198,18 @@ while ($row = $res->fetch_assoc()) {
       </div>
 
       <!-- ===== Sections Liaisons + Lignes (Vue) ===== -->
-      <div id="vue-ajout-bus" data-arrets="<?= htmlspecialchars(json_encode($arrets), ENT_QUOTES, 'UTF-8') ?>"
-        data-lignes="<?= htmlspecialchars(json_encode($lignes), ENT_QUOTES, 'UTF-8') ?>" <?php if ($arret_id): ?>data-preset-arret-id="<?= (int) $arret_id ?>" <?php endif; ?>>
+      <div id="vue-ajout-bus" data-arrets="<?= htmlspecialchars(
+        json_encode($arrets),
+        ENT_QUOTES,
+        "UTF-8",
+      ) ?>"
+        data-lignes="<?= htmlspecialchars(
+          json_encode($lignes),
+          ENT_QUOTES,
+          "UTF-8",
+        ) ?>" <?php if (
+  $arret_id
+): ?>data-preset-arret-id="<?= (int) $arret_id ?>" <?php endif; ?>>
       </div>
 
       <!-- ===== Section contributeur ===== -->
@@ -205,7 +240,8 @@ while ($row = $res->fetch_assoc()) {
           <i>(si vous voulez commenter votre contribution)</i>
           <textarea class="textarea textarea-primary" id="message" name="message" rows="3"></textarea>
         </label>
-        <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/contrib-licence-notice.php"; ?>
+        <?php include $_SERVER["DOCUMENT_ROOT"] .
+          "/components/contrib-licence-notice.php"; ?>
       </div>
 
       <button type="submit" class="btn btn-primary">
@@ -213,7 +249,7 @@ while ($row = $res->fetch_assoc()) {
       </button>
     </form>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
+  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/footer.php"; ?>
 
   <script type="module">
     import { createAjoutMap } from '/js/components/map/ajout-map.js';
@@ -223,12 +259,15 @@ while ($row = $res->fetch_assoc()) {
 
     const falaises = <?= json_encode($falaises) ?>;
     const presetFalaiseIds = <?= json_encode($preset_falaise_ids) ?>;
+    const OVERPASS_MIN_ZOOM = 11;
 
-    const { map, leadingButton: overpassBtn } = createAjoutMap('map', {
-      leadingButton: {
-        html: '<img src="/images/map/overpass-turbo.svg" alt="Overpass" style="width:18px;height:18px;" />',
+    const { map, searchButton: overpassBtn } = createAjoutMap('map', {
+      searchButton: {
+        html: '<img src="/images/map/overpass-turbo.svg" alt="" style="width:16px;height:16px;" />',
+        label: 'Interroger open-data',
         title: 'Récupérer les arrêts de bus de la zone visible (OpenStreetMap)',
-        ariaLabel: 'Arrêts de bus OpenStreetMap',
+        ariaLabel: 'Interroger open-data',
+        minZoom: OVERPASS_MIN_ZOOM,
       },
     });
     const mapinstructions = document.getElementById('mapinstructions');
@@ -268,11 +307,23 @@ while ($row = $res->fetch_assoc()) {
         }
       }
       if (arretMarker) { map.removeLayer(arretMarker); arretMarker = undefined; }
-      if (mapinstructions) mapinstructions.style.display = 'flex';
+      if (mapinstructions) mapinstructions.style.display = 'block';
     }
+    // Le clic sur la carte n'écrase pas directement la position : il ouvre une
+    // popup de confirmation, pour éviter les déplacements accidentels.
+    const placementPopup = L.popup({ closeButton: false, className: 'vg-placement-popup' });
     map.on('click', (e) => {
-      createArretMarker(e.latlng.lat, e.latlng.lng);
-      arretLocInput.value = e.latlng.lat.toFixed(6) + ',' + e.latlng.lng.toFixed(6);
+      const label = arretMarker ? "Déplacer l'arrêt ici" : "Placer l'arrêt ici";
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-xs btn-primary';
+      btn.textContent = label;
+      btn.addEventListener('click', () => {
+        createArretMarker(e.latlng.lat, e.latlng.lng);
+        arretLocInput.value = e.latlng.lat.toFixed(6) + ',' + e.latlng.lng.toFixed(6);
+        map.closePopup(placementPopup);
+      });
+      placementPopup.setLatLng(e.latlng).setContent(btn).openOn(map);
     });
     arretLocInput.addEventListener('input', updateArretMarker);
 
@@ -283,7 +334,8 @@ while ($row = $res->fetch_assoc()) {
     const falaiseIcon = (linked) => L.icon({
       iconUrl: '/images/map/icone_falaise_carte.png',
       iconSize: [22, 22],
-      iconAnchor: [11, 22],
+      iconAnchor: [11, 11],
+      popupAnchor: [0, -11],
       className: linked ? 'linked-falaise' : 'opacity-80',
     });
     function syncFalaiseHidden() {
@@ -356,9 +408,8 @@ while ($row = $res->fetch_assoc()) {
       if (pts.length) map.setView(pts[0], 14);
     }
 
-    // --- Récupération des arrêts via Overpass (bouton à gauche de la recherche) ---
+    // --- Récupération des arrêts via Overpass (bouton "Interroger open-data") ---
     const overpassLayer = L.layerGroup().addTo(map);
-    const OVERPASS_MIN_ZOOM = 12;
     if (overpassBtn) {
       overpassBtn.addEventListener('click', loadOverpassStops);
     }

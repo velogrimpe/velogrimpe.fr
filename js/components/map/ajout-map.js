@@ -6,9 +6,14 @@
  * - fonds de carte (Landscape, OpenCycleMap, IGN, Satellite, Outdoors)
  * - contrôle de localisation + échelle
  * - un contrôle de recherche de localité via Nominatim (centre la carte, sans marqueur)
+ * - un bouton d'action optionnel (`opts.searchButton`), rendu comme un second
+ *   contrôle empilé sous la recherche, avec son propre libellé (ex: recherche
+ *   Overpass) pour ne pas se confondre avec le champ de recherche Nominatim
  *
  * Usage :
- *   const { map, layerControl } = createAjoutMap("map");
+ *   const { map, layerControl, searchButton } = createAjoutMap("map", {
+ *     searchButton: { html: "<img .../>", label: "Recherche Arrêt Overpass", title: "..." },
+ *   });
  */
 export function createAjoutMap(elId, opts = {}) {
   const ignTiles = L.tileLayer(
@@ -88,11 +93,8 @@ export function createAjoutMap(elId, opts = {}) {
     })
     .addTo(map);
 
-  // Bouton optionnel (ex: Overpass) rendu à gauche du champ de recherche.
-  // Renseigné dans onAdd, exposé via la valeur de retour de createAjoutMap.
-  let leadingButtonEl = null;
-
   // Contrôle de recherche d'une localité via Nominatim (instance publique OSM).
+  let searchButtonEl = null;
   const SearchControl = L.Control.extend({
     options: { position: "topright" },
     onAdd: function () {
@@ -100,34 +102,17 @@ export function createAjoutMap(elId, opts = {}) {
         "div",
         "leaflet-bar bg-base-100 rounded-md p-1 not-prose border-0",
       );
-      container.style.width = opts.leadingButton ? "264px" : "230px";
+      container.style.width = "230px";
+      // Marge supplémentaire pour laisser la place au badge d'aide
+      // ("Cliquez sur la carte pour placer...") centré en haut de la carte.
+      container.style.marginTop = "44px";
       container.style.boxShadow = "0 1px 5px rgba(0,0,0,0.4)";
 
-      // Ligne flex : [bouton optionnel] [champ de recherche]
-      const row = document.createElement("div");
-      row.style.cssText = "display:flex;align-items:center;gap:.25rem;";
-
-      if (opts.leadingButton) {
-        const lb = document.createElement("button");
-        lb.type = "button";
-        lb.setAttribute("data-role", "leading");
-        if (opts.leadingButton.title) lb.title = opts.leadingButton.title;
-        if (opts.leadingButton.ariaLabel)
-          lb.setAttribute("aria-label", opts.leadingButton.ariaLabel);
-        lb.style.cssText =
-          "flex:0 0 auto;width:1.75rem;height:1.75rem;display:flex;align-items:center;" +
-          "justify-content:center;border:1px solid rgba(0,0,0,.2);border-radius:.375rem;" +
-          "background:#fff;cursor:pointer;padding:0;";
-        lb.innerHTML = opts.leadingButton.html || "";
-        row.appendChild(lb);
-        leadingButtonEl = lb;
-      }
-
       const wrap = document.createElement("div");
-      wrap.style.cssText = "position:relative;flex:1;min-width:0;";
+      wrap.style.cssText = "position:relative;";
       wrap.innerHTML = `
         <input type="text" autocomplete="off" placeholder="Centre la carte sur…"
-          class="input input-bordered input-xs w-full" style="padding-right:1.5rem;"
+          class="input input-xs border-0 w-full" style="padding-right:1.5rem;"
           aria-label="Centre la carte sur" />
         <span data-role="spinner" class="text-slate-400"
           style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);display:none;">
@@ -137,8 +122,7 @@ export function createAjoutMap(elId, opts = {}) {
           style="position:absolute;left:0;right:0;top:100%;margin-top:.25rem;max-height:13rem;
             overflow-y:auto;overflow-x:hidden;z-index:11000;display:none;border-radius:.375rem;
             box-shadow:0 4px 12px rgba(0,0,0,.25);"></div>`;
-      row.appendChild(wrap);
-      container.appendChild(row);
+      container.appendChild(wrap);
 
       L.DomEvent.disableClickPropagation(container);
       L.DomEvent.disableScrollPropagation(container);
@@ -285,5 +269,57 @@ export function createAjoutMap(elId, opts = {}) {
   });
   map.addControl(new SearchControl());
 
-  return { map, layerControl, leadingButton: leadingButtonEl };
+  // Bouton d'action optionnel (ex: recherche Overpass), rendu comme un
+  // second contrôle Leaflet, empilé sous le champ de recherche.
+  if (opts.searchButton) {
+    const SearchButtonControl = L.Control.extend({
+      options: { position: "topright" },
+      onAdd: function () {
+        const container = L.DomUtil.create(
+          "div",
+          "leaflet-bar bg-base-100 rounded-md p-1 not-prose border-0",
+        );
+        container.style.boxShadow = "0 1px 5px rgba(0,0,0,0.4)";
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn-xs btn-ghost border-0 gap-1.5";
+        const baseTitle = opts.searchButton.title || "";
+        btn.title = baseTitle;
+        btn.setAttribute(
+          "aria-label",
+          opts.searchButton.ariaLabel || opts.searchButton.label || "",
+        );
+        btn.innerHTML =
+          `<span>${opts.searchButton.label || ""}</span>` +
+          (opts.searchButton.html || "");
+        container.appendChild(btn);
+
+        // Désactive le bouton tant que le zoom courant n'est pas suffisant
+        // pour la recherche (trop de résultats / requête trop lourde), et
+        // explique pourquoi via le title.
+        if (typeof opts.searchButton.minZoom === "number") {
+          const minZoom = opts.searchButton.minZoom;
+          const updateZoomState = () => {
+            const tooLow = map.getZoom() < minZoom;
+            btn.disabled = tooLow;
+            btn.title = tooLow
+              ? `Zoomez davantage (niveau ${minZoom} minimum) pour activer cette recherche`
+              : baseTitle;
+          };
+          map.on("zoomend", updateZoomState);
+          updateZoomState();
+        }
+
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableScrollPropagation(container);
+
+        searchButtonEl = btn;
+        return container;
+      },
+    });
+    map.addControl(new SearchButtonControl());
+  }
+
+  return { map, layerControl, searchButton: searchButtonEl };
 }

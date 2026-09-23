@@ -107,7 +107,7 @@ $falaise_nom = $falaise ? htmlspecialchars($falaise['falaise_nom']) : 'Falaise';
             <a href="<?= htmlspecialchars($editDetailsUrl) ?>" class="btn btn-accent">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-none stroke-current" viewBox="0 0 24 24"
                 stroke-width="2">
-                <use href="#map"></use>
+                <use href="#mapicon"></use>
               </svg> Éditer les détails (secteurs, parking...) </a>
           <?php endif; ?>
         </div>
