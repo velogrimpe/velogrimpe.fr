@@ -1225,8 +1225,6 @@ $stmtC->close();
     );
 
     const featureMap = {};
-    // Noms d'arrêts de bus déjà affichés (dédup entre legacy GeoJSON et DB).
-    const busStopNames = new Set();
 
     const updateAssociations = () => {
       const features = Object.values(featureMap);
@@ -1257,11 +1255,6 @@ $stmtC->close();
               obj = new AccesVelo(map, feature);
             } else if (feature.properties.type === "parking") {
               obj = new Parking(map, feature);
-            } else if (feature.properties.type === "bus_stop") {
-              const nm = (feature.properties.name || "").trim().toLowerCase();
-              if (nm && busStopNames.has(nm)) return; // déjà affiché (DB)
-              if (nm) busStopNames.add(nm);
-              obj = new BusStop(map, feature);
             } else if (feature.properties.type === "falaise_voisine") {
               obj = new FalaiseVoisine(map, feature);
             }
@@ -1379,16 +1372,12 @@ $stmtC->close();
     // Clic ailleurs sur la carte : on efface les arcs.
     map.on("click", () => busArcLayer.clearLayers());
 
-    // Arrêts de bus liés en base (bus_arrets_falaise). Complète les éventuels
-    // arrêts encore stockés en GeoJSON (legacy). Dédup par nom via busStopNames.
+    // Arrêts de bus liés en base (bus_arrets_falaise).
     fetch(`/api/fetch_bus_arrets.php?falaise_id=${falaise.falaise_id}`)
       .then(response => response.ok ? response.json() : Promise.reject(new Error("fetch_bus_arrets")))
       .then(data => {
         let added = false;
         (data.arrets || []).forEach(arret => {
-          const nm = (arret.nom || "").trim().toLowerCase();
-          if (nm && busStopNames.has(nm)) return; // déjà affiché (legacy GeoJSON)
-          if (nm) busStopNames.add(nm);
           const lignes = (arret.lignes || []).join(", ");
           const descHtml =
             (lignes ? `<div class="text-xs opacity-70">${lignes}</div>` : "") +

@@ -175,9 +175,6 @@ export function initFalaiseDetailsEditor(containerId) {
   // Feature map and state
   let featureId = 0;
   const featureMap = {};
-  // Anciennes features bus_stop (GeoJSON) conservées telles quelles à la sauvegarde
-  // (l'éditeur ne les édite plus : les arrêts vivent désormais en DB).
-  const passthroughFeatures = [];
 
   const ensureFeatureId = (layer) => {
     if (!layer.properties) layer.properties = {};
@@ -829,10 +826,6 @@ export function initFalaiseDetailsEditor(containerId) {
         obj = new AccesVelo(map, feature);
       } else if (feature.properties.type === "parking") {
         obj = new Parking(map, feature);
-      } else if (feature.properties.type === "bus_stop") {
-        // Anciens arrêts GeoJSON : conservés tels quels (non édités ici).
-        passthroughFeatures.push(feature);
-        return;
       } else if (feature.properties.type === "falaise_voisine") {
         obj = new FalaiseVoisine(map, feature);
       }
@@ -854,14 +847,10 @@ export function initFalaiseDetailsEditor(containerId) {
   function exportData() {
     return {
       type: "FeatureCollection",
-      features: [
-        ...Object.values(featureMap).map((feature) => ({
-          ...feature.layer.toGeoJSON(),
-          properties: feature.layer.properties,
-        })),
-        // Anciens arrêts bus conservés tels quels (cf. passthroughFeatures).
-        ...passthroughFeatures,
-      ],
+      features: Object.values(featureMap).map((feature) => ({
+        ...feature.layer.toGeoJSON(),
+        properties: feature.layer.properties,
+      })),
     };
   }
 
