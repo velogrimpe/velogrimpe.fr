@@ -41,14 +41,17 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 $ville_id = (int) $ville_id;
 $ville = $mysqli->query("SELECT ville_nom FROM villes WHERE ville_id = $ville_id")->fetch_assoc();
 
+// Lignes envoyées telles quelles à l'app Vue (window.__TABLEAU_DATA__) : n'y
+// mettre que les champs de TableauItinerary (frontend/src/types/tableau.ts).
+// Pas de f.* : la ligne contient l'email du contributeur (falaise_contrib).
 $stmt = $mysqli->prepare("
   SELECT
-    f.*,
-    g.gare_nom,
-    t.train_depart, t.train_arrivee, t.train_temps, t.train_correspmin, t.train_correspmax, t.train_descr, COALESCE(t.train_tgv, 0) AS train_tgv,
-      v.velo_depart, v.velo_arrivee, v.velo_km, v.velo_dplus, v.velo_dmoins, v.velo_descr, v.velo_variante, v.velo_apieduniquement, velo_apiedpossible,
-      villes.ville_nom,
-      f.falaise_zonename AS zone_nom
+    f.falaise_id, f.falaise_nom, f.falaise_cotmin, f.falaise_cotmax, f.falaise_nbvoies, f.falaise_maa,
+    f.falaise_exposhort1, f.falaise_exposhort2, f.falaise_altitude, f.falaise_bloc, f.falaise_gvnb,
+    f.falaise_fermee, f.falaise_zonename, f.falaise_deptname, f.falaise_deptcode,
+    t.train_arrivee, t.train_temps, t.train_correspmin, t.train_correspmax, COALESCE(t.train_tgv, 0) AS train_tgv,
+      v.velo_km, v.velo_dplus, v.velo_dmoins, v.velo_apieduniquement, velo_apiedpossible,
+      villes.ville_nom
   FROM `falaises` f
   left join velo v on v.falaise_id = f.falaise_id
   left join gares g on g.gare_id = v.gare_id AND g.deleted = 0
@@ -91,6 +94,8 @@ if ($result->num_rows > 0) {
     if ($existing_index !== null) {
       if ($row['temps_total'] < $existing_row['temps_total']) {
         $row['variante'] = $existing_row['variante'] + 1;
+        // la variante remplacée reste une option : on garde son accès à pied
+        $row['variante_a_pied'] = $existing_row['variante_a_pied'];
         $falaises[$row['falaise_id']][$existing_index] = $row;
       } else {
         $falaises[$row['falaise_id']][$existing_index]['variante']++;

@@ -573,9 +573,8 @@ $params = http_build_query([
   'falaise_id' => $falaise_id,
   'type' => $isEdition ? 'update' : 'insert',
   'step' => 1,
-  'admin' => $admin ? 1 : 0,
-  'nom_prenom' => $nom_prenom,
-  'email' => $email
+  // Jeton admin (déjà connu de l'admin qui vient de le soumettre), pas un booléen
+  'admin' => $admin ? $config["admin_token"] : null,
 ]);
 $redirect = "/ajout/confirmation_falaise.php?" . $params;
 if ($isAjax) {

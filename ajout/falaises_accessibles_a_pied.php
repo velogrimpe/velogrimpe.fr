@@ -3,7 +3,11 @@ require_once $_SERVER['DOCUMENT_ROOT'] . "/database/velogrimpe.php";
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 
-$falaisesVG = $mysqli->query("SELECT * FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
+$falaisesVG = $mysqli->query("SELECT
+  falaise_id,
+  falaise_latlng,
+  falaise_nom
+  FROM  falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">

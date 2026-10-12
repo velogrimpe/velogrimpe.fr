@@ -25,7 +25,44 @@ function falaise_img_rel(int|string $falaise_id, string $nomformate, int $n): st
   return 'images_falaises/' . $falaise_id . '_' . $nomformate . '_img' . $n . '.webp';
 }
 
-$stmtF = $mysqli->prepare("SELECT * FROM falaises WHERE falaise_id = ?");
+// Colonnes explicites : pas de SELECT *, la ligne contient l'email du
+// contributeur (falaise_contrib). Seul un sous-ensemble part côté JS (const falaise).
+$stmtF = $mysqli->prepare("
+  SELECT
+    falaise_acces_bus,
+    falaise_altitude,
+    falaise_bloc,
+    falaise_contrib,
+    falaise_cotmax,
+    falaise_cotmin,
+    falaise_cottxt,
+    falaise_deptname,
+    falaise_exposhort1,
+    falaise_exposhort2,
+    falaise_expotxt,
+    falaise_fermee,
+    falaise_gvtxt,
+    falaise_hebergement,
+    falaise_id,
+    falaise_latlng,
+    falaise_leg1,
+    falaise_leg2,
+    falaise_leg3,
+    falaise_maa,
+    falaise_matxt,
+    falaise_nbvoies,
+    falaise_nom,
+    falaise_nomformate,
+    falaise_rq,
+    falaise_topo,
+    falaise_txt1,
+    falaise_txt2,
+    falaise_txt3,
+    falaise_txt4,
+    falaise_voies,
+    falaise_zonename
+  FROM falaises
+  WHERE falaise_id = ?");
 if (!$stmtF) {
   die("Problème de préparation de la requête : " . $mysqli->error);
 }
@@ -36,8 +73,14 @@ $resF = $stmtF->get_result();
 $dataF = $resF->fetch_assoc();
 $stmtF->close();
 
+// Envoyé tel quel au JS (carte) : n'y mettre que les champs utilisés par
+// js/components/map/velo.js (gpx_path, calculate_time) et les gares de la carte.
 $stmtIt = $mysqli->prepare("
-  SELECT *, concat(gares.gare_nom, ' → ', f.falaise_nom, ' (', velo.velo_variante, ')') as velo_nom
+  SELECT
+    velo.velo_id, velo.velo_depart, velo.velo_arrivee, velo.velo_varianteformate,
+    velo.velo_km, velo.velo_dplus, velo.velo_apieduniquement,
+    gares.gare_nom, gares.gare_latlng,
+    concat(gares.gare_nom, ' → ', f.falaise_nom, ' (', velo.velo_variante, ')') as velo_nom
   FROM velo
   LEFT JOIN gares ON velo.gare_id = gares.gare_id AND gares.deleted = 0
   LEFT JOIN falaises f ON velo.falaise_id = f.falaise_id
@@ -145,7 +188,7 @@ FROM train t
 INNER JOIN villes v ON t.ville_id = v.ville_id
 WHERE t.train_public >= 1
 AND EXISTS (
-    SELECT 1 
+    SELECT 1
     FROM velo ve
     WHERE ve.gare_id = t.gare_id AND ve.falaise_id = ?
 )
@@ -183,7 +226,7 @@ $stmtC = $mysqli->prepare("
   left join velo on cf.velo_id = velo.velo_id
   left join gares on velo.gare_id = gares.gare_id AND gares.deleted = 0
   left join falaises f on velo.falaise_id = f.falaise_id
-  WHERE cf.falaise_id = ? 
+  WHERE cf.falaise_id = ?
   ORDER BY date_creation DESC
 ");
 if (!$stmtC) {
@@ -549,7 +592,7 @@ $stmtC->close();
       </form>
       <?php
       // Fonction pour formater le temps en h'm
-      
+
       function format_time($minutes)
       {
         if ($minutes === null) {
@@ -566,7 +609,7 @@ $stmtC->close();
       }
 
       //Calculatrice de temps de trajet vélo (km/20+dplus/500 à vélo, km/4+dplus/500 à pied)
-      
+
       function calculate_time($distance_km, $elevation_m, $velo_apieduniquement)
       {
         if ($velo_apieduniquement == 1) {
@@ -630,7 +673,7 @@ $stmtC->close();
         //   $resT = $stmtT->get_result();
         //   $dataT = $resT->fetch_assoc();
         //   $stmtT->close();
-      
+
         $stmtVG = $mysqli->prepare("
           SELECT v.ville_id, v.ville_nom
           FROM villes v
@@ -1193,7 +1236,12 @@ $stmtC->close();
     import Gare from "/js/components/map/gare.js";
     import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer, garesLayer } from "/js/components/map/load-vector-tiles.js";
 
-    const falaise = <?php echo json_encode($dataF); ?>;
+    const falaise = <?php echo json_encode([
+      'falaise_id' => $dataF['falaise_id'],
+      'falaise_latlng' => $dataF['falaise_latlng'],
+      'falaise_fermee' => $dataF['falaise_fermee'],
+      'falaise_bloc' => $dataF['falaise_bloc'], // icône (js/components/map/falaise.js)
+    ]); ?>;
     const itineraires = <?php echo json_encode($itineraires); ?>;
 
     const center = falaise.falaise_latlng.split(",").map(parseFloat);

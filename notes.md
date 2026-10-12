@@ -1,0 +1,1 @@
+- [ ] ajoute des tests sur toutes les pages pour vérifier que les htmls rendus ne contiennent jamais d'adresse mail

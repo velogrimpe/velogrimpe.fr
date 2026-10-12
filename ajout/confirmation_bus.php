@@ -5,7 +5,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $arret_id = isset($_GET['arret_id']) ? (int) $_GET['arret_id'] : null;
 $type = $_GET['type'] ?? 'insert'; // insert ou update
-$admin = isset($_GET['admin']) ? (int) $_GET['admin'] : 0;
+// admin porte le jeton admin, pas un booléen : la page le réécrit dans ses
+// liens, il ne doit donc s'afficher qu'à qui le connaît déjà.
+$admin = hash_equals((string) $config["admin_token"], (string) ($_GET['admin'] ?? ''));
 
 $arret = null;
 if ($arret_id) {

@@ -56,6 +56,10 @@ RewriteRule ^(public|bdd)/(.*/)?$ - [F,L]
 # envoyés, exports open data téléchargés, index des moteurs.
 RewriteRule ^bdd/(.+)$ /public/$1 [R=301,L]
 
+# Anciennes URL /docs/… : les documents des soirées CDA ont été déplacés dans
+# les données (/docs/x.pdf -> /public/soirees-cda/x.pdf). Liens déjà partagés.
+RewriteRule ^docs/(.+)$ /public/soirees-cda/$1 [R=301,L]
+
 # images/ est encore dupliqué entre le dossier déployé et le point de montage :
 # les assets versionnés (logos, icônes de carte) sont trouvés sur place, le
 # reste est résolu vers les données. L'URL canonique reste /images/… tant que

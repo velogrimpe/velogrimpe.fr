@@ -7,9 +7,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 $falaise_id = isset($_GET['falaise_id']) ? (int) $_GET['falaise_id'] : null;
 $type = $_GET['type'] ?? 'insert'; // insert ou update
 $step = isset($_GET['step']) ? (int) $_GET['step'] : 1; // 1 = après formulaire, 2 = après éditeur
-$admin = isset($_GET['admin']) ? (int) $_GET['admin'] : 0;
-$nom_prenom = $_GET['nom_prenom'] ?? '';
-$email = $_GET['email'] ?? '';
+// admin porte le jeton admin, pas un booléen : la page le réécrit dans ses
+// liens, il ne doit donc s'afficher qu'à qui le connaît déjà.
+$admin = hash_equals((string) $config["admin_token"], (string) ($_GET['admin'] ?? ''));
 
 // Récupérer les infos de la falaise
 $falaise = null;
@@ -99,9 +99,7 @@ $falaise_nom = $falaise ? htmlspecialchars($falaise['falaise_nom']) : 'Falaise';
             <?php
             $editDetailsUrl = "/ajout/edit_details_falaise.php?" . http_build_query([
               'falaise_id' => $falaise_id,
-              'admin' => $admin,
-              'nom_prenom' => $nom_prenom,
-              'email' => $email
+              'admin' => $admin ? $config["admin_token"] : null,
             ]);
             ?>
             <a href="<?= htmlspecialchars($editDetailsUrl) ?>" class="btn btn-accent">

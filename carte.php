@@ -14,7 +14,20 @@ $gares = $mysqli->query("SELECT
   WHERE g.deleted = 0
   GROUP BY g.gare_id;"
 )->fetch_all(MYSQLI_ASSOC);
-$itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);
+// Envoyé tel quel au JS : falaise_id / gare_id relient itinéraires, falaises
+// et gares (objets access). Pas de SELECT * : velo_contrib porte un email.
+$itineraires = $mysqli->query("SELECT
+  falaise_id,
+  gare_id,
+  velo_apiedpossible,
+  velo_apieduniquement,
+  velo_arrivee,
+  velo_depart,
+  velo_dplus,
+  velo_id,
+  velo_km,
+  velo_varianteformate
+  FROM velo WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);
 
 $highlight = $_GET['h'] ?? '';
 

@@ -12,7 +12,18 @@ if ($sortie_id === null) {
 }
 
 // Fetch sortie
-$stmt = $mysqli->prepare("SELECT * FROM sorties WHERE sortie_id = ?");
+// Ligne envoyée telle quelle à l'app Vue (data-sortie) : n'y mettre que les
+// champs du type Sortie (frontend/src/types/sortie.ts). Pas de SELECT * :
+// la table porte l'email de l'organisateur et les jetons edit_token /
+// delete_token, qui donnent le droit de modifier / supprimer la sortie.
+$stmt = $mysqli->prepare("
+  SELECT
+    sortie_id, organisateur_nom, ville_depart, ville_id,
+    falaise_principale_nom, falaise_principale_id, falaises_alternatives,
+    velo_nom, velo_id, lien_groupe, description, date_debut, date_fin,
+    nb_interesses, date_creation, date_modification
+  FROM sorties
+  WHERE sortie_id = ?");
 $stmt->bind_param("i", $sortie_id);
 $stmt->execute();
 $result = $stmt->get_result();

@@ -9,9 +9,10 @@ $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["contrib_token"];
 
 $falaise_id = isset($_GET['falaise_id']) ? (int) $_GET['falaise_id'] : null;
-$admin = isset($_GET['admin']) ? (int) $_GET['admin'] : 0;
-$nom_prenom = $_GET['nom_prenom'] ?? '';
-$email = $_GET['email'] ?? '';
+// admin porte le jeton admin (cf. confirmation_falaise.php), pas un booléen.
+// Nom / email du contributeur : relus par l'éditeur dans le localStorage
+// (contrib-storage.js), jamais passés dans l'URL.
+$admin = hash_equals((string) $config["admin_token"], (string) ($_GET['admin'] ?? ''));
 
 if (empty($falaise_id)) {
   header("Location: /ajout/ajout_falaise.php");
@@ -49,14 +50,14 @@ $backUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
   'falaise_id' => $falaise_id,
   'type' => 'insert',
   'step' => 1,
-  'admin' => $admin
+  'admin' => $admin ? $config["admin_token"] : null,
 ]);
 
 $nextUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
   'falaise_id' => $falaise_id,
   'type' => 'insert',
   'step' => 2,
-  'admin' => $admin
+  'admin' => $admin ? $config["admin_token"] : null,
 ]);
 ?>
 <!DOCTYPE html>
@@ -104,8 +105,6 @@ $nextUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
       'showNavigation' => true,
       'backUrl' => $backUrl,
       'nextUrl' => $nextUrl,
-      'contribNom' => $nom_prenom,
-      'contribEmail' => $email,
     ]);
     ?>
   </main>
