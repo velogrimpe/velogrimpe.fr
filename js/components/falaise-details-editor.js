@@ -163,6 +163,14 @@ export function initFalaiseDetailsEditor(containerId) {
   L.control
     .layers(baseMaps, undefined, { position: "topleft", size: 22 })
     .addTo(map);
+  // Position toujours fraîche : pas de cache navigateur (maximumAge: 0) ni
+  // de réaffichage de la dernière position connue par le plugin (cacheLocation).
+  L.control
+    .locate({
+      cacheLocation: false,
+      locateOptions: { enableHighAccuracy: true, maximumAge: 0 },
+    })
+    .addTo(map);
   L.control
     .scale({
       position: "bottomright",
