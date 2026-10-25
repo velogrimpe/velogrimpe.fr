@@ -20,7 +20,7 @@ function main() {
   const source =
     referrerHostname === window.location.hostname ? "_nav" : referrerHostname;
 
-  fetch("https://couble.eu/api/event", {
+  fetch("https://api.couble.eu/api/event", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
