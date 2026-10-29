@@ -9,8 +9,8 @@
  *   - velogrimpe:velo-form:gpx-url  detail: { url } | null   (trace existante)
  *
  * Et par l'input file `gpxInputId` : prévisualisation du GPX choisi (sans les
- * waypoints, cohérent avec le nettoyage côté serveur), qui remplace la trace
- * existante à l'écran.
+ * waypoints, cohérent avec le nettoyage côté serveur), affichée en plus de la
+ * trace existante.
  *
  * Usage :
  *   initVeloFormMap({ mapElId: 'velo-map', gpxInputId: 'gpx_file' });
@@ -27,7 +27,7 @@ export function initVeloFormMap({ mapElId = "velo-map", gpxInputId = "gpx_file" 
 
   let gareLayer = null;
   let falaiseLayer = null;
-  let gpxLayer = null; // trace uploadée (prioritaire à l'affichage)
+  let gpxLayer = null; // trace uploadée
   let existingGpxLayer = null; // trace déjà en base
 
   // Recadre la carte sur l'union des couches présentes.
@@ -123,7 +123,6 @@ export function initVeloFormMap({ mapElId = "velo-map", gpxInputId = "gpx_file" 
       gpxLayer = removeLayer(gpxLayer);
       const file = gpxInput.files && gpxInput.files[0];
       if (!file) {
-        if (existingGpxLayer) existingGpxLayer.addTo(map);
         refitBounds();
         return;
       }
@@ -131,8 +130,7 @@ export function initVeloFormMap({ mapElId = "velo-map", gpxInputId = "gpx_file" 
       reader.onload = () => {
         gpxLayer = gpxFromXml(reader.result, GPX_STYLE);
         if (gpxLayer) {
-          // La trace uploadée remplace visuellement l'existante.
-          if (existingGpxLayer) map.removeLayer(existingGpxLayer);
+          // L'existante reste affichée (bleu pointillé) pour comparaison.
           gpxLayer.addTo(map);
         }
       };
