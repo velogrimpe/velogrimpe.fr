@@ -764,7 +764,8 @@ if ($falaise_id) {
             ? ""
             : 'data-required="true"' ?>></div>
           <i class="text-slate-400 text-sm"> Lister les différents topos présentant la falaise.<br> Optionnel : ajouter
-            un lien vers la fiche Climbing Away de la falaise.
+            un lien vers la fiche Climbing Away de la falaise.<br> Inutile d'ajouter un lien vers Oblyk : il est ajouté
+            automatiquement.
           </i>
         </div>
         <div class="form-control">
