@@ -782,7 +782,6 @@ $highlight = $_GET['h'] ?? '';
               }
             });
           }, 760);
-          attachTooltip(marker, escapeHtml(falaise.falaise_nom), { direction: "top", permanent: true });
         } else {
           window.location.href = `/falaise.php?falaise_id=${falaise.falaise_id}`;
         }
