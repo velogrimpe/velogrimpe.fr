@@ -1,0 +1,994 @@
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
+
+$falaises = $mysqli->query("SELECT falaise_altitude, falaise_voletcarto, falaise_bloc, falaise_cotmax, falaise_cotmin, falaise_exposhort1, falaise_exposhort2, falaise_fermee, falaise_gvnb, falaise_id, falaise_latlng, falaise_maa, falaise_nbvoies, falaise_nom FROM falaises WHERE falaise_public >= 1")->fetch_all(MYSQLI_ASSOC);
+$villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
+$gares = $mysqli->query("SELECT
+  g.gare_id, g.gare_latlng, g.gare_nom, g.gare_tgv,
+  GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin, '|', COALESCE(t.train_tgv, 0)) SEPARATOR '=|=') AS villes
+  FROM gares g
+  LEFT JOIN train t ON t.gare_id = g.gare_id
+  WHERE g.deleted = 0
+  GROUP BY g.gare_id;"
+)->fetch_all(MYSQLI_ASSOC);
+// Envoyé tel quel au JS : falaise_id / gare_id relient itinéraires, falaises
+// et gares (objets access). Pas de SELECT * : velo_contrib porte un email.
+$itineraires = $mysqli->query("SELECT
+  falaise_id,
+  gare_id,
+  velo_apiedpossible,
+  velo_apieduniquement,
+  velo_arrivee,
+  velo_depart,
+  velo_dplus,
+  velo_id,
+  velo_km,
+  velo_varianteformate
+  FROM velo WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);
+
+$highlight = $_GET['h'] ?? '';
+
+?>
+<!DOCTYPE html>
+<html lang="fr" data-theme="velogrimpe">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Vélogrimpe.fr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Meta tags for SEO and Social Networks -->
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://velogrimpe.fr/" />
+  <link rel="alternate" type="application/rss+xml" title="Nouveautes Velogrimpe (falaises et itineraires)"
+    href="/feed/nouveautes.xml">
+  <meta name="description"
+    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Velogrimpe.fr">
+  <meta property="og:url" content="https://velogrimpe.fr/">
+  <meta property="og:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta property="og:description"
+    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+  <meta name="twitter:image" content="https://velogrimpe.fr/images/mw/velogrimpe-social-60.webp">
+  <meta name="twitter:title" content="Velogrimpe.fr - Carte des falaises accessibles en vélo et train">
+  <meta name="twitter:description"
+    content="Escalade en mobilité douce à vélo et en train. Découvrez les accès aux falaises, les topos et les informations pratiques pour une sortie vélo-grimpe.">
+  <!-- Map libraries bundle (Leaflet, GPX, Fullscreen, Locate) — filename
+       versionné selon la version de Leaflet, résolu via dist/map-bundles.json
+       (cf. lib/map-bundle.php). Cache long-terme côté .htaccess. -->
+  <?php map_bundle_js('map'); ?>
+  <?php map_bundle_css('map'); ?>
+  <!-- <script src="https://unpkg.com/protomaps-leaflet@5.1.0/dist/protomaps-leaflet.js"></script> -->
+  <script src="/js/vendor/protomaps-leaflet.js"></script>
+  <?php vite_css('main'); ?>
+  <!-- Pageviews -->
+  <script async defer src="/js/pv.js"></script>
+  <!-- Shared utilities -->
+  <script src="/js/utils-global.js?v=2"></script>
+  <!-- Velogrimpe Styles -->
+  <link rel="stylesheet" href="/global.css" />
+  <!-- Vue Component Styles -->
+  <?php vite_css('carte-info'); ?>
+  <?php vite_css('carte-map-filters'); ?>
+  <link rel="stylesheet" href="./index.css" />
+  <link rel="manifest" href="./site.webmanifest" />
+  <style>
+    /* #map .leaflet-top.leaflet-right {
+      top: 88px;
+    } */
+    /* @media (min-width: 640px) {
+      #map .leaflet-top.leaflet-right {
+        top: 44px;
+      }
+    } */
+  </style>
+  <?php
+  vg_jsonld(
+    vg_organization(),
+    [
+      '@type' => 'WebPage',
+      'name' => 'Carte des falaises accessibles en vélo et train',
+      'url' => VG_BASE . '/carte.php',
+      'isPartOf' => ['@id' => VG_BASE . '/#website'],
+    ],
+    vg_breadcrumb([
+      ['name' => 'Accueil', 'url' => '/'],
+      ['name' => 'Carte', 'url' => '/carte.php'],
+    ])
+  );
+  ?>
+</head>
+
+<body>
+  <?php include "./components/header.html"; ?>
+  <main class="">
+    <div id="map" class="w-full h-[calc(100dvh-100px)]"></div>
+  </main>
+  <?php include "./components/footer.php"; ?>
+</body>
+<script>
+
+  function isSamsungInternet() {
+    return navigator.userAgent.includes("SamsungBrowser");
+  }
+
+  // Paramètres généraux
+  const iconSize = 30;
+  const defaultMarkerSize = iconSize;
+  const itinerairesColors = ["indianRed", "tomato", "teal", "paleVioletRed", "mediumSlateBlue", "lightSalmon", "fireBrick", "crimson", "purple", "hotPink", "mediumOrchid"]
+  const falaiseIcon = (size, closed, bloc) =>
+    L.icon({
+      iconUrl: closed
+        ? "/images/map/icone_falaisefermee_carte.png"
+        : bloc === "1"
+          ? "/images/map/icone_falaise_carte_bloc.png"
+          : bloc === "2"
+            ? "/images/map/icone_falaise_carte_psychobloc.png"
+            : "/images/map/icone_falaise_carte.png",
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size],
+    });
+  const trainIcon = (tgv, size = 24) => {
+    return L.icon({
+      iconUrl: "/images/map/icone_train_carte.png",
+      className: "train-icon bgwhite" + (tgv ? " filterred" : ""),
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+    });
+  };
+
+  // format_time and calculate_time are loaded from /js/utils-global.js
+
+  const halo = "[text-shadow:-1px_-1px_0_#fff,1px_-1px_0_#fff,-1px_1px_0_#fff,1px_1px_0_#fff,0_1px_0_#fff,0_-1px_0_#fff,1px_0_0_#fff,-1px_0_0_#fff]";
+
+  const gpx_path = (it) => {
+    return (
+      it.velo_id + "_" + it.velo_depart + "_" + it.velo_arrivee + "_" + (it.velo_varianteformate || "") + ".gpx"
+    )
+  }
+  const ignTiles = L.tileLayer(
+    "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
+    maxZoom: 19,
+    minZoom: 0,
+    attribution: "IGN-F/Geoportail",
+    crossOrigin: true,
+  })
+  const ignOrthoTiles = L.tileLayer(
+    "https://data.geopf.fr/wmts?&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
+    maxZoom: 18,
+    minZoom: 0,
+    tileSize: 256,
+    attribution: "IGN-F/Geoportail",
+    crossOrigin: true,
+  })
+  const landscapeTiles = L.tileLayer(
+    "https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
+    maxZoom: 19,
+    minZoom: 0,
+    attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
+    crossOrigin: true,
+  })
+  const opencyclemapTiles = L.tileLayer(
+    "https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
+    maxZoom: 19,
+    minZoom: 0,
+    attribution: '<a href="http://www.thunderforest.com/opencyclemap/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
+    crossOrigin: true,
+  })
+  const outdoorsTiles = L.tileLayer(
+    "https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
+    maxZoom: 19,
+    minZoom: 0,
+    attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
+    crossOrigin: true,
+  })
+  var baseMaps = {
+    "Landscape": landscapeTiles,
+    'OpenCycleMap': opencyclemapTiles,
+    'IGNv2': ignTiles,
+    'Satellite': ignOrthoTiles,
+    'Outdoors': outdoorsTiles,
+  };
+
+  var itinerairesLines = []
+  var selected = null;
+  const teardown = () => {
+    if (selected !== null && selected.type === "falaise" && selected.filteredOut) {
+      map.removeLayer(selected.marker);
+    }
+    selected = null;
+    itinerairesLines.forEach((line) => {
+      map.removeLayer(line);
+    });
+    itinerairesLines = [];
+    // Restore normal tooltips for gares and falaises
+    gares.forEach((gare) => {
+      if (gare.type === "gare") {
+        gare.marker?.setIcon(trainIcon(gare.gare_tgv === "1", 24));
+        // gare.marker?.closeTooltip();
+        gare.marker?.unbindTooltip();
+        gare.marker?.bindTooltip(gare.gare_nom, {
+          className: "p-px",
+          direction: "right",
+          offset: [iconSize / 2, 0],
+        });
+      }
+    });
+    falaises.forEach((falaise) => {
+      if (falaise.type === "falaise") {
+        // falaise.marker?.closeTooltip();
+        falaise.marker?.unbindTooltip();
+        falaise.marker?.bindTooltip(escapeHtml(falaise.falaise_nom), {
+          className: "p-px",
+          direction: "right",
+          offset: [iconSize / 2, 0],
+        });
+      }
+    });
+  };
+
+  function renderGpx(it, c) {
+    const lopts = { weight: 5, color: c };
+    const options = {
+      async: true,
+      markers: {
+        startIcon: null,
+        endIcon: null,
+      },
+      polyline_options: lopts,
+    };
+    return new L.GPX("/public/gpx/" + gpx_path(it), options)
+      .addTo(map)
+      .on('loaded', e => {
+        e.target.bindTooltip(
+          format_time(calculate_time(it))
+          + (it.velo_apieduniquement === "1"
+            ? '<svg class="w-4 h-4 fill-none stroke-current inline"><use href="#footprint"></use></svg>'
+            : ""
+          ),
+          {
+            className: `vg-velo-tooltip vg-color-${c}`,
+            permanent: true,
+            direction: "center",
+          });
+        e.target.on('mouseover', e => {
+          e.originalEvent.target.ownerSVGElement.appendChild(e.originalEvent.target);
+          e.target.eachLayer((l) => l.setStyle({ weight: 10, color: c }))
+        });
+        e.target.on('mouseout', e => {
+          e.target.eachLayer((l) => l.setStyle(lopts))
+        });
+        e.target.on('click', e => {
+          L.DomEvent.stopPropagation(e);
+        });
+      }
+      );
+  }
+
+  function setFalaiseMarker(falaise, map, mode) {
+    const initMarker = () => {
+      const marker = L.marker(
+        falaise.falaise_latlng.split(","),
+        {
+          icon: falaiseIcon(defaultMarkerSize, falaise.falaise_fermee, falaise.falaise_bloc),
+          riseOnHover: true,
+          autoPanOnFocus: true,
+          title: "Clic pour voir les accès, puis second clic pour accéder à la fiche complète"
+        }
+      ).addTo(map);
+      falaise.marker = marker;
+      if (!falaise.highlighted) {
+        const labelMarker = L.marker(
+          falaise.falaise_latlng.split(","),
+          {
+            icon: L.divIcon({
+              className: "relative",
+              html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo} text-sm">${escapeHtml(falaise.falaise_nom)}</div>`,
+              iconSize: [0, 0],
+            }),
+            riseOnHover: true,
+            autoPanOnFocus: true,
+          }
+        ).addTo(map);
+        falaise.labelMarker = labelMarker;
+      }
+      if (falaise.highlighted) {
+        const hmarker = L.marker(
+          falaise.falaise_latlng.split(","),
+          {
+            icon: L.divIcon({
+              iconSize: [0, 0],
+              iconAnchor: [0, 0],
+              className: "relative",
+              html: `<div
+                class="absolute z-1000 top-0 left-1/2 w-fit text-nowrap -translate-x-1/2
+                bg-linear-to-r from-primary to-secondary border-2 border-white text-white text-xs p-[2px] leading-none rounded-md"
+                >
+              ${escapeHtml(falaise.falaise_nom)}
+            </div>`,
+            }),
+            riseOnHover: true,
+            autoPanOnFocus: true,
+          }
+        ).addTo(map);
+        falaise.hmarker = hmarker;
+      }
+      marker.bindTooltip(escapeHtml(falaise.falaise_nom), {
+        className: "p-px",
+        direction: "right",
+        offset: [iconSize / 2, -iconSize / 2],
+      });
+      marker.on("click", function (e) {
+        if (selected === null || selected.falaise_id !== falaise.falaise_id) {
+          map.addLayer(marker);
+          e.originalEvent?.stopPropagation();
+          teardown();
+          selected = falaise;
+          info.update();
+          // use falaise coords and gare coords to set bounds
+          const bounds = [
+            falaise.falaise_latlng.split(",").map(parseFloat),
+            ...falaise.access.map(it => it.gare.gare_latlng.split(",").map(parseFloat))
+          ];
+          map.flyToBounds(bounds, { paddingTopLeft: [40, 50], paddingBottomRight: [100, 200], duration: 0.5 });
+
+          //Affichage des itinéraires vélo/à pied
+          // Une gare peut être l'origine de plusieurs variantes — on ne tagge
+          // le tooltip qu'au 1er passage (= itinéraire le plus court, access
+          // étant trié par tempsVelo), sinon le dernier écrase les précédents.
+          setTimeout(() => {
+            const tagged = new Set();
+            falaise.access.forEach((it, i) => {
+              const c = itinerairesColors[i % itinerairesColors.length];
+              const gpx = renderGpx(it, c);
+              itinerairesLines.push(gpx);
+              if (tagged.has(it.gare.gare_id)) return;
+              tagged.add(it.gare.gare_id);
+              const station = gares.find(g => g.gare_id === it.gare.gare_id);
+              // Afficher les noms des gares qui donnent accès à cette falaise
+              station.marker?.unbindTooltip();
+              station.marker?.bindTooltip(station.gare_nom, {
+                direction: "right",
+                offset: [iconSize / 2, 0],
+                permanent: true,
+                className: `vg-station-tooltip vg-color-${c}`,
+              });
+            });
+          }, 0.76 * 1000);
+        } else {
+          // map.flyTo(falaise.falaise_latlng.split(","), 15, { duration: 0.25 });
+          // navigate to falaise page
+          window.location.href = `/falaise.php?falaise_id=${falaise.falaise_id}`;
+          // marker.closeTooltip();
+        }
+        marker.unbindTooltip();
+        marker.bindTooltip(escapeHtml(falaise.falaise_nom), {
+          className: "p-px",
+          direction: "top",
+          permanent: true,
+          offset: [0, -iconSize],
+        });
+      });
+    }
+
+    // If mode did not change : do nothing
+    if (falaise.displayMode === mode) {
+      return;
+    }
+    // Clear old marker when mode changed
+    if (!falaise.marker || !falaise.labelMarker || falaise.displayMode === "hidden") {
+      initMarker();
+    }
+    // Set new mode
+    falaise.displayMode = mode;
+    // Depending on mode: size, opacity, tooltip, onMap (remove layer)
+    const setIconAndTooltip = (size, direction, permanent = false) => {
+      falaise.marker.setIcon(falaiseIcon(size, falaise.falaise_fermee, falaise.falaise_bloc));
+      falaise.marker.unbindTooltip();
+      falaise.marker.bindTooltip(escapeHtml(falaise.falaise_nom), {
+        className: "p-px",
+        direction,
+        offset: direction === "right" ? [size / 4, -size / 2] : direction === "top" ? [0, -size] : [size / 2, 0],
+        permanent,
+      });
+    };
+    if (mode === "normal+label") {
+      falaise.labelMarker?.addTo(map);
+    } else {
+      falaise.labelMarker && map.removeLayer(falaise.labelMarker);
+    }
+    switch (mode) {
+      case "normal":
+      case "normal+label":
+        falaise.marker.setOpacity(1);
+        setIconAndTooltip(defaultMarkerSize, "right");
+        return;
+      case "reduced":
+        falaise.marker.setOpacity(1);
+        setIconAndTooltip(20, "right");
+        return;
+      case "faded":
+        falaise.marker.setOpacity(0.5);
+        setIconAndTooltip(24, "right");
+        return;
+      case "hidden":
+        map.removeLayer(falaise.marker);
+        return;
+    }
+  }
+
+  function setFalaiseHTMarker(falaise, map, mode) {
+    if (falaise.displayMode === mode) return;
+    if (falaise.displayMode !== undefined && falaise.marker) {
+      map.removeLayer(falaise.marker);
+    }
+    falaise.displayMode = mode;
+    const size = 20;
+    const init = () => {
+      const marker = L.marker(
+        falaise.falaise_latlng.split(","),
+        {
+          icon: falaiseIcon(size, falaise.falaise_fermee, falaise.falaise_bloc),
+          opacity: 0.75,
+          riseOnHover: true,
+          autoPanOnFocus: true,
+        }
+      ).addTo(map);
+      const labelMarker = L.marker(
+        falaise.falaise_latlng.split(","),
+        {
+          icon: L.divIcon({
+            className: "relative",
+            html: `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo}">${escapeHtml(falaise.falaise_nom)}</div>`,
+            iconSize: [0, 0],
+          }),
+          opacity: 0.75,
+          riseOnHover: true,
+          autoPanOnFocus: true,
+        }
+      ).addTo(map);
+      falaise.labelMarker = labelMarker;
+      falaise.marker = marker;
+      marker.bindPopup(
+        `<div class="flex flex-col gap-1">`
+        + `<div class="text-slate-400"><span class="uppercase">hors topo</span> (aucun accès 🚲 décrit)</div>`
+        + `<div class="text-sm font-bold">${escapeHtml(falaise.falaise_nom)}</div>`
+        + `${falaise.falaise_fermee ? `<div class="text-error">${escapeHtml(falaise.falaise_fermee).replace(/\n/g, "<br>")}</div>` : ""}`
+        + `<div class="flex gap-2 w-full justify-end">`
+        + `  <a href="/ajout/ajout_falaise.php?falaise_id=${falaise.falaise_id}" class="btn btn-xs btn-primary">Renseigner la falaise</a>`
+        + `  <a href="/ajout/ajout_velo.php?falaise_id=${falaise.falaise_id}"class="btn btn-xs btn-primary">Ajouter accès</a>`
+        + `</div>`
+        + `</div>`,
+        { offset: [0, -10] }
+      );
+    };
+    if (!falaise.marker || !falaise.labelMarker) {
+      init();
+    }
+    switch (mode) {
+      case "normal":
+      case "normal+label":
+        falaise.marker.addTo(map);
+        if (mode === "normal+label") {
+          if (!falaise.labelMarker._map) {
+            falaise.labelMarker.addTo(map);
+          }
+        } else {
+          falaise.labelMarker && map.removeLayer(falaise.labelMarker);
+        }
+        return;
+      case "hidden":
+        map.removeLayer(falaise.marker);
+        falaise.labelMarker && map.removeLayer(falaise.labelMarker);
+        return;
+    }
+  }
+  function setGareMarker(gare, map, mode) {
+    if (gare.displayMode === mode) return;
+    if (gare.displayMode !== undefined && gare.marker) {
+      map.removeLayer(gare.marker);
+    }
+    const marker = L.marker(
+      gare.gare_latlng.split(","),
+      {
+        icon: trainIcon(gare.gare_tgv === "1", 24),
+        riseOnHover: true,
+        autoPanOnFocus: true,
+      }
+    ).addTo(map);
+    marker.unbindTooltip();
+    marker.bindTooltip(gare.gare_nom, {
+      className: "p-px",
+      direction: "right",
+      offset: [iconSize / 2, 0],
+    });
+    gare.marker = marker;
+    gare.displayMode = mode;
+    // Gares avec itinéraires = Gares du Topo
+    marker.on("click", function (e) {
+      e.originalEvent?.stopPropagation();
+      e.target.openTooltip();
+      teardown();
+      selected = gare;
+      info.update();
+      // use falaise coords and gare coords to set bounds
+      const bounds = [
+        gare.gare_latlng.split(",").map(parseFloat),
+        ...gare.access.map(it => it.falaise.falaise_latlng.split(",").map(parseFloat))
+      ];
+      map.flyToBounds(bounds, { maxZoom: 12, paddingTopLeft: [40, 50], paddingBottomRight: [100, 200], duration: 0.5 });
+
+      // Idem côté gare : ne tagger le tooltip falaise qu'au 1er passage.
+      setTimeout(() => {
+        const tagged = new Set();
+        gare.access.forEach((it, i) => {
+          const c = itinerairesColors[i % itinerairesColors.length];
+          if (falaises.find(f => f.falaise_id === it.falaise.falaise_id)?.filteredOut) return;
+          const gpx = renderGpx(it, c);
+          itinerairesLines.push(gpx);
+          if (tagged.has(it.falaise.falaise_id)) return;
+          tagged.add(it.falaise.falaise_id);
+          // Afficher les noms des falaises accessibles depuis cette gare
+          const falaise = falaises.find(f => f.falaise_id === it.falaise.falaise_id);
+          falaise.marker?.unbindTooltip();
+          falaise.marker?.bindTooltip(escapeHtml(falaise.falaise_nom), {
+            direction: "right",
+            permanent: true,
+            offset: [iconSize / 2, -iconSize / 2],
+            className: `vg-station-tooltip vg-color-${c}`,
+          });
+        });
+      }, 0.76 * 1000);
+      marker.unbindTooltip();
+      marker.bindTooltip(gare.gare_nom, {
+        className: "p-px",
+        direction: "top",
+        permanent: true,
+        offset: [0, -iconSize / 2],
+      });
+    });
+    if (mode === "hidden") {
+      gare.displayMode = mode;
+      map.removeLayer(gare.marker);
+      return;
+    }
+    return marker;
+  }
+  function setGareHTMarker(gare, map, mode, zoom) {
+    const radius = !zoom ? undefined : zoom < 9 ? 2 : zoom < 10 ? 3 : 4;
+    if (gare.displayMode === mode && mode !== "zoom") return;
+    if (mode === "zoom" && gare.displayMode === "zoom") {
+      gare.marker.setRadius(radius);
+    }
+    if (gare.displayMode !== undefined && gare.marker) {
+      map.removeLayer(gare.marker);
+      delete gare.marker;
+    }
+    if (mode === "hidden") {
+      gare.displayMode = mode;
+      return;
+    }
+    const marker = L.circleMarker(
+      gare.gare_latlng.split(",").map(parseFloat),
+      {
+        radius,
+        stroke: true,
+        color: "#fff",
+        weight: 1,
+        fill: true,
+        fillColor: gare.gare_tgv === "0" ? "black" : "#a00",
+        fillOpacity: 1,
+      }
+    ).addTo(map);
+    marker.bindPopup(gare.gare_nom);
+    gare.displayMode = mode;
+    gare.marker = marker
+    return marker;
+  }
+</script>
+<script>
+  const center = [45.391, 5.420]
+  const zoom = 6.5;
+  // Récupération des données
+  const falaisesBase = <?php echo json_encode($falaises); ?>;
+  const highlightedFalaiseIds = <?= json_encode(explode(',', $highlight)) ?>;
+  const itineraires = <?php echo json_encode($itineraires); ?>.map(it => ({ ...it, tempsVelo: calculate_time(it) }));
+  const garesBase = <?php echo json_encode($gares); ?>.map(g => {
+    g.villes = (g.villes || "")
+      .split("=|=")
+      .map(v => {
+        const [ville_id, ville, durStr, nCorresp, tgv] = v.split("|"); return { ville_id, ville, temps: parseInt(durStr), nCorresp: parseInt(nCorresp), train_tgv: parseInt(tgv) }
+      });
+    return g;
+  });
+  const falaises = falaisesBase.map(f => {
+    const access = itineraires.filter(i => i.falaise_id === f.falaise_id).map(it => {
+      const gare = garesBase.find(g => g.gare_id === it.gare_id);
+      const villes = gare.villes.map(v => {
+        const tempsTrainVelo = v.temps + it.tempsVelo;
+        const tempsTotal = tempsTrainVelo + (f.maa || 0);
+        return { ...v, tempsTrainVelo, tempsTotal };
+      });
+      return { ...it, gare, villes };
+    }).sort((a, b) => a.tempsVelo - b.tempsVelo);
+    if (highlightedFalaiseIds.includes(f.falaise_id)) {
+      f.highlighted = true;
+    }
+    return { ...f, access }
+  })
+  const gares = garesBase.map(g => {
+    const access = itineraires.filter(i => i.gare_id === g.gare_id).map(it => {
+      const falaise = falaisesBase.find(f => f.falaise_id === it.falaise_id);
+      return { ...it, falaise }
+    }).sort((a, b) => a.tempsVelo - b.tempsVelo);
+    return { ...g, access }
+  })
+
+  var map = L.map("map", {
+    layers: [landscapeTiles],
+    center,
+    zoom,
+    fullscreenControl: true,
+    // zoomSnap: 0.25,
+    // zoomDelta: 0.25,
+    // preferCanvas: true,
+    // updateWhenZooming: false,
+
+  });
+  // map.on("zoomend", () => console.log("zoom", map.getZoom()))
+  var layerControl = L.control.layers(baseMaps, undefined, { position: "topleft", size: 22 }).addTo(map);
+  L.control.scale({ position: "bottomleft", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
+  L.control.locate({ locateOptions: { enableHighAccuracy: true } }).addTo(map);
+
+  // Contrôle Leaflet pour filtres + recherche (Vue.js)
+  var filtersControl = L.control({ position: 'topright' });
+  filtersControl.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'leaflet-filters-control');
+    this._div.id = 'vue-map-filters';
+    // Note: Use JSON_HEX_APOS to safely embed in JS single-quoted strings (escapes ' as \u0027)
+    this._div.dataset.villes = <?= json_encode(json_encode($villes), JSON_HEX_APOS) ?>;
+    this._div.dataset.falaises = <?= json_encode(json_encode(array_map(fn($f) => ["falaise_id" => $f["falaise_id"], "falaise_nom" => $f["falaise_nom"]], $falaises)), JSON_HEX_APOS) ?>;
+    this._div.dataset.gares = <?= json_encode(json_encode(array_map(fn($g) => ["gare_id" => $g["gare_id"], "gare_nom" => $g["gare_nom"]], $gares)), JSON_HEX_APOS) ?>;
+    L.DomEvent.disableClickPropagation(this._div);
+    L.DomEvent.disableScrollPropagation(this._div);
+    return this._div;
+  };
+  filtersControl.addTo(map);
+
+  // PANNEAU D'INFORMATION SUR LA FALAISE/GARE SELECTIONNEE (Vue.js)
+  var info = L.control({ position: 'bottomright' });
+  info.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info w-[calc(100%-20px)]');
+    this._div.id = 'vue-info-panel';
+    L.DomEvent.disableClickPropagation(this._div);
+    L.DomEvent.disableScrollPropagation(this._div);
+    return this._div;
+  };
+  // Update Vue store instead of regenerating HTML
+  info.update = function () {
+    const nFalaises = falaises.filter(f => (f.type === "falaise")).length;
+    const nFalaiseFiltered = falaises.filter(f => (f.type === "falaise") && !f.filteredOut).length;
+
+    // Wait for Vue to be ready, then update
+    if (window.velogrimpe?.carteInfo) {
+      window.velogrimpe.carteInfo.updateStats(nFalaises, nFalaiseFiltered);
+      window.velogrimpe.carteInfo.setSelected(selected);
+    }
+
+    // Open details on desktop after Vue renders
+    setTimeout(() => {
+      if (window.innerWidth >= 768) {
+        this._div.querySelectorAll("details").forEach((details) => details.open = true);
+      }
+    }, 50);
+  };
+  info.addTo(map);
+
+  function renderFalaises() {
+    const zoom = map.getZoom();
+    falaises.map((falaise) => {
+      if (!falaise.falaise_latlng) return;
+      if (falaise.access.length === 0) {
+        falaise.type = "falaise_hors_topo";
+        if (zoom < 11 || falaise.filteredOut) {
+          setFalaiseHTMarker(falaise, map, "hidden");
+        } else if (zoom < 14) {
+          setFalaiseHTMarker(falaise, map, "normal");
+        } else {
+          setFalaiseHTMarker(falaise, map, "normal+label");
+        }
+      } else {
+        falaise.type = "falaise";
+        if (falaise.filteredOut) {
+          if (falaise === selected) {
+            setFalaiseMarker(falaise, map, "faded");
+          }
+          else {
+            setFalaiseMarker(falaise, map, "hidden");
+          }
+          return;
+        }
+        if (falaise.falaise_fermee) {
+          if (zoom < 11) {
+            setFalaiseMarker(falaise, map, "hidden");
+          } else if (zoom < 12) {
+            setFalaiseMarker(falaise, map, "normal");
+          } else {
+            setFalaiseMarker(falaise, map, "normal+label");
+          }
+        } else {
+          if (zoom < 9) {
+            setFalaiseMarker(falaise, map, "reduced");
+          } else if (zoom < 12) {
+            setFalaiseMarker(falaise, map, "normal");
+          } else {
+            setFalaiseMarker(falaise, map, "normal+label");
+          }
+        }
+      }
+    });
+  }
+  renderFalaises();
+
+  map.on("click", function (e) {
+    if (selected) {
+      teardown();
+      info.update();
+    }
+  });
+
+  function renderGares() {
+
+    const zoom = map.getZoom();
+    const { _northEast: { lat: neLat, lng: neLng }, _southWest: { lat: swLat, lng: swLng } } = map.getBounds();
+    gares.forEach((gare) => {
+      if (!gare.gare_latlng) return;
+      if (gare.access.length === 0) {
+        gare.type = "gare_hors_topo";
+        // setGareHTMarker(gare, map, "zoom", map.getZoom());
+      } else {
+        gare.type = "gare";
+      }
+      if (gare.type === "gare_hors_topo") {
+        if (zoom >= 11) {
+          const [lat, lng] = gare.gare_latlng.split(",").map(parseFloat);
+          if (lat < neLat && lat > swLat && lng < neLng && lng > swLng) {
+            setGareHTMarker(gare, map, "zoom", zoom);
+          } else {
+            setGareHTMarker(gare, map, "hidden");
+          }
+        } else {
+          setGareHTMarker(gare, map, "hidden");
+        }
+      } else {
+        if (zoom < 9) {
+          setGareMarker(gare, map, "hidden");
+        } else {
+          if (!gare.marker || gare.displayMode === "hidden") {
+            setGareMarker(gare, map, "normal");
+          } else {
+            gare.marker?.setIcon(trainIcon(gare.gare_tgv === "1", 24));
+          }
+        }
+      }
+    });
+  }
+  renderGares();
+
+  map.on("zoomend", (e) => {
+    // console.log("zoomend", map.getZoom());
+    renderFalaises();
+    renderGares();
+  });
+
+  map.on("moveend", (e) => {
+    renderGares();
+  });
+
+</script>
+<script type="module">
+  import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer } from "/js/components/map/load-vector-tiles.js";
+  campingLayer.addTo(map);
+  trainlinesLayer.addTo(map);
+  tgvLayer.addTo(map);
+  layerControl.addOverlay(tgvLayer, 'Lignes et Gares TGV');
+  layerControl.addOverlay(campingLayer, 'Campings');
+  layerControl.addOverlay(giteLayer, 'Gîtes');
+  layerControl.addOverlay(biodivLayer, 'Aires de protections de la biodiversité (escalade réglementée ou interdite)');
+</script>
+<script>
+  // ============================================ RECHERCHE (Vue.js) ============================================
+
+  // Listen for Vue search selection event
+  window.addEventListener('velogrimpe:search-select', (e) => {
+    const { id, type } = e.detail;
+    document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    let item = null;
+    if (type === "falaise") {
+      item = falaises.find(f => f.falaise_id === id);
+    } else if (type === "gare") {
+      item = gares.find(g => g.gare_id === id);
+    }
+
+    if (item) {
+      if (item.type === "falaise_hors_topo") {
+        setFalaiseHTMarker(item, map, "normal");
+        map.flyTo(item.falaise_latlng.split(",").map(parseFloat), 12, { duration: 0.5 });
+        setTimeout(() => item.marker?.openPopup(), 600);
+        return;
+      }
+      else if (item.type === "gare_hors_topo") {
+        map.flyTo(item.gare_latlng.split(",").map(parseFloat), 11, { duration: 0.5 });
+        setTimeout(() => item.marker?.openPopup(), 600);
+        return;
+      }
+      item.marker?.fire("click");
+      setTimeout(() => item.marker?.openPopup(), 600);
+    }
+  });
+
+  // ============================================ FILTRES (Vue.js) ============================================
+  const falaisesDuTopo = falaises.filter(f => f.access.length > 0);
+  const falaisesHorsTopo = falaises.filter(f => f.access.length === 0);
+
+  // Altitude (m) dans l'intervalle [min, max] (bornes incluses, optionnelles).
+  // Altitude inconnue (null) exclue dès qu'une borne est définie.
+  const altitudeMatches = (altitude, min, max) => {
+    if (min === null && max === null) return true;
+    if (altitude === null || altitude === undefined || altitude === "") return false;
+    const a = Number(altitude);
+    if (!Number.isFinite(a)) return false;
+    return (min === null || a >= min) && (max === null || a <= max);
+  };
+
+  // Vue filter handler - receives filter state from Vue component
+  const applyVueFilters = (filters) => {
+    const expoN = filters.exposition.includes('N');
+    const expoE = filters.exposition.includes('E');
+    const expoS = filters.exposition.includes('S');
+    const expoO = filters.exposition.includes('O');
+    const cot40 = filters.cotations.includes('40');
+    const cot50 = filters.cotations.includes('50');
+    const cot59 = filters.cotations.includes('59');
+    const cot60 = filters.cotations.includes('60');
+    const cot69 = filters.cotations.includes('69');
+    const cot70 = filters.cotations.includes('70');
+    const cot79 = filters.cotations.includes('79');
+    const cot80 = filters.cotations.includes('80');
+    const couenne = filters.typeVoies.couenne;
+    const avecgv = filters.typeVoies.grandeVoie;
+    const bloc = filters.typeVoies.bloc;
+    const psychobloc = filters.typeVoies.psychobloc;
+    const apieduniquement = filters.velo.apiedPossible;
+    const tempsMaxVelo = filters.velo.tempsMax;
+    const distMaxVelo = filters.velo.distMax;
+    const denivMaxVelo = filters.velo.denivMax;
+    const tempsMaxTrain = filters.train.tempsMax;
+    const nbCorrespMax = filters.train.correspMax !== null ? filters.train.correspMax : 10;
+    const terOnly = filters.train.terOnly;
+    const tempsMaxMA = filters.approche.tempsMax;
+    const tempsMaxTV = filters.total.tempsTV;
+    const tempsMaxTVA = filters.total.tempsTVA;
+    const ville = filters.villeId;
+    const villeSelected = ville !== null;
+    const nbVoies = filters.nbVoiesMin;
+    const altMin = filters.altitude.min;
+    const altMax = filters.altitude.max;
+    const altFiltered = altMin !== null || altMax !== null;
+
+    const expoFiltered = [expoN, expoE, expoS, expoO].some(e => e);
+    const cotFiltered = [cot40, cot50, cot59, cot60, cot69, cot70, cot79, cot80].some(e => e);
+    const typeVoiesFiltered = couenne || avecgv || bloc || psychobloc;
+
+    // Case 1: all default values --> set all falaises visible
+    if (
+      !expoFiltered
+      && !altFiltered
+      && !cotFiltered
+      && !typeVoiesFiltered
+      && nbVoies === 0
+      && !apieduniquement
+      && tempsMaxVelo === null
+      && denivMaxVelo === null
+      && distMaxVelo === null
+      && tempsMaxMA === null
+      && !villeSelected
+    ) {
+      falaises.forEach(falaise => {
+        falaise.filteredOut = false;
+      });
+    }
+    // Case 2: At least one filter is set --> apply filters
+    else {
+      falaisesHorsTopo.forEach(falaise => {
+        falaise.filteredOut = false;
+      });
+      falaisesDuTopo.forEach(falaise => {
+        const estCotationsCompatible = (
+          // Exclure les falaises sans cotation min/max renseignée quand on filtre par cotation
+          !!falaise.falaise_cotmin && !!falaise.falaise_cotmax
+          && (!cot40 || ("4+".localeCompare(falaise.falaise_cotmin) >= 0))
+          && (!cot50 || ("5-".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("5-") >= 0))
+          && (!cot59 || ("5+".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("5+") >= 0))
+          && (!cot60 || ("6-".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("6-") >= 0))
+          && (!cot69 || ("6+".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("6+") >= 0))
+          && (!cot70 || ("7-".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("7-") >= 0))
+          && (!cot79 || ("7+".localeCompare(falaise.falaise_cotmin) >= 0 && falaise.falaise_cotmax.localeCompare("7+") >= 0))
+          && (!cot80 || (falaise.falaise_cotmax.localeCompare("8-") >= 0))
+        );
+        const estTrainCompatible = (
+          falaise.access.some(it => {
+            const train = it.villes.find(v => v.ville_id === ville);
+            return train && (
+              (tempsMaxTrain === null || train.temps <= tempsMaxTrain)
+              && (nbCorrespMax === 10 || train.nCorresp <= nbCorrespMax)
+              && (!terOnly || parseInt(train.train_tgv || 0) === 0)
+              && (tempsMaxTV === null || train.tempsTrainVelo <= tempsMaxTV)
+              && (tempsMaxTVA === null || train.tempsTotal <= tempsMaxTVA)
+            )
+          }));
+        const estNbVoiesCompatible = (parseInt(falaise.falaise_nbvoies) >= nbVoies) || nbVoies === 0;
+        const estTypeVoiesCompatible = (
+          (couenne && !!!parseInt(falaise.falaise_bloc))
+          || (avecgv && !!falaise.falaise_gvnb)
+          || (bloc && parseInt(falaise.falaise_bloc) === 1)
+          || (psychobloc && parseInt(falaise.falaise_bloc) === 2)
+        );
+
+        // Main filter logic
+        if (
+          (!expoFiltered || (
+            (expoN && (falaise.falaise_exposhort1.includes("'N") || falaise.falaise_exposhort2.includes("'N")))
+            || (expoE && (falaise.falaise_exposhort1.match(/('E|'NE'|'SE')/) || falaise.falaise_exposhort2.match(/('E|'NE'|'SE')/)))
+            || (expoS && (falaise.falaise_exposhort1.includes("'S") || falaise.falaise_exposhort2.includes("'S")))
+            || (expoO && (falaise.falaise_exposhort1.match(/('O|'NO'|'SO')/) || falaise.falaise_exposhort2.match(/('O|'NO'|'SO')/)))
+          ))
+          && altitudeMatches(falaise.falaise_altitude, altMin, altMax)
+          && (!cotFiltered || estCotationsCompatible)
+          && (tempsMaxMA === null || parseInt(falaise.falaise_maa || 0) <= tempsMaxMA)
+          && estNbVoiesCompatible
+          && (!typeVoiesFiltered || estTypeVoiesCompatible)
+          && (!villeSelected || estTrainCompatible)
+          && falaise.access.some(it => {
+            const duration = calculate_time(it);
+            return (
+              (tempsMaxVelo === null || duration <= tempsMaxVelo)
+              && (denivMaxVelo === null || parseInt(it.velo_dplus) <= denivMaxVelo)
+              && (distMaxVelo === null || parseFloat(it.velo_km) <= distMaxVelo)
+              && (apieduniquement === false || it.velo_apieduniquement === "1" || it.velo_apiedpossible === "1")
+            );
+          })
+        ) {
+          falaise.filteredOut = false;
+        } else {
+          falaise.filteredOut = true;
+        }
+      });
+    }
+    info.update();
+    renderFalaises();
+  }
+
+  // Listen for Vue filter changes
+  window.addEventListener('velogrimpe:filters', (e) => {
+    applyVueFilters(e.detail);
+  });
+
+  // Initial render - wait for Vue info panel to be ready
+  window.addEventListener('velogrimpe:info-ready', function () {
+    info.update();
+  });
+
+</script>
+<!-- Vue.js Map Filters (search + filters in Leaflet control) -->
+<script type="module" src="/dist/carte-map-filters.js"></script>
+<!-- Vue.js Info Panel -->
+<script type="module" src="/dist/carte-info.js"></script>
+
+</html>
