@@ -144,6 +144,20 @@ if ($mysqli->connect_error) {
   respondError("Erreur de connexion à la base de données : " . $mysqli->connect_error, 500);
 }
 
+// En édition, le nom formaté est celui stocké en base (jamais modifié, cf. ON DUPLICATE
+// KEY UPDATE) : il nomme les images lues par falaise.php. On ignore la valeur postée,
+// que le formulaire peut avoir recalculée depuis le nom.
+if ($isEdition) {
+  $stmt_nf = $mysqli->prepare("SELECT falaise_nomformate FROM falaises WHERE falaise_id = ?");
+  $stmt_nf->bind_param("i", $falaise_id);
+  $stmt_nf->execute();
+  $row_nf = $stmt_nf->get_result()->fetch_assoc();
+  $stmt_nf->close();
+  if ($row_nf) {
+    $falaise_nomformate = $row_nf['falaise_nomformate'];
+  }
+}
+
 /** Dossier de données des photos de falaise, au sens de lib/paths.php. */
 const FALAISE_IMAGES_DIR = 'images_falaises';
 
