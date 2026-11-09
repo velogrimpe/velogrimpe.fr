@@ -1,5 +1,6 @@
 import { parseList } from "/js/components/utils/lists.js";
 import Element from "/js/components/map/element.js";
+import { arretDivIcon } from "/js/components/map/arret-icon.js";
 
 export default class BusStop extends Element {
   /**
@@ -18,6 +19,11 @@ export default class BusStop extends Element {
     const visibility = options.visibility || { from: 9 };
     const layer = buildBusStopMarker(busStopFeature, options);
     layer.properties = busStopFeature.properties;
+    // Arrêt de la base : repère DOM pour retrouver le marqueur d'un arrêt donné.
+    const arretId = busStopFeature.properties?.arret_id;
+    if (arretId !== undefined) {
+      layer.on("add", () => layer.getElement()?.setAttribute("data-arret-id", String(arretId)));
+    }
     const name = layer.properties?.name || "Arrêt de bus";
     const desc = layer.properties?.description || "";
     const html =
@@ -36,6 +42,8 @@ export default class BusStop extends Element {
       },
     });
     this.setupHighlight();
+    // Modalités de l'arrêt (si connues) : icône par type plutôt que l'icône bus.
+    this.types = busStopFeature.properties?.types || null;
     this.approches = [];
     this.secteurs = [];
   }
@@ -61,12 +69,17 @@ export default class BusStop extends Element {
     });
   }
 
+  iconAtScale(scale) {
+    const size = Math.round(BusStop.iconSize * scale);
+    return this.types ? arretDivIcon(this.types, size) : BusStop.busStopIcon(size);
+  }
+
   highlight(event, propagate) {
-    this.layer.setIcon(BusStop.busStopIcon(Math.round(BusStop.iconSize * 1.2)));
+    this.layer.setIcon(this.iconAtScale(1.2));
     super.highlight(event, propagate);
   }
   unhighlight(propagate) {
-    this.layer.setIcon(BusStop.busStopIcon(BusStop.iconSize));
+    this.layer.setIcon(this.iconAtScale(1));
     super.unhighlight(propagate);
   }
 
@@ -107,7 +120,9 @@ const buildBusStopMarker = (busStopFeature, options = {}) => {
       busStopFeature.geometry.coordinates[0],
     ],
     {
-      icon: iconBusStop,
+      icon: busStopFeature.properties?.types
+        ? arretDivIcon(busStopFeature.properties.types, BusStop.iconSize)
+        : iconBusStop,
     },
   );
   return marker;

@@ -42,7 +42,7 @@ if ($resultV) {
 
 // URLs des pages falaises sans villes sélectionnées
 $queryF = "SELECT DISTINCT f.falaise_id, f.date_modification FROM falaises f
-    INNER JOIN velo v ON v.falaise_id = f.falaise_id
+    INNER JOIN acces_falaise v ON v.falaise_id = f.falaise_id AND v.type = 'velo'
     WHERE falaise_public >= 0";
 $resultF = $mysqli->query($queryF);
 if ($resultF) {
@@ -60,15 +60,15 @@ $query = "SELECT DISTINCT
     f.date_modification,
     villes.ville_id
 FROM falaises f
-LEFT JOIN velo v ON v.falaise_id = f.falaise_id
-LEFT JOIN gares g ON g.gare_id = v.gare_id AND g.deleted = 0
-LEFT JOIN train t ON t.gare_id = g.gare_id
+LEFT JOIN acces_falaise v ON v.falaise_id = f.falaise_id AND v.type = 'velo'
+LEFT JOIN arrets a ON a.id = v.arret_id AND a.deleted = 0
+LEFT JOIN train t ON t.arret_id = a.id
 LEFT JOIN villes ON villes.ville_id = t.ville_id
 WHERE
-    v.velo_id IS NOT NULL
+    v.acces_id IS NOT NULL
     AND t.train_id IS NOT NULL
     AND f.falaise_public >= 0
-    AND v.velo_public >= 0
+    AND v.public >= 0
     AND t.train_public >= 0
 ORDER BY f.falaise_id
 ";

@@ -18,17 +18,17 @@ body {
   padding: 0;
 }
 
-/* Links styling - exclude navbar, menu, card links */
+/* Links styling - exclude navbar, menu, card links and Leaflet controls */
 a:not(.navbar a):not(.menu a):not(.btn):not(#map a):not(.editor-map a):not(
-    .card-link
-  ):not(.link) {
+    .leaflet-container a
+  ):not(.card-link):not(.link) {
   color: #2e8b57;
   text-decoration: none;
   font-weight: bold;
 }
 a:not(.navbar a):not(.menu a):not(.btn):not(#map a):not(.editor-map a):not(
-    .card-link
-  ):hover:not(.link) {
+    .leaflet-container a
+  ):not(.card-link):hover:not(.link) {
   /* color: #1e5d3e; */
   text-decoration: underline;
 }
@@ -197,6 +197,10 @@ a:not(.navbar a):not(.menu a):not(.btn):not(#map a):not(.editor-map a):not(
 }
 .vg-color-black {
   --vg-color: black;
+}
+/* Accès piéton (même couleur que le trait droit arrêt → falaise) */
+.vg-color-pieton {
+  --vg-color: #334155;
 }
 
 /* Velo tooltip - uses --vg-color */

@@ -17,16 +17,17 @@ $falaises_ht = array_values(array_filter(
   $falaises,
   fn($falaise) => $falaise['falaise_public'] === "3"
 ));
-$velos_a_valider = $mysqli->query("SELECT v.velo_id, v.gare_id, v.falaise_id, v.velo_variante, g.gare_nom, f.falaise_nom
-  FROM velo v
-  LEFT JOIN gares g ON g.gare_id = v.gare_id
+$velos_a_valider = $mysqli->query("SELECT v.acces_id AS velo_id, v.arret_id AS gare_id, v.falaise_id, v.variante AS velo_variante, a.nom AS gare_nom, f.falaise_nom
+  FROM acces_falaise v
+  LEFT JOIN arrets a ON a.id = v.arret_id
   LEFT JOIN falaises f ON f.falaise_id = v.falaise_id
-  WHERE v.velo_public = 2
-  ORDER BY f.falaise_nom, g.gare_nom, v.velo_variante")->fetch_all(MYSQLI_ASSOC);
+  WHERE v.type = 'velo' AND v.public = 2
+  ORDER BY f.falaise_nom, a.nom, v.variante")->fetch_all(MYSQLI_ASSOC);
 $nb_velos_a_valider = count($velos_a_valider);
 
 $arrets = $mysqli->query("SELECT a.id, a.nom
-  FROM bus_arrets a
+  FROM arrets a
+  WHERE a.bus = 1
   ORDER BY a.nom")->fetch_all(MYSQLI_ASSOC);
 
 $falaises_topo = array_values(array_filter(
@@ -65,8 +66,10 @@ $falaises_topo = array_values(array_filter(
         un itinéraire train</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_velo.php?admin=<?= $token ?>">Ajouter un
         itinéraire vélo</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_bus.php?admin=<?= $token ?>">Ajouter un
+      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_arret.php?admin=<?= $token ?>">Ajouter un
         arrêt de bus</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_ligne.php?admin=<?= $token ?>">Ajouter une
+        ligne BTT</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/admin/oblyk.php?admin=<?= $token ?>">Créer les liens
         Oblyk</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/admin/tableau_trains.php?admin=<?= $token ?>">Récap.
@@ -148,7 +151,7 @@ $falaises_topo = array_values(array_filter(
       <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectVelo">
         <b class="text-base-100 text-lg">🚌 Arrêts de bus</b>
         <select id="selectVelo" name="selectVelo" class="select select-primary select-sm w-full"
-          onchange="if (this.value) window.location.href = '/ajout/ajout_bus.php?admin=<?= $token ?>&' + this.value">
+          onchange="if (this.value) window.location.href = '/ajout/ajout_arret.php?admin=<?= $token ?>&' + this.value">
           <option value="">Sélectionner un itinéraire</option>
           <?php foreach ($arrets as $a): ?>
             <option value="<?= http_build_query(['arret_id' => $a['id']]) ?>">
@@ -156,7 +159,7 @@ $falaises_topo = array_values(array_filter(
             </option>
           <?php endforeach; ?>
         </select>
-        <a class="link text-base-100 text-sm" href="/ajout/ajout_bus.php?admin=<?= $token ?>">ou modifier n'importe quel
+        <a class="link text-base-100 text-sm" href="/ajout/ajout_arret.php?admin=<?= $token ?>">ou modifier n'importe quel
           itinéraire</a>
       </label>
     </div>

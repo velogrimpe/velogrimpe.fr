@@ -138,10 +138,13 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
       <li><a target="_blank" href="/open-data/falaises.geojson">Données falaises (GeoJSON)</a></li>
       <li><a target="_blank" href="/open-data/itineraires-velo.geojson">Itinéraires vélo, tracés complets
           (GeoJSON)</a></li>
-      <li><a target="_blank" href="/open-data/gares.geojson">Gares (GeoJSON)</a></li>
+      <li><a target="_blank" href="/open-data/arrets.geojson">Arrêts (gares TER/TGV, bus, tram, téléphérique)
+          (GeoJSON)</a></li>
+      <li><a target="_blank" href="/open-data/lignes.geojson">Lignes de bus / BTT, tracés et arrêts desservis
+          (GeoJSON)</a></li>
       <li><a target="_blank" href="/open-data/falaises-details.geojson">Détails agrégés de toutes les falaises
           (GeoJSON)</a></li>
-      <li><a target="_blank" href="/open-data/complet.geojson">Export complet : falaises, itinéraires, gares et
+      <li><a target="_blank" href="/open-data/complet.geojson">Export complet : falaises, itinéraires, arrêts, lignes et
           détails réunis (GeoJSON)</a></li>
     </ul>
     Dans le dernier export (complet), chaque objet est typé par sa propriété chaque entité porte une propriété

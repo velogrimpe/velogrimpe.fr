@@ -1,21 +1,56 @@
 import { overpassFetch } from "./overpass.js";
 
-const overpassQuery = (south, west, north, east) => `
-[out:json][timeout:25];
-node["highway"="bus_stop"]["name"](${south},${west},${north},${east})->.stop_nodes;
-way["highway"="bus_stop"]["name"](${south},${west},${north},${east})->.stop_ways;
-(
-  rel(bn.stop_nodes)["type"="route"]["route"="bus"];
-  rel(bw.stop_ways)["type"="route"]["route"="bus"];
+/**
+ * Prédicats OSM par modalité BTT recherchable via Overpass (pas de gares
+ * ter/tgv ici, cf. docs/conception-bus.md Étape 2 : les gares ne sont pas
+ * recherchées via Overpass, elles proviennent de la base `gares`).
+ * `route` : valeur du tag `route` des relations de ligne à associer (null si
+ * cette modalité n'a pas de relation de ligne exploitable ici).
+ */
+const TYPE_DEFS = {
+  bus: { key: "highway", value: "bus_stop", route: "bus" },
+  tram: { key: "railway", value: "tram_stop", route: "tram" },
+  telepherique: { key: "aerialway", value: "station", route: null },
+};
+
+function buildOverpassQuery(types) {
+  const defs = types
+    .map((t) => ({ type: t, ...TYPE_DEFS[t] }))
+    .filter((d) => d.key);
+
+  return (south, west, north, east) => {
+    if (!defs.length) return null;
+    const bbox = `${south},${west},${north},${east}`;
+    const nodeWaySets = defs
+      .map(
+        (d, i) => `
+node["${d.key}"="${d.value}"]["name"](${bbox})->.n${i};
+way["${d.key}"="${d.value}"]["name"](${bbox})->.w${i};`,
+      )
+      .join("");
+    const routeSets = defs
+      .map((d, i) =>
+        d.route
+          ? `
+  rel(bn.n${i})["type"="route"]["route"="${d.route}"];
+  rel(bw.w${i})["type"="route"]["route"="${d.route}"];`
+          : "",
+      )
+      .join("");
+    const stopUnion = defs.map((d, i) => `\n  .n${i};\n  .w${i};`).join("");
+
+    return `
+[out:json][timeout:25];${nodeWaySets}
+(${routeSets}
 )->.routes;
-(
-  .stop_nodes;
-  .stop_ways;
+(${stopUnion}
 );
 out body;
 out center qt;
 .routes out body;
 `;
+  };
+}
 
 function normalizeStr(s) {
   return (s ?? "").trim();
@@ -25,7 +60,15 @@ function routeKey(network, ref) {
   return `${normalizeStr(network)}|${normalizeStr(ref)}`;
 }
 
-function parseBusStopsWithRoutes(overpassJson) {
+/** Modalité BTT (bus/tram/telepherique) déduite des tags OSM d'un élément. */
+function vgTypeOf(tags) {
+  if (tags?.highway === "bus_stop") return "bus";
+  if (tags?.railway === "tram_stop") return "tram";
+  if (tags?.aerialway === "station") return "telepherique";
+  return null;
+}
+
+function parseArretStops(overpassJson) {
   const elements = overpassJson.elements || [];
 
   // Index des routes par stop membre: "node/123" ou "way/456"
@@ -34,18 +77,13 @@ function parseBusStopsWithRoutes(overpassJson) {
   for (const el of elements) {
     if (el.type !== "relation") continue;
     const t = el.tags || {};
-    if (t.type !== "route" || t.route !== "bus") continue;
+    if (t.type !== "route" || !["bus", "tram"].includes(t.route)) continue;
 
     const route = {
       network: normalizeStr(t.network),
       name: normalizeStr(t.name),
       ref: normalizeStr(t.ref),
     };
-
-    // Si ref manque, tu peux décider de l'ignorer (souvent c'est le meilleur),
-    // ou fallback sur name. Ici: on garde quand même (mais la dédup se fera moins bien).
-    // Si tu préfères ignorer sans ref: décommente la ligne suivante :
-    // if (!route.ref) continue;
 
     for (const m of el.members || []) {
       if (m.type !== "node" && m.type !== "way") continue;
@@ -60,7 +98,8 @@ function parseBusStopsWithRoutes(overpassJson) {
 
   for (const el of elements) {
     if (el.type !== "node" && el.type !== "way") continue;
-    if (el.tags?.highway !== "bus_stop") continue;
+    const vgType = vgTypeOf(el.tags);
+    if (!vgType) continue;
 
     const name = normalizeStr(el.tags?.name);
     if (!name) continue; // vu que tu filtres ["name"] côté Overpass, c’est juste une sécurité
@@ -86,6 +125,7 @@ function parseBusStopsWithRoutes(overpassJson) {
       id: el.id,
       osm_type: el.type,
       osm_id: `${el.type}/${el.id}`,
+      vg_type: vgType,
       tags: el.tags || {},
       name,
       lat,
@@ -98,7 +138,15 @@ function parseBusStopsWithRoutes(overpassJson) {
   return stops;
 }
 
-export const fetchBusStops = async (mapOrBounds, options = {}) => {
-  const overpassJson = await overpassFetch(mapOrBounds, overpassQuery, options);
-  return parseBusStopsWithRoutes(overpassJson);
+/**
+ * Recherche Overpass des arrêts BTT (hors gares ter/tgv) dans la zone visible,
+ * pour les modalités demandées (sous-ensemble de bus/tram/telepherique).
+ */
+export const fetchArretStops = async (mapOrBounds, types, options = {}) => {
+  const overpassJson = await overpassFetch(mapOrBounds, buildOverpassQuery(types), options);
+  return parseArretStops(overpassJson);
 };
+
+/** @deprecated Conservé pour compatibilité, préférer fetchArretStops(map, ['bus']). */
+export const fetchBusStops = async (mapOrBounds, options = {}) =>
+  fetchArretStops(mapOrBounds, ["bus"], options);

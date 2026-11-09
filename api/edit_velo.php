@@ -2,7 +2,9 @@
 /**
  * POST /api/edit_velo.php (multipart/form-data)
  *
- * Modification d'un itinéraire vélo existant. Trois cas (cf. DECISIONS D010) :
+ * Modification d'un accès existant : itinéraire vélo (type `velo`) ou accès sans vélo (type `pied`,
+ * Lot 8quater : km / D+ / D- facultatifs, pas d'Openrunner, trace GPX facultative).
+ * Trois cas (cf. DECISIONS D010) :
  *  - admin (token) : tout est appliqué (km, D+, D-, description, Openrunner,
  *    GPX) et l'itinéraire passe en velo_public = 1 (validé) ;
  *  - contributeur, itinéraire non validé (velo_public ≠ 1) : km, D+, D-,
@@ -43,13 +45,16 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 }
 
 // Itinéraire existant
-$stmt = $mysqli->prepare("SELECT v.velo_id, v.gare_id, v.falaise_id, v.velo_depart, v.velo_arrivee, v.velo_varianteformate,
-    v.velo_variante, v.velo_km, v.velo_dplus, v.velo_dmoins, v.velo_descr, v.velo_openrunner, v.velo_public,
-    g.gare_nom, f.falaise_nom
-  FROM velo v
-  LEFT JOIN gares g ON g.gare_id = v.gare_id
+// Alias : le reste du fichier garde les noms de clés d'avant le Lot 8quater.
+$stmt = $mysqli->prepare("SELECT v.type, v.acces_id AS velo_id, v.arret_id AS gare_id, v.falaise_id, v.depart_slug AS velo_depart,
+    v.arrivee_slug AS velo_arrivee, v.variante_formate AS velo_varianteformate,
+    v.variante AS velo_variante, v.km AS velo_km, v.dplus AS velo_dplus, v.dmoins AS velo_dmoins,
+    v.description AS velo_descr, v.lien_openrunner AS velo_openrunner, v.public AS velo_public,
+    a.nom AS gare_nom, f.falaise_nom
+  FROM acces_falaise v
+  LEFT JOIN arrets a ON a.id = v.arret_id
   LEFT JOIN falaises f ON f.falaise_id = v.falaise_id
-  WHERE v.velo_id = ?");
+  WHERE v.acces_id = ?");
 $stmt->bind_param("i", $velo_id);
 $stmt->execute();
 $old = $stmt->get_result()->fetch_assoc();
@@ -58,6 +63,8 @@ if (!$old) {
   http_response_code(404);
   die("Itinéraire introuvable.");
 }
+$est_pied = $old['type'] === 'pied'; // accès sans vélo : indicateurs facultatifs, pas d'Openrunner
+$libelle_acces = $est_pied ? "accès sans vélo" : "itinéraire";
 $est_valide = intval($old['velo_public']) === 1;
 $mode = $admin ? 'admin' : ($est_valide ? 'suggestion' : 'contrib');
 
@@ -69,16 +76,16 @@ velo_verifier_slugs([
   'velo_varianteformate' => $old['velo_varianteformate'],
 ]);
 
-// Les indicateurs ne sont obligatoires que lorsqu'ils vont être écrits.
-if ($mode !== 'suggestion') {
+// Les indicateurs ne sont obligatoires que lorsqu'ils vont être écrits (et jamais pour un accès sans vélo).
+if ($mode !== 'suggestion' && !$est_pied) {
   velo_verifier_obligatoires([
     'velo_km' => $velo_km,
     'velo_dplus' => $velo_dplus,
     'velo_dmoins' => $velo_dmoins,
   ]);
 }
-// Openrunner : admin uniquement (la valeur en base est conservée sinon).
-if (!$admin) {
+// Openrunner : admin uniquement, et vélo seulement (la valeur en base est conservée sinon).
+if (!$admin || $est_pied) {
   $velo_openrunner = (string) ($old['velo_openrunner'] ?? '');
 }
 
@@ -89,6 +96,7 @@ $dom = velo_charger_gpx_upload('gpx_file');
 $gpx_nom = velo_gpx_nom_fichier((int) $old['velo_id'], $old['velo_depart'], $old['velo_arrivee'], (string) $old['velo_varianteformate']);
 $gpx_rel = velo_gpx_rel((int) $old['velo_id'], $old['velo_depart'], $old['velo_arrivee'], (string) $old['velo_varianteformate']);
 $lien_falaise = "https://velogrimpe.fr/falaise.php?falaise_id={$old['falaise_id']}";
+$fmt_nb = fn($v) => $v === null ? '' : (string) (float) $v; // journal : NULL ≠ 0
 $titre = htmlspecialchars(($old['gare_nom'] ?? $old['velo_depart']) . " → " . ($old['falaise_nom'] ?? $old['velo_arrivee'])
   . ($old['velo_variante'] !== '' ? " (" . $old['velo_variante'] . ")" : ''));
 
@@ -102,17 +110,17 @@ if ($mode === 'suggestion') {
   }
 
   // Trace du dépôt de la suggestion (sans modification de la ligne velo).
-  logChanges($nom_prenom, $email, 'suggestion', 'velo', $velo_id, $old['falaise_id'], [
-    "velo_descr" => $velo_descr,
+  logChanges($nom_prenom, $email, 'suggestion', 'acces_falaise', $velo_id, $old['falaise_id'], [
+    "description" => $velo_descr,
     "gpx_file" => $dom !== null ? 'nouveau GPX proposé (envoyé par mail)' : 'inchangé',
   ], [
-    "velo_descr" => $old['velo_descr'],
+    "description" => $old['velo_descr'],
     "gpx_file" => 'inchangé',
   ]);
 
   require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
   $html = "<html><body>";
-  $html .= "<h1>Suggestion de modification sur l'itinéraire validé $titre</h1>";
+  $html .= "<h1>Suggestion de modification sur l'$libelle_acces validé $titre</h1>";
   $html .= "<p>Proposée par " . htmlspecialchars($nom_prenom) . " — <a href='mailto:" . htmlspecialchars($email) . "'>" . htmlspecialchars($email) . "</a></p>";
   $html .= "<p><a href='$lien_falaise'>Voir la falaise</a></p>";
   if ($message) {
@@ -177,10 +185,10 @@ if ($dom !== null) {
   }
 }
 
-$stmt = $mysqli->prepare("UPDATE velo
-  SET velo_km = ?, velo_dplus = ?, velo_dmoins = ?, velo_descr = ?, velo_openrunner = ?, velo_public = ?,
+$stmt = $mysqli->prepare("UPDATE acces_falaise
+  SET km = ?, dplus = ?, dmoins = ?, description = ?, lien_openrunner = ?, public = ?,
       date_modification = CURRENT_TIMESTAMP
-  WHERE velo_id = ?");
+  WHERE acces_id = ?");
 if (!$stmt) {
   die("Erreur lors de la mise à jour : " . $mysqli->error);
 }
@@ -206,42 +214,43 @@ if ($dom !== null) {
 
 // Journal des modifications. velo_km est un FLOAT : on journalise sa
 // représentation courte ("3.8") plutôt que le flottant brut.
-logChanges($nom_prenom, $email, 'update', 'velo', $velo_id, $old['falaise_id'], [
-  "velo_km" => (string) $velo_km,
-  "velo_dplus" => $velo_dplus,
-  "velo_dmoins" => $velo_dmoins,
-  "velo_descr" => $velo_descr,
-  "velo_openrunner" => $velo_openrunner,
-  "velo_public" => $velo_public,
+logChanges($nom_prenom, $email, 'update', 'acces_falaise', $velo_id, $old['falaise_id'], [
+  "km" => $velo_km === null ? '' : (string) $velo_km,
+  "dplus" => $velo_dplus ?? '',
+  "dmoins" => $velo_dmoins ?? '',
+  "description" => $velo_descr,
+  "lien_openrunner" => $velo_openrunner,
+  "public" => $velo_public,
   "gpx_file" => $gpx_statut,
 ], [
-  "velo_km" => (string) (float) $old['velo_km'],
-  "velo_dplus" => $old['velo_dplus'],
-  "velo_dmoins" => $old['velo_dmoins'],
-  "velo_descr" => $old['velo_descr'],
-  "velo_openrunner" => (string) ($old['velo_openrunner'] ?? ''),
-  "velo_public" => intval($old['velo_public']),
+  "km" => $fmt_nb($old['velo_km']),
+  "dplus" => $old['velo_dplus'] ?? '',
+  "dmoins" => $old['velo_dmoins'] ?? '',
+  "description" => $old['velo_descr'],
+  "lien_openrunner" => (string) ($old['velo_openrunner'] ?? ''),
+  "public" => intval($old['velo_public']),
   // Doit rester la valeur « pas de changement » de $gpx_statut, au caractère
   // près, sinon chaque édition journalise un faux changement de GPX.
   "gpx_file" => 'inchangée',
 ]);
 
 // Notification : admin_mail en mode admin, contact_mail sinon (même schéma que
-// add_falaise.php / add_bus.php). Le lien de validation n'a de sens que si
+// add_falaise.php / add_arret.php). Le lien de validation n'a de sens que si
 // l'itinéraire n'est pas déjà validé par cette écriture.
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
 $statut = $velo_public === 1 ? 'validé' : 'non validé';
 $html = "<html><body>";
-$html .= "<h1>L'itinéraire $titre a été modifié par " . htmlspecialchars($nom_prenom) . ($admin ? " (admin)" : "") . "</h1>";
+$html .= "<h1>L'$libelle_acces $titre a été modifié par " . htmlspecialchars($nom_prenom) . ($admin ? " (admin)" : "") . "</h1>";
 $html .= "<p>email : <a href='mailto:" . htmlspecialchars($email) . "'>" . htmlspecialchars($email) . "</a></p>";
 $html .= "<p><a href='$lien_falaise'>Voir la falaise</a></p>";
 if ($message) {
   $html .= "<p><b>Message :</b><br/>" . nl2br(htmlspecialchars($message)) . "</p>";
 }
 $html .= "<p>Modifications (velo_id $velo_id, itinéraire <b>$statut</b>) :</p><ul>";
-$html .= "<li><b>Distance</b>: {$old['velo_km']} km → $velo_km km</li>";
-$html .= "<li><b>D+</b>: {$old['velo_dplus']} m → $velo_dplus m</li>";
-$html .= "<li><b>D-</b>: {$old['velo_dmoins']} m → $velo_dmoins m</li>";
+$nb = fn($v, $u) => $v === null || $v === '' ? '—' : "$v $u";
+$html .= "<li><b>Distance</b>: " . $nb($old['velo_km'], 'km') . " → " . $nb($velo_km, 'km') . "</li>";
+$html .= "<li><b>D+</b>: " . $nb($old['velo_dplus'], 'm') . " → " . $nb($velo_dplus, 'm') . "</li>";
+$html .= "<li><b>D-</b>: " . $nb($old['velo_dmoins'], 'm') . " → " . $nb($velo_dmoins, 'm') . "</li>";
 $html .= "<li><b>Description</b>: " . nl2br(htmlspecialchars($velo_descr)) . "</li>";
 if ($admin) {
   $html .= "<li><b>Openrunner</b>: " . htmlspecialchars($velo_openrunner) . "</li>";

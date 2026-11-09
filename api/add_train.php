@@ -5,7 +5,8 @@ $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $admin = trim($_POST['admin'] ?? '') == $config["admin_token"];
   $ville_id = (int) ($_POST['ville_id'] ?? 0);
-  $gare_id = (int) ($_POST['gare_id'] ?? 0);
+  // `gare_id` reste accepté (anciens liens, scripts) : une gare est un arrêt.
+  $arret_id = (int) ($_POST['arret_id'] ?? $_POST['gare_id'] ?? 0);
   $train_temps = isset($_POST['train_temps']) && $_POST['train_temps'] !== '' ? (int) $_POST['train_temps'] : null;
   $train_tgv = isset($_POST['train_tgv']) && $_POST['train_tgv'] !== '' ? (int) $_POST['train_tgv'] : 0;
   $train_correspmin = isset($_POST['train_correspmin']) && $_POST['train_correspmin'] !== '' ? (int) $_POST['train_correspmin'] : null;
@@ -27,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Vérification des informations obligatoires
   $champs_obligatoires = [
     'ville_id' => $ville_id,
-    'gare_id' => $gare_id,
+    'arret_id' => $arret_id,
     'train_temps' => $train_temps,
     'train_correspmin' => $train_correspmin,
     'train_correspmax' => $train_correspmax,
@@ -44,23 +45,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
+  // L'arrêt (de tout type) doit exister : plus de table `gares` ni de FK côté PHP à attendre.
+  $stmt = $mysqli->prepare("SELECT 1 FROM arrets WHERE id = ? AND deleted = 0");
+  $stmt->bind_param("i", $arret_id);
+  $stmt->execute();
+  $arretExiste = $stmt->get_result()->fetch_assoc() !== null;
+  $stmt->close();
+  if (!$arretExiste) {
+    http_response_code(400);
+    die("Arrêt introuvable : $arret_id. Rien n'a été enregistré.");
+  }
+
   // Ensure not a duplicate
-  $stmt = $mysqli->prepare("SELECT train_id FROM train WHERE ville_id = ? AND gare_id = ? AND train_tgv = ?");
+  $stmt = $mysqli->prepare("SELECT train_id FROM train WHERE ville_id = ? AND arret_id = ? AND train_tgv = ?");
   if (!$stmt) {
     die("Problème de préparation de la requête : " . $mysqli->error);
   }
-  $stmt->bind_param("iii", $ville_id, $gare_id, $train_tgv);
+  $stmt->bind_param("iii", $ville_id, $arret_id, $train_tgv);
   $stmt->execute();
   $res = $stmt->get_result();
   $train = $res ? $res->fetch_assoc() : null;
   $stmt->close();
 
   if ($train) {
-    die("Un itinéraire " . ($train_tgv ? "TGV" : "TER") . " existe déjà entre cette ville et cette gare.");
+    die("Un itinéraire " . ($train_tgv ? "TGV" : "TER") . " existe déjà entre cette ville et cet arrêt.");
   }
 
   $stmt = $mysqli->prepare("INSERT INTO train
-    (ville_id, gare_id, train_temps, train_tempsmax, train_correspmin, train_correspmax, train_nbparjour, train_public,
+    (ville_id, arret_id, train_temps, train_tempsmax, train_correspmin, train_correspmax, train_nbparjour, train_public,
     train_descr, train_depart, train_arrivee, train_contrib, train_tgv)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   if (!$stmt) {
@@ -71,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $stmt->bind_param(
     "iiiiiiiissssi",
     $ville_id,
-    $gare_id,
+    $arret_id,
     $train_temps,
     $train_tempsmax,
     $train_correspmin,
@@ -105,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
   $new_comment = [
     "ville_id" => $ville_id,
-    "gare_id" => $gare_id,
+    "arret_id" => $arret_id,
     "train_tgv" => $train_tgv,
     "train_temps" => $train_temps,
     "train_tempsmax" => $train_tempsmax,
@@ -172,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Rediriger vers la page de confirmation
   $redirect_params = http_build_query([
     'ville_id' => $ville_id,
-    'gare_id' => $gare_id,
+    'arret_id' => $arret_id,
     'admin' => $admin ? $config["admin_token"] : ''
   ]);
   header("Location: /ajout/confirmation_train.php?$redirect_params");

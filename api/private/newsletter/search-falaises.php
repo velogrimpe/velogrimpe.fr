@@ -27,7 +27,7 @@ if (empty($q)) {
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 $search = '%' . $q . '%';
-$stmt = $mysqli->prepare("SELECT DISTINCT f.falaise_id as id, f.falaise_nom as name, f.falaise_deptname as department, f.falaise_contrib as contrib FROM falaises f INNER JOIN velo v ON f.falaise_id = v.falaise_id WHERE f.falaise_nom LIKE ? ORDER BY f.falaise_nom LIMIT 20");
+$stmt = $mysqli->prepare("SELECT DISTINCT f.falaise_id as id, f.falaise_nom as name, f.falaise_deptname as department, f.falaise_contrib as contrib FROM falaises f INNER JOIN acces_falaise v ON f.falaise_id = v.falaise_id AND v.type = 'velo' WHERE f.falaise_nom LIKE ? ORDER BY f.falaise_nom LIMIT 20");
 $stmt->bind_param('s', $search);
 $stmt->execute();
 $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

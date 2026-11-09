@@ -2,7 +2,7 @@
 /**
  * GET /api/private/accept_velo.php?admin=<token>&velo_id=123
  *
- * Valide un itinéraire vélo (velo_public = 1). Appelé depuis le lien du mail
+ * Valide un accès (acces_falaise.public = 1). Appelé depuis le lien du mail
  * envoyé aux admins par add_velo.php / edit_velo.php — même principe que
  * accept_falaise.php. 401 sans token, 403 token invalide (D006).
  */
@@ -35,7 +35,7 @@ if ($velo_id <= 0) {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
-$stmt = $mysqli->prepare("SELECT velo_id, falaise_id, velo_public FROM velo WHERE velo_id = ?");
+$stmt = $mysqli->prepare("SELECT acces_id AS velo_id, falaise_id, public AS velo_public FROM acces_falaise WHERE acces_id = ?");
 $stmt->bind_param('i', $velo_id);
 $stmt->execute();
 $velo = $stmt->get_result()->fetch_assoc();
@@ -46,7 +46,7 @@ if (!$velo) {
   exit;
 }
 
-$stmt = $mysqli->prepare("UPDATE velo SET velo_public = 1, date_modification = CURRENT_TIMESTAMP WHERE velo_id = ?");
+$stmt = $mysqli->prepare("UPDATE acces_falaise SET public = 1, date_modification = CURRENT_TIMESTAMP WHERE acces_id = ?");
 $stmt->bind_param('i', $velo_id);
 if (!$stmt->execute()) {
   http_response_code(500);
@@ -56,6 +56,6 @@ if (!$stmt->execute()) {
 $stmt->close();
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
-logChanges("admin", $config['contact_mail'], "update", "velo", $velo_id, $velo['falaise_id'], ["velo_public" => "Validé (1)"], ["velo_public" => $velo['velo_public']]);
+logChanges("admin", $config['contact_mail'], "update", "acces_falaise", $velo_id, $velo['falaise_id'], ["public" => "Validé (1)"], ["public" => $velo['velo_public']]);
 
 echo json_encode(['success' => true, 'velo_id' => $velo_id, 'previous_velo_public' => intval($velo['velo_public'])]);

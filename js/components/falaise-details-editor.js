@@ -11,15 +11,16 @@ import Falaise from "/js/components/map/falaise.js";
 import Secteur from "/js/components/map/secteur.js";
 import Approche from "/js/components/map/approche.js";
 import Parking from "/js/components/map/parking.js";
-import BusStop from "/js/components/map/bus-stop.js";
 import AccesVelo from "/js/components/map/acces-velo.js";
 import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
 import { getValhallaRoute } from "/js/services/valhalla.js";
-import { fetchBusStops } from "/js/components/utils/fetch-bus-stops.js";
+import { fetchArretStops } from "/js/components/utils/fetch-bus-stops.js";
 import { overpassErrorMessage } from "/js/components/utils/overpass.js";
 import { showToast } from "/js/components/utils/toast.js";
 import { initEditorBusStops } from "/js/components/map/editor-bus-stops.js";
+import { arretSuggestionIcon, arretPlaceholderIcon } from "/js/components/map/arret-icon.js";
 import { gpx_path } from "/js/components/utils/paths.js";
+import { trainlinesLayer, tgvLayer } from "/js/components/map/load-vector-tiles.js";
 
 // Use global contribStorage (loaded via script tag)
 const { getContribInfo, saveContribInfo } = window.contribStorage || {};
@@ -160,8 +161,13 @@ export function initFalaiseDetailsEditor(containerId) {
     zoomSnap: 0.5,
   });
 
+  // Couche optionnelle lignes de train (Étape 3 du plan arrêts multimodaux).
+  const overlayMaps = {
+    "Lignes de train": trainlinesLayer,
+    "Lignes TGV": tgvLayer,
+  };
   L.control
-    .layers(baseMaps, undefined, { position: "topleft", size: 22 })
+    .layers(baseMaps, overlayMaps, { position: "topleft", size: 22 })
     .addTo(map);
   // Position toujours fraîche : pas de cache navigateur (maximumAge: 0) ni
   // de réaffichage de la dernière position connue par le plugin (cacheLocation).
@@ -208,7 +214,8 @@ export function initFalaiseDetailsEditor(containerId) {
     busStops: L.layerGroup().addTo(map),
   };
 
-  // Read-only context: itinéraires vélos arrivant à cette falaise
+  // Read-only context: accès arrivant à cette falaise (trace GPX) : itinéraires à vélo en trait plein, accès
+  // sans vélo (type "pied") en pointillé
   const itineraires = JSON.parse(container.dataset.itineraires || "[]");
   itineraires.forEach((velo) => {
     new L.GPX("/public/gpx/" + gpx_path(velo), {
@@ -218,6 +225,7 @@ export function initFalaiseDetailsEditor(containerId) {
         weight: 2,
         color: "black",
         interactive: false,
+        ...(velo.type === "pied" ? { dashArray: "6 6", className: "vg-acces-pied-trace" } : {}),
       },
     })
       .on("loaded", (e) => {
@@ -476,9 +484,9 @@ export function initFalaiseDetailsEditor(containerId) {
   });
 
   map.pm.Toolbar.createCustomControl({
-    name: "Arrêt de bus",
+    name: "Arrêt",
     block: "draw",
-    title: "Ajouter un arrêt de bus",
+    title: "Ajouter un arrêt (gare, bus, tram, téléphérique...)",
     className: "vg-icon vg-draw-bus-stop",
     actions: [
       "cancel",
@@ -493,7 +501,7 @@ export function initFalaiseDetailsEditor(containerId) {
             continueDrawing: false,
             markerStyle: {
               draggable: false,
-              icon: BusStop.busStopIcon(BusStop.iconSize),
+              icon: arretPlaceholderIcon(),
             },
             type: "bus_stop",
           });
@@ -1247,8 +1255,10 @@ export function initFalaiseDetailsEditor(containerId) {
 
   container.querySelector(".save-geojson-btn")?.addEventListener("click", save);
 
-  // Fetch bus stops button (Overpass) → propositions en lecture seule + dialog
+  // Fetch arrêts BTT button (Overpass, bus/tram/téléphérique) → propositions en
+  // lecture seule + dialog.
   const OVERPASS_MIN_ZOOM = 11;
+  const OVERPASS_TYPES = ["bus", "tram", "telepherique"];
   const fetchBusStopsBtn = container.querySelector(".fetch-bus-stops-btn");
   fetchBusStopsBtn?.addEventListener("click", async () => {
     if (fetchBusStopsBtn.disabled) return;
@@ -1256,7 +1266,7 @@ export function initFalaiseDetailsEditor(containerId) {
       alert(
         "Zone trop large : zoomez davantage (au moins niveau " +
           OVERPASS_MIN_ZOOM +
-          ") avant de récupérer les arrêts de bus.",
+          ") avant de récupérer les arrêts.",
       );
       return;
     }
@@ -1270,10 +1280,10 @@ export function initFalaiseDetailsEditor(containerId) {
       // Clear previous
       searchLayers.busStops.clearLayers();
 
-      const stops = await fetchBusStops(map);
+      const stops = await fetchArretStops(map, OVERPASS_TYPES);
       if (!stops.length) {
         alert(
-          "Aucun arrêt de bus trouvé dans la zone visible. Dézoomez ou déplacez la carte.",
+          "Aucun arrêt trouvé dans la zone visible. Dézoomez ou déplacez la carte.",
         );
         return;
       }
@@ -1298,12 +1308,8 @@ export function initFalaiseDetailsEditor(containerId) {
             .replaceAll('"', "&quot;");
 
         const description = descLines.length > 0 ? descLines.join("\n") : "";
-        const marker = L.circleMarker([s.lat, s.lon], {
-          radius: 6,
-          weight: 2,
-          color: "#2563eb",
-          fillColor: "#60a5fa",
-          fillOpacity: 0.7,
+        const marker = L.marker([s.lat, s.lon], {
+          icon: arretSuggestionIcon([s.vg_type]),
         });
 
         // Affichage en lecture seule (contenu ré-éditable dans le dialog).
@@ -1352,6 +1358,7 @@ export function initFalaiseDetailsEditor(containerId) {
                 osm_id: s.osm_id || null,
                 osm_data: JSON.stringify(s.tags || {}),
                 description: descHtmlValue,
+                types: [s.vg_type],
               });
               try {
                 marker.closePopup();
@@ -1363,7 +1370,7 @@ export function initFalaiseDetailsEditor(containerId) {
         searchLayers.busStops.addLayer(marker);
       });
     } catch (e) {
-      console.error("Erreur récupération arrêts bus:", e);
+      console.error("Erreur récupération arrêts:", e);
       showToast(overpassErrorMessage(e), "error", 8000);
     } finally {
       if (icon) spinner.replaceWith(icon);

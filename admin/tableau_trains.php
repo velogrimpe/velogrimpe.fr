@@ -8,8 +8,8 @@ $falaises = $mysqli->query("SELECT
 DISTINCT
   f.falaise_id,
   f.falaise_nom,
-  g.gare_nom,
-  g.gare_id,
+  a.nom AS gare_nom,
+  a.id AS gare_id,
   GROUP_CONCAT(DISTINCT v.ville_id SEPARATOR ',') AS ville_ids,
   GROUP_CONCAT(DISTINCT IF(t.train_tgv = 1, v.ville_id, NULL) SEPARATOR ',') AS tgv_ville_ids,
   GROUP_CONCAT(DISTINCT evg.ville_id SEPARATOR ',') AS excluded_gare_ville_ids,
@@ -17,19 +17,19 @@ DISTINCT
   GROUP_CONCAT(DISTINCT evgf.ville_id SEPARATOR ',') AS excluded_falaise_gare_ville_ids,
   MAX(COALESCE(t.train_tgv, 0)) AS has_tgv
   FROM falaises f
-  LEFT JOIN velo ON velo.falaise_id = f.falaise_id
-  LEFT JOIN gares g ON g.gare_id = velo.gare_id AND g.deleted = 0
-  LEFT JOIN train t ON t.gare_id = g.gare_id
+  LEFT JOIN acces_falaise velo ON velo.falaise_id = f.falaise_id AND velo.type = 'velo'
+  LEFT JOIN arrets a ON a.id = velo.arret_id AND a.deleted = 0
+  LEFT JOIN train t ON t.arret_id = a.id
   LEFT JOIN villes v ON v.ville_id = t.ville_id
-  LEFT JOIN exclusions_villes_gares evg ON evg.gare_id = g.gare_id
+  LEFT JOIN exclusions_villes_gares evg ON evg.gare_id = a.id
   LEFT JOIN exclusions_villes_falaises evf ON evf.falaise_id = f.falaise_id
-  LEFT JOIN exclusions_villes_gares_falaises evgf ON evgf.falaise_id = f.falaise_id AND evgf.gare_id = g.gare_id
-  WHERE velo.velo_id IS NOT NULL
-  GROUP BY f.falaise_id, g.gare_id
-  ORDER BY f.falaise_id DESC, g.gare_nom ASC;
+  LEFT JOIN exclusions_villes_gares_falaises evgf ON evgf.falaise_id = f.falaise_id AND evgf.gare_id = a.id
+  WHERE velo.acces_id IS NOT NULL
+  GROUP BY f.falaise_id, a.id
+  ORDER BY f.falaise_id DESC, a.nom ASC;
 ")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
-$allGares = $mysqli->query("SELECT * FROM gares WHERE deleted = 0 ORDER BY gare_nom")->fetch_all(MYSQLI_ASSOC);
+$allGares = $mysqli->query("SELECT id AS gare_id, nom AS gare_nom, tgv AS gare_tgv FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0 ORDER BY nom")->fetch_all(MYSQLI_ASSOC);
 
 // Group falaises by falaise_nom
 $falaises = array_reduce($falaises, function ($carry, $item) {

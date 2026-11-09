@@ -12,20 +12,22 @@ $falaises = $mysqli->query("SELECT
   group_concat(distinct fl.site_id SEPARATOR ',') as site_ids
   FROM falaises f
   LEFT JOIN falaises_liens fl on fl.falaise_id = f.falaise_id and fl.site = 'oblyk'
-  LEFT JOIN velo v on v.falaise_id = f.falaise_id
+  LEFT JOIN acces_falaise v on v.falaise_id = f.falaise_id AND v.type = 'velo'
   GROUP BY f.falaise_id
-  HAVING count(v.velo_id) >= 1
+  HAVING count(v.acces_id) >= 1
 ")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 $gares = $mysqli->query("SELECT
-  g.*,
+  g.id AS gare_id, g.nom AS gare_nom, g.tgv AS gare_tgv, g.deleted,
+  CONCAT(ST_Y(g.loc), ',', ST_X(g.loc)) AS gare_latlng,
   GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin) SEPARATOR '=|=') AS villes
-  FROM gares g
-  LEFT JOIN train t ON t.gare_id = g.gare_id
-  where g.deleted = 0
-  GROUP BY g.gare_id;"
+  FROM arrets g
+  LEFT JOIN train t ON t.arret_id = g.id
+  where g.deleted = 0 AND (g.ter = 1 OR g.tgv = 1)
+  GROUP BY g.id;"
 )->fetch_all(MYSQLI_ASSOC);
-$itineraires = $mysqli->query("SELECT * FROM velo WHERE velo_public >= 1")->fetch_all(MYSQLI_ASSOC);
+// Itinéraires depuis un arrêt non-gare : rendu carte au Lot 6.
+$itineraires = $mysqli->query("SELECT acces_id AS velo_id, falaise_id, arret_id, arret_id AS gare_id FROM acces_falaise WHERE type = 'velo' AND public >= 1 AND arret_id IN (SELECT id FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0)")->fetch_all(MYSQLI_ASSOC);
 
 ?>
 <!DOCTYPE html>

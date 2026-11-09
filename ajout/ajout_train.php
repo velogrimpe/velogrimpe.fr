@@ -4,7 +4,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $preset_ville_id = isset($_GET['ville_id']) ? (int) $_GET['ville_id'] : null;
-$preset_gare_id = isset($_GET['gare_id']) ? (int) $_GET['gare_id'] : null;
+// `gare_id` reste accepté : anciens liens (confirmation_train, falaise.php…). Une gare est un arrêt.
+$preset_arret_id = isset($_GET['arret_id']) ? (int) $_GET['arret_id'] : (isset($_GET['gare_id']) ? (int) $_GET['gare_id'] : null);
 
 // Récupération des villes
 $result_villes = $mysqli->query("SELECT ville_id, ville_nom FROM villes ORDER BY ville_nom");
@@ -13,17 +14,20 @@ while ($row = $result_villes->fetch_assoc()) {
   $villes[$row['ville_id']] = $row['ville_nom'];
 }
 
-// Récupération des gares
-$result_gares = $mysqli->query("SELECT gare_id, gare_nom, gare_codeuic FROM gares WHERE deleted = 0 ORDER BY gare_nom");
-$gares = [];
-while ($row = $result_gares->fetch_assoc()) {
-  $gares[$row['gare_id']] = [
-    'id' => $row['gare_id'],
-    'nom' => $row['gare_nom'],
-    'codeuic' => $row['gare_codeuic'],
+// Arrêts d'arrivée possibles : tous types (gares, mais aussi cars, trams…)
+$result_arrets = $mysqli->query("SELECT id, nom, commune, ter, tgv, bus, tram, teleph FROM arrets WHERE deleted = 0 ORDER BY nom");
+$arrets = [];
+while ($row = $result_arrets->fetch_assoc()) {
+  $commune = trim((string) $row['commune']);
+  // La valeur affichée identifie l'arrêt : on ajoute la commune si le nom ne la contient pas déjà.
+  $label = ($commune !== '' && mb_stripos($row['nom'], $commune) === false) ? $row['nom'] . ' (' . $commune . ')' : $row['nom'];
+  $arrets[$row['id']] = [
+    'id' => (int) $row['id'],
+    'nom' => $label,
+    'types' => array_keys(array_filter(['ter' => $row['ter'], 'tgv' => $row['tgv'], 'bus' => $row['bus'], 'tram' => $row['tram'], 'teleph' => $row['teleph']])),
   ];
 }
-$preset_gare_nom = $preset_gare_id !== null && isset($gares[$preset_gare_id]) ? $gares[$preset_gare_id]['nom'] : null;
+$preset_arret_nom = $preset_arret_id !== null && isset($arrets[$preset_arret_id]) ? $arrets[$preset_arret_id]['nom'] : null;
 
 // Read the admin search parameter
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
@@ -108,18 +112,18 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             </select>
           </label>
         </div>
-        <!-- Menu déroulant des gares -->
+        <!-- Menu déroulant des arrêts -->
         <div class="flex flex-col gap-1 w-1/2">
           <label class="form-control" for="train_arrivee">
-            <b>Gare d'arrivée :</b>
+            <b>Arrêt d'arrivée (gare, car…) :</b>
             <div id="vue-ajout-train"
-              data-gares='<?= htmlspecialchars(json_encode(array_values($gares)), ENT_QUOTES, 'UTF-8') ?>'
-              <?php if ($preset_gare_nom): ?>data-preset-gare-nom="<?= htmlspecialchars($preset_gare_nom) ?>"<?php endif; ?>>
+              data-arrets='<?= htmlspecialchars(json_encode(array_values($arrets)), ENT_QUOTES, 'UTF-8') ?>'
+              <?php if ($preset_arret_nom): ?>data-preset-arret-id="<?= (int) $preset_arret_id ?>"<?php endif; ?>>
             </div>
           </label>
-          <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="gare_id" name="gare_id"
-            value="<?= $preset_gare_id ?? '' ?>" readonly required>
-          <input type="hidden" id="train_arrivee" name="train_arrivee" value="<?= htmlspecialchars($preset_gare_nom ?? '', ENT_QUOTES, 'UTF-8') ?>">
+          <input tabindex="-1" type="text" class="input input-disabled input-xs w-1/2 admin" id="arret_id" name="arret_id"
+            value="<?= $preset_arret_id ?? '' ?>" readonly required>
+          <input type="hidden" id="train_arrivee" name="train_arrivee" value="<?= htmlspecialchars($preset_arret_nom ?? '', ENT_QUOTES, 'UTF-8') ?>">
         </div>
       </div>
       <!-- <div class="flex flex-row gap-4 items-center"> -->
@@ -284,17 +288,17 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 <script src="/js/services/horaires-trains.js"></script>
 <script>
   const villes = <?php echo json_encode($villes); ?>;
-  const gares = <?php echo json_encode($gares); ?>;
+  const arrets = <?php echo json_encode($arrets); ?>;
 
   const verifierExistenceItineraire = () => {
-    const gareId = document.getElementById('gare_id').value;
+    const arretId = document.getElementById('arret_id').value;
     const villeId = document.getElementById('ville_id').value;
     const isTgv = document.getElementById('train_tgv')?.checked ?? false;
-    if (!gareId || !villeId) {
+    if (!arretId || !villeId) {
       document.getElementById("itineraireExistsAlert").classList.add("hidden");
       return;
     }
-    fetch(`/api/verify_train_dup.php?gare_id=${gareId}&ville_id=${villeId}&train_tgv=${isTgv ? 1 : 0}`)
+    fetch(`/api/verify_train_dup.php?arret_id=${arretId}&ville_id=${villeId}&train_tgv=${isTgv ? 1 : 0}`)
       .then(response => response.json())
       .then(exists => {
         if (exists) {

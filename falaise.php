@@ -13,6 +13,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/richtext.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/velo_lib.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_lib.php';
 
 /**
  * Chemin de données d'une photo de falaise (cf. lib/paths.php).
@@ -77,14 +78,16 @@ $stmtF->close();
 // js/components/map/velo.js (gpx_path, calculate_time) et les gares de la carte.
 $stmtIt = $mysqli->prepare("
   SELECT
-    velo.velo_id, velo.velo_depart, velo.velo_arrivee, velo.velo_varianteformate,
-    velo.velo_km, velo.velo_dplus, velo.velo_apieduniquement,
-    gares.gare_nom, gares.gare_latlng,
-    concat(gares.gare_nom, ' → ', f.falaise_nom, ' (', velo.velo_variante, ')') as velo_nom
-  FROM velo
-  LEFT JOIN gares ON velo.gare_id = gares.gare_id AND gares.deleted = 0
+    velo.acces_id AS velo_id, velo.depart_slug AS velo_depart, velo.arrivee_slug AS velo_arrivee,
+    velo.variante_formate AS velo_varianteformate,
+    velo.km AS velo_km, velo.dplus AS velo_dplus,
+    arrets.nom AS gare_nom,
+    CONCAT(ST_Y(arrets.loc), ',', ST_X(arrets.loc)) AS gare_latlng,
+    concat(arrets.nom, ' → ', f.falaise_nom, ' (', velo.variante, ')') as velo_nom
+  FROM acces_falaise velo
+  LEFT JOIN arrets ON velo.arret_id = arrets.id AND arrets.deleted = 0
   LEFT JOIN falaises f ON velo.falaise_id = f.falaise_id
-  WHERE velo.falaise_id = ?");
+  WHERE velo.type = 'velo' AND velo.falaise_id = ? AND velo.public >= 0");
 $stmtIt->bind_param("i", $falaise_id);
 $stmtIt->execute();
 $result = $stmtIt->get_result();
@@ -93,6 +96,58 @@ while ($row = $result->fetch_assoc()) {
   $itineraires[] = $row;
 }
 $stmtIt->close();
+
+// Accès à pied depuis un arrêt (acces_falaise, type 'pied') : une entrée par accès,
+// sans fusion avec les itinéraires vélo. Lignes desservantes d'après `lignes_transport`.
+$stmtAp = $mysqli->prepare("
+  SELECT a.id, a.nom, a.commune, a.ter, a.tgv, a.bus, a.tram, a.teleph,
+    ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng, p.description,
+    p.acces_id, p.km, p.dplus, p.dmoins, p.depart_slug, p.arrivee_slug, p.variante_formate
+  FROM acces_falaise p
+  JOIN arrets a ON a.id = p.arret_id AND a.deleted = 0
+  WHERE p.type = 'pied' AND p.public >= 0 AND p.falaise_id = ?
+  ORDER BY a.nom, a.id");
+$stmtAp->bind_param("i", $falaise_id);
+$stmtAp->execute();
+$accesPietons = [];
+foreach ($stmtAp->get_result()->fetch_all(MYSQLI_ASSOC) as $row) {
+  $accesPietons[] = [
+    'arret_id' => (int) $row['id'],
+    'nom' => $row['nom'],
+    'commune' => $row['commune'],
+    'types' => arret_types($row),
+    'type_dominant' => arret_type_dominant($row),
+    'lat' => (float) $row['lat'],
+    'lng' => (float) $row['lng'],
+    'description' => $row['description'],
+    // Liaison arrêt → falaise : km / D+ / D- et trace GPX facultatifs (Lot 8quater)
+    'acces_id' => (int) $row['acces_id'],
+    'km' => $row['km'] !== null ? (float) $row['km'] : null,
+    'dplus' => $row['dplus'] !== null ? (int) $row['dplus'] : null,
+    'dmoins' => $row['dmoins'] !== null ? (int) $row['dmoins'] : null,
+    'gpx_url' => vg_data_exists($gpxRel = velo_gpx_rel((int) $row['acces_id'], $row['depart_slug'], $row['arrivee_slug'], (string) $row['variante_formate']))
+      ? vg_data_url($gpxRel) : null,
+    'lignes' => [],
+  ];
+}
+$stmtAp->close();
+if ($accesPietons) {
+  $apIds = implode(',', array_map(fn($a) => (int) $a['arret_id'], $accesPietons));
+  $lignesParArret = [];
+  foreach ($mysqli->query("SELECT alt.arret_id, l.id, l.nom, l.couleur, l.numero, l.operateur, l.operateur_url, l.horaire_url, l.date_modification
+      FROM arrets_lignes_transport alt JOIN lignes_transport l ON l.id = alt.ligne_id
+      WHERE alt.arret_id IN ($apIds) ORDER BY l.nom")->fetch_all(MYSQLI_ASSOC) as $l) {
+    $lignesParArret[(int) $l['arret_id']][] = [
+      'id' => (int) $l['id'], 'nom' => $l['nom'], 'couleur' => $l['couleur'], 'numero' => $l['numero'],
+      'operateur' => $l['operateur'], 'operateur_url' => $l['operateur_url'], 'horaire_url' => $l['horaire_url'],
+      'date_modification' => $l['date_modification'],
+    ];
+  }
+  foreach ($accesPietons as &$ap) {
+    $ap['lignes'] = $lignesParArret[$ap['arret_id']] ?? [];
+  }
+  unset($ap);
+}
 
 $stmtOblyk = $mysqli->prepare("
   SELECT site_url as url, site_name as name
@@ -114,7 +169,7 @@ if (!$dataF) {
   exit;
 }
 
-$stmtAllGares = $mysqli->prepare("SELECT gare_id, gare_nom FROM gares WHERE deleted = 0 ORDER BY gare_nom");
+$stmtAllGares = $mysqli->prepare("SELECT id AS gare_id, nom AS gare_nom FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0 ORDER BY nom");
 $stmtAllGares->execute();
 $result = $stmtAllGares->get_result();
 $allGares = [];
@@ -189,8 +244,8 @@ INNER JOIN villes v ON t.ville_id = v.ville_id
 WHERE t.train_public >= 1
 AND EXISTS (
     SELECT 1
-    FROM velo ve
-    WHERE ve.gare_id = t.gare_id AND ve.falaise_id = ?
+    FROM acces_falaise ve
+    WHERE ve.type = 'velo' AND ve.arret_id = t.arret_id AND ve.falaise_id = ?
 )
 ORDER BY v.ville_nom
 ");
@@ -221,10 +276,10 @@ $stmtC = $mysqli->prepare("
   SELECT
     cf.id, cf.commentaire, cf.date_creation, cf.nom,
     cf.velo_id, cf.ville_nom, cf.gare_depart, cf.gare_arrivee,
-    concat(gares.gare_nom, ' → ', f.falaise_nom, ' (', velo.velo_variante, ')') as velo_nom
+    concat(arrets.nom, ' → ', f.falaise_nom, ' (', velo.variante, ')') as velo_nom
   FROM commentaires_falaises cf
-  left join velo on cf.velo_id = velo.velo_id
-  left join gares on velo.gare_id = gares.gare_id AND gares.deleted = 0
+  left join acces_falaise velo on cf.velo_id = velo.acces_id
+  left join arrets on velo.arret_id = arrets.id AND arrets.deleted = 0
   left join falaises f on velo.falaise_id = f.falaise_id
   WHERE cf.falaise_id = ?
   ORDER BY date_creation DESC
@@ -377,6 +432,8 @@ $stmtC->close();
                 parking...) </a>
               <a class="btn btn-primary btn-outline btn-sm py-1 h-fit"
                 href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>">Ajouter un accès vélo </a>
+              <a class="btn btn-primary btn-outline btn-sm py-1 h-fit" data-testid="ajouter-acces-pied"
+                href="/ajout/ajout_velo.php?mode=pied&falaise_id=<?= $falaise_id ?>">Ajouter un accès en bus / à pied </a>
               <!-- <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
                 href="/edition/commentaire_velo.php?falaise_id=<?= $falaise_id ?>">Modifier un accès vélo </a> -->
               <!-- <a class="hidden btn btn-primary btn-outline btn-sm py-1 h-fit"
@@ -395,14 +452,14 @@ $stmtC->close();
           </div>
         </div>
       <?php endif; ?>
-      <!-- Message si la falaise n'est reliée à aucune gare (pas visible sur la carte ni dans les tableaux) -->
-      <?php if (count($itineraires) === 0): ?>
+      <!-- Message si la falaise n'a aucun accès décrit, quel qu'en soit le type (vélo ou à pied) -->
+      <?php if (count($itineraires) === 0 && count($accesPietons) === 0): ?>
         <div class="alert alert-warning alert-soft text-center flex flex-col items-center">
           <div class="font-bold text-lg">Falaise non reliée au réseau</div>
-          <div> Cette falaise n'a pas encore d'itinéraire vélo depuis une gare. Elle n'apparaît donc pas sur la carte ni
-            dans les tableaux. </div>
+          <div> Cette falaise n'a pas encore d'accès décrit depuis un arrêt (vélo ou à pied). Elle n'apparaît donc pas
+            sur la carte ni dans les tableaux. </div>
           <a class="btn btn-primary btn-sm mt-2" href="/ajout/ajout_velo.php?falaise_id=<?= $falaise_id ?>">Proposer un
-            accès vélo</a>
+            accès vélo / à pied</a>
         </div>
       <?php endif; ?>
       <div class="flex flex-col items-center mb-10 gap-4">
@@ -608,26 +665,22 @@ $stmtC->close();
         }
       }
 
-      //Calculatrice de temps de trajet vélo (km/20+dplus/500 à vélo, km/4+dplus/500 à pied)
+      //Calculatrice de temps de trajet vélo (km/20+dplus/500)
 
-      function calculate_time($distance_km, $elevation_m, $velo_apieduniquement)
+      function calculate_time($distance_km, $elevation_m)
       {
-        if ($velo_apieduniquement == 1) {
-          $time_in_hours = $distance_km / 4 + $elevation_m / 500;
-        } else {
-          $time_in_hours = $distance_km / 20 + $elevation_m / 500;
-        }
+        $time_in_hours = $distance_km / 20 + $elevation_m / 500;
         $time_in_minutes = round($time_in_hours * 60);
         return $time_in_minutes;
       }
 
       $stmtG = $mysqli->prepare("
-      SELECT DISTINCT g.gare_id, g.gare_nom
-      FROM velo v
-      INNER JOIN gares g ON v.gare_id = g.gare_id
-      LEFT JOIN train t ON v.gare_id = t.gare_id AND t.ville_id = ?
-      WHERE v.falaise_id = ?
-      ORDER BY t.ville_id desc, v.velo_km, g.gare_nom
+      SELECT DISTINCT a.id AS gare_id, a.nom AS gare_nom
+      FROM acces_falaise v
+      INNER JOIN arrets a ON v.arret_id = a.id AND a.deleted = 0
+      LEFT JOIN train t ON v.arret_id = t.arret_id AND t.ville_id = ?
+      WHERE v.type = 'velo' AND v.falaise_id = ? AND v.public >= 0
+      ORDER BY t.ville_id desc, v.km, a.nom
       ");
       if (!$stmtG) {
         die("Problème de préparation de la requête : " . $mysqli->error);
@@ -652,7 +705,7 @@ $stmtC->close();
             t.train_temps, t.train_descr, t.train_correspmin,
             t.train_correspmax, COALESCE(t.train_tgv, 0) AS train_tgv
             FROM train t
-            WHERE t.ville_id = ? AND t.gare_id = ?
+            WHERE t.ville_id = ? AND t.arret_id = ?
             ORDER BY COALESCE(t.train_tgv, 0) ASC
           ");
         $stmtT->bind_param("ii", $ville_id_get, $gare['gare_id']);
@@ -678,7 +731,7 @@ $stmtC->close();
           SELECT v.ville_id, v.ville_nom
           FROM villes v
           INNER JOIN train t ON v.ville_id = t.ville_id
-          WHERE t.gare_id = ?
+          WHERE t.arret_id = ?
       ");
         $stmtVG->bind_param("i", $gare['gare_id']);
         $stmtVG->execute();
@@ -693,11 +746,11 @@ $stmtC->close();
 
         $stmtVelo = $mysqli->prepare("
           SELECT
-            v.velo_id, v.velo_km, v.velo_dplus, v.velo_dmoins, v.velo_descr,
-            v.velo_variante, v.velo_apieduniquement, velo_varianteformate,
-            velo_depart, velo_arrivee, velo_openrunner
-          FROM velo v
-          WHERE v.gare_id = ? AND v.falaise_id = ?
+            v.acces_id AS velo_id, v.km AS velo_km, v.dplus AS velo_dplus, v.dmoins AS velo_dmoins,
+            v.description AS velo_descr, v.variante AS velo_variante, v.variante_formate AS velo_varianteformate,
+            v.depart_slug AS velo_depart, v.arrivee_slug AS velo_arrivee, v.lien_openrunner AS velo_openrunner
+          FROM acces_falaise v
+          WHERE v.type = 'velo' AND v.arret_id = ? AND v.falaise_id = ? AND v.public >= 0
       ");
         $stmtVelo->bind_param("ii", $gare['gare_id'], $falaise_id);
         $stmtVelo->execute();
@@ -706,8 +759,8 @@ $stmtC->close();
         //Calcul des temps de trajet pour tous les itinéraires gare->falaise
         $velo_itineraires = [];
         while ($dataVelo = $resVelo->fetch_assoc()) {
-          $dataVelo['velo_tpsa_calculated'] = calculate_time($dataVelo['velo_km'], $dataVelo['velo_dplus'], $dataVelo['velo_apieduniquement']);
-          $dataVelo['velo_tpsr_calculated'] = calculate_time($dataVelo['velo_km'], $dataVelo['velo_dmoins'], $dataVelo['velo_apieduniquement']);
+          $dataVelo['velo_tpsa_calculated'] = calculate_time($dataVelo['velo_km'], $dataVelo['velo_dplus']);
+          $dataVelo['velo_tpsr_calculated'] = calculate_time($dataVelo['velo_km'], $dataVelo['velo_dmoins']);
           $velo_itineraires[] = $dataVelo;
         }
         $stmtVelo->close();
@@ -844,7 +897,7 @@ $stmtC->close();
                           <?php endforeach; ?>
                         </ul>
                       <?php else: ?> Pas d'accès train décrits depuis cette gare. <a class="btn btn-primary btn-xs"
-                          href="/ajout/ajout_train.php?falaise_id=<?= htmlspecialchars($falaise_id) ?>&gare_id=<?= htmlspecialchars($gare['gare_id']) ?>">Proposer
+                          href="/ajout/ajout_train.php?falaise_id=<?= htmlspecialchars($falaise_id) ?>&arret_id=<?= htmlspecialchars($gare['gare_id']) ?>">Proposer
                           un accès train</a>
                       <?php endif ?>
                     </div>
@@ -856,11 +909,7 @@ $stmtC->close();
                 <tr>
                   <td class='justify-center border-t border-r border-b border border-base-300'>
                     <div class='flex flex-col md:flex-row gap-4 items-center'>
-                      <?php if (isset($velo['velo_apieduniquement']) && $velo['velo_apieduniquement'] == 1): ?>
-                        <img src="/images/icons/hiking_color.png" alt="Logo À Pied" class="h-auto w-10">
-                      <?php else: ?>
-                        <img src="/images/icons/bicycle_color.png" alt="Logo Vélo" class="h-auto w-10">
-                      <?php endif ?>
+                      <img src="/images/icons/bicycle_color.png" alt="Logo Vélo" class="h-auto w-10">
                       <div class='flex flex-col items-start'>
                         <?php if (!empty($velo['velo_variante'])): ?>
                           <div class='text-slate-400'><?= htmlspecialchars($velo['velo_variante']) ?></div>
@@ -924,6 +973,89 @@ $stmtC->close();
           </div>
         </div>
       <?php } ?>
+      <?php if ($accesPietons): ?>
+        <!-- Accès à pied depuis un arrêt (acces_falaise, type 'pied') : un bloc par accès -->
+        <section id="acces-pietons" class="flex flex-col gap-2 w-full">
+          <?php
+          $typeLabels = ['ter' => 'TER', 'tgv' => 'TGV', 'bus' => 'Bus', 'tram' => 'Tram', 'telepherique' => 'Téléphérique'];
+          $safeUrl = fn($u) => preg_match('#^https?://#i', (string) $u) ? $u : null;
+          foreach ($accesPietons as $ap): ?>
+            <div data-arret-id="<?= $ap['arret_id'] ?>"
+              class="collapse collapse-arrow rounded-xl shadow-lg overflow-hidden w-full bg-base-100">
+              <input type="checkbox" aria-label="Détails de l'accès via l'arrêt <?= htmlspecialchars($ap['nom']) ?>" />
+              <div class="collapse-title bg-base-200 text-base-content cursor-pointer min-h-0 flex flex-wrap gap-2 items-center">
+                <div class="text-lg">Accès <span class="text-accent">sans vélo</span> via l'arrêt <span class="font-bold"><?= htmlspecialchars($ap['nom']) ?></span></div>
+                <?php if (!empty($ap['commune']) && mb_stripos($ap['nom'], $ap['commune']) === false): ?>
+                  <span class="text-slate-400">(<?= htmlspecialchars($ap['commune']) ?>)</span>
+                <?php endif; ?>
+                <?php foreach ($ap['types'] as $t): ?>
+                  <span class="badge badge-sm badge-outline"><?= htmlspecialchars($typeLabels[$t] ?? $t) ?></span>
+                <?php endforeach; ?>
+              </div>
+              <div class="collapse-content">
+               <div class="flex flex-col gap-3 pt-3">
+                <!-- Partie « liaison arrêt → falaise » : description, distance / dénivelés, trace GPS -->
+                <div class="flex flex-col gap-1" data-testid="acces-pied-liaison">
+                  <div class="text-sm uppercase tracking-wide text-slate-400">De l'arrêt à la falaise</div>
+                  <?php if ($ap['km'] !== null || $ap['dplus'] !== null || $ap['dmoins'] !== null): ?>
+                    <div data-testid="acces-pied-chiffres">
+                      <?= implode(', ', array_filter([
+                        $ap['km'] !== null ? htmlspecialchars((string) $ap['km']) . ' km' : null,
+                        $ap['dplus'] !== null ? $ap['dplus'] . ' D+' : null,
+                        $ap['dmoins'] !== null ? $ap['dmoins'] . ' D-' : null,
+                      ])) ?>.
+                    </div>
+                  <?php endif; ?>
+                  <?php if (!empty($ap['description'])): ?>
+                    <div class="vg-a-primary"><?= nl2br(htmlspecialchars($ap['description'])) ?></div>
+                  <?php endif; ?>
+                  <?php if ($ap['gpx_url']): ?>
+                    <div><a class="font-bold text-primary" href="<?= htmlspecialchars($ap['gpx_url']) ?>" target="_blank">Trace GPS</a></div>
+                  <?php endif; ?>
+                  <?php if (empty($ap['description']) && $ap['km'] === null && $ap['dplus'] === null && $ap['dmoins'] === null && !$ap['gpx_url']): ?>
+                    <div class="text-sm">
+                      <span class="text-slate-500">Accès non détaillé.</span>
+                      <a class="link link-primary" href="/ajout/ajout_velo.php?mode=pied&arret_id=<?= $ap['arret_id'] ?>&falaise_id=<?= (int) $falaise_id ?>">Ajouter des détails</a>
+                    </div>
+                  <?php endif; ?>
+                </div>
+                <!-- Partie « arrêt » : lignes desservantes -->
+                <div class="text-sm uppercase tracking-wide text-slate-400">Arrêt</div>
+                <?php foreach ($ap['lignes'] as $l): ?>
+                  <div class="flex flex-col gap-1" data-ligne-id="<?= $l['id'] ?>">
+                    <div class="font-bold">
+                      <?php if ($l['numero']): ?><span class="badge badge-sm mr-1" style="<?= preg_match('/^#[0-9a-f]{3,8}$/i', (string) $l['couleur']) ? 'background:' . $l['couleur'] . ';color:#fff;border:0' : '' ?>"><?= htmlspecialchars($l['numero']) ?></span><?php endif; ?>
+                      <?= htmlspecialchars($l['nom']) ?>
+                    </div>
+                    <?php if ($l['operateur']): ?>
+                      <div class="text-sm">Opérateur :
+                        <?php if ($safeUrl($l['operateur_url'])): ?>
+                          <a class="link" href="<?= htmlspecialchars($l['operateur_url']) ?>" target="_blank" rel="noopener"><?= htmlspecialchars($l['operateur']) ?></a>
+                        <?php else: ?><?= htmlspecialchars($l['operateur']) ?><?php endif; ?>
+                      </div>
+                    <?php endif; ?>
+                    <div class="text-sm">Horaires :
+                      <?php if ($safeUrl($l['horaire_url'])): ?>
+                        <a class="link" href="<?= htmlspecialchars($l['horaire_url']) ?>" target="_blank" rel="noopener">consulter les horaires de la ligne</a>
+                      <?php else: ?><span class="text-slate-500">non renseignés</span><?php endif; ?>
+                    </div>
+                    <?php if ($l['date_modification']): ?>
+                      <div class="text-xs text-slate-400">Données mises à jour le <?= date('d/m/Y', strtotime($l['date_modification'])) ?></div>
+                    <?php endif; ?>
+                  </div>
+                <?php endforeach; ?>
+                <?php if (!$ap['lignes']): ?>
+                  <div class="text-sm" data-testid="aucune-ligne">
+                    <span class="text-slate-500">Aucune ligne renseignée pour cet arrêt.</span>
+                    <a class="link link-primary" href="/ajout/ajout_ligne.php">Ajouter la ligne</a>
+                  </div>
+                <?php endif; ?>
+               </div>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        </section>
+      <?php endif; ?>
       <!-- Remarque entre tableaux dynamique et tableau descriptif (rq générale sur l'accès) -->
       <?php if (!empty($falaise_txt1)): ?>
         <div class="vg-a-primary">
@@ -1198,7 +1330,14 @@ $stmtC->close();
       "https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
       maxZoom: 19,
       minZoom: 0,
-      attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
+      attribution: '<a href="http://www.thunderforest.com/landscape/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
+      crossOrigin: true,
+    })
+    const transportTiles = L.tileLayer(
+      "https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", {
+      maxZoom: 19,
+      minZoom: 0,
+      attribution: '<a href="http://www.thunderforest.com/transport/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
       crossOrigin: true,
     })
     const opencyclemapTiles = L.tileLayer(
@@ -1221,6 +1360,7 @@ $stmtC->close();
       'IGNv2': ignTiles,
       'Satellite': ignOrthoTiles,
       'Outdoors': outdoorsTiles,
+      "Transports": transportTiles,
     };
   </script>
   <script type="module">
@@ -1232,7 +1372,9 @@ $stmtC->close();
     import Approche from "/js/components/map/approche.js";
     import Parking from "/js/components/map/parking.js";
     import BusStop from "/js/components/map/bus-stop.js";
+    import { showLigne } from "/js/components/map/ligne-view.js";
     import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
+    import { pied_tooltip_html } from "/js/components/utils/times.js";
     import Gare from "/js/components/map/gare.js";
     import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer, garesLayer } from "/js/components/map/load-vector-tiles.js";
 
@@ -1243,12 +1385,14 @@ $stmtC->close();
       'falaise_bloc' => $dataF['falaise_bloc'], // icône (js/components/map/falaise.js)
     ]); ?>;
     const itineraires = <?php echo json_encode($itineraires); ?>;
+    const accesPietons = <?php echo json_encode($accesPietons); ?>;
 
     const center = falaise.falaise_latlng.split(",").map(parseFloat);
     const zoom = 13;
     const bounds = [
       falaise.falaise_latlng.split(",").map(parseFloat),
-      itineraires.map(it => it.gare_latlng.split(",").map(parseFloat))
+      itineraires.map(it => it.gare_latlng.split(",").map(parseFloat)),
+      accesPietons.map(a => [a.lat, a.lng])
     ];
     var map = L.map("map", { layers: [landscapeTiles], center, zoom, fullscreenControl: true });
     L.control.scale({ position: "bottomleft", metric: true, imperial: false, maxWidth: 125 }).addTo(map);
@@ -1260,6 +1404,21 @@ $stmtC->close();
     // --- Ajout de la falaise et itinéraires vélos ---
     const falaiseObject = new Falaise(map, falaise, { visibility: { to: 12 } });
     const veloObjects = itineraires.map((velo, index) => new Velo(map, velo, { index }));
+    // Traces GPX des accès à pied (facultatives) : trait gris-bleu, durée de marche ou distance en tooltip
+    accesPietons.filter(a => a.gpx_url).forEach(a => {
+      new L.GPX(a.gpx_url, {
+        async: true,
+        markers: { startIcon: null, endIcon: null },
+        polyline_options: { weight: 5, color: "#334155" },
+      }).on("loaded", (e) => {
+        // Durée de marche (km, D+ et D- renseignés) ou distance, + icône de pas ; rien si aucune donnée
+        const tip = pied_tooltip_html({ km: a.km, dplus: a.dplus, dmoins: a.dmoins });
+        if (tip !== null) {
+          e.target.bindTooltip(tip, { className: "vg-velo-tooltip vg-color-pieton", permanent: true, direction: "center" });
+        }
+        e.target.on("click", (ev) => L.DomEvent.stopPropagation(ev));
+      }).addTo(map);
+    });
     const gareObjects = (
       itineraires
         .map(it => ({ gare_nom: it.gare_nom, gare_latlng: it.gare_latlng }))
@@ -1320,129 +1479,45 @@ $stmtC->close();
         console.error("Erreur lors du chargement des données de falaise :", error);
       });
 
-    // --- Arcs de liaison entre arrêts de bus (au clic sur un arrêt) ---
-    const busArcLayer = L.layerGroup().addTo(map);
-    const permanentArretIds = new Set(); // arrêts DB déjà affichés en marqueur
-
-    if (!document.getElementById("vg-bus-arc-style")) {
-      const st = document.createElement("style");
-      st.id = "vg-bus-arc-style";
-      st.textContent =
-        ".vg-bus-arc-label{background:#fffbeb;border:1px solid #eab308;color:#713f12;" +
-        "border-radius:4px;padding:0 5px;font-size:11px;font-weight:600;white-space:nowrap;" +
-        "box-shadow:0 1px 3px rgba(0,0,0,.25);}.vg-bus-arc-label::before{display:none;}" +
-        ".vg-bus-arc-tip{max-width:260px;font-size:12px;text-wrap:wrap;max-width:260px;width:max-content;}v";
-      document.head.appendChild(st);
-    }
-
-    // Arc courbé (bézier quadratique) entre deux points [lat,lng].
-    const busArcPoints = (from, to, bend = 0.2, segments = 28) => {
-      const [lat1, lng1] = from;
-      const [lat2, lng2] = to;
-      const dlat = lat2 - lat1, dlng = lng2 - lng1;
-      const clat = (lat1 + lat2) / 2 - dlng * bend;
-      const clng = (lng1 + lng2) / 2 + dlat * bend;
-      const pts = [];
-      for (let i = 0; i <= segments; i++) {
-        const t = i / segments, mt = 1 - t;
-        pts.push([
-          mt * mt * lat1 + 2 * mt * t * clat + t * t * lat2,
-          mt * mt * lng1 + 2 * mt * t * clng + t * t * lng2,
-        ]);
-      }
-      return pts;
+    // Lignes BTT (table lignes_transport) de l'arrêt cliqué : tracé (couleur + halo)
+    // et tous les arrêts liés à la ligne. Effacé au clic ailleurs sur la carte.
+    let ligneGroups = [];
+    const clearLigne = () => { ligneGroups.forEach((g) => g.remove()); ligneGroups = []; };
+    const showLignes = async (arret) => {
+      clearLigne();
+      let lignes = [];
+      try {
+        const res = await fetch(`/api/fetch_lignes.php?arret_id=${arret.id}`);
+        if (res.ok) lignes = (await res.json()).lignes || [];
+      } catch (e) { return; }
+      clearLigne(); // un clic plus récent a pu répondre entre-temps
+      ligneGroups = lignes.map((l) => showLigne(map, l, { fit: false }));
     };
 
-    // Étiquette de nom (div) affichée sous l'icône de l'arrêt.
-    const busLabel = (latlng, text) => {
-      const m = L.marker(latlng, {
-        icon: L.divIcon({ className: "vg-bus-label-anchor", html: "", iconSize: [0, 0] }),
-        interactive: false,
-        keyboard: false,
-      });
-      m.bindTooltip(text, {
-        permanent: true,
-        direction: "bottom",
-        offset: [0, BusStop.iconSize / 2],
-        className: "vg-bus-arc-label",
-        opacity: 1,
-      });
-      busArcLayer.addLayer(m);
-      m.openTooltip();
-    };
+    // Clic ailleurs sur la carte : on efface la ligne affichée.
+    map.on("click", () => { clearLigne(); });
 
-    const showBusArcs = (arret) => {
-      busArcLayer.clearLayers();
-      const origin = [arret.lat, arret.lng];
-      const bounds = [origin, falaise.falaise_latlng.split(",").map(Number)];
-      (arret.liaisons || []).forEach((li) => {
-        const dest = [li.lat, li.lng];
-        bounds.push(dest);
-        // Tooltip (HTML déjà assaini) : ligne qui relie les deux arrêts + son
-        // éventuelle description + le commentaire de la liaison. Affiché sur l'arc
-        // (au survol, suit le curseur) et sur l'arrêt relié.
-        const escHtml = (s) =>
-          String(s ?? "").replace(/[&<>"]/g, (c) =>
-            ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-        const tipParts = [];
-        if (li.ligne) tipParts.push(`<div class="font-bold">${escHtml(li.ligne)}</div>`);
-        if (li.ligne_description) tipParts.push(li.ligne_description);
-        if (li.description) tipParts.push(li.description);
-        const tip = tipParts.join("");
-        const arc = L.polyline(busArcPoints(origin, dest), {
-          color: "#eab308",
-          weight: 3,
-          opacity: 0.9,
-          dashArray: "6 8",
-        }).addTo(busArcLayer);
-        if (tip) {
-          arc.bindTooltip(tip, { sticky: true, direction: "top", className: "vg-bus-arc-tip" });
-        }
-        // Affiche l'arrêt relié s'il n'est pas déjà un marqueur permanent.
-        if (!permanentArretIds.has(li.arret_id)) {
-          const m = L.marker(dest, {
-            icon: BusStop.busStopIcon(BusStop.iconSize),
-          }).addTo(busArcLayer);
-          if (tip) {
-            m.bindTooltip(tip, {
-              direction: "top",
-              offset: [0, -BusStop.iconSize / 2],
-              className: "vg-bus-arc-tip",
-            });
-          }
-        }
-        busLabel(dest, li.nom);
-      });
-      busLabel(origin, arret.nom);
-      map.flyToBounds(L.latLngBounds(bounds), { padding: [70, 70], maxZoom: 15, duration: 0.5 });
-    };
-
-    // Clic ailleurs sur la carte : on efface les arcs.
-    map.on("click", () => busArcLayer.clearLayers());
-
-    // Arrêts de bus liés en base (bus_arrets_falaise).
-    fetch(`/api/fetch_bus_arrets.php?falaise_id=${falaise.falaise_id}`)
+    // Arrêts liés à la falaise (acces_falaise, type 'pied'), toutes modalités : chacun
+    // avec l'icône de son type (ter > tgv > tram > téléphérique > bus) et un
+    // trait droit vers la falaise.
+    fetch(`/api/fetch_arrets.php?falaise_id=${falaise.falaise_id}`)
       .then(response => response.ok ? response.json() : Promise.reject(new Error("fetch_bus_arrets")))
       .then(data => {
         let added = false;
         (data.arrets || []).forEach(arret => {
-          const lignes = (arret.lignes || []).join(", ");
-          const descHtml =
-            (lignes ? `<div class="text-xs opacity-70">${lignes}</div>` : "") +
-            (arret.description || "");
+          const descHtml = arret.description || "";
           const feature = {
             type: "Feature",
             geometry: { type: "Point", coordinates: [arret.lng, arret.lat] },
-            properties: { type: "bus_stop", name: arret.nom, description: descHtml },
+            properties: { type: "bus_stop", name: arret.nom, description: descHtml, types: arret.types, arret_id: arret.id },
           };
           const obj = new BusStop(map, feature);
           obj._element_id = `bus_db_${arret.id}`;
           featureMap[obj._element_id] = obj;
-          permanentArretIds.add(arret.id);
-          // Au clic : arcs jaunes vers les arrêts reliés + noms + cadrage.
+          // Au clic : tracé des lignes qui desservent l'arrêt.
           obj.layer.on("click", (ev) => {
             L.DomEvent.stopPropagation(ev);
-            showBusArcs(arret);
+            showLignes(arret);
           });
           added = true;
         });

@@ -1,5 +1,7 @@
 <?php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
+
 /**
  * Envoi d'un message via l'API HTTP Mailgun.
  *
@@ -14,6 +16,16 @@
  */
 function sendMail($data)
 {
+  // tests/api/bootstrap.php pose ce marqueur le temps de la suite PHPUnit,
+  // pour ne pas envoyer de vrais mails (ni faire l'appel réseau) à chaque
+  // test qui passe par add_arret.php / add_velo.php / link_arret_falaise.php...
+  // Fichier plutôt qu'un en-tête HTTP : un en-tête serait un signal
+  // falsifiable par n'importe quel client, un fichier ne l'est pas.
+  if (vg_data_exists('tmp/phpunit-disable-mail.flag')) {
+    error_log('[sendMail] envoi ignoré (mode test PHPUnit) : to=' . (is_array($data['to'] ?? null) ? implode(',', $data['to']) : ($data['to'] ?? '?')));
+    return true;
+  }
+
   $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
   $mailgun_api_key = $config["mailgun_api_key"];
   $mailgun_domain = $config["mailgun_domain"];

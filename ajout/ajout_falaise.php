@@ -7,6 +7,26 @@ $config = require $_SERVER["DOCUMENT_ROOT"] . "/../config.php";
 $admin = ($_GET["admin"] ?? false) == $config["admin_token"];
 $falaise_id = $_GET["falaise_id"] ?? null;
 
+// Arrêts proposables pour l'accès à pied (création uniquement : en édition, les
+// accès se gèrent depuis l'éditeur de détails de la falaise).
+$arrets_pietons = [];
+if (!$falaise_id) {
+  require_once $_SERVER["DOCUMENT_ROOT"] . "/lib/arrets_lib.php";
+  $result_arrets = $mysqli->query("SELECT id, nom, commune, ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets WHERE deleted = 0 ORDER BY nom");
+  while ($row = $result_arrets->fetch_assoc()) {
+    $commune = trim((string) $row['commune']);
+    $arrets_pietons[] = [
+      'id' => (int) $row['id'],
+      // La valeur affichée identifie l'arrêt : commune ajoutée si le nom ne la contient pas.
+      'nom' => ($commune !== '' && mb_stripos($row['nom'], $commune) === false) ? $row['nom'] . ' (' . $commune . ')' : $row['nom'],
+      // Pour la carte de liaison des arrêts (js/components/map/arrets-lies-map.js)
+      'lat' => (float) $row['lat'],
+      'lng' => (float) $row['lng'],
+      'types' => arret_types($row),
+    ];
+  }
+}
+
 if ($falaise_id) {
   $falaises = [];
   if (!$admin) {
@@ -266,7 +286,6 @@ if ($falaise_id) {
 
           const { map, layerControl, searchButton: overpassBtn } = createAjoutMap('map', {
             searchButton: {
-              html: '<img src="/images/map/overpass-turbo.svg" alt="" style="width:16px;height:16px;" />',
               label: 'Falaises OSM',
               title: 'Récupérer les falaises de la zone visible (OpenStreetMap)',
               ariaLabel: 'Falaises OSM',
@@ -323,6 +342,8 @@ if ($falaise_id) {
 
           function createMarker(lat, lng) {
             mapinstructions.style.display = "none";
+            // Position de la falaise connue/changée : la carte des arrêts liés se recentre dessus.
+            document.dispatchEvent(new CustomEvent('velogrimpe:falaise-position', { detail: { lat, lng } }));
             if (marker) {
               map.removeLayer(marker);
             }
@@ -714,6 +735,47 @@ if ($falaise_id) {
             Sud-Est", "la plupart des voies orientées Ouest, quelques voies orientées Nord". </i>
         </label>
       </div>
+      <!-- Partie Infos supplémentaires -->
+      <div class="relative flex items-center">
+        <hr class="my-0 grow border-[#2e8b57]" />
+        <div class="flex items-center justify-center">
+          <span class="px-2 text-primary italic bg-unset rounded-full">Infos supplémentaires</span>
+        </div>
+        <hr class="my-0 grow border-[#2e8b57]" />
+      </div>
+      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
+        <div class="form-control">
+          <b>Topo(s)</b>
+          <div class="vue-richtext" data-name="falaise_topo" <?= $admin
+            ? ""
+            : 'data-required="true"' ?>></div>
+          <i class="text-slate-400 text-sm"> Lister les différents topos présentant la falaise.<br> Optionnel : ajouter
+            un lien vers la fiche Climbing Away de la falaise.<br> Inutile d'ajouter un lien vers Oblyk : il est ajouté
+            automatiquement.
+          </i>
+        </div>
+        <div class="form-control">
+          <b class="">Remarque(s) falaise <span class="text-accent opacity-50">(optionnel)</span></b>
+          <div class="vue-richtext" data-name="falaise_rq"></div>
+          <i class="text-slate-400 text-sm">A compléter si vous avez des informations additionnelles sur la falaise.</i>
+        </div>
+        <div class="form-control">
+          <b class="">Infos Hébergements <span class="text-accent opacity-50">(optionnel)</span></b>
+          <div class="vue-richtext" data-name="falaise_hebergement"></div>
+          <i class="text-slate-400 text-sm">Informations sur les possibilités d'hébergement à proximité (campings,
+            refuges, gîtes...).</i>
+        </div>
+        <label class="form-control" for="falaise_voletcarto">
+          <b>Résumé de la fiche falaise</b>
+          <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voletcarto"
+            name="falaise_voletcarto" rows="3"
+            placeholder="ex : Falaise exposée Sud, avec 120 voies de 6a à 7c. Quelques grandes voies en 2 ou 3 longueurs."
+            required maxlength="200"></textarea>
+          <i class="text-slate-400 text-sm">Résumé court et synthétique sur la falaise, qui apparaitra dans le volet qui
+            s'ouvre quand on clique sur une falaise de la carte.<br> Ex : "Falaise exposée Sud, avec 120 voies de 6a à
+            7c. Quelques grandes voies en 2 ou 3 longueurs."</i>
+        </label>
+      </div>
       <!-- Partie Marche d'approche -->
       <div class="relative flex items-center">
         <hr class="my-0 grow border-[#2e8b57]" />
@@ -749,52 +811,60 @@ if ($falaise_id) {
             du parking vélo, aller et retour. </i>
         </div>
       </div>
-      <!-- Partie Infos supplémentaires -->
+      <!-- Partie Accès à la falaise : accès à vélo, accès sans vélo, accès en bus -->
       <div class="relative flex items-center">
         <hr class="my-0 grow border-[#2e8b57]" />
         <div class="flex items-center justify-center">
-          <span class="px-2 text-primary italic bg-unset rounded-full">Infos supplémentaires</span>
+          <span class="px-2 text-primary italic bg-unset rounded-full">Accès à la falaise</span>
         </div>
         <hr class="my-0 grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
-        <div class="form-control">
-          <b>Topo(s)</b>
-          <div class="vue-richtext" data-name="falaise_topo" <?= $admin
-            ? ""
-            : 'data-required="true"' ?>></div>
-          <i class="text-slate-400 text-sm"> Lister les différents topos présentant la falaise.<br> Optionnel : ajouter
-            un lien vers la fiche Climbing Away de la falaise.<br> Inutile d'ajouter un lien vers Oblyk : il est ajouté
-            automatiquement.
-          </i>
+        <?php if (!$falaise_id): ?>
+          <div class="form-control" id="acces-velo-section">
+            <label class="label cursor-pointer justify-start gap-2 p-0">
+              <input type="checkbox" id="acces_velo_check" class="checkbox checkbox-primary checkbox-sm" />
+              <b>Ajouter un accès à vélo <span class="text-accent opacity-50">(optionnel)</span></b>
+            </label>
+            <i class="text-slate-400 text-sm">Itinéraire à vélo, avec sa trace GPS, depuis une gare ou un arrêt jusqu'à la
+              falaise. D'autres accès pourront être ajoutés ensuite depuis la fiche de la falaise.</i>
+            <div id="vue-acces-velo" class="hidden mt-2"
+              data-arrets='<?= htmlspecialchars(json_encode($arrets_pietons), ENT_QUOTES, 'UTF-8') ?>'></div>
+          </div>
+        <?php endif; ?>
+        <?php if (!$falaise_id): ?>
+          <div class="form-control" id="acces-pietons-section">
+            <label class="label cursor-pointer justify-start gap-2 p-0">
+              <input type="checkbox" id="acces_pieton_check" class="checkbox checkbox-primary checkbox-sm" />
+              <b>Cette falaise est accessible sans vélo <span
+                  class="text-accent opacity-50">(optionnel)</span></b>
+            </label>
+            <i class="text-slate-400 text-sm">Depuis une gare, un arrêt de bus, de tram, un téléphérique… : on peut aller
+              de l'arrêt à la falaise à pied.</i>
+            <div id="vue-arrets-pietons" class="hidden mt-2"
+              data-arrets='<?= htmlspecialchars(json_encode($arrets_pietons), ENT_QUOTES, 'UTF-8') ?>'></div>
+            <input type="hidden" id="arrets_pietons" name="arrets_pietons" value="" />
+          </div>
+        <?php endif; ?>
+        <?php if (!$falaise_id): ?>
+        <!-- Carte COMMUNE aux accès (≠ #map, carte de placement de la falaise) : arrêt de départ et trace GPX de
+             l'accès à vélo, arrêts d'accès sans vélo (cliquables pour les lier quand « accessible sans vélo » est coché) -->
+        <div id="map-arrets-wrap" class="hidden mt-2">
+          <div id="map-arrets" class="w-full h-[28rem] rounded-lg relative">
+            <div id="map-arrets-instructions" class="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-[10000]">
+              <span class="bg-base-100/90 border border-base-300 shadow rounded-full px-3 py-1 text-sm font-medium">Localisez d'abord la falaise dans la 1ère section</span>
+            </div>
+          </div>
+          <i class="text-slate-400 text-sm">La carte montre l'arrêt de départ et la trace de l'accès à vélo, et les arrêts d'accès sans vélo.
+            Quand « accessible sans vélo » est coché, cliquez un arrêt pour le lier à la falaise ; zoomez pour les voir.</i>
         </div>
-        <div class="form-control">
-          <b class="">Remarque(s) falaise <span class="text-accent opacity-50">(optionnel)</span></b>
-          <div class="vue-richtext" data-name="falaise_rq"></div>
-          <i class="text-slate-400 text-sm">A compléter si vous avez des informations additionnelles sur la falaise.</i>
-        </div>
-        <div class="form-control">
-          <b class="">Infos Hébergements <span class="text-accent opacity-50">(optionnel)</span></b>
-          <div class="vue-richtext" data-name="falaise_hebergement"></div>
-          <i class="text-slate-400 text-sm">Informations sur les possibilités d'hébergement à proximité (campings,
-            refuges, gîtes...).</i>
-        </div>
+        <?php endif; ?>
         <div class="form-control">
           <b class="">Accès en bus <span class="text-accent opacity-50">(optionnel)</span></b>
           <div class="vue-richtext" data-name="falaise_acces_bus"></div>
           <i class="text-slate-400 text-sm">Informations sur les accès en transports en commun (bus, navettes...) depuis
             la gare ou les villes proches.</i>
         </div>
-        <label class="form-control" for="falaise_voletcarto">
-          <b>Résumé de la fiche falaise</b>
-          <textarea class="textarea textarea-primary textarea-sm leading-6" id="falaise_voletcarto"
-            name="falaise_voletcarto" rows="3"
-            placeholder="ex : Falaise exposée Sud, avec 120 voies de 6a à 7c. Quelques grandes voies en 2 ou 3 longueurs."
-            required maxlength="200"></textarea>
-          <i class="text-slate-400 text-sm">Résumé court et synthétique sur la falaise, qui apparaitra dans le volet qui
-            s'ouvre quand on clique sur une falaise de la carte.<br> Ex : "Falaise exposée Sud, avec 120 voies de 6a à
-            7c. Quelques grandes voies en 2 ou 3 longueurs."</i>
-        </label>
       </div>
       <!-- Partie Remarques et images -->
       <div class="relative flex items-center">
@@ -1012,6 +1082,7 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
         // Use Vue setter for falaise name
         if (window.setFalaiseNom) window.setFalaiseNom(falaise.falaise_nom);
         document.getElementById("confirmButton").textContent = "Modifier la falaise";
+        if (window.setAccesPietonsVisible) window.setAccesPietonsVisible(false);
         updateMarker();
       });
   }
@@ -1135,6 +1206,20 @@ champ rqvillefalaise_txt de la table rqvillefalaise).</pre>
       }
     })();
 </script>
+<?php if (!$falaise_id): ?>
+<script type="module">
+  import { initArretsLiesMap } from '/js/components/map/arrets-lies-map.js';
+  // Module séparé de celui de la carte de placement (#map) : portées distinctes. La carte écoute les
+  // événements `velogrimpe:*` posés par la carte de placement et par le composant Vue (dist/ajout-falaise.js).
+  const mount = document.getElementById('vue-arrets-pietons');
+  initArretsLiesMap({
+    elId: 'map-arrets',
+    instructionsEl: document.getElementById('map-arrets-instructions'),
+    arrets: JSON.parse(mount.dataset.arrets || '[]'),
+    setLinked: (id, linked) => window.accesPietonsSetLinked?.(id, linked),
+  });
+</script>
+<?php endif; ?>
 <script type="module" src="/dist/ajout-falaise.js"></script>
 
 </html>

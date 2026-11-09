@@ -103,6 +103,14 @@ docker exec velogrimpe /opt/lampp/bin/mysql -uroot -e "
 docker exec -i velogrimpe /opt/lampp/bin/mysql -uroot velogrimpe < db_backup.sql
 ```
 
+Cet export suit le schéma de la prod (`sql_migrations/0_base_schema.sql`). Tant que la prod n'a pas migré, amenez-le au schéma actuel avec la migration unique :
+
+```bash
+docker exec -i velogrimpe /opt/lampp/bin/mysql -uroot velogrimpe < sql_migrations/1_unification_arrets.sql
+```
+
+(non rejouable : pour recommencer, réimportez d'abord l'export).
+
 Vérifiez ensuite que le site répond avec des données :
 
 ```bash
@@ -110,6 +118,8 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4000/carte.php   # 200
 ```
 
 L'export ne contient que les données SQL. Les fichiers associés (images de falaises, GPX, GeoJSON des barres, tuiles de lignes de train) se récupèrent séparément et se déposent dans `public/`.
+
+7. Tests : E2E Playwright dans `tests/e2e/` (cf. `tests/e2e/README.md`), tests d'intégration API PHPUnit dans `tests/api/` (cf. `tests/api/README.md`, `composer install` puis `composer test`).
 
 ## Chemins de données
 
@@ -217,10 +227,11 @@ Les contenus publiés sur velogrimpe.fr sont diffusés sous les licences suivant
 - **Images** : [CC BY-NC-ND](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr) → Utilisation commerciale interdite. Diffusion à l'identique et en citant la source. (sauf licence spécifique précisée par l'auteur dans la légende ou sur l'image)
 - **Données** : [ODbL](https://opendatacommons.org/licenses/odbl/1-0/) et [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/deed.fr) → Compatible OpenStreetMap et C2C, permet de réutiliser les données pour enrichir OSM.
 
-Cinq exports GeoJSON sont disponibles, regénérés quotidiennement au cours de la nuit et exploitables par exemple directement dans [UMAP](https://umap.openstreetmap.fr/) :
+Six exports GeoJSON sont disponibles, regénérés quotidiennement au cours de la nuit et exploitables par exemple directement dans [UMAP](https://umap.openstreetmap.fr/) :
 
 - [falaises.geojson](https://velogrimpe.fr/open-data/falaises.geojson) : les falaises (points) et, embarqués dans leurs propriétés, leurs itinéraires vélo, liens externes et arrêts de bus.
-- [itineraires-velo.geojson](https://velogrimpe.fr/open-data/itineraires-velo.geojson) : les tracés complets des itinéraires vélo (LineString) reconstruits à partir des fichiers GPX, avec distance, dénivelés et gare de départ.
-- [gares.geojson](https://velogrimpe.fr/open-data/gares.geojson) : les gares (points, hors gares supprimées), avec commune, département, codes UIC/OSM et flag TGV.
+- [itineraires-velo.geojson](https://velogrimpe.fr/open-data/itineraires-velo.geojson) : les tracés complets des itinéraires vélo (LineString) reconstruits à partir des fichiers GPX, avec distance, dénivelés et gare de départ. Chaque tracé porte `acces_id` (anciennement `velo_id`, renommé au Lot 8quater : même valeur, c'est aussi le préfixe du fichier GPX) et `a_pied_possible` (vrai pour un tracé de 5 km ou moins). Le champ `a_pied_uniquement` n'existe plus (Lot 8) : les accès à pied sont des liens arrêt → falaise (type `pied` de la table `acces_falaise`), pas des itinéraires.
+- [arrets.geojson](https://velogrimpe.fr/open-data/arrets.geojson) : les arrêts (points : gares TER/TGV, bus, tram, téléphérique, hors arrêts supprimés), avec commune, code INSEE, codes SNCF/OSM et les lignes qui les desservent (propriété `lignes`, sans géométrie). Remplace l'ancien `gares.geojson`.
+- [lignes.geojson](https://velogrimpe.fr/open-data/lignes.geojson) : les lignes de bus / BTT (géométrie MultiLineString, numéro, opérateur, horaires, couleur) et les ids des arrêts qu'elles desservent (`arret_ids`).
 - [falaises-details.geojson](https://velogrimpe.fr/open-data/falaises-details.geojson) : les détails géométriques agrégés de toutes les falaises (secteurs, parkings, approches…).
-- [complet.geojson](https://velogrimpe.fr/open-data/complet.geojson) : les collections ci-dessus réunies en un seul fichier. Chaque entité porte une propriété `vg_type` (`falaise`, `itineraire_velo`, `gare` ou `detail`) pour pouvoir les re-filtrer.
+- [complet.geojson](https://velogrimpe.fr/open-data/complet.geojson) : les collections ci-dessus réunies en un seul fichier. Chaque entité porte une propriété `vg_type` (`falaise`, `itineraire_velo`, `arret`, `ligne` ou `detail`) pour pouvoir les re-filtrer.

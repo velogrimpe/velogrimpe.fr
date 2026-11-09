@@ -67,10 +67,7 @@ function renderGpx(velo, options = {}) {
     "loaded",
     (e) => {
       e.target.bindTooltip(
-        format_time(calculate_time(velo)) +
-          (velo.velo_apieduniquement
-            ? '<svg class="w-4 h-4 fill-none stroke-current inline"><use href="#footprint"></use></svg>'
-            : ""),
+        format_time(calculate_time(velo)),
         {
           className: `vg-velo-tooltip vg-color-${color}`,
           permanent: true,

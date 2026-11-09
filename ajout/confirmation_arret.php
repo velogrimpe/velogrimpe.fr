@@ -1,0 +1,96 @@
+<?php
+$config = require $_SERVER["DOCUMENT_ROOT"] . "/../config.php";
+require_once $_SERVER["DOCUMENT_ROOT"] . "/lib/vite.php";
+require_once $_SERVER["DOCUMENT_ROOT"] . "/database/velogrimpe.php";
+
+$arret_id = isset($_GET['arret_id']) ? (int) $_GET['arret_id'] : null;
+$type = $_GET['type'] ?? 'insert'; // insert ou update
+// admin porte le jeton admin, pas un booléen : la page le réécrit dans ses
+// liens, il ne doit donc s'afficher qu'à qui le connaît déjà.
+$admin = hash_equals((string) $config["admin_token"], (string) ($_GET['admin'] ?? ''));
+
+$arret = null;
+if ($arret_id) {
+  $stmt = $mysqli->prepare("SELECT nom, ter, tgv FROM arrets WHERE id = ?");
+  $stmt->bind_param("i", $arret_id);
+  $stmt->execute();
+  $arret = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
+}
+
+$message =
+  $type === "update"
+    ? "Arrêt modifié avec succès !"
+    : "Arrêt ajouté avec succès !";
+$arret_nom = $arret ? htmlspecialchars($arret["nom"]) : "Arrêt";
+
+?>
+<!DOCTYPE html>
+<html lang="fr" data-theme="velogrimpe">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Confirmation d'ajout d'arrêt de bus - Vélogrimpe.fr">
+  <title>Confirmation - <?= $arret_nom ?> - Vélogrimpe.fr</title>
+  <?php vite_css("main"); ?>
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="stylesheet" href="/global.css" />
+</head>
+
+<body class="min-h-screen flex flex-col">
+  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/header.html"; ?>
+  <div class="grow flex justify-center items-center p-4">
+    <div class="card bg-base-100 shadow-xl max-w-md w-full">
+      <div class="card-body items-center text-center">
+        <div class="text-success mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 fill-none stroke-current" viewBox="0 0 24 24"
+            stroke-width="1.5">
+            <use href="#checkbox-circle-fill"></use>
+          </svg>
+        </div>
+        <h2 class="card-title text-2xl"><?= $message ?></h2>
+        <p class="text-base-content/70"><?= $arret_nom ?></p>
+
+        <!-- Boutons principaux -->
+        <div class="flex flex-col gap-2 w-full mt-2">
+          <a href="/ajout/ajout_arret.php?arret_id=<?= $arret_id ?><?= $admin ? "&admin=" . $config["admin_token"] : "" ?>"
+            class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-none stroke-current" viewBox="0 0 24 24"
+              stroke-width="2">
+              <use href="#pencil"></use>
+            </svg> Modifier cet arrêt
+          </a>
+          <a href="/ajout/ajout_arret.php<?= $admin
+            ? "?admin=" . $config["admin_token"]
+            : "" ?>" class="btn btn-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 stroke-none fill-current" viewBox="0 0 24 24">
+              <use href="#bus-stop"></use>
+            </svg> Créer un nouvel arrêt
+          </a>
+          <?php if ($arret): ?>
+            <a href="/ajout/ajout_velo.php?arret_id=<?= $arret_id ?><?= $admin ? "&admin=" . $config["admin_token"] : "" ?>" class="btn btn-outline">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current stroke-none" viewBox="0 0 24 24"
+                stroke-width="1">
+                <use href="#riding"></use>
+              </svg> Ajouter un accès depuis cet arrêt
+            </a>
+          <?php endif; ?>
+        </div>
+
+        <div class="divider my-2">ou</div>
+        <div class="flex flex-wrap justify-center gap-2">
+          <a href="/" class="btn btn-outline btn-sm">Accueil</a>
+          <a href="/carte.php" class="btn btn-outline btn-sm">Voir la carte</a>
+          <?php if ($admin): ?>
+            <a href="/admin/" class="btn btn-outline btn-sm">Admin</a>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/footer.php"; ?>
+</body>
+
+</html>

@@ -5,7 +5,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 // Paramètres
 $ville_id = isset($_GET['ville_id']) ? (int) $_GET['ville_id'] : null;
-$gare_id = isset($_GET['gare_id']) ? (int) $_GET['gare_id'] : null;
+// `gare_id` reste accepté (anciens liens). Une gare est un arrêt.
+$arret_id = isset($_GET['arret_id']) ? (int) $_GET['arret_id'] : (isset($_GET['gare_id']) ? (int) $_GET['gare_id'] : null);
 $admin = isset($_GET['admin']) && $_GET['admin'] == $config["admin_token"];
 
 // Récupérer les infos de la ville
@@ -19,11 +20,11 @@ if ($ville_id) {
   $stmt->close();
 }
 
-// Récupérer les infos de la gare
+// Récupérer les infos de l'arrêt
 $gare = null;
-if ($gare_id) {
-  $stmt = $mysqli->prepare("SELECT gare_nom FROM gares WHERE gare_id = ?");
-  $stmt->bind_param("i", $gare_id);
+if ($arret_id) {
+  $stmt = $mysqli->prepare("SELECT nom AS gare_nom FROM arrets WHERE id = ?");
+  $stmt->bind_param("i", $arret_id);
   $stmt->execute();
   $result = $stmt->get_result();
   $gare = $result->fetch_assoc();
@@ -75,7 +76,7 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
             </svg> Autre gare depuis <?= $ville_nom ?>
           </a>
           <!-- Nouvel itinéraire vers la même gare -->
-          <a href="/ajout/ajout_train.php?gare_id=<?= $gare_id ?><?= $admin ? '&admin=' . $config["admin_token"] : '' ?>"
+          <a href="/ajout/ajout_train.php?arret_id=<?= $arret_id ?><?= $admin ? '&admin=' . $config["admin_token"] : '' ?>"
             class="btn btn-secondary">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-none stroke-current" viewBox="0 0 24 24"
               stroke-width="2">

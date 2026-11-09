@@ -5,7 +5,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
 // Paramètres
 $falaise_id = isset($_GET['falaise_id']) ? (int) $_GET['falaise_id'] : null;
-$gare_id = isset($_GET['gare_id']) ? (int) $_GET['gare_id'] : null;
+// `gare_id` reste accepté : lien d'édition d'itinéraire (edit_velo.php).
+$gare_id = isset($_GET['arret_id']) ? (int) $_GET['arret_id'] : (isset($_GET['gare_id']) ? (int) $_GET['gare_id'] : null);
+$is_pied = ($_GET['mode'] ?? '') === 'pied';
 $admin = isset($_GET['admin']) && $_GET['admin'] == $config["admin_token"];
 $is_update = ($_GET['type'] ?? '') === 'update';
 $is_suggestion = ($_GET['type'] ?? '') === 'suggestion';
@@ -25,7 +27,7 @@ if ($falaise_id) {
 // Récupérer les infos de la gare
 $gare = null;
 if ($gare_id) {
-  $stmt = $mysqli->prepare("SELECT gare_nom FROM gares WHERE gare_id = ?");
+  $stmt = $mysqli->prepare("SELECT nom AS gare_nom FROM arrets WHERE id = ?");
   $stmt->bind_param("i", $gare_id);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -34,7 +36,7 @@ if ($gare_id) {
 }
 
 $falaise_nom = $falaise ? htmlspecialchars($falaise['falaise_nom']) : 'Falaise';
-$gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
+$gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Arrêt';
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -71,7 +73,7 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
             vérification.
           </p>
         <?php else: ?>
-          <h2 class="card-title text-2xl">Itinéraire <?= $is_update ? 'modifié' : 'ajouté' ?> avec succès !</h2>
+          <h2 class="card-title text-2xl"><?= $is_pied ? 'Accès à pied ajouté' : 'Itinéraire ' . ($is_update ? 'modifié' : 'ajouté') ?> avec succès !</h2>
         <?php endif; ?>
         <p class="text-base-content/70 mb-4">
           <?= $gare_nom ?> → <?= $falaise_nom ?>
@@ -94,7 +96,7 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-none stroke-current" viewBox="0 0 24 24"
               stroke-width="2">
               <use href="#plus"></use>
-            </svg> Autre itinéraire pour <?= $falaise_nom ?>
+            </svg> Autre accès pour <?= $falaise_nom ?>
           </a>
         </div>
         <!-- Séparateur -->
@@ -105,7 +107,7 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Gare';
           <a href="/ajout/ajout_falaise.php<?= $admin ? '?admin=' . $config["admin_token"] : '' ?>"
             class="btn btn-outline btn-sm"> + Falaise </a>
           <a href="/ajout/ajout_velo.php<?= $admin ? '?admin=' . $config["admin_token"] : '' ?>"
-            class="btn btn-outline btn-sm"> + Vélo </a>
+            class="btn btn-outline btn-sm"> + Accès </a>
           <?php if ($admin): ?>
             <a href="/ajout/ajout_train.php?admin=<?= $config["admin_token"] ?>" class="btn btn-outline btn-sm"> + Train
             </a>

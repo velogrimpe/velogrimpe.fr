@@ -33,7 +33,7 @@ $sortie['falaises_alternatives'] = json_decode($sortie['falaises_alternatives'],
 // Load villes, falaises, gares for autocomplete
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
 $falaises = $mysqli->query("SELECT falaise_id, falaise_nom FROM falaises WHERE falaise_public >= 1 ORDER BY falaise_nom")->fetch_all(MYSQLI_ASSOC);
-$gares = $mysqli->query("SELECT gare_id, gare_nom FROM gares WHERE deleted = 0 ORDER BY gare_nom")->fetch_all(MYSQLI_ASSOC);
+$gares = $mysqli->query("SELECT id AS gare_id, nom AS gare_nom FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0 ORDER BY nom")->fetch_all(MYSQLI_ASSOC);
 
 ?>
 <!DOCTYPE html>

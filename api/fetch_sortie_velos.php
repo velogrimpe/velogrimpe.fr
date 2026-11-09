@@ -16,30 +16,30 @@ if ($falaise_id === null) {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/velo_lib.php';
 
 // Query to get bike routes for this crag
 $query = "SELECT
-    v.velo_id,
-    v.gare_id,
-    v.velo_depart,
-    v.velo_arrivee,
-    v.velo_km,
-    v.velo_dplus,
-    v.velo_dmoins,
-    v.velo_descr,
-    v.velo_openrunner,
-    v.velo_variante,
-    v.velo_apieduniquement,
-    v.velo_apiedpossible,
-    g.gare_nom,
-    g.gare_nomformate,
-    g.gare_tgv
-  FROM velo v
-  LEFT JOIN gares g ON v.gare_id = g.gare_id
+    v.acces_id AS velo_id,
+    v.arret_id,
+    v.depart_slug AS velo_depart,
+    v.arrivee_slug AS velo_arrivee,
+    v.km AS velo_km,
+    v.dplus AS velo_dplus,
+    v.dmoins AS velo_dmoins,
+    v.description AS velo_descr,
+    v.lien_openrunner AS velo_openrunner,
+    v.variante AS velo_variante,
+    " . acces_a_pied_sql('v') . " AS velo_apiedpossible,
+    a.nom AS arret_nom,
+    a.slug AS arret_nomformate
+  FROM acces_falaise v
+  LEFT JOIN arrets a ON v.arret_id = a.id
   WHERE v.falaise_id = ?
-    AND v.velo_public = 1
-    AND (g.deleted IS NULL OR g.deleted = 0)
-  ORDER BY v.velo_km ASC";
+    AND v.type = 'velo'
+    AND v.public = 1
+    AND (a.deleted IS NULL OR a.deleted = 0)
+  ORDER BY v.km ASC";
 
 $stmt = $mysqli->prepare($query);
 

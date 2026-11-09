@@ -4,7 +4,7 @@
  * d'upload. Utilise le bundle map global (`L`, chargé via map_bundle_js).
  *
  * Pilotée par des CustomEvent sur `document`, émis par l'app Vue de la page :
- *   - velogrimpe:velo-form:gare     detail: { latlng, nom } | null
+ *   - velogrimpe:velo-form:gare     detail: { latlng, nom, types? } | null  (types : icône de l'arrêt)
  *   - velogrimpe:velo-form:falaise  detail: { latlng, nom, fermee, bloc } | null
  *   - velogrimpe:velo-form:gpx-url  detail: { url } | null   (trace existante)
  *
@@ -18,6 +18,7 @@
 import { createAjoutMap } from "/js/components/map/ajout-map.js";
 import Gare from "/js/components/map/gare.js";
 import Falaise from "/js/components/map/falaise.js";
+import { arretDivIcon } from "/js/components/map/arret-icon.js";
 
 const GPX_STYLE = { weight: 4, color: "#2e8b57" };
 const GPX_EXISTING_STYLE = { weight: 4, color: "#1d4ed8", dashArray: "6 6" };
@@ -74,7 +75,11 @@ export function initVeloFormMap({ mapElId = "velo-map", gpxInputId = "gpx_file" 
     gareLayer = removeLayer(gareLayer);
     const d = e.detail;
     if (d && d.latlng) {
-      gareLayer = pointMarker(d.latlng, Gare.gareIcon(Gare.iconSize));
+      // Icône selon le type de l'arrêt (gare, bus, tram…) ; l'icône de gare par défaut si le type est inconnu
+      const icon = Array.isArray(d.types) && d.types.length
+        ? arretDivIcon(d.types, 24)
+        : Gare.gareIcon(Gare.iconSize);
+      gareLayer = pointMarker(d.latlng, icon);
       if (gareLayer) gareLayer.addTo(map);
     }
     refitBounds();

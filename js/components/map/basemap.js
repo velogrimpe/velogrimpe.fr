@@ -27,6 +27,16 @@ export const landscapeTiles = L.tileLayer(
     crossOrigin: true,
   },
 );
+export const transportTiles = L.tileLayer(
+  "https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6",
+  {
+    maxZoom: 19,
+    minZoom: 0,
+    attribution:
+      '<a href="http://www.thunderforest.com/transport/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
+    crossOrigin: true,
+  },
+);
 export const opencyclemapTiles = L.tileLayer(
   "https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6",
   {

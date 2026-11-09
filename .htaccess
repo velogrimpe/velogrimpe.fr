@@ -9,6 +9,10 @@ RewriteRule ^ https://velogrimpe.fr%{REQUEST_URI} [L,R=301]
 # Vielles URLs
 RewriteRule ^ajout/admin/(.*)$ /admin/$1 [R=301,L]
 RewriteRule ^admin/ajout_donnees_admin.php$ /admin/ [R=301,L]
+# Formulaire d'arrêt généralisé (Lot 3, docs/plan-implementation-arrets.md) :
+# ajout_bus.php/confirmation_bus.php renommés en ajout_arret.php/confirmation_arret.php.
+RewriteRule ^ajout/ajout_bus\.php$ /ajout/ajout_arret.php [R=301,L,QSA]
+RewriteRule ^ajout/confirmation_bus\.php$ /ajout/confirmation_arret.php [R=301,L,QSA]
 # Feeds
 RewriteRule ^feed/actualites\.xml$ /feed/actualites.php [L]
 RewriteRule ^feed/nouveautes\.xml$ /feed/nouveautes.php [L]
@@ -20,7 +24,7 @@ RewriteRule ^p/([a-z0-9/-]+)/?$ /p/dispatch.php?slug=$1 [L,QSA]
 # Sert les exports open data via download.php pour tracer chaque téléchargement.
 # Réécriture INTERNE : l'URL publique reste .geojson (canonique). download.php
 # lit le fichier sur disque (readfile), donc aucune boucle de réécriture.
-RewriteRule ^open-data/(falaises|falaises-details|itineraires-velo|gares|complet)\.geojson$ /open-data/download.php?f=$1 [L,QSA]
+RewriteRule ^open-data/(falaises|falaises-details|itineraires-velo|arrets|lignes|complet)\.geojson$ /open-data/download.php?f=$1 [L,QSA]
 
 # --- Contenus statiques : point de montage des données ------------------------
 # `public` est un lien symbolique versionné vers un dossier hors du dossier

@@ -5,17 +5,62 @@
  * Crée une carte Leaflet avec :
  * - fonds de carte (Landscape, OpenCycleMap, IGN, Satellite, Outdoors)
  * - contrôle de localisation + échelle
- * - un contrôle de recherche de localité via Nominatim (centre la carte, sans marqueur)
- * - un bouton d'action optionnel (`opts.searchButton`), rendu comme un second
- *   contrôle empilé sous la recherche, avec son propre libellé (ex: recherche
- *   Overpass) pour ne pas se confondre avec le champ de recherche Nominatim
+ * - un contrôle de recherche de localité via Nominatim (centre la carte, sans
+ *   marqueur) : une cible compacte qui se déploie en champ au survol / au clic
+ * - un bouton d'action optionnel (`opts.searchButton`), empilé sous la
+ *   recherche : une icône (`opts.searchButton.html`, de préférence un <img> que
+ *   l'appelant peut remplacer par un spinner) dont le libellé apparaît au survol
  *
  * Usage :
  *   const { map, layerControl, searchButton } = createAjoutMap("map", {
  *     searchButton: { html: "<img .../>", label: "Recherche Arrêt Overpass", title: "..." },
  *   });
  */
+const CROSSHAIR_ICON =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>',
+  );
+
+/** Icône « carte dépliée + loupe », utilisable comme `opts.searchButton.html`. */
+export const MAP_SEARCH_ICON_HTML =
+  '<img alt="" src="data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 19.5 3 22V6l6-2.5 6 2.5 6-2.5v8"/><path d="M9 3.5v16M15 6.500v3"/><circle cx="16.5" cy="16.5" r="3.5"/><path d="m19 19 3 3"/></svg>',
+  ) +
+  '" style="width:20px;height:20px;" />';
+
+function ensureControlStyles() {
+  if (document.getElementById("vg-ajout-map-styles")) return;
+  const style = document.createElement("style");
+  style.id = "vg-ajout-map-styles";
+  style.textContent = `
+    .vg-ctl { background:#fff; display:flex; align-items:center; height:34px;
+      color:#222; font-size:.75rem; position:relative; }
+    .vg-ctl-btn { display:flex; align-items:center; justify-content:center;
+      flex:none; min-width:30px; height:100%; padding:0; border:0;
+      background:transparent; cursor:pointer; color:inherit; font:inherit; }
+    .vg-ctl-btn:disabled { opacity:.5; cursor:not-allowed; }
+    .vg-ctl-btn img { width:20px; height:20px; margin:0 5px; }
+    .vg-ctl-btn > .loading { margin:0 7px; }
+    .vg-ctl-reveal { max-width:0; opacity:0; overflow:hidden; white-space:nowrap;
+      transition:max-width .2s ease, opacity .2s ease; }
+    .vg-ctl-action { cursor:pointer; }
+    .vg-ctl-action:hover .vg-ctl-reveal,
+    .vg-ctl-action:focus-within .vg-ctl-reveal { max-width:220px; opacity:1; }
+    .vg-ctl-action .vg-ctl-reveal { padding-left:0; }
+    .vg-ctl-action:hover .vg-ctl-reveal,
+    .vg-ctl-action:focus-within .vg-ctl-reveal { padding-left:.6rem; }
+    .vg-ctl-search.is-open .vg-ctl-reveal { max-width:200px; opacity:1; }
+    .vg-ctl-search .vg-ctl-reveal { position:relative; }
+    .vg-ctl-search input { width:190px; height:100%; border:0; outline:0;
+      background:transparent; padding:0 1.5rem 0 .6rem; font-size:.8rem; }
+  `;
+  document.head.appendChild(style);
+}
+
 export function createAjoutMap(elId, opts = {}) {
+  ensureControlStyles();
   const ignTiles = L.tileLayer(
     "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
     {
@@ -65,6 +110,16 @@ export function createAjoutMap(elId, opts = {}) {
       crossOrigin: true,
     },
   );
+  const transportTiles = L.tileLayer(
+    "https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6",
+    {
+      maxZoom: 19,
+      minZoom: 0,
+      attribution:
+        '<a href="http://www.thunderforest.com/transport/" target="_blank">Thunderforest</a>/<a href="http://osm.org/copyright" target="_blank">OSM contributors</a>',
+      crossOrigin: true,
+    },
+  );
 
   const baseMaps = {
     Landscape: landscapeTiles,
@@ -72,6 +127,7 @@ export function createAjoutMap(elId, opts = {}) {
     IGNv2: ignTiles,
     Satellite: ignOrthoTiles,
     Outdoors: outdoorsTiles,
+    Transports: transportTiles,
   };
 
   const map = L.map(elId, {
@@ -100,29 +156,29 @@ export function createAjoutMap(elId, opts = {}) {
     onAdd: function () {
       const container = L.DomUtil.create(
         "div",
-        "leaflet-bar bg-base-100 rounded-md p-1 not-prose border-0",
+        "leaflet-bar vg-ctl vg-ctl-search not-prose",
       );
-      container.style.width = "230px";
       // Marge supplémentaire pour laisser la place au badge d'aide
       // ("Cliquez sur la carte pour placer...") centré en haut de la carte.
       container.style.marginTop = "44px";
-      container.style.boxShadow = "0 1px 5px rgba(0,0,0,0.4)";
 
-      const wrap = document.createElement("div");
-      wrap.style.cssText = "position:relative;";
-      wrap.innerHTML = `
-        <input type="text" autocomplete="off" placeholder="Centre la carte sur…"
-          class="input input-xs border-0 w-full" style="padding-right:1.5rem;"
-          aria-label="Centre la carte sur" />
-        <span data-role="spinner" class="text-slate-400"
-          style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);display:none;">
-          <span class="loading loading-spinner loading-xs"></span>
-        </span>
+      container.innerHTML = `
+        <div class="vg-ctl-reveal">
+          <input type="text" autocomplete="off" placeholder="Centre la carte sur…"
+            aria-label="Centre la carte sur" />
+          <span data-role="spinner" class="text-slate-400"
+            style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);display:none;">
+            <span class="loading loading-spinner loading-xs"></span>
+          </span>
+        </div>
+        <button type="button" class="vg-ctl-btn" title="Centrer la carte sur un lieu"
+          aria-label="Centrer la carte sur un lieu">
+          <img alt="" src="${CROSSHAIR_ICON}" />
+        </button>
         <div data-role="results" class="bg-base-100 border border-base-300"
           style="position:absolute;left:0;right:0;top:100%;margin-top:.25rem;max-height:13rem;
             overflow-y:auto;overflow-x:hidden;z-index:11000;display:none;border-radius:.375rem;
             box-shadow:0 4px 12px rgba(0,0,0,.25);"></div>`;
-      container.appendChild(wrap);
 
       L.DomEvent.disableClickPropagation(container);
       L.DomEvent.disableScrollPropagation(container);
@@ -132,15 +188,45 @@ export function createAjoutMap(elId, opts = {}) {
       const spinner = container.querySelector('[data-role="spinner"]');
       let debounce = null;
       let lastController = null;
+      const toggle = container.querySelector(".vg-ctl-btn");
       let activeIndex = -1;
+      let hovered = false;
+
+      // Déployé tant que la souris survole, que le champ a le focus ou qu'une
+      // saisie / des résultats sont en cours.
+      function syncOpen() {
+        const keep =
+          hovered ||
+          document.activeElement === input ||
+          input.value !== "" ||
+          results.style.display !== "none";
+        container.classList.toggle("is-open", keep);
+      }
+      container.addEventListener("mouseenter", () => {
+        hovered = true;
+        syncOpen();
+      });
+      container.addEventListener("mouseleave", () => {
+        hovered = false;
+        syncOpen();
+      });
+      input.addEventListener("focus", syncOpen);
+      input.addEventListener("blur", () => setTimeout(syncOpen, 0));
+      toggle.addEventListener("click", () => {
+        hovered = true;
+        syncOpen();
+        input.focus();
+      });
 
       function hideResults() {
         results.style.display = "none";
         results.innerHTML = "";
         activeIndex = -1;
+        syncOpen();
       }
       function showResults() {
         results.style.display = "block";
+        syncOpen();
       }
       function getOptions() {
         return Array.from(results.querySelectorAll("button"));
@@ -277,13 +363,12 @@ export function createAjoutMap(elId, opts = {}) {
       onAdd: function () {
         const container = L.DomUtil.create(
           "div",
-          "leaflet-bar bg-base-100 rounded-md p-1 not-prose border-0",
+          "leaflet-bar vg-ctl vg-ctl-action not-prose",
         );
-        container.style.boxShadow = "0 1px 5px rgba(0,0,0,0.4)";
 
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "btn btn-xs btn-ghost border-0 gap-1.5";
+        btn.className = "vg-ctl-btn";
         const baseTitle = opts.searchButton.title || "";
         btn.title = baseTitle;
         btn.setAttribute(
@@ -291,8 +376,8 @@ export function createAjoutMap(elId, opts = {}) {
           opts.searchButton.ariaLabel || opts.searchButton.label || "",
         );
         btn.innerHTML =
-          `<span>${opts.searchButton.label || ""}</span>` +
-          (opts.searchButton.html || "");
+          `<span class="vg-ctl-reveal">${opts.searchButton.label || ""}</span>` +
+          (opts.searchButton.html || MAP_SEARCH_ICON_HTML);
         container.appendChild(btn);
 
         // Désactive le bouton tant que le zoom courant n'est pas suffisant
@@ -313,6 +398,10 @@ export function createAjoutMap(elId, opts = {}) {
 
         L.DomEvent.disableClickPropagation(container);
         L.DomEvent.disableScrollPropagation(container);
+        // disableClickPropagation retrouve le conteneur en remontant depuis
+        // e.target ; les appelants remplacent l'icône par un spinner pendant le
+        // clic, la cible est alors détachée et le clic atteindrait la carte.
+        L.DomEvent.on(container, "click", L.DomEvent.stopPropagation);
 
         searchButtonEl = btn;
         return container;

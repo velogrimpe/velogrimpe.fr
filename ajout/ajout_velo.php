@@ -6,15 +6,20 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
-// Récupération des gares
-$result_gares = $mysqli->query("SELECT gare_id, gare_nom, gare_nomformate, gare_latlng FROM gares WHERE deleted = 0 ORDER BY gare_nom");
-$gares = [];
-while ($row = $result_gares->fetch_assoc()) {
-  $gares[$row['gare_id']] = [
-    'id' => (int) $row['gare_id'],
-    'nom' => $row['gare_nom'],
-    'nomformate' => $row['gare_nomformate'],
-    'latlng' => $row['gare_latlng']
+// Arrêts de départ possibles : tous types (gares, mais aussi cars qui prennent les vélos…)
+$result_arrets = $mysqli->query("SELECT id, nom, slug, commune, ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets WHERE deleted = 0 ORDER BY nom");
+$arrets = [];
+while ($row = $result_arrets->fetch_assoc()) {
+  $commune = trim((string) $row['commune']);
+  // La valeur affichée identifie l'arrêt : on ajoute la commune si le nom ne la contient pas déjà.
+  $label = ($commune !== '' && mb_stripos($row['nom'], $commune) === false) ? $row['nom'] . ' (' . $commune . ')' : $row['nom'];
+  $types = array_keys(array_filter(['ter' => $row['ter'], 'tgv' => $row['tgv'], 'bus' => $row['bus'], 'tram' => $row['tram'], 'teleph' => $row['teleph']]));
+  $arrets[$row['id']] = [
+    'id' => (int) $row['id'],
+    'nom' => $label,
+    'nomformate' => $row['slug'],
+    'latlng' => $row['lat'] . ',' . $row['lng'],
+    'types' => $types,
   ];
 }
 
@@ -35,11 +40,14 @@ while ($row = $result_falaises->fetch_assoc()) {
 $falaise_id = isset($_GET['falaise_id']) ? $_GET['falaise_id'] : null;
 $falaisePreset = $falaises[$falaise_id] ?? null;
 
-$gare_id = isset($_GET['gare_id']) ? $_GET['gare_id'] : null;
-$garePreset = $gares[$gare_id] ?? null;
+// `gare_id` reste accepté : anciens liens (confirmation_train, etc.). Pour les gares, arrets.id == gare_id.
+$arret_id = $_GET['arret_id'] ?? $_GET['gare_id'] ?? null;
+$arretPreset = $arrets[$arret_id] ?? null;
 
 // Read the admin search parameter
 $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
+// ?mode=pied : ouvre le formulaire sur l'accès à pied (lien « Détailler l'accès »)
+$mode_pied = ($_GET['mode'] ?? '') === 'pied';
 
 ?>
 <!DOCTYPE html>
@@ -49,7 +57,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Ajouter un itinéraire vélo - Vélogrimpe.fr</title>
+  <title>Ajouter un accès - Vélogrimpe.fr</title>
   <?php map_bundle_js('map'); ?>
   <?php map_bundle_css('map'); ?>
   <?php vite_css('main'); ?>
@@ -122,49 +130,82 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main
     class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4">
-    <h1 class="text-4xl font-bold text-wrap text-center"> Ajouter un itinéraire vélo<span class="admin text-red-900">
+    <h1 class="text-4xl font-bold text-wrap text-center"> Ajouter un accès à une falaise<span class="admin text-red-900">
         (version admin)</span>
     </h1>
     <div class="rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-xs text-base-content">
-      <b>Vous vous apprêtez à décrire un itinéraire Gare &rarr; Falaise, en vélo ou à pied.</b><br>
+      <b>Vous vous apprêtez à décrire un accès Arrêt (Gare, arrêt de bus) &rarr; Falaise, à vélo ou à pied.</b><br>
       <i>Les champs obligatoires sont en noir, les optionnels en gris.</i>
     </div>
     <form method="POST" action="/api/add_velo.php" enctype="multipart/form-data" class="flex flex-col gap-4">
       <input class="input input-primary input-sm" type="hidden" id="velo_public" name="velo_public" value="2">
       <input class="input input-primary input-sm" type="hidden" id="admin" name="admin" value="0">
+      <!-- Type d'accès : discrimine les champs affichés et l'écriture côté serveur -->
+      <div class="flex flex-col md:flex-row gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input class="radio radio-primary" type="radio" name="mode" value="velo" <?= $mode_pied ? '' : 'checked' ?>>
+          <b>Itinéraire à vélo</b> <span class="text-sm"></span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input class="radio radio-primary" type="radio" name="mode" value="pied" <?= $mode_pied ? 'checked' : '' ?>>
+          <b>Accès sans vélo</b> <span class="text-sm">(depuis un arrêt de bus/tram, sans vélo)</span>
+        </label>
+      </div>
       <!-- Partie Départ / Arrivées -->
       <div class="relative flex items-center">
         <hr class="my-0 grow border-[#2e8b57]" />
         <div class="flex items-center justify-center">
-          <span class="px-2 text-primary italic bg-unset rounded-full">Gare et Falaise</span>
+          <span class="px-2 text-primary italic bg-unset rounded-full">Arrêt et Falaise</span>
         </div>
         <hr class="my-0 grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
         <div id="vue-ajout-velo"
-          data-gares='<?= htmlspecialchars(json_encode(array_values($gares)), ENT_QUOTES, 'UTF-8') ?>'
+          data-arrets='<?= htmlspecialchars(json_encode(array_values($arrets)), ENT_QUOTES, 'UTF-8') ?>'
           data-falaises='<?= htmlspecialchars(json_encode(array_values($falaises)), ENT_QUOTES, 'UTF-8') ?>'
           <?php if ($falaisePreset): ?>data-preset-falaise-id="<?= $falaisePreset['id'] ?>"<?php endif; ?>
-          <?php if ($garePreset): ?>data-preset-gare-id="<?= $garePreset['id'] ?>"<?php endif; ?>>
+          <?php if ($arretPreset): ?>data-preset-arret-id="<?= $arretPreset['id'] ?>"<?php endif; ?>>
         </div>
+        <a class="text-sm" href="/ajout/ajout_arret.php<?= $admin ? '?admin=' . $config["admin_token"] : '' ?>" target="_blank">Mon arrêt n'existe pas : l'ajouter</a>
         <!-- Hidden fields for form submission -->
         <div class="admin flex flex-row gap-4">
           <input tabindex="-1" class="input input-disabled input-xs w-1/4" type="text" id="velo_depart"
             name="velo_depart" readonly required>
-          <input tabindex="-1" class="input input-disabled input-xs w-1/4" type="text" id="gare_id" name="gare_id"
+          <input tabindex="-1" class="input input-disabled input-xs w-1/4" type="text" id="arret_id" name="arret_id"
             readonly required>
           <input tabindex="-1" class="input input-disabled input-xs w-1/4" type="text" id="velo_arrivee"
             name="velo_arrivee" required readonly />
           <input tabindex="-1" class="input input-disabled input-xs w-1/4" type="text" id="falaise_id"
             name="falaise_id" required readonly />
         </div>
+        <!-- Un accès du MÊME type existe déjà (cf. api/verify_velo_dup.php) : le texte suit le mode choisi -->
         <div id="itineraireExistsAlert" class="hidden bg-red-200 border border-red-900 text-red-900 p-2 rounded-lg">
           <svg class="w-4 h-4 mb-1 fill-none stroke-current inline-block">
             <use href="#error-warning-fill"></use>
-          </svg> Un itinéraire existe déjà entre cette gare et cette falaise. Vérifiez que vous ne faites pas de
-          doublon.
+          </svg>
+          <span data-alert-type="velo">Un itinéraire à vélo existe déjà entre cet arrêt et cette falaise. Vérifiez que
+            vous ne faites pas de doublon ; s'il s'agit d'une autre option, donnez-lui un nom de variante.</span>
+          <span data-alert-type="pied" class="hidden">Un accès sans vélo existe déjà entre cet arrêt et cette falaise.
+            Vous pouvez le compléter : seules les informations qui lui manquent (description, distance, dénivelés,
+            trace GPS) seront ajoutées. S'il s'agit d'une autre option, donnez-lui un nom de variante.</span>
         </div>
+        <!-- Variante (les deux modes) : sous l'avertissement de doublon, pour pouvoir la renseigner une fois
+             l'alerte affichée. Un accès de même type et de même variante = doublon (cf. api/verify_velo_dup.php). -->
+        <label class="form-control" for="velo_variante">
+          <b class="">Nom de la variante <span class="text-accent opacity-50">(optionnel)</span> :</b>
+          <input class="input input-sm" type="text" id="velo_variante" name="velo_variante" maxlength="100"
+            oninput="formatVariante()">
+          <i class=""> Dans le cas où il existe plusieurs accès de même type reliant un même arrêt à une même falaise,
+            donner un nom aux différentes possibilités. Ex : "Option par le Nord" et "Option par le Sud".</i>
+        </label>
+        <label class="form-control" for="velo_varianteformate" style="display: none;">
+          <b class="">Nom de la variante (formatée) <span class="text-accent opacity-50">(optionnel)</span> :</b>
+          <input class="input input-sm" type="text" id="velo_varianteformate" name="velo_varianteformate"
+            readonly style="display: none;">
+        </label>
       </div>
+      <div id="section-velo">
+<div class="flex flex-col gap-4">
       <!-- Partie Indicateurs -->
       <div class="relative flex items-center">
         <hr class="my-0 grow border-[#2e8b57]" />
@@ -215,18 +256,6 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             l'enregistrement.</i>
           <div id="velo-map" class="mt-2 rounded-lg border border-base-300 z-0" style="height: 400px;"></div>
         </div>
-        <label class="form-control" for="velo_variante">
-          <b class="">Nom de la variante <span class="text-accent opacity-50">(optionnel)</span> :</b>
-          <input class="input input-sm" type="text" id="velo_variante" name="velo_variante"
-            oninput="formatVariante()">
-          <i class=""> Dans le cas où il existe plusieurs itinéraires reliant une même gare à une même falaise, donner
-            un nom aux différentes possibilités. Ex : "Option par le Nord" et "Option par le Sud".</i>
-        </label>
-        <label class="form-control" for="velo_varianteformate" style="display: none;">
-          <b class="">Nom de la variante (formatée) <span class="text-accent opacity-50">(optionnel)</span> :</b>
-          <input class="input input-sm" type="text" id="velo_varianteformate" name="velo_varianteformate"
-            readonly style="display: none;">
-        </label>
       </div>
       <!-- Partie Remarques -->
       <div class="relative flex items-center">
@@ -251,34 +280,55 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
         <textarea type="text" class="textarea textarea-sm leading-6" id="velo_openrunner" rows="3"
           name="velo_openrunner"></textarea>
       </label>
-      <!-- Partie Piéton -->
-      <div class="relative flex items-center">
-        <hr class="my-0 grow border-[#2e8b57]" />
-        <div class="flex items-center justify-center">
-          <span class="px-2 text-primary italic bg-unset rounded-full">Accessibilité Piéton</span>
-        </div>
-        <hr class="my-0 grow border-[#2e8b57]" />
+      <!-- « Faisable à pied » n'est plus saisi : un accès de 5 km ou moins l'est d'office (acces_a_pied_possible). -->
       </div>
-      <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
-        <div class="flex flex-col md:flex-row gap-4">
-          <label class="form-control grow" for="velo_apieduniquement">
-            <div class="flex items-center gap-4">
-              <input class="checkbox-primary checkbox" type="checkbox" id="velo_apieduniquement"
-                name="velo_apieduniquement">
-              <b class="">Itinéraire conçu pour la marche uniquement ?</b>
-            </div>
-            <i class=""> Cocher si l'itinéraire peut se faire à pied, mais pas à vélo. </i>
-          </label>
-          <label class="form-control grow" for="velo_apiedpossible">
-            <div class="flex items-center gap-4">
-              <input class="checkbox-primary checkbox" type="checkbox" id="velo_apiedpossible"
-                name="velo_apiedpossible">
-              <b class="">Itinéraire conçu pour le vélo, mais faisable à pied ?</b>
-            </div>
-            <i class=""> Cocher si l'itinéraire peut se faire à vélo, mais est suffisamment court pour se faire aussi à
-              pied (< 1h). </i>
-          </label>
+      </div>
+      <!-- Accès à pied uniquement -->
+      <div id="section-pied" class="hidden">
+      <div class="flex flex-col gap-4">
+        <div class="relative flex items-center">
+          <hr class="my-0 grow border-[#2e8b57]" />
+          <div class="flex items-center justify-center">
+            <span class="px-2 text-primary italic bg-unset rounded-full">Accès à pied</span>
+          </div>
+          <hr class="my-0 grow border-[#2e8b57]" />
         </div>
+        <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
+          <label class="form-control" for="description">
+            <b>Description de l'accès à pied <span class="text-accent opacity-50">(optionnel)</span> :</b>
+            <textarea class="textarea textarea-sm leading-6" id="description" name="description" rows="5" disabled></textarea>
+            <i> Durée, sentier balisé ou non, dénivelé, passages délicats…</i>
+          </label>
+          <div class="flex flex-col md:flex-row gap-4">
+            <label class="form-control w-full md:w-1/3" for="pied_km">
+              <b>Distance (km) <span class="text-accent opacity-50">(optionnel)</span> :</b>
+              <input class="input input-primary input-sm" type="number" id="pied_km" name="velo_km" placeholder="1.5"
+                step="0.1" min="0" disabled>
+            </label>
+            <label class="form-control w-full md:w-1/3" for="pied_dplus">
+              <b>D+ (m) <span class="text-accent opacity-50">(optionnel)</span> :</b>
+              <input class="input input-primary input-sm" type="number" id="pied_dplus" name="velo_dplus"
+                placeholder="120" min="0" disabled>
+            </label>
+            <label class="form-control w-full md:w-1/3" for="pied_dmoins">
+              <b>D- (m) <span class="text-accent opacity-50">(optionnel)</span> :</b>
+              <input class="input input-primary input-sm" type="number" id="pied_dmoins" name="velo_dmoins"
+                placeholder="20" min="0" disabled>
+            </label>
+          </div>
+          <label class="form-control" for="pied_gpx_file">
+            <b>Trace GPS <span class="text-accent opacity-50">(optionnel)</span> :</b>
+            <input class="file-input file-input-primary file-input-sm" type="file" id="pied_gpx_file" name="gpx_file"
+              accept=".gpx" disabled>
+            <i class="text-red-400">Au format GPX ! Si l'accès existe déjà, seules les informations manquantes sont ajoutées.</i>
+          </label>
+          <div class="not-prose">
+            <i class="text-sm">Vérifiez que l'arrêt (départ), la falaise (arrivée) et la trace GPX sont cohérents. Les
+              éventuels points/marqueurs du GPX (début, fin…) seront automatiquement retirés à l'enregistrement.</i>
+            <div id="pied-map" class="mt-2 rounded-lg border border-base-300 z-0" style="height: 400px;"></div>
+          </div>
+        </div>
+      </div>
       </div>
       <hr class="my-4">
       <h3 class="text-center">Validation de l'ajout de données</h3>
@@ -313,16 +363,32 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
             rows="4"></textarea>
         </label>
         <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/contrib-licence-notice.php"; ?>
-        <button type="submit" class="btn btn-primary">Ajouter l'itinéraire vélo</button>
+        <button type="submit" class="btn btn-primary">Ajouter l'accès</button>
       </div>
     </form>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
 </body>
 <script type="module" src="/dist/ajout-velo.js"></script>
+<script>
+  // Bascule vélo / à pied : les champs de la section masquée sont désactivés
+  // (pas de `required` bloquant, rien d'envoyé au serveur).
+  function appliquerMode() {
+    const pied = document.querySelector('input[name=mode]:checked').value === 'pied';
+    [['section-velo', !pied], ['section-pied', pied]].forEach(([id, visible]) => {
+      const section = document.getElementById(id);
+      section.classList.toggle('hidden', !visible);
+      section.querySelectorAll('input, textarea, select').forEach((el) => { el.disabled = !visible; });
+    });
+  }
+  document.querySelectorAll('input[name=mode]').forEach((radio) => radio.addEventListener('change', appliquerMode));
+  appliquerMode(); // état initial (?mode=pied)
+</script>
 <script type="module">
   import { initVeloFormMap } from '/js/components/map/velo-form-map.js';
   initVeloFormMap({ mapElId: 'velo-map', gpxInputId: 'gpx_file' });
+  // Mode à pied : même carte de vérification, avec la trace GPX facultative de cette section
+  initVeloFormMap({ mapElId: 'pied-map', gpxInputId: 'pied_gpx_file' });
 </script>
 
 </html>

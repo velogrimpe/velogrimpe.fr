@@ -36,13 +36,14 @@ $admin = hash_equals((string) $config["admin_token"], (string) ($_GET['admin'] ?
 // section de sélection rapide en haut de page.
 $velos_a_valider = [];
 if ($admin) {
-  $res = $mysqli->query("SELECT v.velo_id, v.gare_id, v.falaise_id, v.velo_variante, v.velo_contrib, v.date_creation,
-      g.gare_nom, f.falaise_nom
-    FROM velo v
-    LEFT JOIN gares g ON g.gare_id = v.gare_id
+  $res = $mysqli->query("SELECT v.acces_id AS velo_id, v.arret_id AS gare_id, v.falaise_id, v.variante AS velo_variante,
+      CONCAT(v.contrib, ' ', v.contrib_mail) AS velo_contrib, v.date_creation,
+      a.nom AS gare_nom, f.falaise_nom
+    FROM acces_falaise v
+    LEFT JOIN arrets a ON a.id = v.arret_id
     LEFT JOIN falaises f ON f.falaise_id = v.falaise_id
-    WHERE v.velo_public = 2
-    ORDER BY v.date_creation DESC, v.velo_id DESC");
+    WHERE v.type = 'velo' AND v.public = 2
+    ORDER BY v.date_creation DESC, v.acces_id DESC");
   while ($row = $res->fetch_assoc()) {
     $velos_a_valider[] = $row;
   }
@@ -55,7 +56,7 @@ if ($admin) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Modifier un itinéraire vélo - Vélogrimpe.fr</title>
+  <title>Modifier un accès - Vélogrimpe.fr</title>
   <?php map_bundle_js('map'); ?>
   <?php map_bundle_css('map'); ?>
   <?php vite_css('main'); ?>
@@ -66,6 +67,10 @@ if ($admin) {
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/global.css" />
   <style>
+    /* Textes propres à un type d'accès : le type choisi est posé par edit-velo.ts sur #velo-edit-fields */
+    [data-only-pied] { display: none; }
+    [data-type="pied"] [data-only-pied] { display: revert; }
+    [data-type="pied"] [data-only-velo] { display: none !important; }
     .admin {
       <?= !$admin ? 'display: none !important;' : '' ?>
     }
@@ -92,14 +97,14 @@ if ($admin) {
 <body class="min-h-screen flex flex-col">
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4">
-    <h1 class="text-4xl font-bold text-wrap text-center"> Modifier un itinéraire vélo<span class="admin text-red-900">
+    <h1 class="text-4xl font-bold text-wrap text-center"> Modifier un accès<span class="admin text-red-900">
         (version admin)</span>
     </h1>
     <div class="rounded-lg bg-base-300 p-4 my-6 border border-base-300 shadow-xs text-base-content">
-      <b>Vous vous apprêtez à corriger un itinéraire Gare &rarr; Falaise existant</b> (longueur, dénivelés, description, trace
-      GPS).<br>
-      <i>Choisissez la falaise, puis la gare de départ, puis la variante. Pour ajouter un nouvel itinéraire,
-        passez plutôt par <a id="velo-edit-ajout-link" href="/ajout/ajout_velo.php<?= $admin ? '?admin=' . htmlspecialchars($config["admin_token"]) : '' ?>">le formulaire d'ajout</a>.</i>
+      <b>Vous vous apprêtez à corriger un accès Arrêt &rarr; Falaise existant, à vélo ou sans vélo</b> (longueur,
+      dénivelés, description, trace GPS).<br>
+      <i>Choisissez la falaise, puis l'arrêt de départ, puis l'accès (itinéraire à vélo ou accès sans vélo). Pour
+        ajouter un nouvel accès, passez plutôt par <a id="velo-edit-ajout-link" href="/ajout/ajout_velo.php<?= $admin ? '?admin=' . htmlspecialchars($config["admin_token"]) : '' ?>">le formulaire d'ajout</a>.</i>
     </div>
     <form method="POST" action="/api/edit_velo.php" enctype="multipart/form-data" class="flex flex-col gap-4">
       <input type="hidden" id="admin" name="admin" value="0">
@@ -138,7 +143,7 @@ if ($admin) {
       <div class="relative flex items-center">
         <hr class="my-0 grow border-[#2e8b57]" />
         <div class="flex items-center justify-center">
-          <span class="px-2 text-primary italic bg-unset rounded-full">Itinéraire à modifier</span>
+          <span class="px-2 text-primary italic bg-unset rounded-full">Accès à modifier</span>
         </div>
         <hr class="my-0 grow border-[#2e8b57]" />
       </div>
@@ -153,7 +158,7 @@ if ($admin) {
         <div id="velo-edit-none" style="display:none" class="bg-amber-100 border border-amber-700 text-amber-900 p-2 rounded-lg">
           <svg class="w-4 h-4 mb-1 fill-none stroke-current inline-block">
             <use href="#error-warning-fill"></use>
-          </svg> Aucun itinéraire vélo n'est enregistré pour cette falaise. Vous pouvez en
+          </svg> Aucun accès n'est enregistré pour cette falaise. Vous pouvez en
           <a class="font-bold" href="/ajout/ajout_velo.php">ajouter un</a>.
         </div>
       </div>
@@ -162,10 +167,13 @@ if ($admin) {
         <div id="velo-edit-validated" style="display:none" class="bg-blue-100 border border-blue-900 text-blue-900 p-3 rounded-lg">
           <svg class="w-4 h-4 mb-1 fill-none stroke-current inline-block">
             <use href="#error-warning-fill"></use>
-          </svg> <b>Cet itinéraire est déjà validé.</b> Ses indicateurs (longueur, dénivelés) ne sont plus modifiables
-          directement. Vous pouvez proposer une nouvelle description et/ou une nouvelle trace GPX : votre suggestion
-          sera transmise aux administrateurs, qui l'appliqueront après vérification. La modification ne sera donc pas
-          visible immédiatement.
+          </svg> <b data-only-velo>Cet itinéraire est déjà validé.</b><b data-only-pied>Cet accès est déjà validé.</b> Ses
+          indicateurs (longueur, dénivelés) ne sont plus modifiables directement. Vous pouvez proposer une nouvelle
+          description et/ou une nouvelle trace GPX : votre suggestion sera transmise aux administrateurs, qui
+          l'appliqueront après vérification. La modification ne sera donc pas visible immédiatement.
+          <span data-only-pied>Pour simplement ajouter une information manquante (distance, dénivelés, trace…), le
+            <a class="font-bold" href="/ajout/ajout_velo.php?mode=pied">formulaire d'ajout</a> la complète sans rien
+            écraser.</span>
         </div>
         <!-- Partie Indicateurs -->
         <div class="relative flex items-center">
@@ -178,17 +186,17 @@ if ($admin) {
         <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
           <div class="flex flex-col md:flex-row gap-4">
             <label class="form-control w-full md:w-1/3" for="velo_km">
-              <b>Longueur de l'itinéraire (km)</b>
+              <b>Longueur de l'itinéraire (km)<span data-only-pied class="text-accent opacity-50"> (optionnel)</span></b>
               <input class="input input-primary input-sm" type="number" id="velo_km" name="velo_km" placeholder="12.5"
                 step="0.01" min="0" required>
             </label>
             <label class="form-control w-full md:w-1/3" for="velo_dplus">
-              <b>Dénivelé positif (mètres)</b>
+              <b>Dénivelé positif (mètres)<span data-only-pied class="text-accent opacity-50"> (optionnel)</span></b>
               <input class="input input-primary input-sm" type="number" id="velo_dplus" name="velo_dplus"
                 placeholder="650" min="0" required>
             </label>
             <label class="form-control w-full md:w-1/3" for="velo_dmoins">
-              <b>Dénivelé négatif (mètres)</b>
+              <b>Dénivelé négatif (mètres)<span data-only-pied class="text-accent opacity-50"> (optionnel)</span></b>
               <input class="input input-primary input-sm" type="number" id="velo_dmoins" name="velo_dmoins"
                 placeholder="650" min="0" required>
             </label>
@@ -218,14 +226,14 @@ if ($admin) {
               <i class="text-sm text-slate-500">Trace en base, affichée en bleu pointillé sur la carte.</i>
             </div>
             <label class="form-control grow basis-0 not-prose flex flex-col gap-1" for="gpx_file">
-              <b>Remplacer la trace <span class="text-accent opacity-50">(optionnel)</span> :</b>
+              <b><span data-only-pied>Ajouter ou </span>remplacer la trace <span class="text-accent opacity-50">(optionnel)</span> :</b>
               <input class="file-input file-input-primary file-input-sm w-full" type="file" id="gpx_file" name="gpx_file"
                 accept=".gpx">
               <i class="text-sm text-red-400">Au format GPX !</i>
             </label>
           </div>
           <div class="not-prose">
-            <i class="text-sm">Vérifiez que la gare (départ), la falaise (arrivée) et la trace sont cohérentes. La
+            <i class="text-sm">Vérifiez que l'arrêt (départ), la falaise (arrivée) et la trace sont cohérents. La
               trace existante est en <span class="text-blue-700 font-bold">bleu pointillé</span>, la nouvelle trace
               choisie en <span class="text-[#2e8b57] font-bold">vert</span>. Les éventuels points/marqueurs du GPX
               (début, fin…) seront automatiquement retirés à l'enregistrement.</i>
@@ -247,7 +255,7 @@ if ($admin) {
             <i>On peut y détailler la surface (goudron ? Piste ?), le trafic, les montées raides, si le parcours suit
               une voie verte, s'il y a des alternatives au tracé proposé...</i>
           </label>
-          <label class="form-control admin" for="velo_openrunner">
+          <label class="form-control admin" for="velo_openrunner" data-only-velo>
             <b class="text-gray-400">Lien Openrunner pour affichage profil en iframe <span class="text-accent opacity-50">(optionnel, admin)</span> :</b>
             <textarea class="textarea textarea-sm leading-6" id="velo_openrunner" name="velo_openrunner" rows="3"
               <?= $admin ? '' : 'disabled' ?>></textarea>
@@ -258,7 +266,7 @@ if ($admin) {
         <div class="flex flex-col gap-4 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
           <div class="flex flex-col md:flex-row gap-4">
             <div class="form-control grow">
-              <b>Itinéraire modifié par : </b>
+              <b>Accès modifié par : </b>
               <label for="nom_prenom" class="input input-primary input-sm flex items-center gap-2 w-full">
                 <input class="grow" type="text" id="nom_prenom" name="nom_prenom" autocomplete="name"
                   placeholder="Prénom (et/ou nom, surnom...)" required>
