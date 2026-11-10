@@ -1,0 +1,142 @@
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_lib.php';
+$config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
+$token = $config["admin_token"];
+
+// Tous les arrêts (y compris supprimés : filtre côté client) et toutes les lignes (sans géométrie).
+$arrets = [];
+$res = $mysqli->query(
+  "SELECT a.id, a.nom, a.commune, a.deleted, a.ter, a.tgv, a.bus, a.tram, a.teleph,
+          ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng,
+          (SELECT COUNT(*) FROM arrets_lignes_transport alt WHERE alt.arret_id = a.id) AS nb_lignes,
+          (SELECT COUNT(*) FROM acces_falaise af WHERE af.arret_id = a.id) AS nb_acces
+   FROM arrets a ORDER BY a.nom",
+);
+while ($row = $res->fetch_assoc()) {
+  $arrets[] = [
+    "id" => (int) $row["id"],
+    "nom" => $row["nom"],
+    "commune" => $row["commune"],
+    "deleted" => (bool) $row["deleted"],
+    "types" => arret_types($row),
+    "lat" => (float) $row["lat"],
+    "lng" => (float) $row["lng"],
+    "nb_lignes" => (int) $row["nb_lignes"],
+    "nb_acces" => (int) $row["nb_acces"],
+  ];
+}
+
+$lignes = [];
+$res = $mysqli->query(
+  "SELECT l.id, l.nom, l.numero, l.operateur, l.couleur,
+          (SELECT COUNT(*) FROM arrets_lignes_transport alt WHERE alt.ligne_id = l.id) AS nb_arrets
+   FROM lignes_transport l ORDER BY l.nom",
+);
+while ($row = $res->fetch_assoc()) {
+  $lignes[] = [
+    "id" => (int) $row["id"],
+    "nom" => $row["nom"],
+    "numero" => $row["numero"],
+    "operateur" => $row["operateur"],
+    "couleur" => $row["couleur"],
+    "nb_arrets" => (int) $row["nb_arrets"],
+  ];
+}
+
+$pageData = [
+  "arrets" => $arrets,
+  "lignes" => $lignes,
+  "token" => $token,
+];
+?>
+<!DOCTYPE html>
+<html lang="fr" data-theme="velogrimpe">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Arrêts et lignes (admin) - Vélogrimpe.fr</title>
+  <?php map_bundle_js("map"); ?>
+  <?php map_bundle_css("map"); ?>
+  <?php vite_css("main"); ?>
+  <link rel="stylesheet" href="/global.css" />
+  <link rel="manifest" href="/site.webmanifest" />
+</head>
+
+<body class="min-h-screen flex flex-col">
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <main class="w-full grow max-w-(--breakpoint-xl) mx-auto p-4 flex flex-col gap-4">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h1 class="text-2xl font-bold"><span class="text-red-900">ADMIN</span> · Arrêts et lignes</h1>
+      <div class="flex gap-2">
+        <a class="btn btn-sm btn-primary text-primary-content" href="/ajout/ajout_arret.php?admin=<?= urlencode($token) ?>">+ Arrêt</a>
+        <a class="btn btn-sm btn-primary text-primary-content" href="/ajout/ajout_ligne.php?admin=<?= urlencode($token) ?>">+ Ligne</a>
+        <a class="btn btn-sm btn-ghost" href="/admin/">← Admin</a>
+      </div>
+    </div>
+
+    <div role="tablist" class="tabs tabs-border">
+      <button role="tab" class="tab tab-active" data-view="liste">Liste</button>
+      <button role="tab" class="tab" data-view="carte">Carte</button>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <input id="search" type="search" class="input input-sm input-bordered w-full max-w-xs"
+        placeholder="Rechercher (nom, commune, n°, opérateur, id)…" autocomplete="off" />
+      <div id="type-filters" class="flex flex-wrap items-center gap-2 text-sm">
+        <span class="font-semibold">Types d'arrêt :</span>
+        <?php foreach (['ter' => 'TER', 'tgv' => 'TGV', 'bus' => 'Bus', 'tram' => 'Tram', 'telepherique' => 'Téléphérique'] as $k => $label): ?>
+          <label class="flex items-center gap-1 cursor-pointer">
+            <input type="checkbox" class="checkbox checkbox-xs" data-type="<?= $k ?>"
+              <?= in_array($k, ['ter', 'tgv'], true) ? '' : 'checked' ?> />
+            <?= $label ?>
+          </label>
+        <?php endforeach; ?>
+        <label class="flex items-center gap-1 cursor-pointer ml-2">
+          <input type="checkbox" class="checkbox checkbox-xs" id="show-deleted" /> Supprimés
+        </label>
+      </div>
+    </div>
+
+    <!-- Vue liste -->
+    <section id="view-liste" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div>
+        <h2 class="text-lg font-bold mb-2">Arrêts <span id="count-arrets" class="badge badge-neutral"></span></h2>
+        <div class="overflow-auto max-h-[70vh] rounded-md bg-base-100">
+          <table class="table table-sm table-pin-rows">
+            <thead><tr><th>Arrêt</th><th>Types</th><th class="text-right">Lignes</th><th class="text-right">Accès</th><th></th></tr></thead>
+            <tbody id="tbody-arrets"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h2 class="text-lg font-bold mb-2">Lignes <span id="count-lignes" class="badge badge-neutral"></span></h2>
+        <div class="overflow-auto max-h-[70vh] rounded-md bg-base-100">
+          <table class="table table-sm table-pin-rows">
+            <thead><tr><th>Ligne</th><th>Opérateur</th><th class="text-right">Arrêts</th><th></th></tr></thead>
+            <tbody id="tbody-lignes"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vue carte -->
+    <section id="view-carte" class="hidden flex-col gap-2">
+      <div class="flex flex-wrap gap-4 text-sm">
+        <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="layer-arrets" class="checkbox checkbox-xs" checked /> Arrêts</label>
+        <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="layer-lignes" class="checkbox checkbox-xs" checked /> Lignes</label>
+        <span id="map-status" class="text-base-content/60"></span>
+      </div>
+      <div id="admin-map" class="w-full h-[70vh] rounded-md"></div>
+    </section>
+  </main>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
+  <script type="application/json" id="page-data"><?= json_encode($pageData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+  <script type="module" src="/js/admin-arrets-lignes.js"></script>
+</body>
+
+</html>

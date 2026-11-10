@@ -1,5 +1,6 @@
 <?php
-// Sans paramètre : liste légère (sans géométrie). Avec ?arret_id= : lignes
+// Sans paramètre : liste légère (sans géométrie). Avec ?geometry=1 : toutes les lignes avec
+// leur géométrie (carte d'admin). Avec ?arret_id= : lignes
 // desservant cet arrêt, avec géométrie et arrêts liés (ids + coordonnées) (bouton « voir la ligne »).
 header('Content-Type: application/json');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
@@ -22,8 +23,9 @@ if ($arret_id > 0) {
     return $l;
   }, $rows);
 } else {
+  $withGeometry = ($_GET['geometry'] ?? '') === '1';
   $res = $mysqli->query(LIGNE_SELECT . " ORDER BY nom");
-  $lignes = array_map(fn($row) => ligne_format($row, false), $res->fetch_all(MYSQLI_ASSOC));
+  $lignes = array_map(fn($row) => ligne_format($row, $withGeometry), $res->fetch_all(MYSQLI_ASSOC));
 }
 
 echo json_encode(["lignes" => $lignes]);

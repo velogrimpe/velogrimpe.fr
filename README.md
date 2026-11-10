@@ -15,6 +15,7 @@ Toutes les pages principales sont à la racine du dépôt:
 - `header.html` est le code pour la barre de navigation, importé par toutes les autres pages.
 - `robots.txt`et `sitemap.php` sont les fichiers qui liste l'ensemble des page et qui expliquent aux robots d'indexation des moteurs de recherche comment trouver nos pages.
 - Le dossier `ajout/` contient les différentes pages de contribution de données (ajout de falaise, d'itinéraire vélo, de train… et édition d'un itinéraire vélo via `ajout/edit_velo.php`).
+- Le dossier `admin/` (Basic Auth) regroupe les pages d'administration ; `admin/arrets_lignes.php` liste les arrêts et les lignes (recherche, filtres par type d'arrêt — TER/TGV masqués par défaut — et vue carte) avec un lien vers leur page de modification.
 - Le dossier `api/` contient les routes appelées par ces formulaires et par le front (`add_*.php`, `edit_velo.php`, `fetch_*.php`…) ; `api/private/` regroupe celles réservées à l'admin.
 - Le dossier `lib/` contient le code PHP partagé entre plusieurs pages ou routes (ex. `velo_lib.php` pour la validation / nettoyage des GPX).
 - Le dossier `js/` contient les quelques scripts utilisés sur le site.

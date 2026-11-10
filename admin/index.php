@@ -74,6 +74,7 @@ $falaises_topo = array_values(array_filter(
         Oblyk</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/admin/tableau_trains.php?admin=<?= $token ?>">Récap.
         Trains</a>
+      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/arrets_lignes.php">Arrêts et lignes</a>
       <a class="btn btn-primary btn-lg text-primary-content"
         href="/ajout/contrib/details_falaise.php?falaise_id=247">Éditeur Falaises</a>
       <a class="btn btn-primary btn-lg text-primary-content" href="/admin/edit_logs.php">Historique des
