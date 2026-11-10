@@ -22,4 +22,5 @@ if (!$row) {
 echo json_encode([
   "ligne" => ligne_format($row, true),
   "arret_ids" => ligne_arret_ids($mysqli, $ligne_id),
+  "gtfs_refs" => (object) ligne_gtfs_refs($mysqli, $ligne_id),
 ]);

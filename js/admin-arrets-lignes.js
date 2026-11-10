@@ -15,6 +15,8 @@ const esc = (s) =>
   String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const norm = (s) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
+// Les liens des popups Leaflet héritent de la couleur bleue de `a` : on force la couleur du bouton.
+const BTN_STYLE = "color:var(--color-primary-content,#fff)";
 const editArretUrl = (id) => `/ajout/ajout_arret.php?admin=${encodeURIComponent(token)}&arret_id=${id}`;
 const editLigneUrl = (id) => `/ajout/ajout_ligne.php?admin=${encodeURIComponent(token)}&ligne_id=${id}`;
 
@@ -53,7 +55,8 @@ function renderList() {
         <td>${a.types.map((t) => `<span class="badge badge-ghost badge-xs mr-1">${TYPE_LABELS[t] ?? esc(t)}</span>`).join("")}</td>
         <td class="text-right">${a.nb_lignes}</td>
         <td class="text-right">${a.nb_acces}</td>
-        <td class="text-right"><a class="btn btn-xs btn-primary text-primary-content" href="${editArretUrl(a.id)}">Modifier</a></td>
+        <td class="text-right whitespace-nowrap"><a class="btn btn-xs btn-primary text-primary-content" style="${BTN_STYLE}" href="${editArretUrl(a.id)}">Modifier</a>
+          ${a.deleted ? "" : `<button type="button" class="btn btn-xs btn-error btn-outline" data-delete-arret="${a.id}">Supprimer</button>`}</td>
       </tr>`).join("") +
     (as.length > MAX_ROWS
       ? `<tr><td colspan="5" class="text-center text-sm text-base-content/60">${as.length - MAX_ROWS} autres résultats : affinez la recherche.</td></tr>`
@@ -111,7 +114,9 @@ function renderMap() {
         .bindPopup(
           `<b>${esc(a.nom)}</b><br><span class="text-xs">${esc(a.commune ?? "")} · #${a.id} · ${
             a.types.map((t) => TYPE_LABELS[t] ?? t).join(", ") || arretTypeDominant([])
-          }</span><br><a class="btn btn-xs btn-primary text-primary-content mt-2" href="${editArretUrl(a.id)}">Modifier l'arrêt</a>`,
+          }</span><br><div class="flex gap-2 mt-2"><a class="btn btn-xs btn-primary" style="${BTN_STYLE}" href="${editArretUrl(a.id)}">Modifier l'arrêt</a>` +
+            (a.deleted ? "" : `<button type="button" class="btn btn-xs btn-error btn-outline" data-delete-arret="${a.id}">Supprimer</button>`) +
+            "</div>",
         )
         .addTo(arretLayer);
     });
@@ -123,12 +128,35 @@ function renderMap() {
       L.polyline(latlngs, { color: ligneColor(l), weight: 4, opacity: 0.85 })
         .bindPopup(
           `<b>${esc(ligneLabel(l))}</b><br><span class="text-xs">${esc(l.operateur ?? "")} · #${l.id}</span><br>` +
-            `<a class="btn btn-xs btn-primary text-primary-content mt-2" href="${editLigneUrl(l.id)}">Modifier la ligne</a>`,
+            `<a class="btn btn-xs btn-primary mt-2" style="${BTN_STYLE}" href="${editLigneUrl(l.id)}">Modifier la ligne</a>`,
         )
         .addTo(ligneLayer);
     });
   }
 }
+
+// --- Suppression ---------------------------------------------------------
+async function deleteArret(id) {
+  const a = arrets.find((x) => x.id === id);
+  if (!a || !confirm(`Supprimer l'arrêt « ${a.nom} » (#${id}) ?\nIl sera masqué du site (suppression logique).`)) return;
+  try {
+    const r = await fetch("/api/delete_arret.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ arret_id: id }),
+    });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
+    a.deleted = true;
+    map?.closePopup();
+    refresh();
+  } catch (e) {
+    alert(`Suppression impossible : ${e.message}`);
+  }
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-delete-arret]");
+  if (b) deleteArret(Number(b.dataset.deleteArret));
+});
 
 // --- Câblage -------------------------------------------------------------
 function refresh() {

@@ -50,3 +50,27 @@ function ligne_arrets(mysqli $mysqli, int $ligne_id): array
   $stmt->close();
   return $rows;
 }
+
+/**
+ * Identifiants GTFS (`stop_id`) mémorisés pour les arrêts liés à une ligne
+ * (références externes de source `gtfs`) : sert à rapprocher un GTFS rechargé
+ * des arrêts existants avant de retomber sur la proximité.
+ * @return array<int, string[]> arret_id => stop_ids
+ */
+function ligne_gtfs_refs(mysqli $mysqli, int $ligne_id): array
+{
+  $stmt = $mysqli->prepare(
+    "SELECT re.arret_id, re.ref
+     FROM references_externes re
+     JOIN arrets_lignes_transport alt ON alt.arret_id = re.arret_id
+     WHERE alt.ligne_id = ? AND re.source = 'gtfs' ORDER BY re.id"
+  );
+  $stmt->bind_param("i", $ligne_id);
+  $stmt->execute();
+  $refs = [];
+  foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $r) {
+    $refs[(int) $r["arret_id"]][] = $r["ref"];
+  }
+  $stmt->close();
+  return $refs;
+}

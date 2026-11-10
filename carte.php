@@ -631,6 +631,19 @@ $highlight = $_GET['h'] ?? '';
   // blanc, sans recadrage, avec tous ses arrêts), déclenché par le panneau d'info
   // (InfoPanel.vue) ; effacé à chaque teardown. Équivalent MapLibre de
   // js/components/map/ligne-view.js.
+  // Popup (nom) au clic sur un arrêt hors topo rendu en cercle MapLibre.
+  function bindStopClick(layerId) {
+    map.on("click", layerId, (e) => {
+      const f = e.features[0];
+      openPopup(
+        new maplibregl.Popup({ maxWidth: "300px" }).setHTML(escapeHtml(f.properties.nom || f.properties.name || "")),
+        f.geometry.coordinates
+      );
+      e.preventDefault?.();
+    });
+    map.on("mouseenter", layerId, () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", layerId, () => { map.getCanvas().style.cursor = ""; });
+  }
   let ligneLayerIds = [];
   function clearLigne() {
     ligneLayerIds.forEach((id) => {
@@ -652,17 +665,19 @@ $highlight = $_GET['h'] ?? '';
     if (lines.length) {
       const geom = { type: "Feature", geometry: { type: "MultiLineString", coordinates: lines } };
       const layout = { "line-cap": "round", "line-join": "round" };
-      add(`ligne-halo-${n}`, geom, "line", layout, { "line-color": "#ffffff", "line-width": 10, "line-opacity": 0.95 });
-      add(`ligne-voir-${n}`, geom, "line", layout, { "line-color": color, "line-width": 5 });
+      add(`ligne-halo-${n}`, geom, "line", layout, { "line-color": "#ffffff", "line-width": 8, "line-opacity": 0.95 });
+      add(`ligne-voir-${n}`, geom, "line", layout, { "line-color": color, "line-width": 4 });
     }
     // Tous les arrêts liés à la ligne : pastilles de la couleur de la ligne
     const stops = (ligne.arrets ?? []).map((a) => ({
       type: "Feature", properties: { nom: a.nom }, geometry: { type: "Point", coordinates: [a.lng, a.lat] },
     }));
     if (stops.length) {
-      add(`ligne-rings-${n}`, { type: "FeatureCollection", features: stops }, "circle", {}, {
-        "circle-radius": 6, "circle-color": color, "circle-stroke-color": "#ffffff", "circle-stroke-width": 2,
+      const ringsId = `ligne-rings-${n}`;
+      add(ringsId, { type: "FeatureCollection", features: stops }, "circle", {}, {
+        "circle-radius": 5, "circle-color": color, "circle-stroke-color": "#ffffff", "circle-stroke-width": 2,
       });
+      bindStopClick(ringsId);
     }
   }
   window.addEventListener("velogrimpe:voir-ligne", (e) => {
@@ -1267,12 +1282,12 @@ $highlight = $_GET['h'] ?? '';
       .map(g => g.arret_nom);
     const horsTopoFilter = ["!", ["in", ["get", "name"], ["literal", topoGareNames]]];
 
-    map.addSource("arrets-pm", { type: "vector", url: "pmtiles:///public/trains/arrets.pmtiles" });
+    map.addSource("arrets-pm", { type: "vector", url: "pmtiles:///public/trains/gares.pmtiles" });
     // Cercle dès zoom 10 (Leaflet montre la même chose à zoom 11, mais à
     // visuel égal MapLibre est ~1 niveau plus bas — voir comparaison
     // d'icônes falaises entre les deux captures). Label à zoom 11.
     map.addLayer({
-      id: "arrets-pm-circle", type: "circle", source: "arrets-pm", "source-layer": "arrets", minzoom: 10,
+      id: "arrets-pm-circle", type: "circle", source: "arrets-pm", "source-layer": "gares", minzoom: 10,
       filter: horsTopoFilter,
       paint: {
         "circle-radius": 4,
@@ -1282,7 +1297,7 @@ $highlight = $_GET['h'] ?? '';
       },
     });
     map.addLayer({
-      id: "arrets-pm-label", type: "symbol", source: "arrets-pm", "source-layer": "arrets", minzoom: 11,
+      id: "arrets-pm-label", type: "symbol", source: "arrets-pm", "source-layer": "gares", minzoom: 11,
       filter: horsTopoFilter,
       layout: {
         "text-field": ["get", "name"],
@@ -1293,6 +1308,33 @@ $highlight = $_GET['h'] ?? '';
       },
       paint: { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": 2 },
     });
+    // Toutes les lignes de transport à partir de z12 (tracé + arrêts hors topo cliquables).
+    fetch("/api/fetch_lignes.php?geometry=1&arrets=1").then((r) => r.json()).then(({ lignes }) => {
+      const lineFeatures = [];
+      const stopFeatures = [];
+      const topoIds = new Set(arrets.filter(a => a.type === "arret").map(a => a.arret_id));
+      (lignes ?? []).forEach((l) => {
+        const c = (l.couleur || "").trim();
+        const color = c && CSS.supports("color", c) ? c : "#2563eb";
+        if (l.geometry?.coordinates?.length) {
+          lineFeatures.push({ type: "Feature", properties: { color }, geometry: l.geometry });
+        }
+        (l.arrets ?? []).forEach((a) => {
+          if (topoIds.has(a.id)) return;
+          stopFeatures.push({ type: "Feature", properties: { nom: a.nom, color }, geometry: { type: "Point", coordinates: [a.lng, a.lat] } });
+        });
+      });
+      const layout = { "line-cap": "round", "line-join": "round" };
+      map.addSource("lignes-all", { type: "geojson", data: { type: "FeatureCollection", features: lineFeatures } });
+      map.addLayer({ id: "lignes-all-halo", type: "line", source: "lignes-all", minzoom: 12, layout,
+        paint: { "line-color": "#ffffff", "line-width": 6, "line-opacity": 0.9 } }, "arrets-pm-circle");
+      map.addLayer({ id: "lignes-all-line", type: "line", source: "lignes-all", minzoom: 12, layout,
+        paint: { "line-color": ["get", "color"], "line-width": 3 } }, "arrets-pm-circle");
+      map.addSource("lignes-all-stops", { type: "geojson", data: { type: "FeatureCollection", features: stopFeatures } });
+      map.addLayer({ id: "lignes-all-stops", type: "circle", source: "lignes-all-stops", minzoom: 12,
+        paint: { "circle-radius": 3.5, "circle-color": ["get", "color"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
+      bindStopClick("lignes-all-stops");
+    }).catch(() => {});
     map.on("click", "arrets-pm-circle", (e) => {
       const f = e.features[0];
       openPopup(

@@ -61,7 +61,28 @@ foreach (is_array($input['nouveaux_arrets'] ?? null) ? $input['nouveaux_arrets']
     http_response_code(400);
     die(json_encode(["error" => "Nouvel arrêt invalide (nom, coordonnées ou modalité)"]));
   }
-  $nouveaux[] = ["nom" => $n_nom, "lat" => (float) $n_lat, "lng" => (float) $n_lng, "types" => $n_types];
+  $n_stop = trim((string) ($n['stop_id'] ?? ''));
+  if (strlen($n_stop) > 128) {
+    http_response_code(400);
+    die(json_encode(["error" => "Identifiant GTFS invalide"]));
+  }
+  $nouveaux[] = [
+    "nom" => $n_nom, "lat" => (float) $n_lat, "lng" => (float) $n_lng, "types" => $n_types,
+    "stop_id" => $n_stop !== '' ? $n_stop : null,
+  ];
+}
+
+// Identifiants GTFS des arrêts existants liés (import / mise à jour GTFS) :
+// [{arret_id, stop_id, nom?}], écrits en références externes (source « gtfs »).
+$gtfs_refs = [];
+foreach (is_array($input['gtfs_refs'] ?? null) ? $input['gtfs_refs'] : [] as $r) {
+  $r_arret = (int) ($r['arret_id'] ?? 0);
+  $r_stop = trim((string) ($r['stop_id'] ?? ''));
+  if ($r_arret <= 0 || $r_stop === '' || strlen($r_stop) > 128) {
+    http_response_code(400);
+    die(json_encode(["error" => "Référence GTFS invalide"]));
+  }
+  $gtfs_refs[] = ["arret_id" => $r_arret, "stop_id" => $r_stop, "nom" => trim((string) ($r['nom'] ?? '')) ?: null];
 }
 
 // Commune / code INSEE / code postal des nouveaux arrêts : géocodage inverse
@@ -151,6 +172,9 @@ try {
     );
     $stmt->execute();
     $arrets_crees[] = $mysqli->insert_id;
+    if ($n['stop_id'] !== null) {
+      $gtfs_refs[] = ["arret_id" => $mysqli->insert_id, "stop_id" => $n['stop_id'], "nom" => $n['nom']];
+    }
   }
   $stmt->close();
   $arret_ids = array_values(array_unique(array_merge($arret_ids, $arrets_crees)));
@@ -163,6 +187,19 @@ try {
   $stmt = $mysqli->prepare("INSERT INTO arrets_lignes_transport (ligne_id, arret_id) VALUES (?, ?)");
   foreach ($arret_ids as $arret_id) {
     $stmt->bind_param("ii", $ligne_id, $arret_id);
+    $stmt->execute();
+  }
+  $stmt->close();
+
+  // Références GTFS : seulement pour des arrêts liés à la ligne ; doublon ignoré
+  $stmt = $mysqli->prepare(
+    "INSERT IGNORE INTO references_externes (arret_id, source, ref, libelle) VALUES (?, 'gtfs', ?, ?)"
+  );
+  foreach ($gtfs_refs as $r) {
+    if (!in_array($r['arret_id'], $arret_ids, true)) {
+      continue;
+    }
+    $stmt->bind_param("iss", $r['arret_id'], $r['stop_id'], $r['nom']);
     $stmt->execute();
   }
   $stmt->close();

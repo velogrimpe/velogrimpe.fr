@@ -99,6 +99,7 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
       <input type="hidden" id="ligne_geometry" value="" />
       <input type="hidden" id="ligne_arret_ids" value="" />
       <input type="hidden" id="ligne_nouveaux_arrets" value="" />
+      <input type="hidden" id="ligne_gtfs_refs" value="" />
 
       <div class="relative flex items-center">
         <hr class="my-0 grow border-[#2e8b57]" />
@@ -118,7 +119,11 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
             <select id="gtfs-routes" class="select select-primary select-sm w-full"></select>
           </label>
           <button type="button" id="gtfs-import" class="btn btn-sm btn-primary">Importer cette ligne</button>
+          <?php if ($ligne_id): ?>
+            <button type="button" id="gtfs-compare" class="btn btn-sm btn-outline btn-primary" disabled>Comparer les arrêts avec ceux de la ligne</button>
+          <?php endif; ?>
         </div>
+        <div id="vue-gtfs-diff"></div>
         <i class="text-sm opacity-70">« Importer cette ligne » remplit les champs et la géométrie (shapes.txt).
           Les boutons « Montrer / Importer les arrêts », au-dessus de la carte, s'activent une fois une ligne choisie.</i>
       </div>
@@ -365,11 +370,23 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
     // --- Arrêts à créer (import GTFS) : n'existent pas encore en base, créés à l'envoi ---
     const nouveaux = new Map(); // key -> { key, nom, lat, lng, types, marker }
     const nouveauxInput = document.getElementById('ligne_nouveaux_arrets');
+    // Identifiants GTFS des arrêts existants liés : arret_id -> { stop_id, nom } (écrits à l'envoi)
+    const gtfsRefs = new Map();
+    const gtfsRefsInput = document.getElementById('ligne_gtfs_refs');
+    function recordGtfsRef(arretId, stopId, nom) {
+      gtfsRefs.set(Number(arretId), { stop_id: String(stopId), nom });
+      notifyArrets();
+    }
+    const GTFS_KEY = 'gtfs:';
     function notifyArrets() {
       linkedInput.value = Array.from(linked).join(',');
       nouveauxInput.value = nouveaux.size
-        ? JSON.stringify(Array.from(nouveaux.values()).map(({ nom, lat, lng, types }) => ({ nom, lat, lng, types })))
+        ? JSON.stringify(Array.from(nouveaux.values()).map(({ key, nom, lat, lng, types }) => ({
+          nom, lat, lng, types, ...(key.startsWith(GTFS_KEY) ? { stop_id: key.slice(GTFS_KEY.length) } : {}),
+        })))
         : '';
+      const refs = Array.from(gtfsRefs, ([arret_id, r]) => ({ arret_id, ...r })).filter((r) => linked.has(r.arret_id));
+      gtfsRefsInput.value = refs.length ? JSON.stringify(refs) : '';
       document.dispatchEvent(new CustomEvent('velogrimpe:ligne-arrets-changed', {
         detail: {
           ids: Array.from(linked),
@@ -421,8 +438,8 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
     // Ajoute un arrêt GTFS à la ligne : arrêt existant proche, sinon nouvel arrêt à créer
     function addGtfsStop(stop, types) {
       const match = nearestArret(stop.lat, stop.lng);
-      if (match) setArretLinked(match.id, true);
-      else addNouvelArret(`gtfs:${stop.id}`, stop.nom, stop.lat, stop.lng, types);
+      if (match) { setArretLinked(match.id, true); recordGtfsRef(match.id, stop.id, stop.nom); }
+      else addNouvelArret(`${GTFS_KEY}${stop.id}`, stop.nom, stop.lat, stop.lng, types);
     }
     let gtfsLayer = null;
     window.ligneClearGtfsStops = () => {
@@ -462,6 +479,8 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
       if (stops.length) map.fitBounds(L.latLngBounds(stops.map((s) => [s.lat, s.lng])), { padding: [30, 30] });
     };
     window.ligneRemoveNouvelArret = removeNouvelArret;
+    window.ligneAddNouvelArret = addNouvelArret;
+    window.ligneRecordGtfsRef = recordGtfsRef;
 
     // --- Falaises : repères (point vert jusqu'au zoom 12, puis icône de falaise) ---
     const falaiseIcon = () => dotMode()
