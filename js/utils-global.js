@@ -27,16 +27,14 @@
     return Math.round(time_in_hours * 60);
   }
 
-  // Durée de marche (minutes) ou null si km, D+ ou D- manque — même formule que
-  // js/components/utils/times.js (DIN 33466 : 4 km/h, +300 m/h, -500 m/h, max + min/2).
+  // Durée de marche (minutes) ou null si km ou D+ manque — même formule que
+  // js/components/utils/times.js (4 km/h + 500 m de D+ par heure).
   function calculate_time_pied(p) {
-    var vals = [p.km, p.dplus, p.dmoins].map(function (v) {
+    var vals = [p.km, p.dplus].map(function (v) {
       return v === null || v === undefined || v === "" ? NaN : parseFloat(v);
     });
     if (vals.some(isNaN)) return null;
-    var horizontal = vals[0] / 4;
-    var vertical = vals[1] / 300 + vals[2] / 500;
-    return Math.round((Math.max(horizontal, vertical) + Math.min(horizontal, vertical) / 2) * 60);
+    return Math.round((vals[0] / 4 + vals[1] / 500) * 60);
   }
 
   // Infobulle d'une trace d'accès à pied : durée si tout est renseigné, sinon distance, + icône de pas.

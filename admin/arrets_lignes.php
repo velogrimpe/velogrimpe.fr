@@ -55,9 +55,20 @@ while ($row = $res->fetch_assoc()) {
   ];
 }
 
+// Falaises (repères sur la carte + liaison à un arrêt)
+$falaises = [];
+$res = $mysqli->query("SELECT falaise_id, falaise_nom, falaise_latlng FROM falaises WHERE falaise_latlng LIKE '%,%' ORDER BY falaise_nom");
+while ($row = $res->fetch_assoc()) {
+  [$lat, $lng] = array_map("floatval", explode(",", $row["falaise_latlng"]));
+  $falaises[] = ["id" => (int) $row["falaise_id"], "nom" => $row["falaise_nom"], "lat" => $lat, "lng" => $lng];
+}
+
 $pageData = [
   "arrets" => $arrets,
   "lignes" => $lignes,
+  "falaises" => $falaises,
+  // Contributeur des liaisons arrêt ↔ falaise faites depuis cette page (requis par api/link_arret_falaise.php)
+  "contrib" => ["nom" => "Admin", "email" => (string) ($config["contact_mail"] ?? "")],
   "token" => $token,
 ];
 ?>
@@ -146,6 +157,7 @@ $pageData = [
       <div class="flex flex-wrap gap-4 text-sm">
         <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="layer-arrets" class="checkbox checkbox-xs" checked /> Arrêts</label>
         <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="layer-lignes" class="checkbox checkbox-xs" checked /> Lignes</label>
+        <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="layer-falaises" class="checkbox checkbox-xs" checked /> Falaises</label>
         <span id="map-status" class="text-base-content/60"></span>
       </div>
       <div id="admin-map" class="w-full h-[70vh] rounded-md"></div>

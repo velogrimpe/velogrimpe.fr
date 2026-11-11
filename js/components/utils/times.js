@@ -28,26 +28,24 @@ export function calculate_time(velo) {
 }
 
 /**
- * Durée de marche en minutes, ou null dès qu'un paramètre (km, D+, D-) manque : pas de
- * durée approximative. Norme DIN 33466 : 4 km/h à plat, 300 m/h en montée, 500 m/h en
- * descente ; durée = max(horizontal, vertical) + min(horizontal, vertical) / 2.
+ * Durée de marche en minutes, ou null dès qu'un paramètre (km, D+) manque : pas de durée
+ * approximative. Formule historique des itinéraires « à pied uniquement » : 4 km/h + 500 m de
+ * D+ par heure (le D- n'entre pas dans le calcul).
  */
-export function calculate_time_pied({ km, dplus, dmoins } = {}) {
-  const valeurs = [km, dplus, dmoins].map((v) => (v === null || v === undefined || v === "" ? NaN : parseFloat(v)));
+export function calculate_time_pied({ km, dplus } = {}) {
+  const valeurs = [km, dplus].map((v) => (v === null || v === undefined || v === "" ? NaN : parseFloat(v)));
   if (valeurs.some(Number.isNaN)) return null;
-  const [k, dp, dm] = valeurs;
-  const horizontal = k / 4;
-  const vertical = dp / 300 + dm / 500;
-  return Math.round((Math.max(horizontal, vertical) + Math.min(horizontal, vertical) / 2) * 60);
+  const [k, dp] = valeurs;
+  return Math.round((k / 4 + dp / 500) * 60);
 }
 
 /**
- * Contenu (HTML) de l'infobulle d'une trace d'accès à pied : la durée de marche si km, D+
- * et D- sont tous renseignés, sinon la distance ; dans les deux cas suivie d'une petite
+ * Contenu (HTML) de l'infobulle d'une trace d'accès à pied : la durée de marche si km et D+
+ * sont renseignés, sinon la distance ; dans les deux cas suivie d'une petite
  * icône de pas. null si on n'a rien à afficher.
  */
 export function pied_tooltip_html({ km, dplus, dmoins } = {}) {
-  const minutes = calculate_time_pied({ km, dplus, dmoins });
+  const minutes = calculate_time_pied({ km, dplus });
   const texte = minutes !== null ? format_time(minutes) : km !== null && km !== undefined && km !== "" ? `${km} km` : null;
   if (texte === null) return null;
   return `${texte} <svg class="inline-block w-4 h-4 fill-current align-text-bottom" aria-label="à pied"><use href="#footprint"></use></svg>`;

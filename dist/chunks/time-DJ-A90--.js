@@ -1,1 +1,0 @@
-function a(t){if(t==null)return"";const o=Math.floor(t/60),n=t%60;return o>0?`${o}h${n.toString().padStart(2,"0")}`:`${n}'`}function l(t){const{velo_km:o,velo_dplus:n}=t,r=typeof o=="string"?parseFloat(o):o,e=typeof n=="string"?parseInt(n,10):n,s=r/20+e/500;return Math.round(s*60)}export{l as c,a as f};

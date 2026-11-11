@@ -378,6 +378,8 @@ $highlight = $_GET['h'] ?? '';
     },
     center: [5.420, 45.391],
     zoom: 6.5,
+    dragRotate: false,       // pas de rotation / pitch au clic droit (ni ctrl+drag)
+    pitchWithRotate: false,
   });
 
   // Built-in controls
@@ -1308,9 +1310,27 @@ $highlight = $_GET['h'] ?? '';
       },
       paint: { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": 2 },
     });
-    // Toutes les lignes de transport à partir de z12 (tracé + arrêts hors topo cliquables).
-    // Chargement paresseux : une seule requête, au premier passage à z12.
-    const LIGNES_MIN_ZOOM = 12;
+    // Noms de tous les arrêts (topo + hors topo des lignes) dans une seule couche, à partir de z14.
+    // Les gares hors topo sont nommées par le PMTiles (arrets-pm-label), pas ici.
+    const labelFeatures = arrets
+      .filter(a => a.type === "arret" && a.arret_latlng)
+      .map(a => ({ type: "Feature", properties: { nom: a.arret_nom, topo: true }, geometry: { type: "Point", coordinates: lngLat(a.arret_latlng) } }));
+    map.addSource("arrets-labels", { type: "geojson", data: { type: "FeatureCollection", features: labelFeatures } });
+    map.addLayer({
+      id: "arrets-labels", type: "symbol", source: "arrets-labels", minzoom: 14,
+      layout: {
+        "text-field": ["get", "nom"],
+        "text-size": 12,
+        // Sous l'icône 24 px des arrêts du topo, sous le petit cercle des autres.
+        "text-offset": ["case", ["get", "topo"], ["literal", [0, 1.3]], ["literal", [0, 0.8]]],
+        "text-anchor": "top",
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      },
+      paint: { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": 2 },
+    });
+    // Toutes les lignes de transport à partir de z11 (tracé + arrêts hors topo cliquables).
+    // Chargement paresseux : une seule requête, au premier passage à z11.
+    const LIGNES_MIN_ZOOM = 11;
     let lignesChargees = false;
     function chargerLignes() {
       if (lignesChargees || map.getZoom() < LIGNES_MIN_ZOOM) return;
@@ -1327,7 +1347,7 @@ $highlight = $_GET['h'] ?? '';
         }
         (l.arrets ?? []).forEach((a) => {
           if (topoIds.has(a.id)) return;
-          stopFeatures.push({ type: "Feature", properties: { nom: a.nom, color }, geometry: { type: "Point", coordinates: [a.lng, a.lat] } });
+          stopFeatures.push({ type: "Feature", properties: { nom: a.nom, color, gare: (a.types ?? []).some(t => t === "ter" || t === "tgv") }, geometry: { type: "Point", coordinates: [a.lng, a.lat] } });
         });
       });
       const layout = { "line-cap": "round", "line-join": "round" };
@@ -1336,6 +1356,11 @@ $highlight = $_GET['h'] ?? '';
         paint: { "line-color": "#ffffff", "line-width": 6, "line-opacity": 0.9 } }, "arrets-pm-circle");
       map.addLayer({ id: "lignes-all-line", type: "line", source: "lignes-all", minzoom: LIGNES_MIN_ZOOM, layout,
         paint: { "line-color": ["get", "color"], "line-width": 3 } }, "arrets-pm-circle");
+      // Labels : on ajoute les arrêts hors topo (hors gares TER/TGV, nommées par le PMTiles).
+      stopFeatures.filter(f => !f.properties.gare).forEach((f) => {
+        labelFeatures.push({ type: "Feature", properties: { nom: f.properties.nom, topo: false }, geometry: f.geometry });
+      });
+      map.getSource("arrets-labels")?.setData({ type: "FeatureCollection", features: labelFeatures });
       map.addSource("lignes-all-stops", { type: "geojson", data: { type: "FeatureCollection", features: stopFeatures } });
       map.addLayer({ id: "lignes-all-stops", type: "circle", source: "lignes-all-stops", minzoom: LIGNES_MIN_ZOOM,
         paint: { "circle-radius": 3.5, "circle-color": ["get", "color"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
@@ -1354,7 +1379,7 @@ $highlight = $_GET['h'] ?? '';
       }).catch(() => { lignesChargees = false; }); // nouvel essai au prochain zoom
     }
     map.on("zoomend", chargerLignes);
-    chargerLignes(); // carte ouverte directement à z12+ (URL, recherche…)
+    chargerLignes(); // carte ouverte directement à z11+ (URL, recherche…)
     map.on("click", "arrets-pm-circle", (e) => {
       const f = e.features[0];
       openPopup(

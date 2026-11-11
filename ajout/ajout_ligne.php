@@ -57,8 +57,10 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
   <link rel="stylesheet" href="/global.css" />
   <?php vite_css("ajout-ligne"); ?>
   <style>
-    .linked-arret {
-      filter: drop-shadow(0 0 3px #16a34a) drop-shadow(0 0 2px #16a34a);
+    /* Arrêt relié à la ligne : fond et bordure vert Vélogrimpe (couleur primaire du thème) ;
+       !important car le fond (par type d'arrêt) est posé en style inline. */
+    .vg-ligne-arret.linked-arret > div {
+      background: var(--color-primary) !important;
     }
 
     /* Pendant le tracé à la main, les marqueurs (arrêts, falaises) laissent passer les clics :
@@ -178,26 +180,32 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
         <hr class="my-0 grow border-[#2e8b57]" />
       </div>
       <div class="flex flex-col gap-2 bg-base-100 p-4 rounded-lg border border-base-200 shadow-xs">
-        <div class="flex flex-wrap gap-2 not-prose">
-          <input type="file" id="shapes-file" class="hidden" accept=".txt,text/plain,text/csv" />
-          <button type="button" class="btn btn-sm btn-outline btn-primary"
-            onclick="document.getElementById('shapes-file').click()">Importer un fichier shapes.txt</button>
-          <button type="button" id="btn-draw" class="btn btn-sm btn-outline btn-primary" aria-pressed="false">Tracer à
-            la main</button>
-          <button type="button" id="btn-edit-geometry" class="btn btn-sm btn-outline btn-primary" aria-pressed="false"
-            disabled>Modifier le tracé</button>
-          <button type="button" id="btn-clear-geometry" class="btn btn-sm btn-ghost text-error">Effacer le
-            tracé</button>
+        <div class="flex flex-col gap-2 not-prose">
+          <!-- Tracé -->
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold w-14">Tracé</span>
+            <button type="button" id="btn-draw" class="btn btn-sm btn-square btn-outline btn-primary" aria-pressed="false"
+              title="Tracer à la main" aria-label="Tracer à la main"><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#plus"></use></svg></button>
+            <button type="button" id="btn-edit-geometry" class="btn btn-sm btn-square btn-outline btn-primary" aria-pressed="false"
+              title="Modifier le tracé" aria-label="Modifier le tracé" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#pencil"></use></svg></button>
+            <button type="button" id="btn-clear-geometry" class="btn btn-sm btn-square btn-ghost text-error"
+              title="Effacer le tracé" aria-label="Effacer le tracé"><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#trash"></use></svg></button>
+          </div>
           <!-- Arrêts de la ligne GTFS choisie (actifs une fois la ligne choisie) -->
-          <button type="button" id="gtfs-show-stops" class="btn btn-sm btn-outline btn-primary" disabled>Montrer les arrêts</button>
-          <button type="button" id="gtfs-import-stops" class="btn btn-sm btn-outline btn-primary" disabled>Importer les arrêts</button>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold w-14">Arrêts</span>
+            <button type="button" id="gtfs-show-stops" class="btn btn-sm btn-square btn-outline btn-primary"
+              title="Montrer les arrêts du GTFS" aria-label="Montrer les arrêts du GTFS" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#eye"></use></svg></button>
+            <button type="button" id="gtfs-import-stops" class="btn btn-sm btn-square btn-outline btn-primary"
+              title="Importer les arrêts du GTFS" aria-label="Importer les arrêts du GTFS" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#file-upload"></use></svg></button>
+          </div>
         </div>
         <div id="ligne-map" class="w-full h-[36rem] rounded-lg relative not-prose"></div>
         <i class="text-slate-400 text-sm">Les tracés posés à la main s'ajoutent à la géométrie ; ils s'accrochent aux
-          arrêts existants, et passer par un arrêt le lie à la ligne. « Modifier le tracé » permet de déplacer
-          (ou supprimer par clic droit) les sommets. « Importer shapes.txt » remplace la géométrie.
-          « Montrer les arrêts » affiche les arrêts du GTFS en suggestions, à ajouter un par un ;
-          « Importer les arrêts » les ajoute tous (retirables). Un arrêt à moins de 100 m d'un arrêt existant est lié à
+          arrêts existants, et passer par un arrêt le lie à la ligne. Le crayon permet de déplacer
+          (ou supprimer par clic droit) les sommets.
+          L'œil affiche les arrêts du GTFS en suggestions, à ajouter un par un ;
+          La flèche d'import les ajoute tous (retirables). Un arrêt à moins de 100 m d'un arrêt existant de même type (un arrêt de bus n'est jamais rapproché d'une gare) est lié à
           celui-ci ; les arrêts du GTFS à moins de 100 m les uns des autres (aller/retour) ne sont créés qu'une fois ; les autres seront créés à l'envoi du formulaire — rien n'est écrit avant.
           Cliquez un arrêt pour le lier à la ligne.</i>
 
@@ -426,10 +434,18 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
 
     // --- Arrêts du GTFS : rapprochement avec la base, suggestions, import ---
     const MATCH_METERS = 100;
-    function nearestArret(lat, lng) {
+    // Un arrêt existant n'est rapprochable que d'un arrêt GTFS de même famille (bus ≠ gare ; TER et TGV ensemble)
+    const family = (t) => (t === 'ter' || t === 'tgv' ? 'rail' : t);
+    function typesCompatibles(arretTypes, stopTypes) {
+      if (!arretTypes?.length || !stopTypes?.length) return true;
+      const fams = new Set(stopTypes.map(family));
+      return arretTypes.some((t) => fams.has(family(t)));
+    }
+    function nearestArret(lat, lng, stopTypes) {
       const here = L.latLng(lat, lng);
       let best = null, bestD = Infinity;
       for (const { arret } of markers.values()) {
+        if (!typesCompatibles(arret.types, stopTypes)) continue;
         const d = here.distanceTo([arret.lat, arret.lng]);
         if (d < bestD) { best = arret; bestD = d; }
       }
@@ -443,7 +459,7 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
     }
     // Ajoute un arrêt GTFS à la ligne : arrêt existant proche, sinon nouvel arrêt à créer
     function addGtfsStop(stop, types) {
-      const match = nearestArret(stop.lat, stop.lng);
+      const match = nearestArret(stop.lat, stop.lng, types);
       if (match) { setArretLinked(match.id, true); recordGtfsRef(match.id, stop.id, stop.nom); }
       else if (!nearestNouveau(stop.lat, stop.lng)) addNouvelArret(`${GTFS_KEY}${stop.id}`, stop.nom, stop.lat, stop.lng, types);
     }
@@ -462,7 +478,7 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
         }).addTo(gtfsLayer);
         m.bindPopup('');
         m.on('popupopen', () => {
-          const match = nearestArret(s.lat, s.lng);
+          const match = nearestArret(s.lat, s.lng, types);
           const div = document.createElement('div');
           div.className = 'flex flex-col gap-1 text-base-content';
           div.innerHTML = `<div class="text-xs opacity-70">Arrêt du GTFS</div><b>${escapeHtml(s.nom)}</b>` +

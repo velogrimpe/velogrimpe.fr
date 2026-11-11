@@ -7,7 +7,7 @@ import { createAjoutMap } from "/js/components/map/ajout-map.js";
 import { arretDivIcon, arretTypeDominant } from "/js/components/map/arret-icon.js";
 import { ligneColor } from "/js/components/map/ligne-view.js";
 
-const { arrets, lignes, token } = JSON.parse(document.getElementById("page-data").textContent);
+const { arrets, lignes, falaises, contrib, token } = JSON.parse(document.getElementById("page-data").textContent);
 const $ = (id) => document.getElementById(id);
 
 const TYPE_LABELS = { ter: "TER", tgv: "TGV", bus: "Bus", tram: "Tram", telepherique: "Téléph." };
@@ -176,6 +176,149 @@ let map = null;
 let arretLayer = null;
 let ligneLayer = null;
 let lignesGeo = null; // lignes avec géométrie, chargées à la demande
+let falaiseLayer = null;
+const falaiseMarkers = [];
+
+// --- Falaises : point jusqu'au zoom 12, puis icône (comme le formulaire de ligne) ----
+const DOT_MAX_ZOOM = 12;
+const dotMode = () => map.getZoom() <= DOT_MAX_ZOOM;
+const falaiseIcon = () =>
+  dotMode()
+    ? L.divIcon({
+        className: "vg-ligne-falaise-dot",
+        html: '<div style="width:10px;height:10px;background:#16a34a;" class="rounded-full border-2 border-white shadow"></div>',
+        iconSize: [10, 10],
+        iconAnchor: [5, 5],
+        tooltipAnchor: [5, 0],
+      })
+    : L.icon({
+        iconUrl: "/images/map/icone_falaise_carte.png",
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+        tooltipAnchor: [11, 0],
+        className: "vg-ligne-falaise-icon",
+      });
+
+// --- Liaison arrêt ↔ falaise (api/link_arret_falaise.php, accès à pied ou à vélo) ----
+// 1. clic sur un arrêt / une falaise, 2. bouton « lier », 3. clic sur la falaise / l'arrêt à lier,
+// 4. formulaire des informations (accès à pied ou à vélo).
+let linkSource = null; // { kind: "arret" | "falaise", item }
+const kindOf = new WeakMap(); // marqueur -> { kind, item }
+const arretNom = (a) => `« ${a.nom} » (#${a.id})`;
+
+function startLink(kind, id) {
+  const item = (kind === "arret" ? arrets : falaises).find((x) => x.id === id);
+  if (!item) return;
+  map.closePopup();
+  linkSource = { kind, item };
+  // La couche à désigner doit être visible
+  const cible = kind === "arret" ? "layer-falaises" : "layer-arrets";
+  if (!$(cible).checked) {
+    $(cible).checked = true;
+    kind === "arret" ? renderFalaises() : renderMap();
+  }
+  $("map-status").innerHTML = `Choisir avec quel${kind === "arret" ? "le falaise" : " arrêt"} lier « <b>${esc(item.nom)}</b> » : cliquez dessus sur la carte.
+    <button type="button" class="btn btn-xs ml-2" data-link-cancel>Annuler</button>`;
+}
+function cancelLink() {
+  linkSource = null;
+  $("map-status").textContent = "";
+}
+
+// Un clic sur un marqueur de l'autre type, en mode liaison, ouvre le formulaire au lieu du popup normal
+function onPopupOpenWhileLinking(e) {
+  if (!linkSource) return;
+  const t = kindOf.get(e.popup._source);
+  if (!t || t.kind === linkSource.kind) return; // même type : popup normal
+  map.closePopup();
+  const arret = linkSource.kind === "arret" ? linkSource.item : t.item;
+  const falaise = linkSource.kind === "arret" ? t.item : linkSource.item;
+  linkSource = null;
+  $("map-status").textContent = "";
+  L.popup({ minWidth: 260, maxWidth: 280 })
+    .setLatLng([t.item.lat, t.item.lng])
+    .setContent(linkForm(arret, falaise))
+    .openOn(map);
+}
+
+/** Formulaire d'un accès entre `arret` et `falaise`. */
+function linkForm(arret, falaise) {
+  const root = document.createElement("div");
+  root.className = "flex flex-col gap-1 text-xs text-base-content";
+  root.innerHTML = `
+    <div class="text-sm"><b>${esc(arret.nom)}</b> <span class="opacity-60">#${arret.id}</span><br>↔ <b>${esc(falaise.nom)}</b></div>
+    <select class="l-type select select-xs w-full" aria-label="Type d'accès">
+      <option value="pied">Accès sans vélo (à pied)</option>
+      <option value="velo">Itinéraire à vélo</option>
+    </select>
+    <input class="l-variante input input-xs w-full" type="text" maxlength="100" placeholder="Nom de la variante (optionnel)">
+    <textarea class="l-description textarea textarea-xs w-full" rows="2" placeholder="Description"></textarea>
+    <div class="flex gap-1">
+      <input class="l-km input input-xs w-16" type="number" step="0.1" min="0" placeholder="km" aria-label="Distance (km)">
+      <input class="l-dplus input input-xs w-16" type="number" min="0" placeholder="D+" aria-label="D+ (m)">
+      <input class="l-dmoins input input-xs w-16" type="number" min="0" placeholder="D-" aria-label="D- (m)">
+    </div>
+    <label class="flex flex-col gap-1"><span class="l-gpx-label">Trace GPX (optionnel)</span>
+      <input class="l-gpx file-input file-input-xs w-full" type="file" accept=".gpx"></label>
+    <button type="button" class="l-envoyer btn btn-sm btn-primary w-full">Créer l'accès</button>`;
+  const q = (c) => root.querySelector(`.${c}`);
+  q("l-type").addEventListener("change", () => {
+    q("l-gpx-label").textContent = q("l-type").value === "velo" ? "Trace GPX (obligatoire), km, D+ et D- obligatoires" : "Trace GPX (optionnel)";
+  });
+  q("l-envoyer").addEventListener("click", async () => {
+    const type = q("l-type").value;
+    const gpx = q("l-gpx").files[0];
+    if (type === "velo" && (!q("l-km").value || !q("l-dplus").value || !q("l-dmoins").value || !gpx)) {
+      alert("Accès à vélo : la distance, le D+, le D- et la trace GPX sont obligatoires.");
+      return;
+    }
+    const fields = {
+      arret_id: arret.id, falaise_id: falaise.id, action: "link", type, nom_prenom: contrib.nom, email: contrib.email,
+      variante: q("l-variante").value.trim(), description: q("l-description").value.trim(),
+      km: q("l-km").value, dplus: q("l-dplus").value, dmoins: q("l-dmoins").value,
+    };
+    let init;
+    if (gpx) {
+      const fd = new FormData();
+      Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
+      fd.append("gpx_file", gpx);
+      init = { method: "POST", body: fd };
+    } else {
+      init = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(fields) };
+    }
+    const btn = q("l-envoyer");
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/link_arret_falaise.php", init);
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.success) throw new Error(result.error || res.status);
+      arret.nb_acces++;
+      map.closePopup();
+      renderList();
+    } catch (e) {
+      alert("Erreur : " + e.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  return root;
+}
+
+function renderFalaises() {
+  falaiseLayer.clearLayers();
+  falaiseMarkers.length = 0;
+  if (!$("layer-falaises").checked) return;
+  falaises.forEach((f) => {
+    const m = L.marker([f.lat, f.lng], { icon: falaiseIcon(), zIndexOffset: -500 }).addTo(falaiseLayer);
+    m.bindTooltip(esc(f.nom), { direction: "right", className: "p-px" });
+    m.bindPopup(
+      `<b>${esc(f.nom)}</b><br><span class="text-xs opacity-70">Falaise #${f.id}</span>` +
+        `<div class="flex gap-2 mt-2">${iconBtn("link", "Lier à un arrêt", "btn-outline", `data-link-start="falaise:${f.id}"`)}</div>`,
+    );
+    kindOf.set(m, { kind: "falaise", item: f });
+    falaiseMarkers.push(m);
+  });
+}
 let lignesPromise = null;
 const arretMarkers = new Map(); // arret_id -> marker
 const ligneLines = new Map(); // ligne_id -> polyline
@@ -185,6 +328,16 @@ function ensureMap() {
   ({ map } = createAjoutMap("admin-map"));
   arretLayer = L.layerGroup().addTo(map);
   ligneLayer = L.layerGroup().addTo(map);
+  falaiseLayer = L.layerGroup().addTo(map);
+  map.on("popupopen", onPopupOpenWhileLinking);
+  document.addEventListener("keydown", (e) => e.key === "Escape" && linkSource && cancelLink());
+  renderFalaises();
+  let wasDot = dotMode();
+  map.on("zoomend", () => {
+    if (dotMode() === wasDot) return;
+    wasDot = dotMode();
+    falaiseMarkers.forEach((m) => m.setIcon(falaiseIcon()));
+  });
   const pts = arrets.filter((a) => !a.deleted).map((a) => [a.lat, a.lng]);
   if (savedMap) map.setView(savedMap.center, savedMap.zoom);
   else if (pts.length) map.fitBounds(pts, { padding: [20, 20] });
@@ -217,11 +370,17 @@ function renderMap() {
           `<b>${esc(a.nom)}</b><br><span class="text-xs">${esc(a.commune ?? "")} · #${a.id} · ${
             a.types.map((t) => TYPE_LABELS[t] ?? t).join(", ") || arretTypeDominant([])
           }</span><br><div class="flex gap-2 mt-2">${iconLink("pencil", "Modifier l'arrêt", "btn-primary", editArretUrl(a.id))}` +
-            (a.deleted ? "" : iconBtn("move", "Déplacer", "btn-outline", `data-move-arret="${a.id}"`) + mergeButtons(a) + iconBtn("trash", "Supprimer", "btn-error btn-outline", `data-delete-arret="${a.id}"`)) +
+            (a.deleted
+              ? ""
+              : iconBtn("move", "Déplacer", "btn-outline", `data-move-arret="${a.id}"`) +
+                mergeButtons(a) +
+                iconBtn("link", "Lier à une falaise", "btn-outline", `data-link-start="arret:${a.id}"`) +
+                iconBtn("trash", "Supprimer", "btn-error btn-outline", `data-delete-arret="${a.id}"`)) +
             "</div>",
         )
         .addTo(arretLayer);
       arretMarkers.set(a.id, marker);
+      if (!a.deleted) kindOf.set(marker, { kind: "arret", item: a });
     });
   }
   if ($("layer-lignes").checked && lignesGeo) {
@@ -314,6 +473,9 @@ document.addEventListener("click", (e) => {
   if (b) deleteArret(Number(b.dataset.deleteArret));
   const mv = e.target.closest("[data-move-arret]");
   if (mv) startMove(Number(mv.dataset.moveArret));
+  const ls = e.target.closest("[data-link-start]");
+  if (ls) startLink(...ls.dataset.linkStart.split(":").map((v, i) => (i ? Number(v) : v)));
+  if (e.target.closest("[data-link-cancel]")) cancelLink();
   const sa = e.target.closest("[data-show-arret]");
   if (sa) showOnMap("arret", Number(sa.dataset.showArret));
   const sl = e.target.closest("[data-show-ligne]");
@@ -356,6 +518,7 @@ $("search").addEventListener("input", () => {
 document.querySelectorAll("#type-filters input, #other-filters input").forEach((c) => c.addEventListener("change", refresh));
 $("layer-arrets").addEventListener("change", renderMap);
 $("layer-lignes").addEventListener("change", renderMap);
+$("layer-falaises").addEventListener("change", () => map && renderFalaises());
 document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
 
 const initialView = readUrl();

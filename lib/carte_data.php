@@ -7,7 +7,7 @@ require_once __DIR__ . '/velo_lib.php';
 
 /**
  * Arrêts (toutes modalités) avec leurs temps de train depuis chaque ville.
- * Clés renvoyées : arret_id, arret_nom, arret_latlng, types, villes (brut).
+ * Clés renvoyées : arret_id, arret_nom, arret_latlng, types, lignes (numéros), villes (brut).
  *
  * @param bool $garesHorsTopo false : omet les gares (ter/tgv) sans itinéraire ni
  *   accès piéton publiés — MapLibre les rend depuis un PMTiles.
@@ -27,9 +27,19 @@ function carte_charger_arrets(mysqli $mysqli, bool $garesHorsTopo = true): array
     LEFT JOIN train t ON t.arret_id = a.id
     WHERE a.deleted = 0 $filtre
     GROUP BY a.id")->fetch_all(MYSQLI_ASSOC);
-  return array_map(function ($r) {
+  // Numéros des lignes de transport desservant chaque arrêt (panneau d'info des cartes) ;
+  // les lignes sans numéro renseigné sont omises.
+  $lignesParArret = [];
+  foreach ($mysqli->query("SELECT alt.arret_id, l.numero
+      FROM arrets_lignes_transport alt JOIN lignes_transport l ON l.id = alt.ligne_id
+      WHERE l.numero IS NOT NULL AND l.numero <> ''
+      ORDER BY l.numero")->fetch_all(MYSQLI_ASSOC) as $l) {
+    $lignesParArret[(int) $l['arret_id']][] = $l['numero'];
+  }
+  return array_map(function ($r) use ($lignesParArret) {
     $r['arret_id'] = (int) $r['arret_id'];
     $r['types'] = arret_types($r);
+    $r['lignes'] = $lignesParArret[$r['arret_id']] ?? [];
     unset($r['ter'], $r['tgv'], $r['bus'], $r['tram'], $r['teleph']);
     return $r;
   }, $rows);
