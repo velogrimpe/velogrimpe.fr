@@ -82,16 +82,41 @@ $pageData = [
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Arrêts et lignes (admin) - Vélogrimpe.fr</title>
-  <?php map_bundle_js("map"); ?>
-  <?php map_bundle_css("map"); ?>
+  <?php map_bundle_js("map-maplibre"); ?>
+  <?php map_bundle_css("map-maplibre"); ?>
   <?php vite_css("main"); ?>
   <link rel="stylesheet" href="/global.css" />
   <link rel="manifest" href="/site.webmanifest" />
   <style>
     /* Noms d'arrêts : texte noir à halo blanc, sans cadre (comme carte.php) */
-    .leaflet-tooltip.vg-arret-label { background: none; border: 0; box-shadow: none; padding: 0; color: #000; font-size: 10px;
-      font-weight: 700; white-space: nowrap; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff; }
-    .leaflet-tooltip.vg-arret-label::before { display: none; }
+    .vg-arret-label { pointer-events: none; color: #000; font-size: 10px; font-weight: 700; white-space: nowrap;
+      text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff; }
+    .vg-marker { cursor: pointer; }
+    .vg-arret-icon { z-index: 1; }
+    .vg-hover-popup .maplibregl-popup-content { padding: 2px 6px; font-size: 12px; border-radius: 4px; }
+    .maplibregl-ctrl-top-left, .maplibregl-ctrl-top-right, .maplibregl-ctrl-bottom-right { z-index: 10; }
+    /* Les popups doivent passer devant les marqueurs DOM d'arrêts (z-index 1) */
+    .maplibregl-popup { z-index: 5; }
+    .maplibregl-popup-content { padding: 13px 24px 13px 20px; border-radius: 12px; box-shadow: 0 3px 14px rgba(0,0,0,.4);
+      color: #333; line-height: 1.3; text-align: left; font-size: 13px; }
+    .maplibregl-popup-close-button { width: 24px; height: 24px; font: 16px/24px Tahoma, Verdana, sans-serif; color: #757575; }
+    .maplibregl-popup-close-button:hover { background: transparent; color: #585858; }
+    /* Sélecteur de fond de carte */
+    .vg-layer-switcher { background: #fff; border-radius: 4px; font-size: 13px; max-width: 260px; }
+    .vg-layer-switcher summary { list-style: none; display: flex; align-items: center; gap: 6px; padding: 5px; cursor: pointer; color: #333; }
+    .vg-layer-switcher summary::-webkit-details-marker { display: none; }
+    .vg-layer-switcher details:not([open]) .vg-layer-switcher-label { display: none; }
+    .vg-layer-switcher details[open] > div { padding: 0 8px 6px; }
+    .vg-layer-switcher label { display: block; padding: 2px 0; cursor: pointer; }
+    /* Recherche de lieu */
+    .vg-search-ctl { position: relative; }
+    .vg-search-ctl input { width: 190px; height: 30px; padding: 0 .6rem; border: 0; border-radius: 4px; background: #fff;
+      box-shadow: 0 0 0 2px rgba(0,0,0,.1); font-size: .8rem; color: #222; }
+    .vg-search-results { position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; max-height: 13rem; overflow-y: auto;
+      background: #fff; color: #222; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.25); font-size: .75rem; }
+    .vg-search-results button { display: block; width: 100%; padding: .375rem .5rem; text-align: left; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; background: transparent; border: 0; cursor: pointer; }
+    .vg-search-results button:hover { background: rgba(0,0,0,.08); }
   </style>
 </head>
 

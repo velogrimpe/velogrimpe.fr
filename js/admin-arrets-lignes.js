@@ -3,8 +3,7 @@
  * Données initiales injectées par PHP dans #page-data ; la géométrie des lignes
  * est chargée à la première ouverture de la carte (/api/fetch_lignes.php?geometry=1).
  */
-import { createAjoutMap } from "/js/components/map/ajout-map.js";
-import { arretDivIcon, arretTypeDominant } from "/js/components/map/arret-icon.js";
+import { arretIconHtml, arretTypeDominant } from "/js/components/map/arret-icon.js";
 import { ligneColor } from "/js/components/map/ligne-view.js";
 
 const { arrets, lignes, falaises, contrib, token } = JSON.parse(document.getElementById("page-data").textContent);
@@ -23,7 +22,7 @@ const iconBtn = (name, label, cls, attrs) =>
 const iconLink = (name, label, cls, href) =>
   `<a class="btn btn-xs btn-square ${cls}" style="${BTN_STYLE}" title="${label}" aria-label="${label}" href="${href}">${ico(name)}</a>`;
 
-// Les liens des popups Leaflet héritent de la couleur bleue de `a` : on force la couleur du bouton.
+// Les liens des popups héritent de la couleur bleue de `a` : on force la couleur du bouton.
 const BTN_STYLE = "color:var(--color-primary-content,#fff)";
 const editArretUrl = (id) => `/ajout/ajout_arret.php?admin=${encodeURIComponent(token)}&arret_id=${id}`;
 const editLigneUrl = (id) => `/ajout/ajout_ligne.php?admin=${encodeURIComponent(token)}&ligne_id=${id}`;
@@ -64,7 +63,7 @@ function writeUrl() {
   setOrDel("falaises", state.onlyFalaises ? "1" : "");
   setOrDel("deleted", state.showDeleted ? "1" : "");
   setOrDel("view", state.view === "carte" ? "carte" : "");
-  if (map) {
+  if (mapReady) {
     const c = map.getCenter();
     p.set("map", `${Math.round(map.getZoom() * 100) / 100}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`);
   }
@@ -171,51 +170,61 @@ function renderList() {
       </tr>`).join("") || '<tr><td colspan="4" class="text-center text-base-content/60">Aucune ligne</td></tr>';
 }
 
+// --- Carte (MapLibre GL JS, bundle `map-maplibre` chargé par la page) ---------------------------
+let map = null;
+let mapReady = false;
+let lignesGeo = null; // lignes avec géométrie, chargées à la demande
+let lignesPromise = null;
+const arretMarkers = new Map(); // arret_id -> marker DOM (arrêts reliés à une falaise)
+const labelMarkers = new Map(); // arret_id -> marker DOM du nom
+const ligneBounds = new Map(); // ligne_id -> [[w, s], [e, n]]
+let popup = null;
+let hoverPopup = null;
+
+// MapLibre (tuiles 512 px) est ~1 niveau en dessous de Leaflet à rendu égal : seuils décalés d'autant.
+const DOT_MAX_ZOOM = 11; // falaises : point jusqu'ici, puis icône
+const LABEL_ZOOM = 15; // noms des arrêts (hors gares)
+const LABEL_ZOOM_GARE = 12; // noms des gares TER/TGV
+
+const BASEMAPS = {
+  Landscape: { url: "https://a.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", maxzoom: 19, attribution: '<a href="http://www.thunderforest.com/landscape/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>' },
+  OpenCycleMap: { url: "https://a.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", maxzoom: 19, attribution: '<a href="http://www.thunderforest.com/opencyclemap/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>' },
+  IGNv2: { url: "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", maxzoom: 19, attribution: "IGN-F/Geoportail" },
+  Satellite: { url: "https://data.geopf.fr/wmts?&REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", maxzoom: 18, attribution: "IGN-F/Geoportail" },
+  Outdoors: { url: "https://a.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", maxzoom: 19, attribution: '<a href="http://www.thunderforest.com/outdoors/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>' },
+  Transports: { url: "https://a.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=e6b144cfc47a48fd928dad578eb026a6", maxzoom: 19, attribution: '<a href="http://www.thunderforest.com/transport/" target="_blank">Thunderforest</a>, <a href="http://osm.org/copyright" target="_blank">OSM contributors</a>' },
+};
+
+const emptyFc = () => ({ type: "FeatureCollection", features: [] });
+const setData = (id, features) => map.getSource(id)?.setData({ type: "FeatureCollection", features });
+const pointFeature = (props, item) => ({ type: "Feature", properties: props, geometry: { type: "Point", coordinates: [item.lng, item.lat] } });
+
 // Couleur d'un cercle (arrêt sans accès falaise) : celle de sa ligne, noir si l'arrêt n'en a pas
 const arretCercleColor = (a) => {
   const l = a.ligne_id ? lignes.find((x) => x.id === a.ligne_id) : null;
   return l ? ligneColor(l) : "#000";
 };
 
-// --- Carte ---------------------------------------------------------------
-let map = null;
-let arretLayer = null;
-let ligneLayer = null;
-let lignesGeo = null; // lignes avec géométrie, chargées à la demande
-let falaiseLayer = null;
-const falaiseMarkers = [];
-
-// --- Falaises : point jusqu'au zoom 12, puis icône (comme le formulaire de ligne) ----
-const DOT_MAX_ZOOM = 12;
-const dotMode = () => map.getZoom() <= DOT_MAX_ZOOM;
-const falaiseIcon = () =>
-  dotMode()
-    ? L.divIcon({
-        className: "vg-ligne-falaise-dot",
-        html: '<div style="width:10px;height:10px;background:#16a34a;" class="rounded-full border-2 border-white shadow"></div>',
-        iconSize: [10, 10],
-        iconAnchor: [5, 5],
-        tooltipAnchor: [5, 0],
-      })
-    : L.icon({
-        iconUrl: "/images/map/icone_falaise_carte.png",
-        iconSize: [22, 22],
-        iconAnchor: [11, 11],
-        tooltipAnchor: [11, 0],
-        className: "vg-ligne-falaise-icon",
-      });
+function openPopup(lngLat, content, opts = {}) {
+  popup?.remove();
+  hoverPopup?.remove();
+  popup = new maplibregl.Popup({ maxWidth: "300px", focusAfterOpen: false, ...opts }).setLngLat(lngLat);
+  if (typeof content === "string") popup.setHTML(content);
+  else popup.setDOMContent(content);
+  popup.addTo(map);
+  return popup;
+}
+const closePopup = () => popup?.remove();
 
 // --- Liaison arrêt ↔ falaise (api/link_arret_falaise.php, accès à pied ou à vélo) ----
 // 1. clic sur un arrêt / une falaise, 2. bouton « lier », 3. clic sur la falaise / l'arrêt à lier,
 // 4. formulaire des informations (accès à pied ou à vélo).
 let linkSource = null; // { kind: "arret" | "falaise", item }
-const kindOf = new WeakMap(); // marqueur -> { kind, item }
-const arretNom = (a) => `« ${a.nom} » (#${a.id})`;
 
 function startLink(kind, id) {
   const item = (kind === "arret" ? arrets : falaises).find((x) => x.id === id);
   if (!item) return;
-  map.closePopup();
+  closePopup();
   linkSource = { kind, item };
   // La couche à désigner doit être visible
   const cible = kind === "arret" ? "layer-falaises" : "layer-arrets";
@@ -231,20 +240,17 @@ function cancelLink() {
   $("map-status").textContent = "";
 }
 
-// Un clic sur un marqueur de l'autre type, en mode liaison, ouvre le formulaire au lieu du popup normal
-function onPopupOpenWhileLinking(e) {
-  if (!linkSource) return;
-  const t = kindOf.get(e.popup._source);
-  if (!t || t.kind === linkSource.kind) return; // même type : popup normal
-  map.closePopup();
-  const arret = linkSource.kind === "arret" ? linkSource.item : t.item;
-  const falaise = linkSource.kind === "arret" ? t.item : linkSource.item;
-  linkSource = null;
-  $("map-status").textContent = "";
-  L.popup({ minWidth: 260, maxWidth: 280 })
-    .setLatLng([t.item.lat, t.item.lng])
-    .setContent(linkForm(arret, falaise))
-    .openOn(map);
+/** Clic sur un arrêt / une falaise : en mode liaison sur l'autre type, ouvre le formulaire ; sinon le popup normal. */
+function onItemClick(kind, item, popupHtml) {
+  const lngLat = [item.lng, item.lat];
+  if (linkSource && linkSource.kind !== kind) {
+    const arret = kind === "arret" ? item : linkSource.item;
+    const falaise = kind === "arret" ? linkSource.item : item;
+    cancelLink();
+    openPopup(lngLat, linkForm(arret, falaise), { maxWidth: "280px", offset: kind === "arret" ? 12 : 14 });
+  } else {
+    openPopup(lngLat, popupHtml, { offset: kind === "arret" ? 12 : 14 });
+  }
 }
 
 /** Formulaire d'un accès entre `arret` et `falaise`. */
@@ -299,7 +305,7 @@ function linkForm(arret, falaise) {
       const result = await res.json().catch(() => ({}));
       if (!res.ok || !result.success) throw new Error(result.error || res.status);
       arret.nb_acces++;
-      map.closePopup();
+      closePopup();
       renderList();
       renderMap();
     } catch (e) {
@@ -311,48 +317,218 @@ function linkForm(arret, falaise) {
   return root;
 }
 
-function renderFalaises() {
-  falaiseLayer.clearLayers();
-  falaiseMarkers.length = 0;
-  if (!$("layer-falaises").checked) return;
-  falaises.forEach((f) => {
-    const m = L.marker([f.lat, f.lng], { icon: falaiseIcon(), zIndexOffset: -500 }).addTo(falaiseLayer);
-    m.bindTooltip(esc(f.nom), { direction: "right", className: "p-px" });
-    m.bindPopup(
-      `<b>${esc(f.nom)}</b><br><span class="text-xs opacity-70">Falaise #${f.id}</span>` +
-        `<div class="flex gap-2 mt-2">${iconBtn("link", "Lier à un arrêt", "btn-outline", `data-link-start="falaise:${f.id}"`)}</div>`,
-    );
-    kindOf.set(m, { kind: "falaise", item: f });
-    falaiseMarkers.push(m);
-  });
+// --- Contrôles ----------------------------------------------------------
+function basemapControl() {
+  return {
+    onAdd() {
+      const div = document.createElement("div");
+      div.className = "vg-layer-switcher maplibregl-ctrl maplibregl-ctrl-group";
+      const det = document.createElement("details");
+      const sum = document.createElement("summary");
+      sum.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg><span class="vg-layer-switcher-label">Fond de carte</span>';
+      sum.title = "Fond de carte";
+      det.appendChild(sum);
+      const body = document.createElement("div");
+      Object.keys(BASEMAPS).forEach((name) => {
+        const lab = document.createElement("label");
+        const r = document.createElement("input");
+        r.type = "radio"; r.name = "vg-basemap"; r.value = name; r.checked = name === "Landscape";
+        r.addEventListener("change", () => {
+          if (r.checked) map.getSource("basemap").setTiles([BASEMAPS[name].url]);
+        });
+        lab.appendChild(r); lab.appendChild(document.createTextNode(" " + name));
+        body.appendChild(lab);
+      });
+      det.appendChild(body);
+      div.appendChild(det);
+      return div;
+    },
+    onRemove() {},
+  };
 }
-let lignesPromise = null;
-const arretMarkers = new Map(); // arret_id -> marker
-const ligneLines = new Map(); // ligne_id -> polyline
+
+/** Recherche d'un lieu (Nominatim) : recentre la carte, sans marqueur. */
+function searchControl() {
+  return {
+    onAdd() {
+      const div = document.createElement("div");
+      div.className = "maplibregl-ctrl vg-search-ctl";
+      div.innerHTML = `<input type="search" autocomplete="off" placeholder="Centrer sur…" aria-label="Centrer la carte sur un lieu" />
+        <div class="vg-search-results" hidden></div>`;
+      const input = div.querySelector("input");
+      const results = div.querySelector(".vg-search-results");
+      let debounce = null;
+      let ctl = null;
+      const hide = () => { results.hidden = true; results.innerHTML = ""; };
+      const go = (item) => {
+        const bb = item.boundingbox?.map(parseFloat);
+        if (bb?.length === 4) map.fitBounds([[bb[2], bb[0]], [bb[3], bb[1]]], { maxZoom: 13 });
+        else map.flyTo({ center: [parseFloat(item.lon), parseFloat(item.lat)], zoom: 12 });
+        input.value = "";
+        hide();
+      };
+      async function search(query) {
+        ctl?.abort();
+        ctl = new AbortController();
+        try {
+          const r = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=fr&q=${encodeURIComponent(query)}`,
+            { signal: ctl.signal, headers: { "Accept-Language": "fr" } },
+          );
+          const items = await r.json();
+          results.innerHTML = "";
+          if (!items.length) results.innerHTML = '<div class="px-2 py-1 opacity-60">Aucun résultat</div>';
+          items.forEach((it) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.textContent = it.display_name;
+            b.title = it.display_name;
+            b.addEventListener("click", () => go(it));
+            results.appendChild(b);
+          });
+          results.hidden = false;
+        } catch (e) {
+          if (e.name !== "AbortError") hide();
+        }
+      }
+      input.addEventListener("input", () => {
+        clearTimeout(debounce);
+        const v = input.value.trim();
+        if (v.length < 3) return hide();
+        debounce = setTimeout(() => search(v), 600);
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); results.querySelector("button")?.click(); }
+        if (e.key === "Escape") { input.value = ""; hide(); }
+      });
+      return div;
+    },
+    onRemove() {},
+  };
+}
+
+// --- Couches ------------------------------------------------------------
+const HIT = (layer) => {
+  map.on("mouseenter", layer, () => (map.getCanvas().style.cursor = "pointer"));
+  map.on("mouseleave", layer, () => (map.getCanvas().style.cursor = ""));
+};
+
+const arretPopupHtml = (a) =>
+  `<b>${esc(a.nom)}</b><br><span class="text-xs">${esc(a.commune ?? "")} · #${a.id} · ${
+    a.types.map((t) => TYPE_LABELS[t] ?? t).join(", ") || arretTypeDominant([])
+  }</span><br><div class="flex gap-2 mt-2">${iconLink("pencil", "Modifier l'arrêt", "btn-primary", editArretUrl(a.id))}` +
+  (a.deleted
+    ? ""
+    : iconBtn("move", "Déplacer", "btn-outline", `data-move-arret="${a.id}"`) +
+      mergeButtons(a) +
+      iconBtn("link", "Lier à une falaise", "btn-outline", `data-link-start="arret:${a.id}"`) +
+      iconBtn("trash", "Supprimer", "btn-error btn-outline", `data-delete-arret="${a.id}"`)) +
+  "</div>";
+
+const falaisePopupHtml = (f) =>
+  `<b>${esc(f.nom)}</b><br><span class="text-xs opacity-70">Falaise #${f.id}</span>` +
+  `<div class="flex gap-2 mt-2">${iconBtn("link", "Lier à un arrêt", "btn-outline", `data-link-start="falaise:${f.id}"`)}</div>`;
+
+async function setupLayers() {
+  map.addSource("lignes", { type: "geojson", data: emptyFc() });
+  map.addLayer({ id: "lignes-line", type: "line", source: "lignes", layout: { "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": ["get", "color"], "line-width": 4, "line-opacity": 0.85 } });
+  // Zone de clic élargie, invisible
+  map.addLayer({ id: "lignes-hit", type: "line", source: "lignes", paint: { "line-width": 14, "line-opacity": 0 } });
+
+  map.addSource("arrets-circles", { type: "geojson", data: emptyFc() });
+  map.addLayer({ id: "arrets-circles", type: "circle", source: "arrets-circles",
+    paint: { "circle-radius": 4.5, "circle-color": ["get", "color"], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
+
+  map.addSource("falaises", { type: "geojson", data: { type: "FeatureCollection",
+    features: falaises.map((f) => pointFeature({ id: f.id }, f)) } });
+  map.addLayer({ id: "falaises-dot", type: "circle", source: "falaises", maxzoom: DOT_MAX_ZOOM,
+    paint: { "circle-radius": 5, "circle-color": "#16a34a", "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+  try {
+    const img = await map.loadImage("/images/map/icone_falaise_carte.png");
+    map.addImage("falaise", img.data);
+    map.addLayer({ id: "falaises-icon", type: "symbol", source: "falaises", minzoom: DOT_MAX_ZOOM,
+      layout: { "icon-image": "falaise", "icon-size": 22 / img.data.width, "icon-allow-overlap": true } });
+  } catch {
+    // Icône indisponible : on garde les points à tout zoom
+    map.setLayerZoomRange("falaises-dot", 0, 24);
+  }
+
+  // Interactions
+  const first = (e) => e.features?.[0];
+  const byId = (list, e) => list.find((x) => x.id === first(e)?.properties.id);
+  map.on("click", "arrets-circles", (e) => {
+    const a = byId(arrets, e);
+    if (!a) return;
+    e.originalEvent.__vgHandled = true;
+    onItemClick("arret", a, arretPopupHtml(a));
+  });
+  for (const layer of ["falaises-dot", "falaises-icon"]) {
+    if (!map.getLayer(layer)) continue;
+    map.on("click", layer, (e) => {
+      const f = byId(falaises, e);
+      if (!f) return;
+      e.originalEvent.__vgHandled = true;
+      onItemClick("falaise", f, falaisePopupHtml(f));
+    });
+    map.on("mouseenter", layer, (e) => {
+      const f = byId(falaises, e);
+      if (!f || popup?.isOpen()) return;
+      hoverPopup?.remove();
+      hoverPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12, className: "vg-hover-popup" })
+        .setLngLat([f.lng, f.lat]).setText(f.nom).addTo(map);
+    });
+    map.on("mouseleave", layer, () => hoverPopup?.remove());
+    HIT(layer);
+  }
+  map.on("click", "lignes-hit", (e) => {
+    if (e.originalEvent.__vgHandled) return; // un arrêt / une falaise au même endroit prime
+    const l = lignes.find((x) => x.id === first(e)?.properties.id);
+    if (!l) return;
+    openPopup(e.lngLat,
+      `<b>${esc(ligneLabel(l))}</b><br><span class="text-xs">${esc(l.operateur ?? "")} · #${l.id}</span><br>` +
+        `<div class="mt-2">${iconLink("pencil", "Modifier la ligne", "btn-primary", editLigneUrl(l.id))}</div>`);
+  });
+  HIT("arrets-circles");
+  HIT("lignes-hit");
+}
 
 function ensureMap() {
   if (map) return;
-  ({ map } = createAjoutMap("admin-map"));
-  arretLayer = L.layerGroup().addTo(map);
-  ligneLayer = L.layerGroup().addTo(map);
-  // Les cercles d'arrêts sont des tracés vectoriels : sans pane dédié, les lignes (ajoutées après) passent dessus
-  map.createPane("arretsCercles").style.zIndex = 450; // au-dessus des lignes (400), sous les icônes (600)
-  falaiseLayer = L.layerGroup().addTo(map);
-  map.on("popupopen", onPopupOpenWhileLinking);
-  map.on("moveend", updateLabels);
-  document.addEventListener("keydown", (e) => e.key === "Escape" && linkSource && cancelLink());
-  renderFalaises();
-  let wasDot = dotMode();
-  map.on("zoomend", () => {
-    if (dotMode() === wasDot) return;
-    wasDot = dotMode();
-    falaiseMarkers.forEach((m) => m.setIcon(falaiseIcon()));
+  const b = BASEMAPS.Landscape;
+  map = new maplibregl.Map({
+    container: "admin-map",
+    style: {
+      version: 8,
+      sources: { basemap: { type: "raster", tiles: [b.url], tileSize: 256, maxzoom: b.maxzoom, attribution: b.attribution } },
+      layers: [{ id: "basemap", type: "raster", source: "basemap" }],
+    },
+    center: [3.2355, 45.1234],
+    zoom: 4,
+    dragRotate: false,
+    pitchWithRotate: false,
+    ...(savedMap ? { center: [savedMap.center[1], savedMap.center[0]], zoom: savedMap.zoom } : {}),
   });
-  const pts = arrets.filter((a) => !a.deleted).map((a) => [a.lat, a.lng]);
-  if (savedMap) map.setView(savedMap.center, savedMap.zoom);
-  else if (pts.length) map.fitBounds(pts, { padding: [20, 20] });
-  map.on("moveend", writeUrl);
-  lignesPromise = loadLignes();
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+  map.addControl(new maplibregl.FullscreenControl(), "top-left");
+  map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), "top-left");
+  map.addControl(basemapControl(), "top-left");
+  map.addControl(searchControl(), "top-right");
+  map.addControl(new maplibregl.ScaleControl({ maxWidth: 125, unit: "metric" }), "bottom-right");
+  document.addEventListener("keydown", (e) => e.key === "Escape" && linkSource && cancelLink());
+  map.on("moveend", () => { updateLabels(); writeUrl(); });
+  map.on("load", async () => {
+    await setupLayers();
+    mapReady = true;
+    const pts = arrets.filter((a) => !a.deleted);
+    if (!savedMap && pts.length) {
+      const lngs = pts.map((a) => a.lng), lats = pts.map((a) => a.lat);
+      map.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding: 20, animate: false });
+    }
+    renderFalaises();
+    renderMap();
+    lignesPromise = loadLignes();
+  });
 }
 
 async function loadLignes() {
@@ -360,6 +536,13 @@ async function loadLignes() {
   try {
     const r = await fetch("/api/fetch_lignes.php?geometry=1");
     lignesGeo = (await r.json()).lignes;
+    ligneBounds.clear();
+    for (const l of lignesGeo) {
+      let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+      for (const line of l.geometry?.coordinates ?? [])
+        for (const [x, y] of line) { w = Math.min(w, x); e = Math.max(e, x); s = Math.min(s, y); n = Math.max(n, y); }
+      if (w <= e) ligneBounds.set(l.id, [[w, s], [e, n]]);
+    }
     $("map-status").textContent = "";
     renderMap();
   } catch {
@@ -367,93 +550,103 @@ async function loadLignes() {
   }
 }
 
+function renderFalaises() {
+  if (!mapReady) return;
+  const vis = $("layer-falaises").checked ? "visible" : "none";
+  for (const l of ["falaises-dot", "falaises-icon"]) if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", vis);
+}
+
+function domMarker(el, a, opts = {}) {
+  return new maplibregl.Marker({ element: el, anchor: "center", ...opts }).setLngLat([a.lng, a.lat]);
+}
+
+function arretIconEl(a) {
+  const el = document.createElement("div");
+  const { html, size } = arretIconHtml(a.types, 20);
+  el.className = "vg-marker vg-arret-icon";
+  el.style.width = el.style.height = size + "px";
+  el.innerHTML = html;
+  return el;
+}
+
 function renderMap() {
-  if (!map) return;
-  arretLayer.clearLayers();
-  ligneLayer.clearLayers();
+  if (!mapReady) return;
+  // Arrêts : icônes DOM pour ceux reliés à une falaise, cercles GeoJSON pour les autres
+  arretMarkers.forEach((m) => m.remove());
   arretMarkers.clear();
-  ligneLines.clear();
+  const circles = [];
   if ($("layer-arrets").checked) {
     arrets.filter(arretVisible).forEach((a) => {
-      // Arrêt sans accès à une falaise : petit cercle noir à bord blanc (comme carte.php) ; sinon icône du type
-      const marker = (a.nb_acces > 0
-        ? L.marker([a.lat, a.lng], { icon: arretDivIcon(a.types, 20) })
-        : L.circleMarker([a.lat, a.lng], { pane: "arretsCercles", radius: 3.5, color: "#fff", weight: 1.5, fillColor: arretCercleColor(a), fillOpacity: 1 }))
-        .bindPopup(
-          `<b>${esc(a.nom)}</b><br><span class="text-xs">${esc(a.commune ?? "")} · #${a.id} · ${
-            a.types.map((t) => TYPE_LABELS[t] ?? t).join(", ") || arretTypeDominant([])
-          }</span><br><div class="flex gap-2 mt-2">${iconLink("pencil", "Modifier l'arrêt", "btn-primary", editArretUrl(a.id))}` +
-            (a.deleted
-              ? ""
-              : iconBtn("move", "Déplacer", "btn-outline", `data-move-arret="${a.id}"`) +
-                mergeButtons(a) +
-                iconBtn("link", "Lier à une falaise", "btn-outline", `data-link-start="arret:${a.id}"`) +
-                iconBtn("trash", "Supprimer", "btn-error btn-outline", `data-delete-arret="${a.id}"`)) +
-            "</div>",
-        )
-        .addTo(arretLayer);
-      arretMarkers.set(a.id, marker);
-      if (!a.deleted) kindOf.set(marker, { kind: "arret", item: a });
+      if (a.nb_acces > 0) {
+        const el = arretIconEl(a);
+        el.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          onItemClick("arret", a, arretPopupHtml(a));
+        });
+        arretMarkers.set(a.id, domMarker(el, a).addTo(map));
+      } else {
+        circles.push(pointFeature({ id: a.id, color: arretCercleColor(a) }, a));
+      }
     });
   }
+  setData("arrets-circles", circles);
+
+  const lineFeatures = [];
   if ($("layer-lignes").checked && lignesGeo) {
     lignesGeo.filter(ligneVisible).forEach((l) => {
-      const latlngs = (l.geometry?.coordinates ?? []).map((line) => line.map(([lng, lat]) => [lat, lng]));
-      if (!latlngs.length) return;
-      const line = L.polyline(latlngs, { color: ligneColor(l), weight: 4, opacity: 0.85 })
-        .bindPopup(
-          `<b>${esc(ligneLabel(l))}</b><br><span class="text-xs">${esc(l.operateur ?? "")} · #${l.id}</span><br>` +
-            `<div class="mt-2">${iconLink("pencil", "Modifier la ligne", "btn-primary", editLigneUrl(l.id))}</div>`,
-        )
-        .addTo(ligneLayer);
-      ligneLines.set(l.id, line);
+      if (!l.geometry?.coordinates?.length) return;
+      lineFeatures.push({ type: "Feature", properties: { id: l.id, color: ligneColor(l) }, geometry: l.geometry });
     });
   }
+  setData("lignes", lineFeatures);
   updateLabels();
 }
 
-// Noms des arrêts, à droite du point (comme carte.php) : gares TER/TGV dès le zoom 13, les autres dès 16 ; seulement
-// les arrêts dans la vue, pour ne pas poser des milliers d'infobulles permanentes.
-const LABEL_ZOOM = 16;
-const LABEL_ZOOM_GARE = 13;
+// Noms des arrêts, à droite du point (comme carte.php) : gares TER/TGV dès LABEL_ZOOM_GARE, les autres dès LABEL_ZOOM ;
+// seulement les arrêts dans la vue, pour ne pas poser des milliers d'éléments DOM.
+const MAX_LABELS = 400;
 function updateLabels() {
-  if (!map) return;
+  if (!mapReady) return;
   const z = map.getZoom();
   const bounds = map.getBounds();
-  for (const m of arretMarkers.values()) {
-    const a = kindOf.get(m)?.item;
-    const gare = a?.types.some((t) => t === "ter" || t === "tgv");
-    const want = !!a && z >= (gare ? LABEL_ZOOM_GARE : LABEL_ZOOM) && bounds.contains(m.getLatLng());
-    const has = !!m.getTooltip();
-    if (want && !has) {
-      m.bindTooltip(esc(a.nom), {
-        permanent: true, direction: "right", offset: [a.nb_acces > 0 ? 2 : 6, 0], className: "vg-arret-label",
-      });
-    } else if (!want && has) m.unbindTooltip();
+  const want = new Map();
+  if ($("layer-arrets").checked && z >= LABEL_ZOOM_GARE) {
+    for (const a of arrets) {
+      if (want.size >= MAX_LABELS) break;
+      if (!arretVisible(a) || !bounds.contains([a.lng, a.lat])) continue;
+      const gare = a.types.some((t) => t === "ter" || t === "tgv");
+      if (z >= (gare ? LABEL_ZOOM_GARE : LABEL_ZOOM)) want.set(a.id, a);
+    }
+  }
+  for (const [id, m] of labelMarkers) if (!want.has(id)) { m.remove(); labelMarkers.delete(id); }
+  for (const [id, a] of want) {
+    if (labelMarkers.has(id)) continue;
+    const el = document.createElement("div");
+    el.className = "vg-arret-label";
+    el.textContent = a.nom;
+    const dx = a.nb_acces > 0 ? 14 : 8;
+    labelMarkers.set(id, new maplibregl.Marker({ element: el, anchor: "left", offset: [dx, 0] }).setLngLat([a.lng, a.lat]).addTo(map));
   }
 }
 
 // --- Repositionnement : « Déplacer » rend le marqueur déplaçable ; le lâcher demande confirmation ---
 function startMove(id) {
   const a = arrets.find((x) => x.id === id);
-  let marker = arretMarkers.get(id);
-  if (!a || !marker) return;
-  map.closePopup();
-  const from = L.latLng(a.lat, a.lng);
-  if (!marker.dragging) {
-    // Cercle (arrêt sans accès) : non déplaçable, remplacé le temps du geste par un marqueur ; renderMap() le rétablit
-    arretLayer.removeLayer(marker);
-    marker = L.marker(from, { icon: arretDivIcon(a.types, 20) }).addTo(arretLayer);
-    arretMarkers.set(id, marker);
-  }
-  marker.dragging.enable();
+  if (!a || !mapReady) return;
+  closePopup();
+  const from = new maplibregl.LngLat(a.lng, a.lat);
+  // Marqueur temporaire déplaçable (le cercle GeoJSON ne l'est pas) ; renderMap() rétablit le rendu normal
+  arretMarkers.get(id)?.remove();
+  labelMarkers.get(id)?.remove();
+  labelMarkers.delete(id);
+  const marker = domMarker(arretIconEl(a), a, { draggable: true }).addTo(map);
+  arretMarkers.set(id, marker);
   $("map-status").textContent = `Déplacez « ${a.nom} » à sa nouvelle position.`;
   marker.once("dragend", async () => {
-    marker.dragging.disable();
     $("map-status").textContent = "";
-    const to = marker.getLatLng();
+    const to = marker.getLngLat();
     if (!confirm(`Déplacer « ${a.nom} » (#${id}) de ${Math.round(from.distanceTo(to))} m ?\nSeule sa position change.`)) {
-      marker.setLatLng(from);
+      marker.remove();
       renderMap();
       return;
     }
@@ -467,10 +660,10 @@ function startMove(id) {
       a.lat = to.lat;
       a.lng = to.lng;
     } catch (e) {
-      marker.setLatLng(from);
       alert(`Déplacement impossible : ${e.message}`);
     }
-    renderMap(); // rétablit popup et rendu (cercle ou icône) du marqueur
+    marker.remove();
+    renderMap();
   });
 }
 
@@ -479,17 +672,22 @@ async function showOnMap(kind, id) {
   $("layer-arrets").checked = true;
   $("layer-lignes").checked = true;
   setView("carte");
+  if (!mapReady) await new Promise((res) => map.once("load", () => setTimeout(res, 0)));
   if (kind === "arret") {
     const a = arrets.find((x) => x.id === id);
     if (!a) return;
-    map.setView([a.lat, a.lng], 16);
-    arretMarkers.get(id)?.openPopup();
+    map.jumpTo({ center: [a.lng, a.lat], zoom: 15 });
+    renderMap();
+    onItemClick("arret", a, arretPopupHtml(a));
   } else {
     await lignesPromise;
-    const line = ligneLines.get(id);
-    if (!line) return alert("Cette ligne n'a pas de tracé à afficher.");
-    map.fitBounds(line.getBounds(), { padding: [30, 30] });
-    line.openPopup(line.getBounds().getCenter());
+    const bb = ligneBounds.get(id);
+    if (!bb) return alert("Cette ligne n'a pas de tracé à afficher.");
+    const l = lignes.find((x) => x.id === id);
+    map.fitBounds(bb, { padding: 30, animate: false });
+    openPopup([(bb[0][0] + bb[1][0]) / 2, (bb[0][1] + bb[1][1]) / 2],
+      `<b>${esc(ligneLabel(l))}</b><br><span class="text-xs">${esc(l.operateur ?? "")} · #${l.id}</span><br>` +
+        `<div class="mt-2">${iconLink("pencil", "Modifier la ligne", "btn-primary", editLigneUrl(l.id))}</div>`);
   }
 }
 
@@ -505,7 +703,7 @@ async function deleteArret(id) {
     });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
     a.deleted = true;
-    map?.closePopup();
+    closePopup();
     refresh();
   } catch (e) {
     alert(`Suppression impossible : ${e.message}`);
@@ -548,7 +746,7 @@ function setView(view) {
   $("view-carte").classList.toggle("flex", view === "carte");
   if (view === "carte") {
     ensureMap();
-    map.invalidateSize();
+    map.resize();
     renderMap();
   }
 }
@@ -561,7 +759,7 @@ $("search").addEventListener("input", () => {
 document.querySelectorAll("#type-filters input, #other-filters input").forEach((c) => c.addEventListener("change", refresh));
 $("layer-arrets").addEventListener("change", renderMap);
 $("layer-lignes").addEventListener("change", renderMap);
-$("layer-falaises").addEventListener("change", () => map && renderFalaises());
+$("layer-falaises").addEventListener("change", renderFalaises);
 document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
 
 const initialView = readUrl();
