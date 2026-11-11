@@ -15,6 +15,14 @@ $res = $mysqli->query(
           (SELECT COUNT(*) FROM acces_falaise af WHERE af.arret_id = a.id) AS nb_acces
    FROM arrets a ORDER BY a.nom",
 );
+// Falaises reliées à chaque arrêt (via acces_falaise), pour l'affichage et la recherche.
+$falaises_par_arret = [];
+$resF = $mysqli->query(
+  "SELECT DISTINCT af.arret_id, f.falaise_nom FROM acces_falaise af
+   JOIN falaises f ON f.falaise_id = af.falaise_id ORDER BY f.falaise_nom",
+);
+while ($r = $resF->fetch_assoc()) $falaises_par_arret[(int) $r["arret_id"]][] = $r["falaise_nom"];
+
 while ($row = $res->fetch_assoc()) {
   $arrets[] = [
     "id" => (int) $row["id"],
@@ -26,6 +34,7 @@ while ($row = $res->fetch_assoc()) {
     "lng" => (float) $row["lng"],
     "nb_lignes" => (int) $row["nb_lignes"],
     "nb_acces" => (int) $row["nb_acces"],
+    "falaises" => $falaises_par_arret[(int) $row["id"]] ?? [],
   ];
 }
 
@@ -84,9 +93,9 @@ $pageData = [
       <button role="tab" class="tab" data-view="carte">Carte</button>
     </div>
 
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex flex-col items-start gap-2">
       <input id="search" type="search" class="input input-sm input-bordered w-full max-w-xs"
-        placeholder="Rechercher (nom, commune, n°, opérateur, id)…" autocomplete="off" />
+        placeholder="Rechercher (arrêt, commune, falaise, n°, opérateur, id)…" autocomplete="off" />
       <div id="type-filters" class="flex flex-wrap items-center gap-2 text-sm">
         <span class="font-semibold">Types d'arrêt :</span>
         <?php foreach (['ter' => 'TER', 'tgv' => 'TGV', 'bus' => 'Bus', 'tram' => 'Tram', 'telepherique' => 'Téléphérique'] as $k => $label): ?>
@@ -96,11 +105,19 @@ $pageData = [
             <?= $label ?>
           </label>
         <?php endforeach; ?>
-        <label class="flex items-center gap-1 cursor-pointer ml-2">
+      </div>
+      <div id="other-filters" class="flex flex-wrap items-center gap-2 text-sm">
+        <span class="font-semibold">Autres filtres :</span>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="checkbox" class="checkbox checkbox-xs" id="only-falaises" /> Reliés à des falaises
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer">
           <input type="checkbox" class="checkbox checkbox-xs" id="show-deleted" /> Supprimés
         </label>
       </div>
     </div>
+
+    <div id="merge-banner" class="hidden alert alert-info text-sm items-center justify-between"></div>
 
     <!-- Vue liste -->
     <section id="view-liste" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -108,7 +125,7 @@ $pageData = [
         <h2 class="text-lg font-bold mb-2">Arrêts <span id="count-arrets" class="badge badge-neutral"></span></h2>
         <div class="overflow-auto max-h-[70vh] rounded-md bg-base-100">
           <table class="table table-sm table-pin-rows">
-            <thead><tr><th>Arrêt</th><th>Types</th><th class="text-right">Lignes</th><th class="text-right">Accès</th><th></th></tr></thead>
+            <thead><tr><th>Arrêt</th><th>Types</th><th class="text-right">Lignes</th><th>Falaises</th><th></th></tr></thead>
             <tbody id="tbody-arrets"></tbody>
           </table>
         </div>

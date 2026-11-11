@@ -1309,7 +1309,13 @@ $highlight = $_GET['h'] ?? '';
       paint: { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": 2 },
     });
     // Toutes les lignes de transport à partir de z12 (tracé + arrêts hors topo cliquables).
-    fetch("/api/fetch_lignes.php?geometry=1&arrets=1").then((r) => r.json()).then(({ lignes }) => {
+    // Chargement paresseux : une seule requête, au premier passage à z12.
+    const LIGNES_MIN_ZOOM = 12;
+    let lignesChargees = false;
+    function chargerLignes() {
+      if (lignesChargees || map.getZoom() < LIGNES_MIN_ZOOM) return;
+      lignesChargees = true;
+      fetch("/api/fetch_lignes.php?geometry=1&arrets=1").then((r) => r.json()).then(({ lignes }) => {
       const lineFeatures = [];
       const stopFeatures = [];
       const topoIds = new Set(arrets.filter(a => a.type === "arret").map(a => a.arret_id));
@@ -1317,7 +1323,7 @@ $highlight = $_GET['h'] ?? '';
         const c = (l.couleur || "").trim();
         const color = c && CSS.supports("color", c) ? c : "#2563eb";
         if (l.geometry?.coordinates?.length) {
-          lineFeatures.push({ type: "Feature", properties: { color }, geometry: l.geometry });
+          lineFeatures.push({ type: "Feature", properties: { color, nom: l.nom || "", numero: l.numero || "" }, geometry: l.geometry });
         }
         (l.arrets ?? []).forEach((a) => {
           if (topoIds.has(a.id)) return;
@@ -1326,15 +1332,29 @@ $highlight = $_GET['h'] ?? '';
       });
       const layout = { "line-cap": "round", "line-join": "round" };
       map.addSource("lignes-all", { type: "geojson", data: { type: "FeatureCollection", features: lineFeatures } });
-      map.addLayer({ id: "lignes-all-halo", type: "line", source: "lignes-all", minzoom: 12, layout,
+      map.addLayer({ id: "lignes-all-halo", type: "line", source: "lignes-all", minzoom: LIGNES_MIN_ZOOM, layout,
         paint: { "line-color": "#ffffff", "line-width": 6, "line-opacity": 0.9 } }, "arrets-pm-circle");
-      map.addLayer({ id: "lignes-all-line", type: "line", source: "lignes-all", minzoom: 12, layout,
+      map.addLayer({ id: "lignes-all-line", type: "line", source: "lignes-all", minzoom: LIGNES_MIN_ZOOM, layout,
         paint: { "line-color": ["get", "color"], "line-width": 3 } }, "arrets-pm-circle");
       map.addSource("lignes-all-stops", { type: "geojson", data: { type: "FeatureCollection", features: stopFeatures } });
-      map.addLayer({ id: "lignes-all-stops", type: "circle", source: "lignes-all-stops", minzoom: 12,
+      map.addLayer({ id: "lignes-all-stops", type: "circle", source: "lignes-all-stops", minzoom: LIGNES_MIN_ZOOM,
         paint: { "circle-radius": 3.5, "circle-color": ["get", "color"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
+      // Clic sur le tracé : nom de la ligne. Le halo (plus large) sert de zone de clic.
+      // Enregistré avant les arrêts : au croisement, la popup de l'arrêt l'emporte.
+      map.on("click", "lignes-all-halo", (e) => {
+        const f = e.features[0];
+        const titre = [f.properties.numero, f.properties.nom].filter(Boolean).join(" — ");
+        if (!titre) return;
+        openPopup(new maplibregl.Popup({ maxWidth: "300px" }).setHTML(escapeHtml(titre)), e.lngLat);
+        e.preventDefault?.();
+      });
+      map.on("mouseenter", "lignes-all-halo", () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", "lignes-all-halo", () => { map.getCanvas().style.cursor = ""; });
       bindStopClick("lignes-all-stops");
-    }).catch(() => {});
+      }).catch(() => { lignesChargees = false; }); // nouvel essai au prochain zoom
+    }
+    map.on("zoomend", chargerLignes);
+    chargerLignes(); // carte ouverte directement à z12+ (URL, recherche…)
     map.on("click", "arrets-pm-circle", (e) => {
       const f = e.features[0];
       openPopup(

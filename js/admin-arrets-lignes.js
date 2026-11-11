@@ -15,31 +15,123 @@ const esc = (s) =>
   String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const norm = (s) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
+// Bouton-icône (symbole du sprite /symbols/icons.svg) ; le libellé reste en title / aria-label.
+const ico = (name) =>
+  `<svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#${name}"></use></svg>`;
+const iconBtn = (name, label, cls, attrs) =>
+  `<button type="button" class="btn btn-xs btn-square ${cls}" title="${label}" aria-label="${label}" ${attrs}>${ico(name)}</button>`;
+const iconLink = (name, label, cls, href) =>
+  `<a class="btn btn-xs btn-square ${cls}" style="${BTN_STYLE}" title="${label}" aria-label="${label}" href="${href}">${ico(name)}</a>`;
+
 // Les liens des popups Leaflet héritent de la couleur bleue de `a` : on force la couleur du bouton.
 const BTN_STYLE = "color:var(--color-primary-content,#fff)";
 const editArretUrl = (id) => `/ajout/ajout_arret.php?admin=${encodeURIComponent(token)}&arret_id=${id}`;
 const editLigneUrl = (id) => `/ajout/ajout_ligne.php?admin=${encodeURIComponent(token)}&ligne_id=${id}`;
 
+// --- État dans l'URL (?q=…&types=bus,tram&falaises=1&deleted=1&view=carte) ---
+// Seules les valeurs différentes des défauts sont écrites ; les autres paramètres sont préservés.
+const DEFAULT_TYPES = ["bus", "tram", "telepherique"];
+const typeBoxes = () => [...document.querySelectorAll("#type-filters [data-type]")];
+
+// Position de la carte : ?map=zoom/lat/lng
+let savedMap = null;
+function parseMapParam(v) {
+  const [z, lat, lng] = String(v ?? "").split("/").map(Number);
+  return [z, lat, lng].every(Number.isFinite) ? { zoom: z, center: [lat, lng] } : null;
+}
+
+function readUrl() {
+  const p = new URLSearchParams(location.search);
+  savedMap = parseMapParam(p.get("map"));
+  $("search").value = p.get("q") ?? "";
+  if (p.has("types")) {
+    const wanted = new Set(p.get("types").split(",").filter(Boolean));
+    typeBoxes().forEach((c) => (c.checked = wanted.has(c.dataset.type)));
+  }
+  $("only-falaises").checked = p.get("falaises") === "1";
+  $("show-deleted").checked = p.get("deleted") === "1";
+  return p.get("view") === "carte" ? "carte" : "liste";
+}
+
+function writeUrl() {
+  const p = new URLSearchParams(location.search);
+  const setOrDel = (k, v) => (v ? p.set(k, v) : p.delete(k));
+  setOrDel("q", $("search").value.trim());
+  const types = typeBoxes().filter((c) => c.checked).map((c) => c.dataset.type);
+  const isDefault = types.length === DEFAULT_TYPES.length && DEFAULT_TYPES.every((t) => types.includes(t));
+  if (isDefault) p.delete("types");
+  else p.set("types", types.join(","));
+  setOrDel("falaises", state.onlyFalaises ? "1" : "");
+  setOrDel("deleted", state.showDeleted ? "1" : "");
+  setOrDel("view", state.view === "carte" ? "carte" : "");
+  if (map) {
+    const c = map.getCenter();
+    p.set("map", `${Math.round(map.getZoom() * 100) / 100}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`);
+  }
+  const qs = p.toString();
+  history.replaceState(null, "", location.pathname + (qs ? `?${qs}` : "") + location.hash);
+}
+
 // --- Filtres -------------------------------------------------------------
-const state = { q: "", types: new Set(), showDeleted: false, view: "liste" };
+const state = { q: "", types: new Set(), showDeleted: false, onlyFalaises: false, view: "liste" };
 const readFilters = () => {
   state.q = norm($("search").value.trim());
   state.types = new Set(
     [...document.querySelectorAll("#type-filters [data-type]")].filter((c) => c.checked).map((c) => c.dataset.type),
   );
   state.showDeleted = $("show-deleted").checked;
+  state.onlyFalaises = $("only-falaises").checked;
 };
 
 // Un arrêt est visible si l'un de ses types est coché (un arrêt TER + bus reste visible
 // avec « Bus » seul coché) ; un arrêt sans aucun type n'est jamais masqué par ce filtre.
 const arretVisible = (a) =>
   (state.showDeleted || !a.deleted) &&
+  (!state.onlyFalaises || a.falaises.length > 0) &&
   (a.types.length === 0 || a.types.some((t) => state.types.has(t))) &&
-  (!state.q || norm(`${a.nom} ${a.commune ?? ""} ${a.id}`).includes(state.q));
+  (!state.q || norm(`${a.nom} ${a.commune ?? ""} ${a.id} ${a.falaises.join(" ")}`).includes(state.q));
 
 const ligneLabel = (l) => (l.numero ? `${l.numero} — ` : "") + l.nom;
 const ligneVisible = (l) =>
   !state.q || norm(`${l.nom} ${l.numero ?? ""} ${l.operateur ?? ""} ${l.id}`).includes(state.q);
+
+// --- Fusion : 1er clic « Fusionner » sur l'arrêt à absorber, 2e clic « Conserver celui-ci » sur la cible ---
+let mergeSource = null;
+const mergeButtons = (a) =>
+  mergeSource === null
+    ? iconBtn("merge", "Fusionner avec un autre arrêt", "btn-outline", `data-merge-from="${a.id}"`)
+    : a.id === mergeSource
+      ? ""
+      : `<button type="button" class="btn btn-xs btn-warning" data-merge-into="${a.id}">Conserver celui-ci</button>`;
+
+function renderMergeBanner() {
+  const b = $("merge-banner");
+  const src = arrets.find((x) => x.id === mergeSource);
+  b.classList.toggle("hidden", !src);
+  b.classList.toggle("flex", !!src);
+  if (src)
+    b.innerHTML = `<span>Fusion : « <b>${esc(src.nom)}</b> » (#${src.id}) sera absorbé. Choisissez l'arrêt à conserver (liste ou carte).</span>
+      <button type="button" class="btn btn-xs" data-merge-cancel>Annuler</button>`;
+}
+
+async function mergeArrets(sourceId, cibleId) {
+  const s = arrets.find((x) => x.id === sourceId);
+  const c = arrets.find((x) => x.id === cibleId);
+  if (!s || !c) return;
+  if (!confirm(`Fusionner « ${s.nom} » (#${s.id}) dans « ${c.nom} » (#${c.id}) ?\nFalaises, lignes, références et trajets sont reportés sur « ${c.nom} » ; « ${s.nom} » est supprimé.`)) return;
+  try {
+    const r = await fetch("/api/merge_arrets.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ source_id: sourceId, cible_id: cibleId }),
+    });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
+    // Recharge pour récupérer les compteurs, falaises et types à jour.
+    location.reload();
+  } catch (e) {
+    alert(`Fusion impossible : ${e.message}`);
+  }
+}
 
 // --- Liste ---------------------------------------------------------------
 const MAX_ROWS = 500; // évite de rendre des milliers de lignes d'un coup
@@ -54,9 +146,11 @@ function renderList() {
           <div class="text-xs text-base-content/60">${esc(a.commune ?? "")} · #${a.id}</div></td>
         <td>${a.types.map((t) => `<span class="badge badge-ghost badge-xs mr-1">${TYPE_LABELS[t] ?? esc(t)}</span>`).join("")}</td>
         <td class="text-right">${a.nb_lignes}</td>
-        <td class="text-right">${a.nb_acces}</td>
-        <td class="text-right whitespace-nowrap"><a class="btn btn-xs btn-primary text-primary-content" style="${BTN_STYLE}" href="${editArretUrl(a.id)}">Modifier</a>
-          ${a.deleted ? "" : `<button type="button" class="btn btn-xs btn-error btn-outline" data-delete-arret="${a.id}">Supprimer</button>`}</td>
+        <td class="text-xs">${a.falaises.map(esc).join(", ")}</td>
+        <td class="text-right whitespace-nowrap">${iconBtn("map-pin", "Voir sur la carte", "btn-outline", `data-show-arret="${a.id}"`)}
+          ${iconLink("pencil", "Modifier", "btn-primary text-primary-content", editArretUrl(a.id))}
+          ${a.deleted ? "" : mergeButtons(a)}
+          ${a.deleted ? "" : iconBtn("trash", "Supprimer", "btn-error btn-outline", `data-delete-arret="${a.id}"`)}</td>
       </tr>`).join("") +
     (as.length > MAX_ROWS
       ? `<tr><td colspan="5" class="text-center text-sm text-base-content/60">${as.length - MAX_ROWS} autres résultats : affinez la recherche.</td></tr>`
@@ -72,7 +166,8 @@ function renderList() {
           <b>${esc(ligneLabel(l))}</b> <span class="text-xs text-base-content/60">#${l.id}</span></td>
         <td>${esc(l.operateur ?? "")}</td>
         <td class="text-right">${l.nb_arrets}</td>
-        <td class="text-right"><a class="btn btn-xs btn-primary text-primary-content" href="${editLigneUrl(l.id)}">Modifier</a></td>
+        <td class="text-right whitespace-nowrap">${iconBtn("map-pin", "Voir sur la carte", "btn-outline", `data-show-ligne="${l.id}"`)}
+          ${iconLink("pencil", "Modifier", "btn-primary text-primary-content", editLigneUrl(l.id))}</td>
       </tr>`).join("") || '<tr><td colspan="4" class="text-center text-base-content/60">Aucune ligne</td></tr>';
 }
 
@@ -81,6 +176,9 @@ let map = null;
 let arretLayer = null;
 let ligneLayer = null;
 let lignesGeo = null; // lignes avec géométrie, chargées à la demande
+let lignesPromise = null;
+const arretMarkers = new Map(); // arret_id -> marker
+const ligneLines = new Map(); // ligne_id -> polyline
 
 function ensureMap() {
   if (map) return;
@@ -88,8 +186,10 @@ function ensureMap() {
   arretLayer = L.layerGroup().addTo(map);
   ligneLayer = L.layerGroup().addTo(map);
   const pts = arrets.filter((a) => !a.deleted).map((a) => [a.lat, a.lng]);
-  if (pts.length) map.fitBounds(pts, { padding: [20, 20] });
-  loadLignes();
+  if (savedMap) map.setView(savedMap.center, savedMap.zoom);
+  else if (pts.length) map.fitBounds(pts, { padding: [20, 20] });
+  map.on("moveend", writeUrl);
+  lignesPromise = loadLignes();
 }
 
 async function loadLignes() {
@@ -108,30 +208,86 @@ function renderMap() {
   if (!map) return;
   arretLayer.clearLayers();
   ligneLayer.clearLayers();
+  arretMarkers.clear();
+  ligneLines.clear();
   if ($("layer-arrets").checked) {
     arrets.filter(arretVisible).forEach((a) => {
-      L.marker([a.lat, a.lng], { icon: arretDivIcon(a.types, 20) })
+      const marker = L.marker([a.lat, a.lng], { icon: arretDivIcon(a.types, 20) })
         .bindPopup(
           `<b>${esc(a.nom)}</b><br><span class="text-xs">${esc(a.commune ?? "")} · #${a.id} · ${
             a.types.map((t) => TYPE_LABELS[t] ?? t).join(", ") || arretTypeDominant([])
-          }</span><br><div class="flex gap-2 mt-2"><a class="btn btn-xs btn-primary" style="${BTN_STYLE}" href="${editArretUrl(a.id)}">Modifier l'arrêt</a>` +
-            (a.deleted ? "" : `<button type="button" class="btn btn-xs btn-error btn-outline" data-delete-arret="${a.id}">Supprimer</button>`) +
+          }</span><br><div class="flex gap-2 mt-2">${iconLink("pencil", "Modifier l'arrêt", "btn-primary", editArretUrl(a.id))}` +
+            (a.deleted ? "" : iconBtn("move", "Déplacer", "btn-outline", `data-move-arret="${a.id}"`) + mergeButtons(a) + iconBtn("trash", "Supprimer", "btn-error btn-outline", `data-delete-arret="${a.id}"`)) +
             "</div>",
         )
         .addTo(arretLayer);
+      arretMarkers.set(a.id, marker);
     });
   }
   if ($("layer-lignes").checked && lignesGeo) {
     lignesGeo.filter(ligneVisible).forEach((l) => {
       const latlngs = (l.geometry?.coordinates ?? []).map((line) => line.map(([lng, lat]) => [lat, lng]));
       if (!latlngs.length) return;
-      L.polyline(latlngs, { color: ligneColor(l), weight: 4, opacity: 0.85 })
+      const line = L.polyline(latlngs, { color: ligneColor(l), weight: 4, opacity: 0.85 })
         .bindPopup(
           `<b>${esc(ligneLabel(l))}</b><br><span class="text-xs">${esc(l.operateur ?? "")} · #${l.id}</span><br>` +
-            `<a class="btn btn-xs btn-primary mt-2" style="${BTN_STYLE}" href="${editLigneUrl(l.id)}">Modifier la ligne</a>`,
+            `<div class="mt-2">${iconLink("pencil", "Modifier la ligne", "btn-primary", editLigneUrl(l.id))}</div>`,
         )
         .addTo(ligneLayer);
+      ligneLines.set(l.id, line);
     });
+  }
+}
+
+// --- Repositionnement : « Déplacer » rend le marqueur déplaçable ; le lâcher demande confirmation ---
+function startMove(id) {
+  const a = arrets.find((x) => x.id === id);
+  const marker = arretMarkers.get(id);
+  if (!a || !marker) return;
+  map.closePopup();
+  const from = L.latLng(a.lat, a.lng);
+  marker.dragging.enable();
+  $("map-status").textContent = `Déplacez « ${a.nom} » à sa nouvelle position.`;
+  marker.once("dragend", async () => {
+    marker.dragging.disable();
+    $("map-status").textContent = "";
+    const to = marker.getLatLng();
+    if (!confirm(`Déplacer « ${a.nom} » (#${id}) de ${Math.round(from.distanceTo(to))} m ?\nSeule sa position change.`)) {
+      marker.setLatLng(from);
+      return;
+    }
+    try {
+      const r = await fetch("/api/move_arret.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ arret_id: id, lat: to.lat, lng: to.lng }),
+      });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
+      a.lat = to.lat;
+      a.lng = to.lng;
+    } catch (e) {
+      marker.setLatLng(from);
+      alert(`Déplacement impossible : ${e.message}`);
+    }
+  });
+}
+
+// --- « Voir sur la carte » depuis la liste ---
+async function showOnMap(kind, id) {
+  $("layer-arrets").checked = true;
+  $("layer-lignes").checked = true;
+  setView("carte");
+  if (kind === "arret") {
+    const a = arrets.find((x) => x.id === id);
+    if (!a) return;
+    map.setView([a.lat, a.lng], 16);
+    arretMarkers.get(id)?.openPopup();
+  } else {
+    await lignesPromise;
+    const line = ligneLines.get(id);
+    if (!line) return alert("Cette ligne n'a pas de tracé à afficher.");
+    map.fitBounds(line.getBounds(), { padding: [30, 30] });
+    line.openPopup(line.getBounds().getCenter());
   }
 }
 
@@ -156,17 +312,31 @@ async function deleteArret(id) {
 document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-delete-arret]");
   if (b) deleteArret(Number(b.dataset.deleteArret));
+  const mv = e.target.closest("[data-move-arret]");
+  if (mv) startMove(Number(mv.dataset.moveArret));
+  const sa = e.target.closest("[data-show-arret]");
+  if (sa) showOnMap("arret", Number(sa.dataset.showArret));
+  const sl = e.target.closest("[data-show-ligne]");
+  if (sl) showOnMap("ligne", Number(sl.dataset.showLigne));
+  const from = e.target.closest("[data-merge-from]");
+  const into = e.target.closest("[data-merge-into]");
+  if (from) { mergeSource = Number(from.dataset.mergeFrom); refresh(); }
+  else if (into) mergeArrets(mergeSource, Number(into.dataset.mergeInto));
+  else if (e.target.closest("[data-merge-cancel]")) { mergeSource = null; refresh(); }
 });
 
 // --- Câblage -------------------------------------------------------------
 function refresh() {
   readFilters();
+  writeUrl();
+  renderMergeBanner();
   renderList();
   renderMap();
 }
 
 function setView(view) {
   state.view = view;
+  writeUrl();
   document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("tab-active", b.dataset.view === view));
   $("view-liste").classList.toggle("hidden", view !== "liste");
   $("view-carte").classList.toggle("hidden", view !== "carte");
@@ -183,9 +353,11 @@ $("search").addEventListener("input", () => {
   clearTimeout(timer);
   timer = setTimeout(refresh, 150);
 });
-document.querySelectorAll("#type-filters input").forEach((c) => c.addEventListener("change", refresh));
+document.querySelectorAll("#type-filters input, #other-filters input").forEach((c) => c.addEventListener("change", refresh));
 $("layer-arrets").addEventListener("change", renderMap);
 $("layer-lignes").addEventListener("change", renderMap);
 document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
 
+const initialView = readUrl();
 refresh();
+if (initialView === "carte") setView("carte");

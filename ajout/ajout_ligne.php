@@ -197,8 +197,8 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
           arrêts existants, et passer par un arrêt le lie à la ligne. « Modifier le tracé » permet de déplacer
           (ou supprimer par clic droit) les sommets. « Importer shapes.txt » remplace la géométrie.
           « Montrer les arrêts » affiche les arrêts du GTFS en suggestions, à ajouter un par un ;
-          « Importer les arrêts » les ajoute tous (retirables). Un arrêt à moins de 50 m d'un arrêt existant est lié à
-          celui-ci ; les autres seront créés à l'envoi du formulaire — rien n'est écrit avant.
+          « Importer les arrêts » les ajoute tous (retirables). Un arrêt à moins de 100 m d'un arrêt existant est lié à
+          celui-ci ; les arrêts du GTFS à moins de 100 m les uns des autres (aller/retour) ne sont créés qu'une fois ; les autres seront créés à l'envoi du formulaire — rien n'est écrit avant.
           Cliquez un arrêt pour le lier à la ligne.</i>
 
         <div id="vue-arrets-lies"></div>
@@ -425,7 +425,7 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
     }
 
     // --- Arrêts du GTFS : rapprochement avec la base, suggestions, import ---
-    const MATCH_METERS = 50;
+    const MATCH_METERS = 100;
     function nearestArret(lat, lng) {
       const here = L.latLng(lat, lng);
       let best = null, bestD = Infinity;
@@ -435,11 +435,17 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
       }
       return bestD <= MATCH_METERS ? best : null;
     }
+    // Arrêt à créer déjà ajouté à moins de MATCH_METERS (quai aller/retour du même GTFS)
+    function nearestNouveau(lat, lng) {
+      const here = L.latLng(lat, lng);
+      for (const n of nouveaux.values()) if (here.distanceTo([n.lat, n.lng]) <= MATCH_METERS) return n;
+      return null;
+    }
     // Ajoute un arrêt GTFS à la ligne : arrêt existant proche, sinon nouvel arrêt à créer
     function addGtfsStop(stop, types) {
       const match = nearestArret(stop.lat, stop.lng);
       if (match) { setArretLinked(match.id, true); recordGtfsRef(match.id, stop.id, stop.nom); }
-      else addNouvelArret(`${GTFS_KEY}${stop.id}`, stop.nom, stop.lat, stop.lng, types);
+      else if (!nearestNouveau(stop.lat, stop.lng)) addNouvelArret(`${GTFS_KEY}${stop.id}`, stop.nom, stop.lat, stop.lng, types);
     }
     let gtfsLayer = null;
     window.ligneClearGtfsStops = () => {
