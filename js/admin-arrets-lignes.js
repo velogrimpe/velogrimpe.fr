@@ -171,6 +171,12 @@ function renderList() {
       </tr>`).join("") || '<tr><td colspan="4" class="text-center text-base-content/60">Aucune ligne</td></tr>';
 }
 
+// Couleur d'un cercle (arrêt sans accès falaise) : celle de sa ligne, noir si l'arrêt n'en a pas
+const arretCercleColor = (a) => {
+  const l = a.ligne_id ? lignes.find((x) => x.id === a.ligne_id) : null;
+  return l ? ligneColor(l) : "#000";
+};
+
 // --- Carte ---------------------------------------------------------------
 let map = null;
 let arretLayer = null;
@@ -295,6 +301,7 @@ function linkForm(arret, falaise) {
       arret.nb_acces++;
       map.closePopup();
       renderList();
+      renderMap();
     } catch (e) {
       alert("Erreur : " + e.message);
     } finally {
@@ -328,8 +335,11 @@ function ensureMap() {
   ({ map } = createAjoutMap("admin-map"));
   arretLayer = L.layerGroup().addTo(map);
   ligneLayer = L.layerGroup().addTo(map);
+  // Les cercles d'arrêts sont des tracés vectoriels : sans pane dédié, les lignes (ajoutées après) passent dessus
+  map.createPane("arretsCercles").style.zIndex = 450; // au-dessus des lignes (400), sous les icônes (600)
   falaiseLayer = L.layerGroup().addTo(map);
   map.on("popupopen", onPopupOpenWhileLinking);
+  map.on("moveend", updateLabels);
   document.addEventListener("keydown", (e) => e.key === "Escape" && linkSource && cancelLink());
   renderFalaises();
   let wasDot = dotMode();
@@ -365,7 +375,10 @@ function renderMap() {
   ligneLines.clear();
   if ($("layer-arrets").checked) {
     arrets.filter(arretVisible).forEach((a) => {
-      const marker = L.marker([a.lat, a.lng], { icon: arretDivIcon(a.types, 20) })
+      // Arrêt sans accès à une falaise : petit cercle noir à bord blanc (comme carte.php) ; sinon icône du type
+      const marker = (a.nb_acces > 0
+        ? L.marker([a.lat, a.lng], { icon: arretDivIcon(a.types, 20) })
+        : L.circleMarker([a.lat, a.lng], { pane: "arretsCercles", radius: 3.5, color: "#fff", weight: 1.5, fillColor: arretCercleColor(a), fillOpacity: 1 }))
         .bindPopup(
           `<b>${esc(a.nom)}</b><br><span class="text-xs">${esc(a.commune ?? "")} · #${a.id} · ${
             a.types.map((t) => TYPE_LABELS[t] ?? t).join(", ") || arretTypeDominant([])
@@ -396,15 +409,43 @@ function renderMap() {
       ligneLines.set(l.id, line);
     });
   }
+  updateLabels();
+}
+
+// Noms des arrêts, à droite du point (comme carte.php) : gares TER/TGV dès le zoom 13, les autres dès 16 ; seulement
+// les arrêts dans la vue, pour ne pas poser des milliers d'infobulles permanentes.
+const LABEL_ZOOM = 16;
+const LABEL_ZOOM_GARE = 13;
+function updateLabels() {
+  if (!map) return;
+  const z = map.getZoom();
+  const bounds = map.getBounds();
+  for (const m of arretMarkers.values()) {
+    const a = kindOf.get(m)?.item;
+    const gare = a?.types.some((t) => t === "ter" || t === "tgv");
+    const want = !!a && z >= (gare ? LABEL_ZOOM_GARE : LABEL_ZOOM) && bounds.contains(m.getLatLng());
+    const has = !!m.getTooltip();
+    if (want && !has) {
+      m.bindTooltip(esc(a.nom), {
+        permanent: true, direction: "right", offset: [a.nb_acces > 0 ? 2 : 6, 0], className: "vg-arret-label",
+      });
+    } else if (!want && has) m.unbindTooltip();
+  }
 }
 
 // --- Repositionnement : « Déplacer » rend le marqueur déplaçable ; le lâcher demande confirmation ---
 function startMove(id) {
   const a = arrets.find((x) => x.id === id);
-  const marker = arretMarkers.get(id);
+  let marker = arretMarkers.get(id);
   if (!a || !marker) return;
   map.closePopup();
   const from = L.latLng(a.lat, a.lng);
+  if (!marker.dragging) {
+    // Cercle (arrêt sans accès) : non déplaçable, remplacé le temps du geste par un marqueur ; renderMap() le rétablit
+    arretLayer.removeLayer(marker);
+    marker = L.marker(from, { icon: arretDivIcon(a.types, 20) }).addTo(arretLayer);
+    arretMarkers.set(id, marker);
+  }
   marker.dragging.enable();
   $("map-status").textContent = `Déplacez « ${a.nom} » à sa nouvelle position.`;
   marker.once("dragend", async () => {
@@ -413,6 +454,7 @@ function startMove(id) {
     const to = marker.getLatLng();
     if (!confirm(`Déplacer « ${a.nom} » (#${id}) de ${Math.round(from.distanceTo(to))} m ?\nSeule sa position change.`)) {
       marker.setLatLng(from);
+      renderMap();
       return;
     }
     try {
@@ -428,6 +470,7 @@ function startMove(id) {
       marker.setLatLng(from);
       alert(`Déplacement impossible : ${e.message}`);
     }
+    renderMap(); // rétablit popup et rendu (cercle ou icône) du marqueur
   });
 }
 

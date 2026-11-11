@@ -12,6 +12,7 @@ $res = $mysqli->query(
   "SELECT a.id, a.nom, a.commune, a.deleted, a.ter, a.tgv, a.bus, a.tram, a.teleph,
           ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng,
           (SELECT COUNT(*) FROM arrets_lignes_transport alt WHERE alt.arret_id = a.id) AS nb_lignes,
+          (SELECT MIN(alt.ligne_id) FROM arrets_lignes_transport alt WHERE alt.arret_id = a.id) AS ligne_id,
           (SELECT COUNT(*) FROM acces_falaise af WHERE af.arret_id = a.id) AS nb_acces
    FROM arrets a ORDER BY a.nom",
 );
@@ -33,6 +34,7 @@ while ($row = $res->fetch_assoc()) {
     "lat" => (float) $row["lat"],
     "lng" => (float) $row["lng"],
     "nb_lignes" => (int) $row["nb_lignes"],
+    "ligne_id" => $row["ligne_id"] !== null ? (int) $row["ligne_id"] : null, // une des lignes desservies (couleur du cercle)
     "nb_acces" => (int) $row["nb_acces"],
     "falaises" => $falaises_par_arret[(int) $row["id"]] ?? [],
   ];
@@ -85,6 +87,12 @@ $pageData = [
   <?php vite_css("main"); ?>
   <link rel="stylesheet" href="/global.css" />
   <link rel="manifest" href="/site.webmanifest" />
+  <style>
+    /* Noms d'arrêts : texte noir à halo blanc, sans cadre (comme carte.php) */
+    .leaflet-tooltip.vg-arret-label { background: none; border: 0; box-shadow: none; padding: 0; color: #000; font-size: 10px;
+      font-weight: 700; white-space: nowrap; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff; }
+    .leaflet-tooltip.vg-arret-label::before { display: none; }
+  </style>
 </head>
 
 <body class="min-h-screen flex flex-col">
