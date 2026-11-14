@@ -205,7 +205,7 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
             <button type="button" id="gtfs-show-stops" class="btn btn-sm btn-outline btn-primary"
               title="Montrer les arrêts du GTFS" aria-label="Montrer les arrêts du GTFS" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#eye"></use></svg><span class="text-xs">Voir</span></button>
             <button type="button" id="gtfs-import-stops" class="btn btn-sm btn-outline btn-primary"
-              title="Importer les arrêts du GTFS" aria-label="Importer les arrêts du GTFS" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#file-upload"></use></svg><span class="text-xs">Importer</span></button>
+              title="Importer les arrêts du GTFS" aria-label="Importer les arrêts du GTFS" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#file-upload"></use></svg><span class="text-xs">Utiliser GTFS</span></button>
           </div>
         </div>
         <div id="ligne-map" class="w-full h-[36rem] rounded-lg relative not-prose"></div>

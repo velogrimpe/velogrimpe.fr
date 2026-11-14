@@ -11,13 +11,25 @@ $arrets = [];
 $res = $mysqli->query(
   "SELECT a.id, a.nom, a.commune, a.deleted, a.ter, a.tgv, a.bus, a.tram, a.teleph, a.parent_id, a.position_manuelle,
           ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng,
-          (SELECT COUNT(*) FROM arrets c WHERE c.parent_id = a.id AND c.deleted = 0) AS nb_enfants,
-          (SELECT COUNT(*) FROM arrets_lignes_transport alt
-            WHERE alt.arret_id = a.id OR alt.arret_id IN (SELECT c.id FROM arrets c WHERE c.parent_id = a.id AND c.deleted = 0)) AS nb_lignes,
-          (SELECT MIN(alt.ligne_id) FROM arrets_lignes_transport alt
-            WHERE alt.arret_id = a.id OR alt.arret_id IN (SELECT c.id FROM arrets c WHERE c.parent_id = a.id AND c.deleted = 0)) AS ligne_id,
-          (SELECT COUNT(*) FROM acces_falaise af WHERE af.arret_id = a.id) AS nb_acces
-   FROM arrets a ORDER BY a.nom",
+          COALESCE(ch.n, 0) AS nb_enfants,
+          COALESCE(li.nb, 0) AS nb_lignes,
+          li.ligne_id AS ligne_id,
+          COALESCE(ac.n, 0) AS nb_acces
+   FROM arrets a
+   -- Agrégats pré-calculés une fois (et non en sous-requêtes corrélées par arrêt : O(arrêts × liaisons), ~15 s en prod).
+   LEFT JOIN (SELECT parent_id, COUNT(*) AS n FROM arrets WHERE deleted = 0 AND parent_id IS NOT NULL GROUP BY parent_id) ch
+     ON ch.parent_id = a.id
+   -- Lignes d'un arrêt = les siennes + celles de ses enfants non supprimés.
+   LEFT JOIN (
+     SELECT owner, COUNT(*) AS nb, MIN(ligne_id) AS ligne_id FROM (
+       SELECT arret_id AS owner, ligne_id FROM arrets_lignes_transport
+       UNION ALL
+       SELECT c.parent_id AS owner, alt.ligne_id FROM arrets_lignes_transport alt
+         JOIN arrets c ON c.id = alt.arret_id AND c.deleted = 0 AND c.parent_id IS NOT NULL
+     ) x GROUP BY owner
+   ) li ON li.owner = a.id
+   LEFT JOIN (SELECT arret_id, COUNT(*) AS n FROM acces_falaise GROUP BY arret_id) ac ON ac.arret_id = a.id
+   ORDER BY a.nom",
 );
 // Falaises reliées à chaque arrêt (via acces_falaise), pour l'affichage et la recherche.
 $falaises_par_arret = [];
