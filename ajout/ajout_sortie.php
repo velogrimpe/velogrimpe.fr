@@ -9,7 +9,7 @@ $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(M
 $falaises = $mysqli->query("SELECT falaise_id, falaise_nom FROM falaises WHERE falaise_public >= 1 ORDER BY falaise_nom")->fetch_all(MYSQLI_ASSOC);
 
 // Load gares for autocomplete (for velo routes)
-$gares = $mysqli->query("SELECT id AS gare_id, nom AS gare_nom FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0 ORDER BY nom")->fetch_all(MYSQLI_ASSOC);
+$gares = $mysqli->query("SELECT id AS gare_id, nom AS gare_nom FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0 AND parent_id IS NULL ORDER BY nom")->fetch_all(MYSQLI_ASSOC);
 
 ?>
 <!DOCTYPE html>

@@ -111,9 +111,12 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_lib.php';
 $lignesParArret = [];
 if ($rowsPieton) {
   $ids = implode(',', array_unique(array_map(fn($r) => (int) $r['acces_pieton_arret_id'], $rowsPieton)));
-  foreach ($mysqli->query("SELECT alt.arret_id, l.nom
-      FROM arrets_lignes_transport alt JOIN lignes_transport l ON l.id = alt.ligne_id
-      WHERE alt.arret_id IN ($ids) ORDER BY l.nom")->fetch_all(MYSQLI_ASSOC) as $l) {
+  // Les lignes desservent les arrêts enfants : celles d'un parent sont celles de ses enfants (une fois chacune)
+  foreach ($mysqli->query("SELECT DISTINCT COALESCE(a.parent_id, a.id) AS arret_id, l.nom
+      FROM arrets_lignes_transport alt
+      JOIN arrets a ON a.id = alt.arret_id
+      JOIN lignes_transport l ON l.id = alt.ligne_id
+      WHERE COALESCE(a.parent_id, a.id) IN ($ids) ORDER BY l.nom")->fetch_all(MYSQLI_ASSOC) as $l) {
     $lignesParArret[(int) $l['arret_id']][] = $l['nom'];
   }
 }

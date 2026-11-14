@@ -27,7 +27,7 @@ $nb_velos_a_valider = count($velos_a_valider);
 
 $arrets = $mysqli->query("SELECT a.id, a.nom
   FROM arrets a
-  WHERE a.bus = 1
+  WHERE a.bus = 1 AND a.parent_id IS NULL
   ORDER BY a.nom")->fetch_all(MYSQLI_ASSOC);
 
 $falaises_topo = array_values(array_filter(

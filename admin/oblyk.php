@@ -23,7 +23,7 @@ $gares = $mysqli->query("SELECT
   GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin) SEPARATOR '=|=') AS villes
   FROM arrets g
   LEFT JOIN train t ON t.arret_id = g.id
-  where g.deleted = 0 AND (g.ter = 1 OR g.tgv = 1)
+  where g.deleted = 0 AND g.parent_id IS NULL AND (g.ter = 1 OR g.tgv = 1)
   GROUP BY g.id;"
 )->fetch_all(MYSQLI_ASSOC);
 // Itinéraires depuis un arrêt non-gare : rendu carte au Lot 6.

@@ -12,7 +12,7 @@ $falaise_id = $_GET["falaise_id"] ?? null;
 $arrets_pietons = [];
 if (!$falaise_id) {
   require_once $_SERVER["DOCUMENT_ROOT"] . "/lib/arrets_lib.php";
-  $result_arrets = $mysqli->query("SELECT id, nom, commune, ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets WHERE deleted = 0 ORDER BY nom");
+  $result_arrets = $mysqli->query("SELECT id, nom, commune, ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets WHERE deleted = 0 AND parent_id IS NULL ORDER BY nom");
   while ($row = $result_arrets->fetch_assoc()) {
     $commune = trim((string) $row['commune']);
     $arrets_pietons[] = [

@@ -134,9 +134,12 @@ $stmtAp->close();
 if ($accesPietons) {
   $apIds = implode(',', array_map(fn($a) => (int) $a['arret_id'], $accesPietons));
   $lignesParArret = [];
-  foreach ($mysqli->query("SELECT alt.arret_id, l.id, l.nom, l.couleur, l.numero, l.operateur, l.operateur_url, l.horaire_url, l.date_modification
-      FROM arrets_lignes_transport alt JOIN lignes_transport l ON l.id = alt.ligne_id
-      WHERE alt.arret_id IN ($apIds) ORDER BY l.nom")->fetch_all(MYSQLI_ASSOC) as $l) {
+  // Les lignes desservent les arrêts enfants : celles d'un parent sont celles de ses enfants (une fois chacune)
+  foreach ($mysqli->query("SELECT DISTINCT COALESCE(a.parent_id, a.id) AS arret_id, l.id, l.nom, l.couleur, l.numero, l.operateur, l.operateur_url, l.horaire_url, l.date_modification
+      FROM arrets_lignes_transport alt
+      JOIN arrets a ON a.id = alt.arret_id
+      JOIN lignes_transport l ON l.id = alt.ligne_id
+      WHERE COALESCE(a.parent_id, a.id) IN ($apIds) ORDER BY l.nom")->fetch_all(MYSQLI_ASSOC) as $l) {
     $lignesParArret[(int) $l['arret_id']][] = [
       'id' => (int) $l['id'], 'nom' => $l['nom'], 'couleur' => $l['couleur'], 'numero' => $l['numero'],
       'operateur' => $l['operateur'], 'operateur_url' => $l['operateur_url'], 'horaire_url' => $l['horaire_url'],
@@ -169,7 +172,7 @@ if (!$dataF) {
   exit;
 }
 
-$stmtAllGares = $mysqli->prepare("SELECT id AS gare_id, nom AS gare_nom FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0 ORDER BY nom");
+$stmtAllGares = $mysqli->prepare("SELECT id AS gare_id, nom AS gare_nom FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0 AND parent_id IS NULL ORDER BY nom");
 $stmtAllGares->execute();
 $result = $stmtAllGares->get_result();
 $allGares = [];
@@ -1376,7 +1379,7 @@ $stmtC->close();
     import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
     import { pied_tooltip_html } from "/js/components/utils/times.js";
     import Gare from "/js/components/map/gare.js";
-    import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer, garesLayer } from "/js/components/map/load-vector-tiles.js";
+    import { campingLayer, giteLayer, trainlinesLayer, tgvLayer, biodivLayer, garesLayer, masquerGaresTuiles } from "/js/components/map/load-vector-tiles.js";
 
     const falaise = <?php echo json_encode([
       'falaise_id' => $dataF['falaise_id'],
@@ -1430,6 +1433,7 @@ $stmtC->close();
         }, [])
         .map((it, index) => new Gare(map, it))
     );
+    masquerGaresTuiles(itineraires.map(it => it.gare_nom));
 
     const featureMap = {};
 

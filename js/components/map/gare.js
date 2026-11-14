@@ -19,7 +19,12 @@ export default class Gare extends MultiScaleElement {
       },
       {
         layer: iconMarker,
-        visibility: { from: 7 },
+        visibility: { from: 7, to: Gare.labelFromZoom - 1 },
+      },
+      {
+        // même icône, avec le nom de la gare affiché en permanence
+        layer: buildGareMarker(feature, options, true),
+        visibility: { from: Gare.labelFromZoom - 1 },
       },
     ];
 
@@ -27,6 +32,7 @@ export default class Gare extends MultiScaleElement {
   }
 
   static iconSize = 24;
+  static labelFromZoom = 11; // aligné sur les noms des falaises (falaise-voisine.js : from: 10, soit zoom >= 11)
   static circleRadius = 3;
 
   static gareIcon = (size = 24) => {
@@ -56,10 +62,18 @@ export default class Gare extends MultiScaleElement {
   updateAssociations(features) {}
 }
 
-const buildGareMarker = (feature, options = {}) => {
+const buildGareMarker = (feature, options = {}, withLabel = false) => {
   const marker = L.marker(feature.gare_latlng.split(",").map(parseFloat), {
     icon: Gare.gareIcon(Gare.iconSize),
   });
+  if (withLabel && feature.gare_nom) {
+    marker.bindTooltip(feature.gare_nom, {
+      permanent: true,
+      direction: "bottom",
+      offset: [0, Gare.iconSize / 2],
+      className: "vg-gare-label",
+    });
+  }
   return marker;
 };
 const buildDotMarker = (feature, options = {}) => {

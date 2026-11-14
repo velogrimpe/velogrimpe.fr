@@ -334,7 +334,10 @@ $lignesGeojson = [
   'features' => [],
 ];
 $arretIdsParLigne = [];
-foreach ($mysqli->query("SELECT ligne_id, arret_id FROM arrets_lignes_transport ORDER BY ligne_id, arret_id")->fetch_all(MYSQLI_ASSOC) as $r) {
+// Les lignes desservent les arrêts enfants, qui ne sont pas exportés : elles sont rattachées à leur parent
+foreach ($mysqli->query("SELECT DISTINCT alt.ligne_id, COALESCE(a.parent_id, a.id) AS arret_id
+    FROM arrets_lignes_transport alt JOIN arrets a ON a.id = alt.arret_id
+    ORDER BY alt.ligne_id, arret_id")->fetch_all(MYSQLI_ASSOC) as $r) {
   $arretIdsParLigne[(int) $r['ligne_id']][] = (int) $r['arret_id'];
 }
 foreach ($mysqli->query(LIGNE_SELECT . " ORDER BY id")->fetch_all(MYSQLI_ASSOC) as $row) {
@@ -485,7 +488,7 @@ $refsByArret = [];
 foreach ($refsResult as $ref) {
   $refsByArret[(int) $ref['arret_id']][$ref['source']] = $ref['ref'];
 }
-$arretsResult = $mysqli->query("SELECT " . ARRET_SELECT_FIELDS . " FROM arrets WHERE deleted = 0 ORDER BY id")->fetch_all(MYSQLI_ASSOC);
+$arretsResult = $mysqli->query("SELECT " . ARRET_SELECT_FIELDS . " FROM arrets WHERE deleted = 0 AND parent_id IS NULL ORDER BY id")->fetch_all(MYSQLI_ASSOC);
 foreach ($arretsResult as $row) {
   if ($row['lat'] === null || $row['lng'] === null) {
     continue;

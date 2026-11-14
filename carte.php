@@ -380,6 +380,9 @@ $highlight = $_GET['h'] ?? '';
     zoom: 6.5,
     dragRotate: false,       // pas de rotation / pitch au clic droit (ni ctrl+drag)
     pitchWithRotate: false,
+    // ?sync=true : la vue (zoom/lat/lng) est synchronisée dans le hash de l'URL (#zoom/lat/lng),
+    // relue au chargement et mise à jour à chaque déplacement.
+    hash: new URLSearchParams(location.search).get("sync") === "true",
   });
 
   // Built-in controls
@@ -970,6 +973,7 @@ $highlight = $_GET['h'] ?? '';
   // Module d'icône des arrêts (ES module partagé avec Leaflet) : chargé en
   // asynchrone, le premier rendu attend sa disponibilité (cf. map.on("load")).
   let arretIconMod = null;
+  let arretGroupesMod = null;
   function buildArretEl(types, size) {
     const el = document.createElement("div");
     const { html, size: effectiveSize } = arretIconMod.arretIconHtml(types, size);
@@ -1312,8 +1316,9 @@ $highlight = $_GET['h'] ?? '';
     });
     // Noms de tous les arrêts (topo + hors topo des lignes) dans une seule couche, à partir de z14.
     // Les gares hors topo sont nommées par le PMTiles (arrets-pm-label), pas ici.
+    // Les parents regroupés ont leurs propres couches de noms (cf. plus bas) : parent à bas zoom, enfants à fort zoom.
     const labelFeatures = arrets
-      .filter(a => a.type === "arret" && a.arret_latlng)
+      .filter(a => a.type === "arret" && a.arret_latlng && !a.enfants?.length)
       .map(a => ({ type: "Feature", properties: { nom: a.arret_nom, topo: true }, geometry: { type: "Point", coordinates: lngLat(a.arret_latlng) } }));
     map.addSource("arrets-labels", { type: "geojson", data: { type: "FeatureCollection", features: labelFeatures } });
     map.addLayer({
@@ -1328,6 +1333,67 @@ $highlight = $_GET['h'] ?? '';
       },
       paint: { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": 2 },
     });
+    // Arrêts regroupés sous un parent (ex. les deux sens d'une station) : à bas zoom seul le parent est montré et nommé ;
+    // à partir de GROUPE_ZOOM les enfants apparaissent avec leur propre nom (les symboles MapLibre gèrent seuls les
+    // collisions entre noms) et une enveloppe (enveloppe convexe + buffer) ; le nom du parent s'efface alors.
+    const GROUPE_ZOOM = 14;
+    const TEXT_FONT = ["Open Sans Bold", "Arial Unicode MS Bold"];
+    const parentsGroupes = arrets.filter(a => a.enfants?.length && a.arret_latlng);
+    const enfantFeatures = [];
+    const enveloppeFeatures = [];
+    const parentsLabelFeatures = [];
+    const parentsHorsTopoFeatures = []; // parents sans accès falaise portant des lignes : un seul point à bas zoom
+    parentsGroupes.forEach(p => {
+      const pos = p.enfants.map(e => { const [lng, lat] = lngLat(e.arret_latlng); return { lat, lng }; });
+      p.enfants.forEach((e, i) => enfantFeatures.push({
+        type: "Feature", properties: { id: e.arret_id, parent: p.arret_id, nom: e.arret_nom, color: "#000" },
+        geometry: { type: "Point", coordinates: [pos[i].lng, pos[i].lat] },
+      }));
+      const ring = arretGroupesMod.enveloppe(pos);
+      if (ring) enveloppeFeatures.push({ type: "Feature", properties: { id: p.arret_id }, geometry: { type: "Polygon", coordinates: [ring] } });
+      parentsLabelFeatures.push({ type: "Feature", properties: { nom: p.arret_nom, topo: p.type === "arret" }, geometry: { type: "Point", coordinates: lngLat(p.arret_latlng) } });
+      if (p.type !== "arret" && p.lignes.length && !arretIconMod.arretEstGare(p.types)) {
+        parentsHorsTopoFeatures.push({ type: "Feature", properties: { id: p.arret_id, nom: p.arret_nom, color: "#000" }, geometry: { type: "Point", coordinates: lngLat(p.arret_latlng) } });
+      }
+    });
+    map.addSource("arrets-groupes", { type: "geojson", data: { type: "FeatureCollection", features: enveloppeFeatures } });
+    map.addLayer({ id: "arrets-groupes-fill", type: "fill", source: "arrets-groupes", minzoom: GROUPE_ZOOM,
+      paint: { "fill-color": "#2563eb", "fill-opacity": 0.12 } }, "arrets-pm-circle");
+    map.addLayer({ id: "arrets-groupes-line", type: "line", source: "arrets-groupes", minzoom: GROUPE_ZOOM,
+      paint: { "line-color": "#2563eb", "line-width": 1.5, "line-opacity": 0.7 } }, "arrets-pm-circle");
+    map.addSource("arrets-parents", { type: "geojson", data: { type: "FeatureCollection", features: parentsHorsTopoFeatures } });
+    map.addLayer({ id: "arrets-parents", type: "circle", source: "arrets-parents", minzoom: 11, maxzoom: GROUPE_ZOOM,
+      paint: { "circle-radius": 4.5, "circle-color": ["get", "color"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
+    map.addSource("arrets-enfants", { type: "geojson", data: { type: "FeatureCollection", features: enfantFeatures } });
+    map.addLayer({ id: "arrets-enfants", type: "circle", source: "arrets-enfants", minzoom: GROUPE_ZOOM,
+      paint: { "circle-radius": 3.5, "circle-color": ["get", "color"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
+    // Noms : le parent jusqu'à GROUPE_ZOOM (dès z12), puis chaque enfant. Collisions : défaut MapLibre (un nom qui en
+    // chevauche un autre est masqué), avec ancre variable pour laisser la place aux voisins.
+    map.addSource("arrets-parents-labels", { type: "geojson", data: { type: "FeatureCollection", features: parentsLabelFeatures } });
+    const labelPaint = { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": 2 };
+    map.addLayer({
+      id: "arrets-parents-labels", type: "symbol", source: "arrets-parents-labels", minzoom: 12, maxzoom: GROUPE_ZOOM,
+      layout: { "text-field": ["get", "nom"], "text-size": 12, "text-offset": [0, 0.8], "text-anchor": "top", "text-font": TEXT_FONT },
+      paint: labelPaint,
+    });
+    map.addLayer({
+      id: "arrets-enfants-labels", type: "symbol", source: "arrets-enfants", minzoom: GROUPE_ZOOM,
+      layout: {
+        "text-field": ["get", "nom"], "text-size": 12, "text-font": TEXT_FONT,
+        "text-variable-anchor": ["right", "left", "top", "bottom"], "text-radial-offset": 0.8, "text-justify": "auto",
+      },
+      paint: labelPaint,
+    });
+    bindStopClick("arrets-parents");
+    bindStopClick("arrets-enfants");
+    // Couleur des arrêts regroupés : celle de leur ligne (connue au chargement des lignes, cf. chargerLignes)
+    const colorDe = new Map(); // arret_id (enfant ou parent) -> couleur
+    function colorerGroupes() {
+      const recolor = (id, fs) => map.getSource(id)?.setData({ type: "FeatureCollection", features: fs.map(f => ({ ...f, properties: { ...f.properties, color: colorDe.get(f.properties.id) ?? "#000" } })) });
+      recolor("arrets-enfants", enfantFeatures);
+      recolor("arrets-parents", parentsHorsTopoFeatures);
+    }
+
     // Toutes les lignes de transport à partir de z11 (tracé + arrêts hors topo cliquables).
     // Chargement paresseux : une seule requête, au premier passage à z11.
     const LIGNES_MIN_ZOOM = 11;
@@ -1346,6 +1412,12 @@ $highlight = $_GET['h'] ?? '';
           lineFeatures.push({ type: "Feature", properties: { color, nom: l.nom || "", numero: l.numero || "" }, geometry: l.geometry });
         }
         (l.arrets ?? []).forEach((a) => {
+          if (a.parent_id != null) {
+            // Arrêt regroupé : dessiné par les couches « arrets-parents » (bas zoom) et « arrets-enfants » (fort zoom)
+            if (!colorDe.has(a.id)) colorDe.set(a.id, color);
+            if (!colorDe.has(a.parent_id)) colorDe.set(a.parent_id, color);
+            return;
+          }
           if (topoIds.has(a.id)) return;
           stopFeatures.push({ type: "Feature", properties: { nom: a.nom, color, gare: (a.types ?? []).some(t => t === "ter" || t === "tgv") }, geometry: { type: "Point", coordinates: [a.lng, a.lat] } });
         });
@@ -1360,6 +1432,7 @@ $highlight = $_GET['h'] ?? '';
       stopFeatures.filter(f => !f.properties.gare).forEach((f) => {
         labelFeatures.push({ type: "Feature", properties: { nom: f.properties.nom, topo: false }, geometry: f.geometry });
       });
+      colorerGroupes();
       map.getSource("arrets-labels")?.setData({ type: "FeatureCollection", features: labelFeatures });
       map.addSource("lignes-all-stops", { type: "geojson", data: { type: "FeatureCollection", features: stopFeatures } });
       map.addLayer({ id: "lignes-all-stops", type: "circle", source: "lignes-all-stops", minzoom: LIGNES_MIN_ZOOM,
@@ -1395,10 +1468,14 @@ $highlight = $_GET['h'] ?? '';
   map.on("load", async () => {
     // Charger les icônes
     await Promise.all([loadIcon("camping", CAMPING_SVG), loadIcon("gite", GITE_SVG)]);
+    // Modules nécessaires aux couches d'arrêts (icônes, enveloppe des arrêts regroupés)
+    [arretIconMod, arretGroupesMod] = await Promise.all([
+      import("/js/components/map/arret-icon.js"),
+      import("/js/components/map/arrets-groupes.js"),
+    ]);
     addOverlays();
     // Premier rendu des marqueurs DOM
     renderFalaises();
-    arretIconMod = await import("/js/components/map/arret-icon.js");
     renderArrets();
   });
 </script>

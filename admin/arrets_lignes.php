@@ -9,10 +9,13 @@ $token = $config["admin_token"];
 // Tous les arrêts (y compris supprimés : filtre côté client) et toutes les lignes (sans géométrie).
 $arrets = [];
 $res = $mysqli->query(
-  "SELECT a.id, a.nom, a.commune, a.deleted, a.ter, a.tgv, a.bus, a.tram, a.teleph,
+  "SELECT a.id, a.nom, a.commune, a.deleted, a.ter, a.tgv, a.bus, a.tram, a.teleph, a.parent_id, a.position_manuelle,
           ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng,
-          (SELECT COUNT(*) FROM arrets_lignes_transport alt WHERE alt.arret_id = a.id) AS nb_lignes,
-          (SELECT MIN(alt.ligne_id) FROM arrets_lignes_transport alt WHERE alt.arret_id = a.id) AS ligne_id,
+          (SELECT COUNT(*) FROM arrets c WHERE c.parent_id = a.id AND c.deleted = 0) AS nb_enfants,
+          (SELECT COUNT(*) FROM arrets_lignes_transport alt
+            WHERE alt.arret_id = a.id OR alt.arret_id IN (SELECT c.id FROM arrets c WHERE c.parent_id = a.id AND c.deleted = 0)) AS nb_lignes,
+          (SELECT MIN(alt.ligne_id) FROM arrets_lignes_transport alt
+            WHERE alt.arret_id = a.id OR alt.arret_id IN (SELECT c.id FROM arrets c WHERE c.parent_id = a.id AND c.deleted = 0)) AS ligne_id,
           (SELECT COUNT(*) FROM acces_falaise af WHERE af.arret_id = a.id) AS nb_acces
    FROM arrets a ORDER BY a.nom",
 );
@@ -36,6 +39,9 @@ while ($row = $res->fetch_assoc()) {
     "nb_lignes" => (int) $row["nb_lignes"],
     "ligne_id" => $row["ligne_id"] !== null ? (int) $row["ligne_id"] : null, // une des lignes desservies (couleur du cercle)
     "nb_acces" => (int) $row["nb_acces"],
+    "parent_id" => $row["parent_id"] !== null ? (int) $row["parent_id"] : null, // arrêt enfant : id de son parent
+    "nb_enfants" => (int) $row["nb_enfants"], // > 0 : arrêt parent
+    "position_manuelle" => (bool) $row["position_manuelle"],
     "falaises" => $falaises_par_arret[(int) $row["id"]] ?? [],
   ];
 }
@@ -117,6 +123,14 @@ $pageData = [
     .vg-search-results button { display: block; width: 100%; padding: .375rem .5rem; text-align: left; white-space: nowrap;
       overflow: hidden; text-overflow: ellipsis; background: transparent; border: 0; cursor: pointer; }
     .vg-search-results button:hover { background: rgba(0,0,0,.08); }
+    /* Vue liste, panneaux côte à côte : la page tient dans la fenêtre, seuls les tableaux défilent */
+    @media (min-width: 1024px) {
+      body:has(#view-liste:not(.hidden)) { height: 100dvh; overflow: hidden; }
+      body:has(#view-liste:not(.hidden)) main { min-height: 0; }
+      #view-liste { flex: 1 1 0; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+      #view-liste .vg-panel { display: flex; flex-direction: column; min-height: 0; }
+      #view-liste .vg-scroll { flex: 1 1 0; min-height: 0; max-height: none; }
+    }
   </style>
 </head>
 
@@ -137,7 +151,7 @@ $pageData = [
       <button role="tab" class="tab" data-view="carte">Carte</button>
     </div>
 
-    <div class="flex flex-col items-start gap-2">
+    <div class="flex flex-row items-center gap-4">
       <input id="search" type="search" class="input input-sm input-bordered w-full max-w-xs"
         placeholder="Rechercher (arrêt, commune, falaise, n°, opérateur, id)…" autocomplete="off" />
       <div id="type-filters" class="flex flex-wrap items-center gap-2 text-sm">
@@ -165,18 +179,18 @@ $pageData = [
 
     <!-- Vue liste -->
     <section id="view-liste" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div>
+      <div class="vg-panel" style="min-width:0">
         <h2 class="text-lg font-bold mb-2">Arrêts <span id="count-arrets" class="badge badge-neutral"></span></h2>
-        <div class="overflow-auto max-h-[70vh] rounded-md bg-base-100">
-          <table class="table table-sm table-pin-rows">
-            <thead><tr><th>Arrêt</th><th>Types</th><th class="text-right">Lignes</th><th>Falaises</th><th></th></tr></thead>
+        <div class="vg-scroll overflow-auto max-h-[70vh] rounded-md bg-base-100">
+          <table class="table table-sm table-pin-rows table-fixed">
+            <thead><tr><th>Arrêt</th><th style="width:4.5rem">Types</th><th class="text-right" style="width:3.5rem">Lignes</th><th style="width:6rem">Falaises</th><th style="width:11.5rem"></th></tr></thead>
             <tbody id="tbody-arrets"></tbody>
           </table>
         </div>
       </div>
-      <div>
+      <div class="vg-panel" style="min-width:0">
         <h2 class="text-lg font-bold mb-2">Lignes <span id="count-lignes" class="badge badge-neutral"></span></h2>
-        <div class="overflow-auto max-h-[70vh] rounded-md bg-base-100">
+        <div class="vg-scroll overflow-auto max-h-[70vh] rounded-md bg-base-100">
           <table class="table table-sm table-pin-rows">
             <thead><tr><th>Ligne</th><th>Opérateur</th><th class="text-right">Arrêts</th><th></th></tr></thead>
             <tbody id="tbody-lignes"></tbody>

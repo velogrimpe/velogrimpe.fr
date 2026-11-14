@@ -7,7 +7,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 // Arrêts de départ possibles : tous types (gares, mais aussi cars qui prennent les vélos…)
-$result_arrets = $mysqli->query("SELECT id, nom, slug, commune, ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets WHERE deleted = 0 ORDER BY nom");
+$result_arrets = $mysqli->query("SELECT id, nom, slug, commune, ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets WHERE deleted = 0 AND parent_id IS NULL ORDER BY nom");
 $arrets = [];
 while ($row = $result_arrets->fetch_assoc()) {
   $commune = trim((string) $row['commune']);

@@ -10,9 +10,11 @@ $arret_id = (int) ($_GET['arret_id'] ?? 0);
 
 if ($arret_id > 0) {
   $stmt = $mysqli->prepare(
-    LIGNE_SELECT . " WHERE id IN (SELECT ligne_id FROM arrets_lignes_transport WHERE arret_id = ?) ORDER BY nom"
+    // Un parent est desservi par les lignes de ses enfants
+    LIGNE_SELECT . " WHERE id IN (SELECT ligne_id FROM arrets_lignes_transport
+                                  WHERE arret_id = ? OR arret_id IN (SELECT id FROM arrets WHERE parent_id = ?)) ORDER BY nom"
   );
-  $stmt->bind_param("i", $arret_id);
+  $stmt->bind_param("ii", $arret_id, $arret_id);
   $stmt->execute();
   $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
   $stmt->close();

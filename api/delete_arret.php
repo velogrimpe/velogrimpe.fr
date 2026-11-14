@@ -22,9 +22,11 @@ if ($arret_id <= 0) {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_parents_lib.php';
 
 // Suppression logique (colonne `deleted`) : acces_falaise et train référencent arrets sans cascade.
-$stmt = $mysqli->prepare("SELECT deleted FROM arrets WHERE id = ?");
+// Un parent qui a des enfants, ou le dernier enfant d'un parent, ne se supprime pas : défusionner d'abord.
+$stmt = $mysqli->prepare("SELECT deleted, parent_id FROM arrets WHERE id = ?");
 $stmt->bind_param("i", $arret_id);
 $stmt->execute();
 $row = $stmt->get_result()->fetch_assoc();
@@ -34,8 +36,19 @@ if (!$row) {
   die(json_encode(["error" => "Arrêt introuvable"]));
 }
 
+if (arret_nb_enfants($mysqli, $arret_id) > 0) {
+  http_response_code(409);
+  die(json_encode(["error" => "Cet arrêt est un parent : défusionnez-le avant de le supprimer"]));
+}
+$parent_id = $row["parent_id"] !== null ? (int) $row["parent_id"] : null;
+if ($parent_id !== null && !$row["deleted"] && arret_nb_enfants($mysqli, $parent_id) <= 1) {
+  http_response_code(409);
+  die(json_encode(["error" => "C'est le dernier enfant de son parent : défusionnez le parent à la place"]));
+}
+
 $stmt = $mysqli->prepare("UPDATE arrets SET deleted = 1 WHERE id = ?");
 $stmt->bind_param("i", $arret_id);
 $stmt->execute();
 $stmt->close();
+if ($parent_id !== null) arret_recalculer_parent($mysqli, $parent_id);
 echo json_encode(["success" => true]);

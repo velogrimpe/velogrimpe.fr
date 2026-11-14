@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
   // L'arrêt (de tout type) doit exister : plus de table `gares` ni de FK côté PHP à attendre.
-  $stmt = $mysqli->prepare("SELECT 1 FROM arrets WHERE id = ? AND deleted = 0");
+  $stmt = $mysqli->prepare("SELECT 1 FROM arrets WHERE id = ? AND deleted = 0 AND parent_id IS NULL");
   $stmt->bind_param("i", $arret_id);
   $stmt->execute();
   $arretExiste = $stmt->get_result()->fetch_assoc() !== null;

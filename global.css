@@ -203,6 +203,20 @@ a:not(.navbar a):not(.menu a):not(.btn):not(#map a):not(.editor-map a):not(
   --vg-color: #334155;
 }
 
+/* Nom d'une gare du topo (même rendu que les gares des tuiles vectorielles) */
+.leaflet-tooltip.vg-gare-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  color: #000;
+  font: 700 12px sans-serif;
+  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+}
+.leaflet-tooltip-bottom.vg-gare-label::before {
+  display: none;
+}
+
 /* Velo tooltip - uses --vg-color */
 .vg-velo-tooltip {
   padding: 1px;

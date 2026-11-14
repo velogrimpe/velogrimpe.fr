@@ -33,18 +33,19 @@ function ligne_arret_ids(mysqli $mysqli, int $ligne_id): array
 
 const LIGNE_SELECT = "SELECT id, nom, numero, operateur, operateur_url, horaire_url, ref, couleur, ST_AsGeoJSON(geometry) AS geojson FROM lignes_transport";
 
-/** Arrêts liés à une ligne avec leurs coordonnées (rendu du halo sans catalogue d'arrêts). @return array<int, array{id:int, nom:string, types:string[], lat:float, lng:float}> */
+/** Arrêts liés à une ligne avec leurs coordonnées (rendu du halo sans catalogue d'arrêts) ; `parent_id` : parent de l'arrêt s'il est regroupé. @return array<int, array{id:int, nom:string, types:string[], lat:float, lng:float, parent_id:?int}> */
 function ligne_arrets(mysqli $mysqli, int $ligne_id): array
 {
   $stmt = $mysqli->prepare(
-    "SELECT a.id, a.nom, a.ter, a.tgv, a.bus, a.tram, a.teleph, ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng
+    "SELECT a.id, a.nom, a.ter, a.tgv, a.bus, a.tram, a.teleph, a.parent_id, ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng
      FROM arrets_lignes_transport alt JOIN arrets a ON a.id = alt.arret_id
      WHERE alt.ligne_id = ? ORDER BY a.id"
   );
   $stmt->bind_param("i", $ligne_id);
   $stmt->execute();
   $rows = array_map(
-    fn($r) => ["id" => (int) $r["id"], "nom" => $r["nom"], "types" => arret_types($r), "lat" => (float) $r["lat"], "lng" => (float) $r["lng"]],
+    fn($r) => ["id" => (int) $r["id"], "nom" => $r["nom"], "types" => arret_types($r), "lat" => (float) $r["lat"], "lng" => (float) $r["lng"],
+      "parent_id" => $r["parent_id"] !== null ? (int) $r["parent_id"] : null],
     $stmt->get_result()->fetch_all(MYSQLI_ASSOC)
   );
   $stmt->close();

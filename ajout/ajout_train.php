@@ -15,7 +15,7 @@ while ($row = $result_villes->fetch_assoc()) {
 }
 
 // Arrêts d'arrivée possibles : tous types (gares, mais aussi cars, trams…)
-$result_arrets = $mysqli->query("SELECT id, nom, commune, ter, tgv, bus, tram, teleph FROM arrets WHERE deleted = 0 ORDER BY nom");
+$result_arrets = $mysqli->query("SELECT id, nom, commune, ter, tgv, bus, tram, teleph FROM arrets WHERE deleted = 0 AND parent_id IS NULL ORDER BY nom");
 $arrets = [];
 while ($row = $result_arrets->fetch_assoc()) {
   $commune = trim((string) $row['commune']);

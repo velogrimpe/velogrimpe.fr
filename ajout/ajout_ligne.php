@@ -19,10 +19,17 @@ while ($row = $res->fetch_assoc()) {
   $falaises[] = ["id" => (int) $row["falaise_id"], "nom" => $row["falaise_nom"], "lat" => $lat, "lng" => $lng];
 }
 
-// Tous les arrêts (carte + autocomplete + popup « lier à la ligne »)
+// Arrêts « feuilles » (carte + autocomplete + popup « lier à la ligne » + rapprochement GTFS) : orphelins et enfants,
+// jamais les parents (une ligne dessert les arrêts enfants). `gtfsRefs` : stop_id GTFS déjà mémorisés sur l'arrêt.
+$gtfs_refs_par_arret = [];
+$resR = $mysqli->query("SELECT arret_id, ref FROM references_externes WHERE source = 'gtfs' ORDER BY id");
+while ($r = $resR->fetch_assoc()) $gtfs_refs_par_arret[(int) $r["arret_id"]][] = $r["ref"];
 $arrets = [];
 $res = $mysqli->query(
-  "SELECT id, nom, ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets ORDER BY nom",
+  "SELECT a.id, a.nom, a.ter, a.tgv, a.bus, a.tram, a.teleph, ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng
+   FROM arrets a
+   WHERE a.deleted = 0 AND NOT EXISTS (SELECT 1 FROM arrets c WHERE c.parent_id = a.id AND c.deleted = 0)
+   ORDER BY a.nom",
 );
 while ($row = $res->fetch_assoc()) {
   $arrets[] = [
@@ -31,6 +38,7 @@ while ($row = $res->fetch_assoc()) {
     "types" => arret_types($row),
     "lat" => (float) $row["lat"],
     "lng" => (float) $row["lng"],
+    "gtfsRefs" => $gtfs_refs_par_arret[(int) $row["id"]] ?? [],
   ];
 }
 
@@ -184,20 +192,20 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
           <!-- Tracé -->
           <div class="flex items-center gap-2">
             <span class="text-sm font-semibold w-14">Tracé</span>
-            <button type="button" id="btn-draw" class="btn btn-sm btn-square btn-outline btn-primary" aria-pressed="false"
-              title="Tracer à la main" aria-label="Tracer à la main"><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#plus"></use></svg></button>
-            <button type="button" id="btn-edit-geometry" class="btn btn-sm btn-square btn-outline btn-primary" aria-pressed="false"
-              title="Modifier le tracé" aria-label="Modifier le tracé" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#pencil"></use></svg></button>
-            <button type="button" id="btn-clear-geometry" class="btn btn-sm btn-square btn-ghost text-error"
-              title="Effacer le tracé" aria-label="Effacer le tracé"><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#trash"></use></svg></button>
+            <button type="button" id="btn-draw" class="btn btn-sm btn-outline btn-primary" aria-pressed="false"
+              title="Tracer à la main" aria-label="Tracer à la main"><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#plus"></use></svg><span class="text-xs">Tracer</span></button>
+            <button type="button" id="btn-edit-geometry" class="btn btn-sm btn-outline btn-primary" aria-pressed="false"
+              title="Modifier le tracé" aria-label="Modifier le tracé" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#pencil"></use></svg><span class="text-xs">Modifier</span></button>
+            <button type="button" id="btn-clear-geometry" class="btn btn-sm btn-ghost text-error"
+              title="Effacer le tracé" aria-label="Effacer le tracé"><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#trash"></use></svg><span class="text-xs">Effacer</span></button>
           </div>
           <!-- Arrêts de la ligne GTFS choisie (actifs une fois la ligne choisie) -->
           <div class="flex items-center gap-2">
             <span class="text-sm font-semibold w-14">Arrêts</span>
-            <button type="button" id="gtfs-show-stops" class="btn btn-sm btn-square btn-outline btn-primary"
-              title="Montrer les arrêts du GTFS" aria-label="Montrer les arrêts du GTFS" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#eye"></use></svg></button>
-            <button type="button" id="gtfs-import-stops" class="btn btn-sm btn-square btn-outline btn-primary"
-              title="Importer les arrêts du GTFS" aria-label="Importer les arrêts du GTFS" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#file-upload"></use></svg></button>
+            <button type="button" id="gtfs-show-stops" class="btn btn-sm btn-outline btn-primary"
+              title="Montrer les arrêts du GTFS" aria-label="Montrer les arrêts du GTFS" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#eye"></use></svg><span class="text-xs">Voir</span></button>
+            <button type="button" id="gtfs-import-stops" class="btn btn-sm btn-outline btn-primary"
+              title="Importer les arrêts du GTFS" aria-label="Importer les arrêts du GTFS" disabled><svg class="w-4 h-4 fill-none stroke-current" stroke-width="1.5" aria-hidden="true"><use href="#file-upload"></use></svg><span class="text-xs">Importer</span></button>
           </div>
         </div>
         <div id="ligne-map" class="w-full h-[36rem] rounded-lg relative not-prose"></div>
@@ -205,8 +213,9 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
           arrêts existants, et passer par un arrêt le lie à la ligne. Le crayon permet de déplacer
           (ou supprimer par clic droit) les sommets.
           L'œil affiche les arrêts du GTFS en suggestions, à ajouter un par un ;
-          La flèche d'import les ajoute tous (retirables). Un arrêt à moins de 100 m d'un arrêt existant de même type (un arrêt de bus n'est jamais rapproché d'une gare) est lié à
-          celui-ci ; les arrêts du GTFS à moins de 100 m les uns des autres (aller/retour) ne sont créés qu'une fois ; les autres seront créés à l'envoi du formulaire — rien n'est écrit avant.
+          La flèche d'import les ajoute tous (retirables). Un arrêt GTFS à moins de 50 m d'un arrêt existant de même type (100 m si le nom est identique ; un arrêt de bus n'est jamais rapproché d'une gare)
+          reprend cet arrêt s'il n'est pas déjà suivi sous une autre référence GTFS ; sinon (autre quai ou sens) il est créé et regroupé avec lui sous un arrêt parent. Les arrêts du GTFS
+          d'une même station, ou de même nom à moins de 200 m, sont regroupés de la même façon. Tout est créé à l'envoi du formulaire — rien n'est écrit avant.
           Cliquez un arrêt pour le lier à la ligne.</i>
 
         <div id="vue-arrets-lies"></div>
@@ -381,16 +390,17 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
     // Identifiants GTFS des arrêts existants liés : arret_id -> { stop_id, nom } (écrits à l'envoi)
     const gtfsRefs = new Map();
     const gtfsRefsInput = document.getElementById('ligne_gtfs_refs');
-    function recordGtfsRef(arretId, stopId, nom) {
-      gtfsRefs.set(Number(arretId), { stop_id: String(stopId), nom });
+    // `pos` {lat, lng} (arrêt déjà suivi sous cette ref) : l'arrêt est repositionné à l'envoi (sauf position manuelle)
+    function recordGtfsRef(arretId, stopId, nom, pos) {
+      gtfsRefs.set(Number(arretId), { stop_id: String(stopId), nom, ...(pos ? { lat: pos.lat, lng: pos.lng } : {}) });
       notifyArrets();
     }
     const GTFS_KEY = 'gtfs:';
     function notifyArrets() {
       linkedInput.value = Array.from(linked).join(',');
       nouveauxInput.value = nouveaux.size
-        ? JSON.stringify(Array.from(nouveaux.values()).map(({ key, nom, lat, lng, types }) => ({
-          nom, lat, lng, types, ...(key.startsWith(GTFS_KEY) ? { stop_id: key.slice(GTFS_KEY.length) } : {}),
+        ? JSON.stringify(Array.from(nouveaux.values()).map(({ key, nom, lat, lng, types, extra }) => ({
+          nom, lat, lng, types, ...(key.startsWith(GTFS_KEY) ? { stop_id: key.slice(GTFS_KEY.length) } : {}), ...extra,
         })))
         : '';
       const refs = Array.from(gtfsRefs, ([arret_id, r]) => ({ arret_id, ...r })).filter((r) => linked.has(r.arret_id));
@@ -402,7 +412,8 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
         },
       }));
     }
-    function addNouvelArret(key, nom, lat, lng, types) {
+    // `extra` : regroupement (regrouper_avec / groupe / groupe_stop_id), transmis tel quel à add_ligne.php
+    function addNouvelArret(key, nom, lat, lng, types, extra = {}) {
       if (nouveaux.has(key)) return;
       const arret = { nom, types };
       const marker = L.marker([lat, lng], {
@@ -421,7 +432,7 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
         div.appendChild(btn);
         marker.setPopupContent(div);
       });
-      nouveaux.set(key, { key, nom, lat, lng, types: arret.types, marker });
+      nouveaux.set(key, { key, nom, lat, lng, types: arret.types, extra, marker });
       notifyArrets();
     }
     function removeNouvelArret(key) {
@@ -432,73 +443,41 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
       notifyArrets();
     }
 
-    // --- Arrêts du GTFS : rapprochement avec la base, suggestions, import ---
-    const MATCH_METERS = 100;
-    // Un arrêt existant n'est rapprochable que d'un arrêt GTFS de même famille (bus ≠ gare ; TER et TGV ensemble)
-    const family = (t) => (t === 'ter' || t === 'tgv' ? 'rail' : t);
-    function typesCompatibles(arretTypes, stopTypes) {
-      if (!arretTypes?.length || !stopTypes?.length) return true;
-      const fams = new Set(stopTypes.map(family));
-      return arretTypes.some((t) => fams.has(family(t)));
-    }
-    function nearestArret(lat, lng, stopTypes) {
-      const here = L.latLng(lat, lng);
-      let best = null, bestD = Infinity;
-      for (const { arret } of markers.values()) {
-        if (!typesCompatibles(arret.types, stopTypes)) continue;
-        const d = here.distanceTo([arret.lat, arret.lng]);
-        if (d < bestD) { best = arret; bestD = d; }
-      }
-      return bestD <= MATCH_METERS ? best : null;
-    }
-    // Arrêt à créer déjà ajouté à moins de MATCH_METERS (quai aller/retour du même GTFS)
-    function nearestNouveau(lat, lng) {
-      const here = L.latLng(lat, lng);
-      for (const n of nouveaux.values()) if (here.distanceTo([n.lat, n.lng]) <= MATCH_METERS) return n;
-      return null;
-    }
-    // Ajoute un arrêt GTFS à la ligne : arrêt existant proche, sinon nouvel arrêt à créer
-    function addGtfsStop(stop, types) {
-      const match = nearestArret(stop.lat, stop.lng, types);
-      if (match) { setArretLinked(match.id, true); recordGtfsRef(match.id, stop.id, stop.nom); }
-      else if (!nearestNouveau(stop.lat, stop.lng)) addNouvelArret(`${GTFS_KEY}${stop.id}`, stop.nom, stop.lat, stop.lng, types);
-    }
+    // --- Arrêts du GTFS : le plan d'import (rapprochement, regroupements) est calculé par ajout-ligne.ts ; ici le rendu ---
     let gtfsLayer = null;
     window.ligneClearGtfsStops = () => {
       if (gtfsLayer) { map.removeLayer(gtfsLayer); gtfsLayer = null; }
       window.ligneGtfsStops = [];
     };
-    window.ligneShowGtfsStops = (stops, types) => {
+    window.ligneFitStops = (stops) => {
+      if (stops.length) map.fitBounds(L.latLngBounds(stops.map((s) => [s.lat, s.lng])), { padding: [30, 30] });
+    };
+    // items : [{ stop, label }] (label : ce que deviendra l'arrêt) ; onAdd(item) : bouton « Ajouter à la ligne »
+    window.ligneShowGtfsStops = (items, onAdd) => {
       window.ligneClearGtfsStops();
-      window.ligneGtfsStops = stops;
+      window.ligneGtfsStops = items.map((i) => i.stop);
       gtfsLayer = L.layerGroup().addTo(map);
-      stops.forEach((s) => {
+      items.forEach((item) => {
+        const s = item.stop;
         const m = L.circleMarker([s.lat, s.lng], {
           radius: 7, weight: 2, color: '#2563eb', fillColor: '#60a5fa', fillOpacity: 0.7, className: 'vg-gtfs-stop', pmIgnore: true,
         }).addTo(gtfsLayer);
         m.bindPopup('');
         m.on('popupopen', () => {
-          const match = nearestArret(s.lat, s.lng, types);
           const div = document.createElement('div');
           div.className = 'flex flex-col gap-1 text-base-content';
           div.innerHTML = `<div class="text-xs opacity-70">Arrêt du GTFS</div><b>${escapeHtml(s.nom)}</b>` +
-            (match ? `<div class="text-xs">Arrêt existant : ${escapeHtml(match.nom)}</div>` : '<div class="text-xs">Nouvel arrêt (créé à l\'envoi)</div>');
+            `<div class="text-xs">${escapeHtml(item.label)}</div>`;
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'btn btn-xs btn-primary mt-1';
           btn.textContent = 'Ajouter à la ligne';
-          btn.addEventListener('click', () => { addGtfsStop(s, types); m.closePopup(); });
+          btn.addEventListener('click', () => { onAdd(item); m.closePopup(); });
           div.appendChild(btn);
           m.setPopupContent(div);
         });
       });
-      if (stops.length) map.fitBounds(L.latLngBounds(stops.map((s) => [s.lat, s.lng])), { padding: [30, 30] });
-    };
-    window.ligneImportGtfsStops = (stops, types) => {
-      window.ligneClearGtfsStops();
-      window.ligneGtfsStops = stops;
-      stops.forEach((s) => addGtfsStop(s, types));
-      if (stops.length) map.fitBounds(L.latLngBounds(stops.map((s) => [s.lat, s.lng])), { padding: [30, 30] });
+      window.ligneFitStops(window.ligneGtfsStops);
     };
     window.ligneRemoveNouvelArret = removeNouvelArret;
     window.ligneAddNouvelArret = addNouvelArret;

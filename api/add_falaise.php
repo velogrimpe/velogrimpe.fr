@@ -225,7 +225,7 @@ if (!$isEdition && trim($_POST['arrets_pietons'] ?? '') !== '') {
     $arrets_pietons[(int) $id] = true;
   }
   $arrets_pietons = array_keys($arrets_pietons);
-  $stmtArret = $mysqli->prepare("SELECT nom FROM arrets WHERE id = ? AND deleted = 0");
+  $stmtArret = $mysqli->prepare("SELECT nom FROM arrets WHERE id = ? AND deleted = 0 AND parent_id IS NULL");
   foreach ($arrets_pietons as $arretId) {
     $stmtArret->bind_param("i", $arretId);
     $stmtArret->execute();

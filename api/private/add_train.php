@@ -33,7 +33,7 @@ $arret_id = (int) ($input['arret_id'] ?? $input['gare_id'] ?? 0);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 
-$stmt = $mysqli->prepare("SELECT 1 FROM arrets WHERE id = ? AND deleted = 0");
+$stmt = $mysqli->prepare("SELECT 1 FROM arrets WHERE id = ? AND deleted = 0 AND parent_id IS NULL");
 $stmt->bind_param("i", $arret_id);
 $stmt->execute();
 $arretExiste = $stmt->get_result()->fetch_assoc() !== null;

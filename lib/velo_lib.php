@@ -438,7 +438,7 @@ function velo_lien_edition_admin(array $config, array $velo): string
 /** Arrêt de départ d'un accès (toutes modalités confondues), ou null s'il n'existe pas / est supprimé. */
 function velo_trouver_arret(mysqli $mysqli, int $arret_id): ?array
 {
-  $stmt = $mysqli->prepare("SELECT id, nom, slug FROM arrets WHERE id = ? AND deleted = 0");
+  $stmt = $mysqli->prepare("SELECT id, nom, slug FROM arrets WHERE id = ? AND deleted = 0 AND parent_id IS NULL");
   $stmt->bind_param("i", $arret_id);
   $stmt->execute();
   $row = $stmt->get_result()->fetch_assoc();

@@ -55,7 +55,7 @@ if ($bbox) {
      WHERE ((ST_Y(a.loc) BETWEEN ? AND ? AND ST_X(a.loc) BETWEEN ? AND ?)
         OR EXISTS (SELECT 1 FROM acces_falaise baf2
                    WHERE baf2.arret_id = a.id AND baf2.falaise_id = ? AND baf2.type = 'pied'))
-       $typeFilterSql";
+       AND a.parent_id IS NULL $typeFilterSql";
   $stmt = $mysqli->prepare($sql);
   $stmt->bind_param("iddddi", $falaise_id, $south, $north, $west, $east, $falaise_id);
 } else {
@@ -65,7 +65,7 @@ if ($bbox) {
             1 AS linked
      FROM arrets a
      WHERE EXISTS (SELECT 1 FROM acces_falaise baf
-                   WHERE baf.arret_id = a.id AND baf.falaise_id = ? AND baf.type = 'pied') $typeFilterSql";
+                   WHERE baf.arret_id = a.id AND baf.falaise_id = ? AND baf.type = 'pied') AND a.parent_id IS NULL $typeFilterSql";
   $stmt = $mysqli->prepare($sql);
   $stmt->bind_param("i", $falaise_id);
 }

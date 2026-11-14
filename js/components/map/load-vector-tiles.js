@@ -329,9 +329,18 @@ const biodivLayer = protomapsL.leafletLayer({
 
 //  --- Ajout des gares ---
 const garesShowLabelFromZoom = 12;
+// Gares déjà dessinées par des marqueurs (gares du topo) : on les masque dans les tuiles.
+const normaliserNomGare = (n) =>
+  String(n || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const garesMasquees = new Set();
+const masquerGaresTuiles = (noms) => {
+  noms.forEach((n) => garesMasquees.add(normaliserNomGare(n)));
+  garesLayer.rerenderTiles();
+};
 const garesLabelRules = [
   {
     dataLayer: "gares",
+    filter: (z, f) => !garesMasquees.has(normaliserNomGare(f.props.name)),
     symbolizer: new protomapsL.GroupSymbolizer([
       new protomapsL.CircleSymbolizer({
         radius: 3,
@@ -375,4 +384,5 @@ export {
   tgvLayer,
   biodivLayer,
   garesLayer,
+  masquerGaresTuiles,
 };

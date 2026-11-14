@@ -29,7 +29,7 @@ DISTINCT
   ORDER BY f.falaise_id DESC, a.nom ASC;
 ")->fetch_all(MYSQLI_ASSOC);
 $villes = $mysqli->query("SELECT * FROM villes ORDER BY ville_nom")->fetch_all(MYSQLI_ASSOC);
-$allGares = $mysqli->query("SELECT id AS gare_id, nom AS gare_nom, tgv AS gare_tgv FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0 ORDER BY nom")->fetch_all(MYSQLI_ASSOC);
+$allGares = $mysqli->query("SELECT id AS gare_id, nom AS gare_nom, tgv AS gare_tgv FROM arrets WHERE (ter = 1 OR tgv = 1) AND deleted = 0 AND parent_id IS NULL ORDER BY nom")->fetch_all(MYSQLI_ASSOC);
 
 // Group falaises by falaise_nom
 $falaises = array_reduce($falaises, function ($carry, $item) {
