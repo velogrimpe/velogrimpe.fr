@@ -50,7 +50,7 @@ $itineraires = $mysqli->query("SELECT acces_id AS velo_id, falaise_id, arret_id,
 </head>
 
 <body>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php $admin_active = 'oblyk'; include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-open.php"; ?>
   <main class="py-4 px-2 md:px-8">
     <div class="flex flex-col gap-1">
       <div id="map" class="w-full h-[calc(100dvh-130px)]"></div>
@@ -61,7 +61,7 @@ $itineraires = $mysqli->query("SELECT acces_id AS velo_id, falaise_id, arret_id,
       <option value="<?= htmlspecialchars($falaise["falaise_nom"], ENT_QUOTES, 'UTF-8') ?> (falaise)"></option>
     <?php endforeach; ?>
   </datalist>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-close.php"; ?>
 </body>
 <script>
 

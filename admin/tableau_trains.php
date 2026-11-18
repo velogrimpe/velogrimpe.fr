@@ -55,7 +55,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
 </head>
 
 <body class="h-full">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php $admin_active = 'recap_trains'; include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-open.php"; ?>
   <main class="py-4 px-2 md:px-8">
     <div class="overflow-auto max-h-[calc(100vh-130px)] bg-base-100 rounded-md">
       <table class="table table-pin-rows table-pin-cols min-w-max" data-sort-col="id" data-sort-order="desc">
@@ -168,7 +168,7 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
       </table>
     </div>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-close.php"; ?>
 </body>
 <script>
   function excludeVilleGare(villeId, gareId, thisElement) {

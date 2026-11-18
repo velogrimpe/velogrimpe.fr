@@ -218,7 +218,12 @@
           aria-label="close sidebar"
           class="drawer-overlay"
         ></label>
-        <ul class="menu bg-base-200 min-h-full w-80 p-4 pt-20 text-xl gap-2">
+        <ul class="menu bg-base-200 min-h-full w-80 p-4 pt-20 text-xl gap-2 flex-nowrap">
+          <?php if (isset($admin_active)): /* pages admin : volet admin intégré, navigation du site repliée */ ?>
+            <?= vg_admin_nav_items_html($vg_admin_token, $admin_active) ?>
+            <li class="menu-title mt-2">Site</li>
+            <li><details><summary class="text-primary font-bold">Navigation du site</summary><ul class="bg-base-100 rounded-t-none p-2">
+          <?php endif; ?>
           <li><a class="text-primary font-bold" href="/carte.php">Carte</a></li>
           <li>
             <details>
@@ -304,6 +309,7 @@
           <li><a href="/contribuer.php">Contribuer</a></li>
           <li><a href="/actualites">Actualités</a></li>
           <li><a href="/infos.php">Plus d'infos</a></li>
+          <?php if (isset($admin_active)): ?></ul></details></li><?php endif; ?>
         </ul>
       </div>
     </div>

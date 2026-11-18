@@ -62,7 +62,7 @@ $formatter = new IntlDateFormatter(
 </head>
 
 <body class="flex flex-col min-h-screen">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php $admin_active = 'logs'; include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-open.php"; ?>
   <main class="w-full grow max-w-(--breakpoint-2xl) mx-auto p-10 flex flex-col gap-8">
     <h1 class="text-4xl font-bold text-wrap text-center">
       <span class="text-red-900">Historique des changements</span>
@@ -132,7 +132,7 @@ $formatter = new IntlDateFormatter(
         <button class="btn btn-disabled btn-sm">&rarr;</button>
       <?php endif; ?>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-close.php"; ?>
 </body>
 
 </html>

@@ -5,6 +5,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_lib.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
+// Modalités d'arrêt : filtres de la liste et dialog de modification
+$arret_types_labels = ['ter' => 'TER', 'tgv' => 'TGV', 'bus' => 'Bus', 'tram' => 'Tram', 'telepherique' => 'Téléphérique'];
 
 // Tous les arrêts (y compris supprimés : filtre côté client) et toutes les lignes (sans géométrie).
 $arrets = [];
@@ -38,6 +40,10 @@ $resF = $mysqli->query(
    JOIN falaises f ON f.falaise_id = af.falaise_id ORDER BY f.falaise_nom",
 );
 while ($r = $resF->fetch_assoc()) $falaises_par_arret[(int) $r["arret_id"]][] = $r["falaise_nom"];
+// stop_id GTFS mémorisés par arrêt : rapprochement lors de l'import GTFS d'une ligne (AdminLigneGtfsImport.vue)
+$gtfs_refs_par_arret = [];
+$resR = $mysqli->query("SELECT arret_id, ref FROM references_externes WHERE source = 'gtfs' ORDER BY id");
+while ($r = $resR->fetch_assoc()) $gtfs_refs_par_arret[(int) $r["arret_id"]][] = $r["ref"];
 
 while ($row = $res->fetch_assoc()) {
   $arrets[] = [
@@ -55,12 +61,13 @@ while ($row = $res->fetch_assoc()) {
     "nb_enfants" => (int) $row["nb_enfants"], // > 0 : arrêt parent
     "position_manuelle" => (bool) $row["position_manuelle"],
     "falaises" => $falaises_par_arret[(int) $row["id"]] ?? [],
+    "gtfsRefs" => $gtfs_refs_par_arret[(int) $row["id"]] ?? [],
   ];
 }
 
 $lignes = [];
 $res = $mysqli->query(
-  "SELECT l.id, l.nom, l.numero, l.operateur, l.couleur,
+  "SELECT l.id, l.nom, l.numero, l.operateur, l.operateur_url, l.horaire_url, l.ref, l.couleur,
           (SELECT COUNT(*) FROM arrets_lignes_transport alt WHERE alt.ligne_id = l.id) AS nb_arrets
    FROM lignes_transport l ORDER BY l.nom",
 );
@@ -70,6 +77,9 @@ while ($row = $res->fetch_assoc()) {
     "nom" => $row["nom"],
     "numero" => $row["numero"],
     "operateur" => $row["operateur"],
+    "operateur_url" => $row["operateur_url"],
+    "horaire_url" => $row["horaire_url"],
+    "ref" => $row["ref"],
     "couleur" => $row["couleur"],
     "nb_arrets" => (int) $row["nb_arrets"],
   ];
@@ -103,6 +113,7 @@ $pageData = [
   <?php map_bundle_js("map-maplibre"); ?>
   <?php map_bundle_css("map-maplibre"); ?>
   <?php vite_css("main"); ?>
+  <?php vite_js("admin-gtfs-import"); ?>
   <link rel="stylesheet" href="/global.css" />
   <link rel="manifest" href="/site.webmanifest" />
   <style>
@@ -147,14 +158,13 @@ $pageData = [
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php $admin_active = 'transports'; include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-open.php"; ?>
   <main class="w-full grow max-w-(--breakpoint-xl) mx-auto p-4 flex flex-col gap-4">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <h1 class="text-2xl font-bold"><span class="text-red-900">ADMIN</span> · Arrêts et lignes</h1>
       <div class="flex gap-2">
         <a class="btn btn-sm btn-primary text-primary-content" href="/ajout/ajout_arret.php?admin=<?= urlencode($token) ?>">+ Arrêt</a>
         <a class="btn btn-sm btn-primary text-primary-content" href="/ajout/ajout_ligne.php?admin=<?= urlencode($token) ?>">+ Ligne</a>
-        <a class="btn btn-sm btn-ghost" href="/admin/">← Admin</a>
       </div>
     </div>
 
@@ -163,28 +173,25 @@ $pageData = [
       <button role="tab" class="tab" data-view="carte">Carte</button>
     </div>
 
-    <div class="flex flex-row items-center gap-4">
+    <div class="flex flex-row flex-wrap items-center gap-x-4 gap-y-2">
       <input id="search" type="search" class="input input-sm input-bordered w-full max-w-xs"
         placeholder="Rechercher (arrêt, commune, falaise, n°, opérateur, id)…" autocomplete="off" />
-      <div id="type-filters" class="flex flex-wrap items-center gap-2 text-sm">
-        <span class="font-semibold">Types d'arrêt :</span>
-        <?php foreach (['ter' => 'TER', 'tgv' => 'TGV', 'bus' => 'Bus', 'tram' => 'Tram', 'telepherique' => 'Téléphérique'] as $k => $label): ?>
-          <label class="flex items-center gap-1 cursor-pointer">
-            <input type="checkbox" class="checkbox checkbox-xs" data-type="<?= $k ?>"
-              <?= in_array($k, ['ter', 'tgv'], true) ? '' : 'checked' ?> />
-            <?= $label ?>
-          </label>
-        <?php endforeach; ?>
-      </div>
-      <div id="other-filters" class="flex flex-wrap items-center gap-2 text-sm">
-        <span class="font-semibold">Autres filtres :</span>
-        <label class="flex items-center gap-1 cursor-pointer">
-          <input type="checkbox" class="checkbox checkbox-xs" id="only-falaises" /> Reliés à des falaises
-        </label>
-        <label class="flex items-center gap-1 cursor-pointer">
-          <input type="checkbox" class="checkbox checkbox-xs" id="show-deleted" /> Supprimés
-        </label>
-      </div>
+      <?php
+      // Filtres à choix unique « Tous / option » (cf. admin-arrets-lignes.js) ; data-default = choix initial.
+      $filter_groups = [
+        'type' => ["Types d'arrêt :", 'local', ['' => 'Tous', 'local' => 'Hors trains'] + $arret_types_labels],
+        'statut' => ['Statut :', '', ['' => 'Tous', 'lies' => 'Liés', 'non_lies' => 'Non liés', 'supprimes' => 'Supprimés']],
+      ];
+      foreach ($filter_groups as $key => [$label, $default, $options]): ?>
+        <div class="flex flex-wrap items-center gap-2 text-sm" data-filter-group="<?= $key ?>" data-default="<?= $default ?>">
+          <span class="font-semibold"><?= $label ?></span>
+          <div class="join">
+            <?php foreach ($options as $value => $text): ?>
+              <button type="button" class="btn btn-xs join-item btn-outline" data-filter="<?= $key ?>" data-value="<?= $value ?>"><?= $text ?></button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endforeach; ?>
     </div>
 
     <div id="merge-banner" class="hidden alert alert-info text-sm items-center justify-between"></div>
@@ -201,7 +208,9 @@ $pageData = [
         </div>
       </div>
       <div class="vg-panel" style="min-width:0">
-        <h2 class="text-lg font-bold mb-2">Lignes <span id="count-lignes" class="badge badge-neutral"></span></h2>
+        <h2 class="text-lg font-bold mb-2 flex items-center gap-2">Lignes <span id="count-lignes" class="badge badge-neutral"></span>
+          <button type="button" class="btn btn-xs btn-circle btn-primary text-primary-content" data-gtfs-ligne="new"
+            data-tip="Nouvelle ligne depuis un GTFS" aria-label="Nouvelle ligne depuis un GTFS">+</button></h2>
         <div class="vg-scroll overflow-auto max-h-[70vh] rounded-md bg-base-100">
           <table class="table table-sm table-pin-rows">
             <thead><tr><th>Ligne</th><th>Opérateur</th><th class="text-right">Arrêts</th><th></th></tr></thead>
@@ -222,7 +231,69 @@ $pageData = [
       <div id="admin-map" class="w-full h-[70vh] rounded-md"></div>
     </section>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
+
+  <!-- Modifier un arrêt : nom et modalités (api/update_arret.php) -->
+  <dialog id="dlg-arret" class="modal">
+    <form class="modal-box flex flex-col gap-3" method="dialog" id="form-arret">
+      <h3 class="font-bold text-lg">Modifier l'arrêt <span id="dlg-arret-id" class="opacity-60"></span></h3>
+      <label class="form-control">
+        <b class="text-sm">Nom</b>
+        <input id="arret-nom" class="input input-sm input-primary w-full" type="text" maxlength="255" required autocomplete="off" />
+      </label>
+      <div class="form-control">
+        <b class="text-sm">Modalités desservies <span class="text-error">(au moins une)</span></b>
+        <div class="flex flex-wrap gap-4 mt-1" id="arret-types">
+          <?php foreach ($arret_types_labels as $k => $label): ?>
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" value="<?= $k ?>" /> <?= $label ?>
+            </label>
+          <?php endforeach; ?>
+        </div>
+        <i id="arret-types-note" class="hidden text-xs opacity-70 mt-1">Arrêt parent : ses modalités sont celles de ses arrêts regroupés.</i>
+      </div>
+      <div id="arret-error" class="alert alert-error text-sm hidden" role="alert"></div>
+      <div class="modal-action mt-0">
+        <button type="button" class="btn btn-sm" data-dialog-close>Annuler</button>
+        <button type="submit" class="btn btn-sm btn-primary">Valider</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modifier les infos de base d'une ligne (api/update_ligne.php) ; le tracé et les arrêts se mettent à jour par « Import GTFS » -->
+  <dialog id="dlg-ligne" class="modal">
+    <form class="modal-box max-w-2xl flex flex-col gap-3" method="dialog" id="form-ligne">
+      <h3 class="font-bold text-lg">Modifier la ligne <span id="dlg-ligne-id" class="opacity-60"></span></h3>
+      <label class="form-control">
+        <b class="text-sm">Nom officiel</b>
+        <input id="ligne-nom" class="input input-sm input-primary w-full" type="text" required autocomplete="off" />
+      </label>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <label class="form-control"><b class="text-sm">Numéro</b>
+          <input id="ligne-numero" class="input input-sm input-primary w-full" type="text" maxlength="64" autocomplete="off" /></label>
+        <label class="form-control"><b class="text-sm">Couleur (CSS)</b>
+          <input id="ligne-couleur" class="input input-sm input-primary w-full" type="text" maxlength="64" placeholder="#123456, gold…" autocomplete="off" /></label>
+        <label class="form-control"><b class="text-sm">Référence officielle</b>
+          <input id="ligne-ref" class="input input-sm input-primary w-full" type="text" autocomplete="off" /></label>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <label class="form-control"><b class="text-sm">Opérateur</b>
+          <input id="ligne-operateur" class="input input-sm input-primary w-full" type="text" maxlength="64" autocomplete="off" /></label>
+        <label class="form-control"><b class="text-sm">Site de l'opérateur</b>
+          <input id="ligne-operateur_url" class="input input-sm input-primary w-full" type="url" autocomplete="off" /></label>
+      </div>
+      <label class="form-control"><b class="text-sm">Horaires (URL)</b>
+        <input id="ligne-horaire_url" class="input input-sm input-primary w-full" type="url" autocomplete="off" /></label>
+      <div id="ligne-error" class="alert alert-error text-sm hidden" role="alert"></div>
+      <div class="modal-action mt-0">
+        <button type="button" class="btn btn-sm" data-dialog-close>Annuler</button>
+        <button type="submit" class="btn btn-sm btn-primary">Valider</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Import GTFS d'une ligne (Vue : frontend/src/components/admin/AdminLigneGtfsImport.vue) -->
+  <div id="vue-gtfs-import"></div>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-close.php"; ?>
   <script type="application/json" id="page-data"><?= json_encode($pageData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
   <script type="module" src="/js/admin-arrets-lignes.js"></script>
 </body>

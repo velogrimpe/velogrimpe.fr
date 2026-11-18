@@ -4,37 +4,16 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/vite.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 
-$falaises = $mysqli->query("SELECT falaise_id, falaise_nom, falaise_public
-                                  FROM falaises
-                                  ORDER BY falaise_public + mod(falaise_public, 3) * 3 DESC, falaise_nom ASC
-                                  ")->fetch_all(MYSQLI_ASSOC);
-
-$falaises_contrib = array_values(array_filter(
-  $falaises,
-  fn($falaise) => $falaise['falaise_public'] === "2"
-));
-$falaises_ht = array_values(array_filter(
-  $falaises,
-  fn($falaise) => $falaise['falaise_public'] === "3"
-));
-$velos_a_valider = $mysqli->query("SELECT v.acces_id AS velo_id, v.arret_id AS gare_id, v.falaise_id, v.variante AS velo_variante, a.nom AS gare_nom, f.falaise_nom
-  FROM acces_falaise v
-  LEFT JOIN arrets a ON a.id = v.arret_id
-  LEFT JOIN falaises f ON f.falaise_id = v.falaise_id
-  WHERE v.type = 'velo' AND v.public = 2
-  ORDER BY f.falaise_nom, a.nom, v.variante")->fetch_all(MYSQLI_ASSOC);
-$nb_velos_a_valider = count($velos_a_valider);
-
-$arrets = $mysqli->query("SELECT a.id, a.nom
-  FROM arrets a
-  WHERE a.bus = 1 AND a.parent_id IS NULL
-  ORDER BY a.nom")->fetch_all(MYSQLI_ASSOC);
-
-$falaises_topo = array_values(array_filter(
-  $falaises,
-  fn($falaise) => $falaise['falaise_public'] === "1"
-));
-
+// Compteurs : chaque carte renvoie vers la liste correspondante, déjà filtrée.
+$count = fn(string $sql): int => (int) $mysqli->query($sql)->fetch_row()[0];
+$cards = [
+  ['Falaises à vérifier', $count("SELECT COUNT(*) FROM falaises WHERE falaise_public = 2"), '/admin/falaises.php?statut=verifier', 'warning'],
+  ['Accès à vérifier', $count("SELECT COUNT(*) FROM acces_falaise WHERE public = 2"), '/admin/acces.php?statut=verifier', 'warning'],
+  ['Falaises hors topo', $count("SELECT COUNT(*) FROM falaises WHERE falaise_public = 3"), '/admin/falaises.php?statut=hors_topo', 'neutral'],
+  ['Falaises du topo', $count("SELECT COUNT(*) FROM falaises WHERE falaise_public = 1"), '/admin/falaises.php?statut=topo', 'success'],
+  ['Accès (vélo et à pied)', $count("SELECT COUNT(*) FROM acces_falaise"), '/admin/acces.php', 'primary'],
+  ['Arrêts actifs', $count("SELECT COUNT(*) FROM arrets WHERE deleted = 0"), '/admin/arrets_lignes.php', 'primary'],
+];
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -42,7 +21,8 @@ $falaises_topo = array_values(array_filter(
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ajouter des données (admin)</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Panneau d'administration - Vélogrimpe.fr</title>
   <?php vite_css('main'); ?>
   <!-- Pageviews -->
   <script async defer src="/js/pv.js"></script>
@@ -51,218 +31,21 @@ $falaises_topo = array_values(array_filter(
 </head>
 
 <body class="flex flex-col min-h-screen">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
-  <main class="w-full grow max-w-(--breakpoint-md) mx-auto p-10 flex flex-col gap-8">
-    <h1 class="text-3xl font-bold text-wrap text-center">
-      <span class="text-red-900">PANNEAU D'ADMINISTRATION</span>
-    </h1>
-    <h2 class="text-3xl font-bold text-wrap text-center">Ajouter des données</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_ville.php?admin=<?= $token ?>">Ajouter
-        une ville de départ</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_falaise.php?admin=<?= $token ?>">Ajouter
-        une falaise</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_train.php?admin=<?= $token ?>">Ajouter
-        un itinéraire train</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_velo.php?admin=<?= $token ?>">Ajouter un
-        itinéraire vélo</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_arret.php?admin=<?= $token ?>">Ajouter un
-        arrêt de bus</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/ajout/ajout_ligne.php?admin=<?= $token ?>">Ajouter une
-        ligne BTT</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/oblyk.php?admin=<?= $token ?>">Créer les liens
-        Oblyk</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/tableau_trains.php?admin=<?= $token ?>">Récap.
-        Trains</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/arrets_lignes.php">Arrêts et lignes</a>
-      <a class="btn btn-primary btn-lg text-primary-content"
-        href="/ajout/contrib/details_falaise.php?falaise_id=247">Éditeur Falaises</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/edit_logs.php">Historique des
-        modifications</a>
+  <?php $admin_active = 'dashboard'; include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-open.php"; ?>
+  <main class="w-full grow max-w-(--breakpoint-lg) mx-auto p-4 flex flex-col gap-6">
+    <h1 class="text-2xl font-bold"><span class="text-red-900">PANNEAU D'ADMINISTRATION</span></h1>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <?php foreach ($cards as [$label, $n, $href, $tone]): ?>
+        <a href="<?= htmlspecialchars($href) ?>" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
+          <div class="card-body p-4 items-center text-center">
+            <span class="text-4xl font-bold <?= $tone === 'warning' && $n > 0 ? 'text-warning' : '' ?>"><?= $n ?></span>
+            <span class="text-sm"><?= htmlspecialchars($label) ?></span>
+          </div>
+        </a>
+      <?php endforeach; ?>
     </div>
-    <h2 class="text-3xl font-bold text-wrap text-center">Communication</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/newsletter.php">Newsletters</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/pages.php">Pages CMS</a>
-      <a class="btn btn-primary btn-lg text-primary-content" href="/admin/qr-generator.php?admin=<?= $token ?>">QR &amp;
-        liens trackés</a>
-    </div>
-    <h2 class="text-3xl font-bold text-wrap text-center">Modifier des données</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectVelo">
-        <b class="text-base-100 text-lg">🚲 Itinéraires vélo à
-          vérifier<?= $nb_velos_a_valider ? " ($nb_velos_a_valider)" : '' ?></b>
-        <?php if (count($velos_a_valider) === 0): ?>
-          <p class="text-base-100 text-lg">Aucun itinéraire à vérifier 💪</p>
-        <?php else: ?>
-          <select id="selectVelo" name="selectVelo" class="select select-primary select-sm w-full"
-            onchange="if (this.value) window.location.href = '/ajout/edit_velo.php?admin=<?= $token ?>&' + this.value">
-            <option value="">Sélectionner un itinéraire</option>
-            <?php foreach ($velos_a_valider as $v): ?>
-              <option
-                value="<?= http_build_query(['falaise_id' => $v['falaise_id'], 'gare_id' => $v['gare_id'], 'velo_id' => $v['velo_id']]) ?>">
-                <?= htmlspecialchars(($v['gare_nom'] ?? '?') . ' → ' . ($v['falaise_nom'] ?? '?') . ($v['velo_variante'] !== '' ? ' (' . $v['velo_variante'] . ')' : ''), ENT_QUOTES, 'UTF-8') ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        <?php endif; ?>
-        <a class="link text-base-100 text-sm" href="/ajout/edit_velo.php?admin=<?= $token ?>">ou modifier n'importe quel
-          itinéraire</a>
-      </label>
-      <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectFalaise1">
-        <b class="text-base-100 text-lg">⚠️ Falaises à vérifier</b>
-        <?php if (count($falaises_contrib) === 0): ?>
-          <p class="text-base-100 text-lg">Aucune falaise à vérifier 💪</p>
-        <?php else: ?>
-          <select id="selectFalaise1" name="selectFalaise1" class="select select-primary select-sm"
-            onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
-            <option value="">Sélectionner une falaise</option>
-            <?php foreach ($falaises_contrib as $falaise): ?>
-              <option value="<?= $falaise['falaise_id'] ?>">
-                <?= htmlspecialchars($falaise['falaise_nom'], ENT_QUOTES, 'UTF-8') ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        <?php endif; ?>
-      </label>
-      <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectFalaise3">
-        <b class="text-base-100 text-lg">✅ Falaises du Topo</b>
-        <select id="selectFalaise3" name="selectFalaise3" class="select select-primary select-sm"
-          onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
-          <option value="">Sélectionner une falaise</option>
-          <?php foreach ($falaises_topo as $falaise): ?>
-            <option value="<?= $falaise['falaise_id'] ?>">
-              <?= htmlspecialchars($falaise['falaise_nom'], ENT_QUOTES, 'UTF-8') ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-      </label>
-      <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectFalaise2">
-        <b class="text-base-100 text-lg">❌ Falaises Hors Topo</b>
-        <select id="selectFalaise2" name="selectFalaise2" class="select select-primary select-sm"
-          onchange="window.location.href = '/ajout/ajout_falaise.php?admin=<?= $token ?>&falaise_id=' + this.value">
-          <option value="">Sélectionner une falaise</option>
-          <?php foreach ($falaises_ht as $falaise): ?>
-            <option value="<?= $falaise['falaise_id'] ?>">
-              <?= htmlspecialchars($falaise['falaise_nom'], ENT_QUOTES, 'UTF-8') ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-      </label>
-      <label class="flex flex-col gap-1 items-center p-2 rounded-lg bg-primary" for="selectVelo">
-        <b class="text-base-100 text-lg">🚌 Arrêts de bus</b>
-        <select id="selectVelo" name="selectVelo" class="select select-primary select-sm w-full"
-          onchange="if (this.value) window.location.href = '/ajout/ajout_arret.php?admin=<?= $token ?>&' + this.value">
-          <option value="">Sélectionner un itinéraire</option>
-          <?php foreach ($arrets as $a): ?>
-            <option value="<?= http_build_query(['arret_id' => $a['id']]) ?>">
-              <?= htmlspecialchars($a['nom'], ENT_QUOTES, 'UTF-8') ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-        <a class="link text-base-100 text-sm" href="/ajout/ajout_arret.php?admin=<?= $token ?>">ou modifier n'importe quel
-          itinéraire</a>
-      </label>
-    </div>
-    <h2 class="text-3xl font-bold text-wrap text-center">Actions</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <button id="batchGeocodeBtn" class="btn btn-outline btn-lg" type="button">Affectation zones aux falaises</button>
-      <button id="ingestCartotrainBtn" class="btn btn-outline btn-lg" type="button">MàJ Cartotrain</button>
-    </div>
-    <dialog id="batchGeocodeModal" class="modal">
-      <div class="modal-box">
-        <h3 class="font-bold text-lg">Affectation zones aux falaises</h3>
-        <div id="batchGeocodeModalContent" class="py-2 text-sm"></div>
-        <div class="modal-action">
-          <form method="dialog">
-            <button class="btn btn-primary">OK</button>
-          </form>
-        </div>
-      </div>
-    </dialog>
-    <dialog id="ingestCartotrainModal" class="modal">
-      <div class="modal-box">
-        <h3 class="font-bold text-lg">MàJ Cartotrain</h3>
-        <div id="ingestCartotrainModalContent" class="py-2 text-sm"></div>
-        <div class="modal-action">
-          <form method="dialog">
-            <button class="btn btn-primary">OK</button>
-          </form>
-        </div>
-      </div>
-    </dialog>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
-  <script>
-    const btn = document.getElementById('batchGeocodeBtn');
-    const modal = document.getElementById('batchGeocodeModal');
-    const modalContent = document.getElementById('batchGeocodeModalContent');
-    if (btn) {
-      btn.addEventListener('click', async () => {
-        btn.disabled = true;
-        const originalText = btn.textContent;
-        btn.textContent = 'Exécution en cours…';
-        try {
-          const res = await fetch('/api/private/batch-geocode.php?admin=<?= $token ?>');
-          const isJson = res.headers.get('content-type')?.includes('application/json');
-          if (!res.ok) {
-            const errTxt = isJson ? JSON.stringify(await res.json()) : await res.text();
-            throw new Error(errTxt || `Erreur HTTP ${res.status}`);
-          }
-          const data = isJson ? await res.json() : {};
-          const processed = data.processed ?? '?';
-          const updated = data.updated ?? '?';
-          const skippedNum = typeof data.skipped === 'number' ? data.skipped : (data.skipped?.length ?? '?');
-          const noZoneList = Array.isArray(data.nozone) ? data.nozone.map(s => `${s.falaise_nom} (${s.falaise_id})`).join(', ') : '';
-          const skippedList = Array.isArray(data.skipped) ? data.skipped.map(s => `${s.falaise_nom} (${s.falaise_id})`).join(', ') : '';
-
-          let html = `Traitement terminé: <b>${processed}</b> traités, <b>${updated}</b> mis à jour, <b>${skippedNum}</b> ignorés.`;
-          if (noZoneList) {
-            html += `<br/><b>Sans zone :</b> ${noZoneList}`;
-          }
-          if (skippedList) {
-            html += `<br/><b>Ignorés :</b> ${skippedList}`;
-          }
-          modalContent.innerHTML = html;
-          modal?.showModal();
-        } catch (e) {
-          alert(`Erreur: ${e.message}`);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = originalText;
-        }
-      });
-    }
-
-    const cartoBtn = document.getElementById('ingestCartotrainBtn');
-    const cartoModal = document.getElementById('ingestCartotrainModal');
-    const cartoModalContent = document.getElementById('ingestCartotrainModalContent');
-    if (cartoBtn) {
-      cartoBtn.addEventListener('click', async () => {
-        cartoBtn.disabled = true;
-        const originalText = cartoBtn.textContent;
-        cartoBtn.textContent = 'Exécution en cours…';
-        try {
-          const res = await fetch('/api/private/crons/ingest_cartotrain.php', {
-            headers: { 'Authorization': 'Bearer <?= $config['vg_token'] ?>' }
-          });
-          const isJson = res.headers.get('content-type')?.includes('application/json');
-          if (!res.ok) {
-            const errTxt = isJson ? JSON.stringify(await res.json()) : await res.text();
-            throw new Error(errTxt || `Erreur HTTP ${res.status}`);
-          }
-          const data = isJson ? await res.json() : {};
-          cartoModalContent.innerHTML = `Import Cartotrain terminé : <b>${data.inserted ?? '?'}</b> lignes insérées, <b>${data.skipped ?? '?'}</b> ignorées.`;
-          cartoModal?.showModal();
-        } catch (e) {
-          alert(`Erreur: ${e.message}`);
-        } finally {
-          cartoBtn.disabled = false;
-          cartoBtn.textContent = originalText;
-        }
-      });
-    }
-  </script>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-close.php"; ?>
 </body>
 
 </html>

@@ -19,7 +19,7 @@ $token = $config["admin_token"];
 </head>
 
 <body class="flex flex-col min-h-screen">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php $admin_active = 'newsletters'; include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-open.php"; ?>
   <main class="w-full grow max-w-(--breakpoint-lg) mx-auto p-4">
     <div id="vue-newsletter-admin"></div>
     <script>
@@ -28,7 +28,7 @@ $token = $config["admin_token"];
       };
     </script>
   </main>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/footer.php"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-close.php"; ?>
   <?php vite_js('newsletter-admin'); ?>
 </body>
 
