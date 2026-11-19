@@ -58,8 +58,16 @@ if (!in_array($status, ['draft', 'published'])) {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 
+$nouveau = ['slug' => $slug, 'title' => $title, 'short_title' => $short_title, 'banner_img' => $banner_img, 'banner_title' => $banner_title, 'description' => $description, 'status' => $status, 'sections' => logSectionsDigest($sections)];
+$ancien = [];
 if ($id > 0) {
+  $old = $mysqli->query("SELECT slug, title, short_title, banner_img, banner_title, description, status, sections FROM pages WHERE id = $id")->fetch_assoc();
+  if ($old) {
+    $old['sections'] = logSectionsDigest($old['sections']);
+    $ancien = $old;
+  }
   $stmt = $mysqli->prepare("UPDATE pages SET slug = ?, title = ?, short_title = ?, banner_img = ?, banner_title = ?, description = ?, status = ?, sections = ? WHERE id = ?");
   $stmt->bind_param('ssssssssi', $slug, $title, $short_title, $banner_img, $banner_title, $description, $status, $sections, $id);
   $stmt->execute();
@@ -82,5 +90,7 @@ if ($id > 0) {
 
   $id = $stmt->insert_id;
 }
+
+logChanges("Admin", "", $ancien ? "update" : "insert", "pages", $id, null, $nouveau, $ancien);
 
 echo json_encode(['success' => true, 'id' => $id]);

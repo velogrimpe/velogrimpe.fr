@@ -76,5 +76,6 @@ function handleAdminImageUpload(string $baseRel, string $slug): void
     vg_admin_upload_fail(500, "L'image n'a pas pu être enregistrée");
   }
 
+  vg_admin_upload_log($relDir . '/' . $filename);
   echo json_encode(['url' => vg_data_url($relDir . '/' . $filename)]);
 }

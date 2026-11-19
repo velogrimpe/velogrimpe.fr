@@ -1,49 +1,52 @@
 <?php
+/**
+ * Exclut une falaise pour une ville (admin, tableau des trains).
+ * POST JSON { "ville_id": int, "falaise_id": int }, en-tête `Authorization: Bearer <admin_token>`.
+ * Réponse : { success: true } ; 401 non autorisé, 405 méthode, 400 paramètre manquant, 409 déjà exclu, 500 erreur SQL.
+ */
+header('Content-Type: application/json');
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
-// Get Authorization header
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  http_response_code(405);
+  die(json_encode(["error" => "Method not allowed"]));
+}
+
 $headers = getallheaders();
 $authHeader = $headers['authorization'] ?? $headers['Authorization'] ?? null;
-if (!$authHeader) {
-  die("Authorization header not found");
-}
 if ($authHeader !== 'Bearer ' . $config["admin_token"]) {
-  die("Invalid token");
+  http_response_code(401);
+  die(json_encode(["error" => "Non autorisé"]));
 }
-// get attributes falaise_id, site_url, site_id, site, site_name from the POST request body
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-  die("Method not allowed");
-}
+
 $input = json_decode(file_get_contents('php://input'), true);
-
-
-$ville_id = trim($input['ville_id'] ?? '');
-$falaise_id = trim($input['falaise_id'] ?? '');
-if (empty($ville_id) || empty($falaise_id)) {
-  die("Ville ID and falaise ID are required.");
+$ville_id = (int) ($input['ville_id'] ?? 0);
+$falaise_id = (int) ($input['falaise_id'] ?? 0);
+if ($ville_id <= 0 || $falaise_id <= 0) {
+  http_response_code(400);
+  die(json_encode(["error" => "ville_id et falaise_id sont requis"]));
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-$stmt = $mysqli->prepare("INSERT INTO exclusions_villes_falaises (ville_id, falaise_id) VALUES (?, ?)");
-if (!$stmt) {
-  die("Problème de préparation de la requête : " . $mysqli->error);
+try {
+  $stmt = $mysqli->prepare("INSERT INTO exclusions_villes_falaises (ville_id, falaise_id) VALUES (?, ?)");
+  $stmt->bind_param("ii", $ville_id, $falaise_id);
+  $stmt->execute();
+  $exclusion_id = $mysqli->insert_id; // avant logChanges : son INSERT écraserait insert_id
+  $stmt->close();
+} catch (mysqli_sql_exception $e) {
+  if ($e->getCode() === 1062) {
+    http_response_code(409);
+    die(json_encode(["error" => "Exclusion déjà enregistrée"]));
+  }
+  error_log('[exclude_falaise] ' . $e->getMessage());
+  http_response_code(500);
+  die(json_encode(["error" => "Erreur lors de l'enregistrement de l'exclusion"]));
 }
 
-$stmt->bind_param("ii", $ville_id, $falaise_id);
-if (!$stmt) {
-  die("Problème de liaison des paramètres : " . $mysqli->error);
-}
-// Execute the statement
-$stmt->execute();
-if ($stmt->error) {
-  die("Erreur lors de l'exécution de la requête : " . $stmt->error);
-}
-// Check if the insert was successful
-if ($stmt->affected_rows === 0) {
-  die("Aucune ligne insérée.");
-}
-$stmt->close();
+logChanges("Admin", "", "insert", "exclusions_villes_falaises", $exclusion_id, $falaise_id, ["ville_id" => $ville_id, "falaise_id" => $falaise_id]);
 
-echo json_encode(true);
-
+echo json_encode(["success" => true]);

@@ -9,7 +9,11 @@
  *
  * Toutes les fonctions supposent une transaction ouverte par l'appelant (lever une ArretFusionException
  * annule la transaction côté appelant) et mysqli en mode exceptions.
+ *
+ * Fusion, détachement et défusion journalisent elles-mêmes dans `edit_logs` (collection `arrets`, auteur
+ * « Admin »), sur la connexion de l'appelant donc dans sa transaction : un rollback annule aussi le log.
  */
+require_once __DIR__ . '/edit_logs.php';
 
 /** Refus métier d'une opération de regroupement : `$http` = code de réponse HTTP à renvoyer. */
 class ArretFusionException extends RuntimeException
@@ -176,6 +180,7 @@ function arret_fusionner(mysqli $mysqli, int $source, int $cible): array
       . ". Supprimez ou renommez (variante) l'un des accès doublons, puis recommencez.");
   }
 
+  $parentCree = $porteur === null;
   if ($porteur === null) {
     $wkt = sprintf('POINT(%.7f %.7f)', ((float) $s['lng'] + (float) $c['lng']) / 2, ((float) $s['lat'] + (float) $c['lat']) / 2);
     $contrib = 'Fusion';
@@ -219,6 +224,19 @@ function arret_fusionner(mysqli $mysqli, int $source, int $cible): array
   $stmt->close();
 
   arret_recalculer_parent($mysqli, $porteur);
+  if ($parentCree) {
+    logChanges("Admin", "", "insert", "arrets", $porteur, null, ["nom" => $c['nom'], "Origine" => "Fusion de « {$s['nom']} » (#$source) et « {$c['nom']} » (#$cible)"], [], $mysqli);
+  } else {
+    $enfantsAjoutes = array_diff([$source, $cible], [$porteur]);
+    logChanges("Admin", "", "update", "arrets", $porteur, null, [
+      "Fusion" => $sParent && $cParent
+        ? "« {$s['nom']} » (#$source) absorbé : ses enfants passent sous « {$c['nom']} » (#$cible)"
+        : "« " . ($porteur === $cible ? $s['nom'] : $c['nom']) . " » (#" . implode(', #', $enfantsAjoutes) . ") regroupé sous ce parent",
+    ], [], $mysqli);
+  }
+  if ($deplaces > 0) {
+    logChanges("Admin", "", "update", "acces_falaise", $porteur, null, ["Accès reportés sur l'arrêt" => "$deplaces"], [], $mysqli);
+  }
   return ['parent_id' => $porteur, 'acces_deplaces' => $deplaces];
 }
 
@@ -238,6 +256,7 @@ function arret_detacher(mysqli $mysqli, int $id): void
   $stmt->execute();
   $stmt->close();
   arret_recalculer_parent($mysqli, $parentId);
+  logChanges("Admin", "", "update", "arrets", $id, null, ["parent_id" => ''], ["parent_id" => (string) $parentId], $mysqli);
 }
 
 /**
@@ -271,4 +290,8 @@ function arret_defusionner(mysqli $mysqli, int $parentId, ?int $heritierId = nul
   if ($heritierId !== null && $nbRelations > 0) arret_reporter_acces_et_trains($mysqli, $parentId, $heritierId);
   $mysqli->query("UPDATE arrets SET parent_id = NULL WHERE parent_id = $parentId");
   $mysqli->query("UPDATE arrets SET deleted = 1 WHERE id = $parentId");
+  logChanges("Admin", "", "delete", "arrets", $parentId, null, ["Parent" => ''], [
+    "Parent" => "« {$rows[$parentId]['nom']} » défusionné ; enfants libérés : " . implode(', ', $enfants)
+      . ($heritierId !== null && $nbRelations > 0 ? " ; accès/trajets reportés sur #$heritierId" : ''),
+  ], $mysqli);
 }

@@ -24,6 +24,7 @@ if ($authHeader !== 'Bearer ' . $config["admin_token"]) {
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/lignes_lib.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $ligne_id = (int) ($input['ligne_id'] ?? 0);
@@ -49,10 +50,10 @@ foreach (LIGNE_TEXT_FIELDS as $f) {
   $fields[$f] = $v !== '' ? $v : null;
 }
 
-$stmt = $mysqli->prepare("SELECT id FROM lignes_transport WHERE id = ?");
+$stmt = $mysqli->prepare("SELECT id, nom, numero, operateur, operateur_url, horaire_url, ref, couleur FROM lignes_transport WHERE id = ?");
 $stmt->bind_param("i", $ligne_id);
 $stmt->execute();
-$existe = $stmt->get_result()->fetch_assoc();
+$existe = $stmt->get_result()->fetch_assoc(); // ancien état, pour le log
 $stmt->close();
 if (!$existe) {
   http_response_code(404);
@@ -69,4 +70,5 @@ $stmt->bind_param(
 $stmt->execute();
 $stmt->close();
 
+logChanges("Admin", "", "update", "lignes_transport", $ligne_id, null, ["nom" => $nom] + $fields, $existe);
 echo json_encode(["success" => true, "ligne" => ["id" => $ligne_id, "nom" => $nom] + $fields]);

@@ -6,6 +6,7 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/geocode_lib.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
@@ -49,7 +50,7 @@ if (!$zones || !$depts) {
 }
 
 // Fetch falaises to process
-$sql = "SELECT falaise_id, falaise_nom, falaise_latlng FROM falaises WHERE falaise_latlng IS NOT NULL AND falaise_latlng <> ''";
+$sql = "SELECT falaise_id, falaise_nom, falaise_latlng, falaise_zonename, falaise_deptcode, falaise_deptname FROM falaises WHERE falaise_latlng IS NOT NULL AND falaise_latlng <> ''";
 $res = $mysqli->query($sql);
 if (!$res) {
   http_response_code(500);
@@ -114,6 +115,12 @@ while ($row = $res->fetch_assoc()) {
   $updateStmt->bind_param('sssi', $zoneLabel, $deptCode, $deptName, $falaise_id);
   if ($updateStmt->execute()) {
     $updated++;
+    // Un edit log par falaise dont les valeurs changent réellement (rien si la zone/le département sont inchangés)
+    $nouveau = ['falaise_zonename' => $zoneLabel, 'falaise_deptcode' => $deptCode, 'falaise_deptname' => $deptName];
+    $ancien = array_intersect_key($row, $nouveau);
+    if (array_filter(array_keys($nouveau), fn($k) => (string) $nouveau[$k] !== (string) $ancien[$k])) {
+      logChanges("Admin", "", "update", "falaises", $falaise_id, $falaise_id, $nouveau, $ancien);
+    }
   } else {
     $errors[] = ['falaise_id' => $falaise_id, 'error' => $updateStmt->error];
   }

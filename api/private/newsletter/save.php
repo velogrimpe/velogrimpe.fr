@@ -50,9 +50,17 @@ if (!in_array($status, ['draft', 'published', 'sent'])) {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 
+$nouveau = ['slug' => $slug, 'title' => $title, 'description' => $description, 'date_label' => $date_label, 'status' => $status, 'sections' => logSectionsDigest($sections)];
+$ancien = [];
 if ($id > 0) {
   // Update
+  $old = $mysqli->query("SELECT slug, title, description, date_label, status, sections FROM newsletters WHERE id = $id")->fetch_assoc();
+  if ($old) {
+    $old['sections'] = logSectionsDigest($old['sections']);
+    $ancien = $old;
+  }
   $stmt = $mysqli->prepare("UPDATE newsletters SET slug = ?, title = ?, description = ?, date_label = ?, status = ?, sections = ? WHERE id = ?");
   $stmt->bind_param('ssssssi', $slug, $title, $description, $date_label, $status, $sections, $id);
   $stmt->execute();
@@ -76,5 +84,7 @@ if ($id > 0) {
 
   $id = $stmt->insert_id;
 }
+
+logChanges("Admin", "", $ancien ? "update" : "insert", "newsletters", $id, null, $nouveau, $ancien);
 
 echo json_encode(['success' => true, 'id' => $id]);

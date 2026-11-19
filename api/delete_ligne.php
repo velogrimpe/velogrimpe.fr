@@ -32,11 +32,12 @@ if ($ligne_id <= 0) {
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_parents_lib.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $mysqli->begin_transaction();
 try {
-  $stmt = $mysqli->prepare("SELECT id FROM lignes_transport WHERE id = ? FOR UPDATE");
+  $stmt = $mysqli->prepare("SELECT id, nom, numero, operateur, ref FROM lignes_transport WHERE id = ? FOR UPDATE");
   $stmt->bind_param("i", $ligne_id);
   $stmt->execute();
   $existe = $stmt->get_result()->fetch_assoc();
@@ -96,6 +97,11 @@ try {
     $in = implode(',', $ids);
     $mysqli->query("DELETE FROM exclusions_villes_gares WHERE gare_id IN ($in)");
     $mysqli->query("DELETE FROM exclusions_villes_gares_falaises WHERE gare_id IN ($in)");
+  }
+  // Log dans la transaction (même connexion) : annulé avec elle en cas d'échec
+  logChanges("Admin", "", "delete", "lignes_transport", $ligne_id, null, array_fill_keys(array_keys($existe), ''), $existe);
+  if ($a_supprimer) {
+    logChanges("Admin", "", "delete", "arrets", $ligne_id, null, ["Arrêts supprimés définitivement" => ''], ["Arrêts supprimés définitivement" => implode(', ', $ids) . " (avec la ligne #$ligne_id)"]);
   }
   $mysqli->commit();
   echo json_encode(["success" => true, "arrets_supprimes" => $supprimes, "arrets_conserves" => $nb_arrets - count($a_supprimer)]);

@@ -81,3 +81,15 @@ function vg_admin_upload_error_message(int $code): string
     default                                   => 'Téléversement impossible',
   };
 }
+
+/**
+ * Trace un téléversement admin (image ou fichier joint) dans `edit_logs`.
+ * Les fichiers n'ont pas d'identifiant en base : record_id = 0, le détail est dans les changements.
+ */
+function vg_admin_upload_log(string $relPath, string $originalName = ''): void
+{
+  require_once __DIR__ . '/edit_logs.php';
+  logChanges("Admin", "", "insert", "fichiers", 0, null, [
+    "Fichier" => $relPath,
+  ] + ($originalName !== '' ? ["Nom d'origine" => $originalName] : []));
+}

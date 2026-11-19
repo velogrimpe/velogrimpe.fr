@@ -79,7 +79,7 @@ while ($row = $res->fetch_assoc()) {
   }
 
   // Un edit log par falaise pour notifier la modification.
-  logChanges("admin", $contactMail, "update", "falaise", $falaise_id, $falaise_id, ["falaise_altitude" => $alt], []);
+  logChanges("admin", $contactMail, "update", "falaises", $falaise_id, $falaise_id, ["falaise_altitude" => $alt], []);
   $renseignes++;
 
   // Politesse envers l'API IGN (100 ms entre deux appels).

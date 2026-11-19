@@ -142,6 +142,7 @@ function handleAdminFileUpload(string $baseRel, string $slug): void
     vg_admin_upload_fail(500, "Le fichier n'a pas pu être enregistré");
   }
 
+  vg_admin_upload_log($relDir . '/' . $filename, $originalName);
   echo json_encode([
     'url'  => vg_data_url($relDir . '/' . $filename),
     // Nom d'origine : sert de libellé au lien inséré dans le texte.

@@ -19,7 +19,7 @@ if (empty($commentaire_id) || empty($email)) {
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 // Get existing comment
 $stmt = $mysqli->prepare(
-  "SELECT email FROM commentaires_falaises WHERE id = ?"
+  "SELECT * FROM commentaires_falaises WHERE id = ?"
 );
 $stmt->bind_param("i", $commentaire_id);
 $stmt->execute();
@@ -60,28 +60,12 @@ if ($stmt->affected_rows === 0) {
 }
 $stmt->close();
 
-//Store in log
-$stmt = $mysqli->prepare(
-  "INSERT INTO edit_logs (type, collection, record_id, author, author_email) VALUES ('delete', 'commentaires_falaises', ?, ?, ?)"
-);
-if (!$stmt) {
-  http_response_code(500);
-  die(json_encode(["error" => "Problème de préparation de la requête : " . $mysqli->error]));
+// Store in log (valeurs supprimées conservées dans les changements)
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
+$old_values = [];
+foreach (['falaise_id', 'velo_id', 'nom', 'commentaire', 'ville_nom', 'gare_depart', 'gare_arrivee'] as $champ) {
+  if (isset($existing_comment[$champ])) $old_values[$champ] = $existing_comment[$champ];
 }
-$record_id = $commentaire_id;
-$author_email = $email;
-$author = $email;
-$stmt->bind_param("ssi", $record_id, $author, $author_email);
-if (!$stmt) {
-  http_response_code(500);
-  die(json_encode(["error" => "Problème de liaison des paramètres : " . $mysqli->error]));
-}
-// Execute the statement
-$stmt->execute();
-if ($stmt->error) {
-  http_response_code(500);
-  die(json_encode(["error" => "Erreur lors de l'exécution de la requête : " . $stmt->error]));
-}
-$stmt->close();
+logChanges($email, $email, 'delete', 'commentaires_falaises', (int) $commentaire_id, $existing_comment['falaise_id'] ?? null, array_fill_keys(array_keys($old_values), ''), $old_values);
 $mysqli->close();
 echo json_encode(['success' => true]);

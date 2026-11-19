@@ -182,11 +182,11 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
     })
       .then(response => response.json())
       .then(data => {
-        if (data === true) {
+        if (data.success === true) {
           // remove the dropdown element
           document.querySelectorAll(`.gare${gareId}-ville${villeId}`).forEach(el => el.innerHTML = "-");
         } else {
-          alert("Erreur lors de la suppression de l'itinéraire train.");
+          alert(data.error || "Erreur lors de la suppression de l'itinéraire train.");
         }
       })
       .catch(error => console.error("Erreur:", error));
@@ -202,10 +202,10 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
     })
       .then(response => response.json())
       .then(data => {
-        if (data === true) {
+        if (data.success === true) {
           thisElement.closest('td').innerHTML = '<svg class="inline w-5 h-5 fill-none stroke-current"><use href="#close"></use></svg>';
         } else {
-          alert("Erreur lors de l'exclusion de la falaise.");
+          alert(data.error || "Erreur lors de l'exclusion de la falaise.");
         }
       })
       .catch(error => console.error("Erreur:", error));
@@ -221,10 +221,10 @@ $falaises = array_reduce($falaises, function ($carry, $item) {
     })
       .then(response => response.json())
       .then(data => {
-        if (data === true) {
+        if (data.success === true) {
           thisElement.closest('.gareElem').innerHTML = '-';
         } else {
-          alert("Erreur lors de l'exclusion de la falaise.");
+          alert(data.error || "Erreur lors de l'exclusion de la falaise.");
         }
       })
       .catch(error => console.error("Erreur:", error));

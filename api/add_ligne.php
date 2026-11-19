@@ -6,6 +6,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   die(json_encode(["error" => "Method not allowed"]));
 }
 
+// Réservé à l'admin (import GTFS / éditeur de lignes)
+$config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
+$headers = getallheaders();
+$authHeader = $headers['authorization'] ?? $headers['Authorization'] ?? null;
+if ($authHeader !== 'Bearer ' . $config["admin_token"]) {
+  http_response_code(401);
+  die(json_encode(["error" => "Non autorisé"]));
+}
+
 $input = json_decode(file_get_contents('php://input'), true);
 if (!is_array($input)) {
   http_response_code(400);
@@ -17,7 +26,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/lignes_lib.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_lib.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_parents_lib.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/geoplateforme_lib.php';
-$config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 $ligne_id = isset($input['ligne_id']) && $input['ligne_id'] !== '' ? (int) $input['ligne_id'] : null;
@@ -144,8 +153,9 @@ try {
   }
 
   $ligne_existait = $ligne_id !== null;
+  $ancienne_ligne = [];
   if ($ligne_id !== null) {
-    $stmt = $mysqli->prepare("SELECT id FROM lignes_transport WHERE id = ?");
+    $stmt = $mysqli->prepare("SELECT id, nom, numero, operateur, operateur_url, horaire_url, ref, couleur FROM lignes_transport WHERE id = ?");
     $stmt->bind_param("i", $ligne_id);
     $stmt->execute();
     $exists = $stmt->get_result()->fetch_assoc();
@@ -155,6 +165,7 @@ try {
       http_response_code(404);
       die(json_encode(["error" => "Ligne introuvable"]));
     }
+    $ancienne_ligne = $exists;
     $stmt = $mysqli->prepare(
       "UPDATE lignes_transport
        SET nom = ?, numero = ?, operateur = ?, operateur_url = ?, horaire_url = ?, ref = ?, couleur = ?,
@@ -236,10 +247,12 @@ try {
       $contrib, $contrib_mail
     );
     $stmt->execute();
-    $arrets_crees[] = $mysqli->insert_id;
+    $nouvel_id = $mysqli->insert_id; // avant logChanges : son INSERT écraserait insert_id
+    $arrets_crees[] = $nouvel_id;
     if ($n['stop_id'] !== null) {
-      $gtfs_refs[] = ["arret_id" => $mysqli->insert_id, "stop_id" => $n['stop_id'], "nom" => $n['nom']];
+      $gtfs_refs[] = ["arret_id" => $nouvel_id, "stop_id" => $n['stop_id'], "nom" => $n['nom']];
     }
+    logChanges("Admin", "", "insert", "arrets", $nouvel_id, null, ["nom" => $n['nom'], "lat" => $n['lat'], "lng" => $n['lng'], "Origine" => "Import GTFS (ligne #$ligne_id)"]);
   }
   $stmt->close();
   $arret_ids = array_values(array_unique(array_merge($arret_ids, $arrets_crees)));
@@ -284,6 +297,7 @@ try {
   }
 
   // Remplacement du set d'arrêts liés
+  $arrets_lies_avant = $ligne_existait ? ligne_arret_ids($mysqli, $ligne_id) : [];
   $stmt = $mysqli->prepare("DELETE FROM arrets_lignes_transport WHERE ligne_id = ?");
   $stmt->bind_param("i", $ligne_id);
   $stmt->execute();
@@ -308,6 +322,16 @@ try {
   }
   $stmt->close();
 
+  // Log dans la transaction (même connexion) : annulé avec elle en cas d'échec
+  $arrets_lies_apres = $arret_ids;
+  sort($arrets_lies_apres);
+  logChanges(
+    "Admin", "", $ligne_existait ? "update" : "insert", "lignes_transport", $ligne_id, null,
+    ["nom" => $nom] + $fields
+      + ($geojson !== null ? ["Géométrie" => "remplacée"] : [])
+      + ["Arrêts liés" => implode(', ', $arrets_lies_apres)],
+    $ligne_existait ? $ancienne_ligne + ["Arrêts liés" => implode(', ', $arrets_lies_avant)] : []
+  );
   $mysqli->commit();
   echo json_encode(["success" => true, "ligne_id" => $ligne_id, "arrets_crees" => $arrets_crees, "parents" => array_values(array_unique($parents_crees))]);
 } catch (ArretFusionException $e) {

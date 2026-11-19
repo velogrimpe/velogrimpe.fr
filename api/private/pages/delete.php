@@ -32,9 +32,16 @@ if ($id <= 0) {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
+
+$old = $mysqli->query("SELECT slug, title, status FROM pages WHERE id = $id")->fetch_assoc();
 
 $stmt = $mysqli->prepare("DELETE FROM pages WHERE id = ?");
 $stmt->bind_param('i', $id);
 $stmt->execute();
+
+if ($stmt->affected_rows > 0 && $old) {
+  logChanges("Admin", "", "delete", "pages", $id, null, array_fill_keys(array_keys($old), ''), $old);
+}
 
 echo json_encode(['success' => true]);

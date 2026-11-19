@@ -136,6 +136,16 @@ Fusionner deux arrêts ne supprime plus rien : `arrets.parent_id` regroupe des a
 - **Open data** : les enfants ne sont pas exportés comme arrêts ; les lignes (`lignes.geojson`, `arrets.geojson`) sont rattachées au parent.
 - Migration : `sql_migrations/2_arrets_parents.sql` (à jouer après `1_unification_arrets.sql`) ; pas de reprise de données : les arrêts déjà fusionnés restent des orphelins à plusieurs références GTFS (réimporter les lignes pour obtenir des enfants).
 
+## Journal des modifications (`edit_logs`)
+
+Toute écriture éditoriale (contribution publique **ou** action d'admin) est tracée par `logChanges()` (`lib/edit_logs.php`) : `type` (`insert` / `update` / `delete`), `collection` (table ou domaine, libellé dans `admin/edit_logs.php`), `record_id`, auteur, `changes` (JSON `{field, old, new}`, seuls les champs modifiés). Visible dans `/admin/edit_logs.php`.
+
+- Actions d'admin : auteur `"Admin"`, e-mail vide. Une suppression conserve les valeurs supprimées dans `old`.
+- Un nouvel endpoint qui écrit en base **doit** appeler `logChanges()`. Exceptions assumées : compteurs et inscriptions (newsletter publique, `increment_interest`, demandes de participation) et crons d'ingestion / d'export.
+- `logChanges()` réutilise la connexion `$mysqli` de la requête : le log fait partie de la transaction de l'appelant (annulé par un rollback). Dans une lib, passer la connexion en dernier paramètre (`$db`). Lire `$mysqli->insert_id` **avant** d'appeler `logChanges()`, dont l'`INSERT` l'écrase.
+- Contenus volumineux (sections de newsletter / page) : résumé par `logSectionsDigest()`, pas le contenu complet (colonne `changes` en `TEXT`).
+- Fusion, détachement et défusion d'arrêts journalisent dans `lib/arrets_parents_lib.php`, donc aussi lorsqu'ils sont déclenchés par l'import de ligne.
+
 ## Chemins de données
 
 Les contenus téléversés (images de falaises, images de newsletters et de pages,

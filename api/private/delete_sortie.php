@@ -38,6 +38,25 @@ $stmt->bind_param("i", $sortie_id);
 $stmt->execute();
 $stmt->close();
 
+// Log la suppression (valeurs supprimées conservées dans les changements)
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
+$old_sortie = [
+  "organisateur_nom" => $sortie['organisateur_nom'],
+  "organisateur_email" => $sortie['organisateur_email'],
+  "ville_depart" => $sortie['ville_depart'],
+  "ville_id" => $sortie['ville_id'],
+  "falaise_principale_nom" => $sortie['falaise_principale_nom'],
+  "falaise_principale_id" => $sortie['falaise_principale_id'],
+  "falaises_alternatives" => $sortie['falaises_alternatives'],
+  "velo_nom" => $sortie['velo_nom'],
+  "velo_id" => $sortie['velo_id'],
+  "lien_groupe" => $sortie['lien_groupe'],
+  "description" => $sortie['description'],
+  "date_debut" => $sortie['date_debut'],
+  "date_fin" => $sortie['date_fin']
+];
+logChanges("Admin", "", 'delete', 'sorties', $sortie_id, $sortie['falaise_principale_id'] ?: null, array_fill_keys(array_keys($old_sortie), ''), $old_sortie);
+
 // Send notification email to organizer
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
 

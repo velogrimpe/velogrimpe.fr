@@ -34,6 +34,7 @@ if ($id <= 0) {
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/newsletter_renderer.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 
 // Fetch newsletter
 $stmt = $mysqli->prepare("SELECT * FROM newsletters WHERE id = ?");
@@ -113,6 +114,12 @@ if ($successCount > 0) {
   $updateStmt->bind_param('i', $id);
   $updateStmt->execute();
 }
+
+// Chaque envoi est tracé, y compris un envoi partiel ou entièrement en échec
+logChanges("Admin", "", "update", "newsletters", $id, null, [
+  "Envoi" => "« $title » ($slug) : $successCount envoyé(s), $errorCount en erreur sur " . count($recipients) . " destinataire(s)",
+  "status" => $successCount > 0 ? 'sent' : $newsletter['status'],
+], ["status" => $newsletter['status']]);
 
 echo json_encode([
   'status' => 'ok',

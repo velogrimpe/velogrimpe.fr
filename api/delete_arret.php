@@ -23,10 +23,11 @@ if ($arret_id <= 0) {
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/velogrimpe.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_parents_lib.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
 
 // Suppression logique (colonne `deleted`) : acces_falaise et train référencent arrets sans cascade.
 // Un parent qui a des enfants, ou le dernier enfant d'un parent, ne se supprime pas : défusionner d'abord.
-$stmt = $mysqli->prepare("SELECT deleted, parent_id FROM arrets WHERE id = ?");
+$stmt = $mysqli->prepare("SELECT deleted, parent_id, nom FROM arrets WHERE id = ?");
 $stmt->bind_param("i", $arret_id);
 $stmt->execute();
 $row = $stmt->get_result()->fetch_assoc();
@@ -51,4 +52,5 @@ $stmt->bind_param("i", $arret_id);
 $stmt->execute();
 $stmt->close();
 if ($parent_id !== null) arret_recalculer_parent($mysqli, $parent_id);
+logChanges("Admin", "", "delete", "arrets", $arret_id, null, ["Arrêt" => ''], ["Arrêt" => $row["nom"]]);
 echo json_encode(["success" => true]);

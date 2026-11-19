@@ -85,5 +85,9 @@ foreach ($recipients as $recipient) {
   $stmt->bind_param('sss', $recipient["mail"], $slug, $status);
   $stmt->execute();
 }
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/edit_logs.php';
+logChanges("Admin", "", "update", "newsletters", 0, null, [
+  "Envoi (legacy)" => "« $title » ($slug) : $successCount envoyé(s), $errorCount en erreur sur " . count($recipients) . " destinataire(s)",
+]);
 header('Content-Type: application/json');
 echo json_encode(['status' => 'ok', 'sent_to' => count($recipients), 'success' => $successCount, 'error' => $errorCount]);

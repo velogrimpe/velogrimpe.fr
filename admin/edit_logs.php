@@ -33,7 +33,14 @@ $table_labels = [
   'velo' => "Itinéraire Vélo",
   'villes' => "Villes",
   'sorties' => "Sorties",
-  'zones' => "Zones"
+  'zones' => "Zones",
+  'lignes_transport' => "Ligne de transport",
+  'exclusions_villes_falaises' => "Exclusion ville / falaise",
+  'exclusions_villes_gares' => "Exclusion ville / gare",
+  'exclusions_villes_gares_falaises' => "Exclusion ville / gare / falaise",
+  'newsletters' => "Newsletter",
+  'pages' => "Page",
+  'fichiers' => "Fichier / image téléversé"
 ];
 
 
