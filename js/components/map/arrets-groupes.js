@@ -3,18 +3,10 @@
  * et enveloppe d'un groupe pour la carte. Module pur (aucune dépendance), testé par tests/js.
  */
 
-/** Famille de modalité : TER et TGV (gares) ne forment qu'une famille, les autres sont distinctes. */
-const famille = (t) => (t === "ter" || t === "tgv" ? "rail" : t);
-
-/** Deux listes de modalités partagent-elles une famille ? (règle intra-mode de la fusion) */
-export function memeMode(typesA, typesB) {
-  const fa = new Set((typesA ?? []).map(famille));
-  return (typesB ?? []).some((t) => fa.has(famille(t)));
-}
-
 /**
  * Deux arrêts peuvent-ils être fusionnés ? Un enfant ne l'est pas (détacher, ou fusionner son parent) ; un parent
- * et un orphelin, ou deux parents, oui. Reflète les refus de `api/merge_arrets.php`.
+ * et un orphelin, ou deux parents, oui. Les modes de transport peuvent différer (le parent cumule ceux de ses enfants).
+ * Reflète les refus de `api/merge_arrets.php`.
  * @returns {{ok: true} | {ok: false, raison: string}}
  */
 export function fusionnable(a, b) {
@@ -23,7 +15,6 @@ export function fusionnable(a, b) {
     if (x.deleted) return { ok: false, raison: "arrêt supprimé" };
     if (x.parent_id != null) return { ok: false, raison: "arrêt enfant : détachez-le, ou fusionnez son parent" };
   }
-  if (!memeMode(a.types, b.types)) return { ok: false, raison: "modes de transport différents" };
   return { ok: true };
 }
 

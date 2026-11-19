@@ -6,12 +6,12 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/arrets_lib.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 // Modalités d'arrêt : filtres de la liste et dialog de modification
-$arret_types_labels = ['ter' => 'TER', 'tgv' => 'TGV', 'bus' => 'Bus', 'tram' => 'Tram', 'telepherique' => 'Téléphérique'];
+$arret_types_labels = ['ter' => 'TER', 'tgv' => 'TGV', 'bus' => 'Bus', 'tram' => 'Tram', 'metro' => 'Métro', 'telepherique' => 'Téléphérique'];
 
 // Tous les arrêts (y compris supprimés : filtre côté client) et toutes les lignes (sans géométrie).
 $arrets = [];
 $res = $mysqli->query(
-  "SELECT a.id, a.nom, a.commune, a.deleted, a.ter, a.tgv, a.bus, a.tram, a.teleph, a.parent_id, a.position_manuelle,
+  "SELECT a.id, a.nom, a.commune, a.deleted, a.ter, a.tgv, a.bus, a.tram, a.metro, a.teleph, a.parent_id, a.position_manuelle,
           ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng,
           COALESCE(ch.n, 0) AS nb_enfants,
           COALESCE(li.nb, 0) AS nb_lignes,

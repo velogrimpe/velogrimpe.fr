@@ -43,7 +43,7 @@ while ($row = $res->fetch_assoc()) {
 // l'arrêt en cours d'édition est exclu : il est représenté par le marqueur déplaçable.
 $arretsCarte = [];
 $res = $mysqli->query(
-  "SELECT id, nom, ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets ORDER BY nom",
+  "SELECT id, nom, ter, tgv, bus, tram, metro, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets ORDER BY nom",
 );
 while ($row = $res->fetch_assoc()) {
   if ((int) $row["id"] === (int) $arret_id) continue;
@@ -175,6 +175,7 @@ while ($row = $res->fetch_assoc()) {
                 "tgv" => "TGV",
                 "bus" => "Bus",
                 "tram" => "Tram",
+                "metro" => "Métro",
                 "telepherique" => "Téléphérique",
               ]
               as $typeValue => $typeLabel
@@ -345,23 +346,11 @@ while ($row = $res->fetch_assoc()) {
       });
     }
 
-    // --- Arrêts existants (repères) : point jusqu'au zoom 12, icône au-delà ---
-    const EXISTANT_DOT_MAX_ZOOM = 12;
-    const existantsDot = () => map.getZoom() <= EXISTANT_DOT_MAX_ZOOM;
-    const existantIcon = (a) => existantsDot()
-      ? arretDotIcon(a.types, 12, { extraClassName: 'vg-arret-existant' })
-      : arretDivIcon(a.types, 20, { extraClassName: 'vg-arret-existant' });
-    const existantMarkers = arretsExistants.map((a) => {
-      const marker = L.marker([a.lat, a.lng], { icon: existantIcon(a), zIndexOffset: -500, keyboard: false })
+    // --- Arrêts existants (repères) : simple point noir, quel que soit le type ---
+    const existantIcon = (a) => arretDotIcon(a.types, 9, { color: '#000', extraClassName: 'vg-arret-existant', compact: true });
+    arretsExistants.forEach((a) => {
+      L.marker([a.lat, a.lng], { icon: existantIcon(a), zIndexOffset: -500, keyboard: false })
         .bindTooltip(escapeHtml(a.nom)).addTo(map);
-      return { marker, arret: a };
-    });
-    let existantsWasDot = existantsDot();
-    map.on('zoomend', () => {
-      const dot = existantsDot();
-      if (dot === existantsWasDot) return;
-      existantsWasDot = dot;
-      existantMarkers.forEach(({ marker, arret }) => marker.setIcon(existantIcon(arret)));
     });
 
     // --- Géocodage inverse (commune/code_insee/cp), silencieux + retour visuel ---
@@ -415,13 +404,16 @@ while ($row = $res->fetch_assoc()) {
     const linkedFalaises = new Set();
     const falaiseHidden = document.getElementById('arret_falaise_ids');
     const falaiseMarkers = new Map();
-    const falaiseIcon = (linked) => L.icon({
-      iconUrl: '/images/map/icone_falaise_carte.png',
-      iconSize: [22, 22],
-      iconAnchor: [11, 11],
-      popupAnchor: [0, -11],
-      className: linked ? 'linked-falaise' : 'opacity-80',
-    });
+    // Falaise liée : icône falaise ; non liée : simple point vert.
+    const falaiseIcon = (linked) => linked
+      ? L.icon({
+        iconUrl: '/images/map/icone_falaise_carte.png',
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+        popupAnchor: [0, -11],
+        className: 'linked-falaise',
+      })
+      : arretDotIcon([], 9, { color: '#16a34a', compact: true, extraClassName: 'vg-falaise-dot' });
     function syncFalaiseHidden() {
       falaiseHidden.value = Array.from(linkedFalaises).join(',');
     }
@@ -524,7 +516,7 @@ while ($row = $res->fetch_assoc()) {
         }
         stops.forEach((s) => {
           const m = L.circleMarker([s.lat, s.lon], {
-            radius: 6, weight: 2, color: '#2563eb', fillColor: '#60a5fa', fillOpacity: 0.7,
+            radius: 4, weight: 1, color: '#2563eb', fillColor: '#60a5fa', fillOpacity: 0.7,
           });
           const routes = (s.routes || []).map((r) => {
             const n = (r.network || '').trim(), ref = (r.ref || '').trim();

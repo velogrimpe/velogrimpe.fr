@@ -24,7 +24,7 @@ class ArretFusionException extends RuntimeException
   }
 }
 
-const ARRET_MODES = ['ter', 'tgv', 'bus', 'tram', 'teleph'];
+const ARRET_MODES = ['ter', 'tgv', 'bus', 'tram', 'metro', 'teleph'];
 
 /** Familles de modalité d'un arrêt : TER et TGV ne forment qu'une famille (gares). @return string[] */
 function arret_familles(array $row): array
@@ -36,7 +36,7 @@ function arret_familles(array $row): array
   return array_values(array_unique($familles));
 }
 
-/** Deux arrêts sont fusionnables s'ils partagent une famille de modalité (règle intra-mode). */
+/** Deux arrêts partagent-ils une famille de modalité ? (règle intra-mode du regroupement automatique, import GTFS) */
 function arrets_meme_mode(array $a, array $b): bool
 {
   return count(array_intersect(arret_familles($a), arret_familles($b))) > 0;
@@ -60,7 +60,7 @@ function arrets_charger_verrouilles(mysqli $mysqli, array $ids): array
   $rows = [];
   $res = $mysqli->query(
     "SELECT id, nom, slug, commune, code_insee, cp, description, parent_id, deleted, position_manuelle,
-            ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng
+            ter, tgv, bus, tram, metro, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng
      FROM arrets WHERE id IN ($in) FOR UPDATE"
   );
   foreach ($res as $r) $rows[(int) $r['id']] = $r;
@@ -75,7 +75,7 @@ function arret_recalculer_parent(mysqli $mysqli, int $parentId): void
 {
   $stmt = $mysqli->prepare(
     "SELECT AVG(ST_Y(loc)) AS lat, AVG(ST_X(loc)) AS lng, MAX(ter) AS ter, MAX(tgv) AS tgv, MAX(bus) AS bus,
-            MAX(tram) AS tram, MAX(teleph) AS teleph, COUNT(*) AS n
+            MAX(tram) AS tram, MAX(metro) AS metro, MAX(teleph) AS teleph, COUNT(*) AS n
      FROM arrets WHERE parent_id = ? AND deleted = 0"
   );
   $stmt->bind_param("i", $parentId);
@@ -90,16 +90,16 @@ function arret_recalculer_parent(mysqli $mysqli, int $parentId): void
   $manuelle = (int) ($stmt->get_result()->fetch_assoc()['position_manuelle'] ?? 0);
   $stmt->close();
 
-  $ter = (int) $agg['ter']; $tgv = (int) $agg['tgv']; $bus = (int) $agg['bus']; $tram = (int) $agg['tram']; $teleph = (int) $agg['teleph'];
+  $ter = (int) $agg['ter']; $tgv = (int) $agg['tgv']; $bus = (int) $agg['bus']; $tram = (int) $agg['tram']; $metro = (int) $agg['metro']; $teleph = (int) $agg['teleph'];
   if ($manuelle) {
-    $stmt = $mysqli->prepare("UPDATE arrets SET ter = ?, tgv = ?, bus = ?, tram = ?, teleph = ? WHERE id = ?");
-    $stmt->bind_param("iiiiii", $ter, $tgv, $bus, $tram, $teleph, $parentId);
+    $stmt = $mysqli->prepare("UPDATE arrets SET ter = ?, tgv = ?, bus = ?, tram = ?, metro = ?, teleph = ? WHERE id = ?");
+    $stmt->bind_param("iiiiiii", $ter, $tgv, $bus, $tram, $metro, $teleph, $parentId);
   } else {
     $wkt = sprintf('POINT(%.7f %.7f)', (float) $agg['lng'], (float) $agg['lat']); // WKT = (lng lat)
     $stmt = $mysqli->prepare(
-      "UPDATE arrets SET ter = ?, tgv = ?, bus = ?, tram = ?, teleph = ?, loc = ST_GeomFromText(?, 4326) WHERE id = ?"
+      "UPDATE arrets SET ter = ?, tgv = ?, bus = ?, tram = ?, metro = ?, teleph = ?, loc = ST_GeomFromText(?, 4326) WHERE id = ?"
     );
-    $stmt->bind_param("iiiiisi", $ter, $tgv, $bus, $tram, $teleph, $wkt, $parentId);
+    $stmt->bind_param("iiiiiisi", $ter, $tgv, $bus, $tram, $metro, $teleph, $wkt, $parentId);
   }
   $stmt->execute();
   $stmt->close();
@@ -143,10 +143,11 @@ function arret_reporter_acces_et_trains(mysqli $mysqli, int $de, int $vers): int
  * Regroupe deux arrêts. Cas : deux orphelins → nouveau parent (attributs de `$cible`) ; un parent et un
  * orphelin → l'orphelin devient enfant du parent ; deux parents → `$cible` absorbe les enfants de `$source`
  * (aplatissement, `$source` supprimé logiquement). Refus (ArretFusionException) : arrêt introuvable (404),
- * supprimé, enfant, de modes différents, ou accès identiques (409).
+ * supprimé, enfant, ou accès identiques (409). Les modes de transport peuvent différer (fusion manuelle admin) : le parent cumule
+ * ceux de ses enfants. `$memeModeRequis` (import GTFS, regroupement automatique) refuse deux arrêts sans mode commun.
  * @return array{parent_id:int, acces_deplaces:int}
  */
-function arret_fusionner(mysqli $mysqli, int $source, int $cible): array
+function arret_fusionner(mysqli $mysqli, int $source, int $cible, bool $memeModeRequis = false): array
 {
   if ($source === $cible) throw new ArretFusionException(400, "Deux arrêts distincts sont requis");
   $rows = arrets_charger_verrouilles($mysqli, [$source, $cible]);
@@ -158,8 +159,9 @@ function arret_fusionner(mysqli $mysqli, int $source, int $cible): array
       throw new ArretFusionException(409, "« {$r['nom']} » est déjà regroupé sous un parent : détachez-le d'abord, ou fusionnez son parent");
     }
   }
-  if (!arrets_meme_mode($s, $c)) {
-    throw new ArretFusionException(409, "Fusion refusée : « {$s['nom']} » et « {$c['nom']} » n'ont pas de mode de transport en commun");
+
+  if ($memeModeRequis && !arrets_meme_mode($s, $c)) {
+    throw new ArretFusionException(409, "Regroupement refusé : « {$s['nom']} » et « {$c['nom']} » n'ont pas de mode de transport en commun");
   }
 
   $sParent = arret_nb_enfants($mysqli, $source) > 0;
@@ -294,4 +296,44 @@ function arret_defusionner(mysqli $mysqli, int $parentId, ?int $heritierId = nul
     "Parent" => "« {$rows[$parentId]['nom']} » défusionné ; enfants libérés : " . implode(', ', $enfants)
       . ($heritierId !== null && $nbRelations > 0 ? " ; accès/trajets reportés sur #$heritierId" : ''),
   ], $mysqli);
+}
+
+/**
+ * Supprime logiquement un arrêt. Un parent est supprimé avec ses enfants actifs, et les accès aux falaises
+ * (`acces_falaise`, supprimés physiquement : FK sans cascade) du parent et de ses enfants le sont aussi.
+ * Les trajets train et les fichiers GPX ne sont pas touchés. Sans `$cascade`, refuse (409) tant que l'arrêt est
+ * un parent ou porte des accès. Le dernier enfant d'un parent ne se supprime pas (défusionner le parent).
+ * À appeler dans une transaction.
+ * @return array{enfants_supprimes:int, acces_supprimes:int}
+ */
+function arret_supprimer(mysqli $mysqli, int $id, bool $cascade = false): array
+{
+  $rows = arrets_charger_verrouilles($mysqli, [$id]);
+  if (!$rows) throw new ArretFusionException(404, "Arrêt introuvable");
+  $row = $rows[$id];
+  $parentId = $row['parent_id'] !== null ? (int) $row['parent_id'] : null;
+  if ($parentId !== null && !$row['deleted'] && arret_nb_enfants($mysqli, $parentId) <= 1) {
+    throw new ArretFusionException(409, "C'est le dernier enfant de son parent : défusionnez le parent à la place");
+  }
+
+  $enfants = array_map(
+    fn($r) => (int) $r['id'],
+    $mysqli->query("SELECT id FROM arrets WHERE parent_id = $id AND deleted = 0 ORDER BY id")->fetch_all(MYSQLI_ASSOC)
+  );
+  $ids = array_merge([$id], $enfants);
+  $in = implode(',', $ids);
+  $nbAcces = (int) $mysqli->query("SELECT COUNT(*) AS n FROM acces_falaise WHERE arret_id IN ($in)")->fetch_assoc()['n'];
+  if (!$cascade && ($enfants || $nbAcces > 0)) {
+    throw new ArretFusionException(409, "Cet arrêt a " . count($enfants) . " enfant(s) et $nbAcces accès : confirmez la suppression en cascade");
+  }
+
+  $mysqli->query("DELETE FROM acces_falaise WHERE arret_id IN ($in)");
+  $mysqli->query("UPDATE arrets SET deleted = 1 WHERE id IN ($in)");
+  if ($parentId !== null) arret_recalculer_parent($mysqli, $parentId);
+  logChanges("Admin", "", "delete", "arrets", $id, null, ["Arrêt" => ''], [
+    "Arrêt" => $row['nom']
+      . ($enfants ? " ; enfants supprimés : " . implode(', ', $enfants) : '')
+      . ($nbAcces ? " ; $nbAcces accès supprimés" : ''),
+  ], $mysqli);
+  return ["enfants_supprimes" => count($enfants), "acces_supprimes" => $nbAcces];
 }

@@ -84,7 +84,7 @@ $stmtPieton = $mysqli->prepare("
     f.falaise_exposhort1, f.falaise_exposhort2, f.falaise_altitude, f.falaise_bloc, f.falaise_gvnb,
     f.falaise_fermee, f.falaise_zonename, f.falaise_deptname, f.falaise_deptcode,
     a.nom AS gare_nom,
-    a.ter, a.tgv, a.bus, a.tram, a.teleph, a.id AS acces_pieton_arret_id,
+    a.ter, a.tgv, a.bus, a.tram, a.metro, a.teleph, a.id AS acces_pieton_arret_id,
     t.train_arrivee, t.train_temps, t.train_correspmin, t.train_correspmax, COALESCE(t.train_tgv, 0) AS train_tgv,
     0 AS velo_km, 0 AS velo_dplus, 0 AS velo_dmoins,
     p.acces_id AS acces_pieton_acces_id, p.km AS acces_pieton_km, p.dplus AS acces_pieton_dplus, p.dmoins AS acces_pieton_dmoins,
@@ -123,7 +123,7 @@ if ($rowsPieton) {
 $rowsPieton = array_map(function ($r) use ($lignesParArret) {
   $r['acces_pieton_types'] = arret_types($r);
   $r['acces_pieton_lignes'] = $lignesParArret[(int) $r['acces_pieton_arret_id']] ?? [];
-  unset($r['ter'], $r['tgv'], $r['bus'], $r['tram'], $r['teleph'], $r['acces_pieton_arret_id']);
+  unset($r['ter'], $r['tgv'], $r['bus'], $r['tram'], $r['metro'], $r['teleph'], $r['acces_pieton_arret_id']);
   // Distance / dénivelés de l'accès, quand renseignés (null sinon)
   $r['acces_pieton_km'] = $r['acces_pieton_km'] !== null ? (float) $r['acces_pieton_km'] : null;
   $r['acces_pieton_dplus'] = $r['acces_pieton_dplus'] !== null ? (int) $r['acces_pieton_dplus'] : null;

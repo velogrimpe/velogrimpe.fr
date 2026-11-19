@@ -8,7 +8,7 @@
  * GET /api/fetch_arrets.php?falaise_id=39&bbox=43.80,5.30,43.90,5.45&types=bus,tram
  *   bbox = south,west,north,east (optionnel : sans bbox, seuls les arrêts liés
  *   sont renvoyés).
- *   types = sous-ensemble de ter,tgv,bus,tram,telepherique (optionnel : sans
+ *   types = sous-ensemble de ter,tgv,bus,tram,metro,telepherique (optionnel : sans
  *   ce paramètre, toutes les modalités sont renvoyées).
  */
 header('Content-Type: application/json');
@@ -30,7 +30,7 @@ if (isset($_GET['bbox']) && $_GET['bbox'] !== '') {
   }
 }
 
-// Filtre optionnel par modalité (sous-ensemble de ter/tgv/bus/tram/teleph).
+// Filtre optionnel par modalité (sous-ensemble de ter/tgv/bus/tram/metro/teleph).
 // Noms de colonnes whitelistés (pas de valeur utilisateur interpolée telle quelle).
 $typeFilterSql = '';
 if (isset($_GET['types']) && $_GET['types'] !== '') {
@@ -38,7 +38,7 @@ if (isset($_GET['types']) && $_GET['types'] !== '') {
     fn($t) => $t === 'telepherique' ? 'teleph' : $t,
     array_map('trim', explode(',', $_GET['types']))
   );
-  $columns = array_values(array_intersect(['ter', 'tgv', 'bus', 'tram', 'teleph'], $requested));
+  $columns = array_values(array_intersect(['ter', 'tgv', 'bus', 'tram', 'metro', 'teleph'], $requested));
   if (!empty($columns)) {
     $typeFilterSql = ' AND (' . implode(' OR ', array_map(fn($c) => "a.$c = 1", $columns)) . ')';
   }
@@ -47,7 +47,7 @@ if (isset($_GET['types']) && $_GET['types'] !== '') {
 if ($bbox) {
   [$south, $west, $north, $east] = $bbox;
   $sql =
-    "SELECT a.id, a.nom, a.description, a.ter, a.tgv, a.bus, a.tram, a.teleph,
+    "SELECT a.id, a.nom, a.description, a.ter, a.tgv, a.bus, a.tram, a.metro, a.teleph,
             ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng,
             EXISTS (SELECT 1 FROM acces_falaise baf
                     WHERE baf.arret_id = a.id AND baf.falaise_id = ? AND baf.type = 'pied') AS linked
@@ -60,7 +60,7 @@ if ($bbox) {
   $stmt->bind_param("iddddi", $falaise_id, $south, $north, $west, $east, $falaise_id);
 } else {
   $sql =
-    "SELECT a.id, a.nom, a.description, a.ter, a.tgv, a.bus, a.tram, a.teleph,
+    "SELECT a.id, a.nom, a.description, a.ter, a.tgv, a.bus, a.tram, a.metro, a.teleph,
             ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng,
             1 AS linked
      FROM arrets a

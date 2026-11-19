@@ -254,6 +254,12 @@ $highlight = $_GET['h'] ?? '';
        ombre quasi invisible, croix minuscule) est loin de celui de Leaflet
        sur carte.php. On réaligne sur les valeurs de leaflet.css pour que les
        deux cartes soient iso. */
+    /* Les popups passent au-dessus de tous les marqueurs (gares z:1, falaises z:2,
+       labels z:5), sous le marqueur survolé (1001) et les contrôles (1500). */
+    .maplibregl-popup {
+      z-index: 1000;
+    }
+
     .maplibregl-popup-content {
       padding: 13px 24px 13px 20px;
       border-radius: 12px;

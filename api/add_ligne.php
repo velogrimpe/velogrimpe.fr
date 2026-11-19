@@ -50,7 +50,7 @@ $arret_ids = is_array($input['arret_ids'] ?? null) ? array_values(array_unique(a
 
 // Arrêts à créer en même temps que la ligne (import GTFS) : tous validés avant
 // toute écriture, créés dans la même transaction.
-const NOUVEL_ARRET_TYPES = ['ter' => 'ter', 'tgv' => 'tgv', 'bus' => 'bus', 'tram' => 'tram', 'telepherique' => 'teleph'];
+const NOUVEL_ARRET_TYPES = ['ter' => 'ter', 'tgv' => 'tgv', 'bus' => 'bus', 'tram' => 'tram', 'metro' => 'metro', 'telepherique' => 'teleph'];
 $nouveaux = [];
 foreach (is_array($input['nouveaux_arrets'] ?? null) ? $input['nouveaux_arrets'] : [] as $n) {
   $n_nom = trim($n['nom'] ?? '');
@@ -221,8 +221,8 @@ try {
   $contrib = 'Import GTFS';
   $contrib_mail = (string) ($config['contact_mail'] ?? '');
   $stmt = $mysqli->prepare(
-    "INSERT INTO arrets (loc, nom, slug, ter, tgv, bus, tram, teleph, commune, code_insee, cp, contrib, contrib_mail)
-     VALUES (ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO arrets (loc, nom, slug, ter, tgv, bus, tram, metro, teleph, commune, code_insee, cp, contrib, contrib_mail)
+     VALUES (ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
   foreach ($nouveaux as $i => $n) {
     $commune = $geocodes[$i]['city'] ?? null;
@@ -235,9 +235,9 @@ try {
       $flags[$col] = (int) in_array($type, $n['types'], true);
     }
     $stmt->bind_param(
-      "sssiiiiisssss",
+      "sssiiiiiisssss",
       $wkt, $n['nom'], $slug,
-      $flags['ter'], $flags['tgv'], $flags['bus'], $flags['tram'], $flags['teleph'],
+      $flags['ter'], $flags['tgv'], $flags['bus'], $flags['tram'], $flags['metro'], $flags['teleph'],
       $commune, $code_insee, $cp,
       $contrib, $contrib_mail
     );
@@ -262,7 +262,7 @@ try {
   $regrouper = function (int $arret, int $avec) use ($mysqli, $racine, &$parents_crees): int {
     $cible = $racine($avec);
     $etait_parent = arret_nb_enfants($mysqli, $cible) > 0;
-    $parent = arret_fusionner($mysqli, $arret, $cible)['parent_id'];
+    $parent = arret_fusionner($mysqli, $arret, $cible, true)['parent_id'];
     if (!$etait_parent) $parents_crees[] = $parent;
     return $parent;
   };

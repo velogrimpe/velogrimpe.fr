@@ -12,7 +12,7 @@ $arret_id = (int) $arret_id;
 
 // --- Arrêt ---
 $stmt = $mysqli->prepare(
-  "SELECT id, nom, description, ter, tgv, bus, tram, teleph, commune, code_insee, cp, ST_Y(loc) AS lat, ST_X(loc) AS lng
+  "SELECT id, nom, description, ter, tgv, bus, tram, metro, teleph, commune, code_insee, cp, ST_Y(loc) AS lat, ST_X(loc) AS lng
    FROM arrets WHERE id = ?"
 );
 $stmt->bind_param("i", $arret_id);

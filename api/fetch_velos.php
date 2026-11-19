@@ -40,7 +40,7 @@ $stmt = $mysqli->prepare("
          v.description AS velo_descr, v.lien_openrunner AS velo_openrunner,
          " . acces_a_pied_sql('v') . " AS velo_apiedpossible, v.public AS velo_public,
          a.nom AS arret_nom, a.slug AS arret_nomformate, CONCAT(ST_Y(a.loc), ',', ST_X(a.loc)) AS arret_latlng,
-         a.ter, a.tgv, a.bus, a.tram, a.teleph
+         a.ter, a.tgv, a.bus, a.tram, a.metro, a.teleph
   FROM acces_falaise v
   INNER JOIN arrets a ON a.id = v.arret_id AND a.deleted = 0
   WHERE v.type IN ($typesSql) AND v.falaise_id = ? AND v.public >= 0

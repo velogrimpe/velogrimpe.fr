@@ -37,7 +37,7 @@ const LIGNE_SELECT = "SELECT id, nom, numero, operateur, operateur_url, horaire_
 function ligne_arrets(mysqli $mysqli, int $ligne_id): array
 {
   $stmt = $mysqli->prepare(
-    "SELECT a.id, a.nom, a.ter, a.tgv, a.bus, a.tram, a.teleph, a.parent_id, ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng
+    "SELECT a.id, a.nom, a.ter, a.tgv, a.bus, a.tram, a.metro, a.teleph, a.parent_id, ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng
      FROM arrets_lignes_transport alt JOIN arrets a ON a.id = alt.arret_id
      WHERE alt.ligne_id = ? ORDER BY a.id"
   );

@@ -21,6 +21,7 @@ const TYPE_LABELS = {
   tgv: "TGV",
   bus: "Bus",
   tram: "Tram",
+  metro: "Métro",
   telepherique: "Téléph.",
 };
 
@@ -108,7 +109,7 @@ const readFilters = () => {
   for (const g of filterGroups()) state[g.dataset.filterGroup] = filterValue(g);
 };
 
-const LOCAL_TYPES = ["bus", "tram", "telepherique"];
+const LOCAL_TYPES = ["bus", "tram", "metro", "telepherique"];
 const typeVisible = (a) =>
   state.type === ""
     ? true
@@ -144,7 +145,7 @@ const ligneVisible = (l) =>
 
 // --- Fusion : 1er clic « Fusionner » sur le 1er arrêt, 2e clic « Regrouper avec celui-ci » sur l'autre ---
 // Rien n'est supprimé : les deux arrêts sont regroupés sous un parent (créé, ou déjà existant). Le parent créé
-// reprend le nom de l'arrêt choisi en 2e. Règles (cf. fusionnable) : pas d'enfant, même mode de transport.
+// reprend le nom de l'arrêt choisi en 2e. Règle (cf. fusionnable) : pas d'enfant ; les modes peuvent différer (le parent cumule les types).
 let mergeSource = null;
 const mergeButtons = (a) => {
   if (a.deleted || a.parent_id != null) return ""; // un enfant se détache, il ne se fusionne pas
@@ -224,9 +225,9 @@ const enfantsRows = (a, enfants) =>
         )
         .join("")
     : "";
-// Suppression : ni un parent (le défusionner d'abord) ni le dernier enfant d'un parent
+// Suppression : un parent (et ses accès) se supprime en cascade après confirmation ; pas le dernier enfant d'un parent
 const supprimable = (a) => {
-  if (a.deleted || a.nb_enfants > 0) return false;
+  if (a.deleted) return false;
   const parent =
     a.parent_id != null ? arrets.find((x) => x.id === a.parent_id) : null;
   return !parent || parent.nb_enfants > 1;
@@ -1343,13 +1344,18 @@ function deleteLigne(id) {
 // --- Suppression ---------------------------------------------------------
 async function deleteArret(id) {
   const a = arrets.find((x) => x.id === id);
-  if (
-    !a ||
-    !confirm(
-      `Supprimer l'arrêt « ${a.nom} » (#${id}) ?\nIl sera masqué du site (suppression logique).`,
-    )
-  )
-    return;
+  if (!a) return;
+  const enfants = arrets.filter((x) => x.parent_id === id && !x.deleted);
+  const nbAcces = a.nb_acces + enfants.reduce((n, e) => n + e.nb_acces, 0);
+  const cascade = enfants.length > 0 || nbAcces > 0;
+  let msg = `Supprimer l'arrêt « ${a.nom} » (#${id}) ?\nIl sera masqué du site (suppression logique).`;
+  if (cascade) {
+    msg = `⚠ Supprimer l'arrêt « ${a.nom} » (#${id}) ?\n`;
+    if (enfants.length) msg += `\n• ${enfants.length} arrêt(s) enfant(s) seront aussi supprimés : ${enfants.map((e) => e.nom).join(", ")}`;
+    if (nbAcces) msg += `\n• ${nbAcces} accès aux falaises seront supprimés DÉFINITIVEMENT.`;
+    msg += `\n\nLes arrêts sont masqués du site (suppression logique) ; les accès sont effacés.`;
+  }
+  if (!confirm(msg)) return;
   try {
     const r = await fetch("/api/delete_arret.php", {
       method: "POST",
@@ -1357,11 +1363,16 @@ async function deleteArret(id) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ arret_id: id }),
+      body: JSON.stringify({ arret_id: id, cascade }),
     });
     if (!r.ok)
       throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
     a.deleted = true;
+    if (cascade) {
+      enfants.forEach((e) => { e.deleted = true; e.nb_acces = 0; });
+      a.nb_acces = 0;
+      a.nb_enfants = 0;
+    }
     closePopup();
     refresh();
   } catch (e) {

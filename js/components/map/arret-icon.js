@@ -1,7 +1,7 @@
 /**
  * Résolution du type dominant et de l'icône d'un arrêt multimodal, factorisée
  * pour être réutilisée partout (formulaire d'ajout, éditeur de falaise, carte
- * globale) — priorité ter > tgv > tram > telepherique > bus, miroir de
+ * globale) — priorité ter > tgv > metro > tram > telepherique > bus, miroir de
  * `arret_type_dominant()` (public_html/lib/arrets_lib.php).
  *
  * Rendu via `<use>` sur le sprite SVG global (public_html/symbols/icons.svg,
@@ -11,7 +11,7 @@
  * @module arret-icon
  */
 
-const TYPE_PRIORITY = ["ter", "tgv", "tram", "telepherique", "bus"];
+const TYPE_PRIORITY = ["ter", "tgv", "metro", "tram", "telepherique", "bus"];
 
 // Gares (ter/tgv) : icône ronde. Autres modalités : icône carrée arrondie
 // (squircle), plus petite — cf. retour visuel du Lot 4.
@@ -21,6 +21,7 @@ const TYPE_SYMBOLS = {
   ter: "train",
   tgv: "tgv",
   tram: "tram",
+  metro: "metro",
   telepherique: "aerial-tram",
   bus: "bus-stop",
 };
@@ -29,14 +30,15 @@ const TYPE_SYMBOLS = {
 const TYPE_COLORS = {
   ter: "#222",
   tgv: "#a00",
-  // Bus, tram et téléphérique : fond doré commun (cf. docs/conception-bus.md, étape 5)
-  tram: "gold",
-  telepherique: "gold",
+  // Métro : rouge sombre (#5c0a0a, distinct du rouge TGV) ; tram orange, téléphérique violet, bus doré
+  tram: "#f97316",
+  metro: "#5c0a0a",
+  telepherique: "#7c3aed",
   bus: "gold",
 };
 
 /**
- * @param {string[]} types Sous-ensemble de ter/tgv/bus/tram/telepherique.
+ * @param {string[]} types Sous-ensemble de ter/tgv/bus/tram/metro/telepherique.
  * @returns {string} Type dominant (toujours une valeur, "bus" par défaut).
  */
 export function arretTypeDominant(types) {
@@ -118,13 +120,16 @@ export function arretEstGare(types) {
  * @param {number} [size=12]
  * @param {Object} [options={}]
  * @param {string} [options.extraClassName] Classes CSS additionnelles sur le conteneur du point.
+ * @param {string} [options.color] Couleur de fond forcée (sinon déduite du type dominant).
+ * @param {boolean} [options.compact=false] Halo réduit (bord blanc de 1px, ombre légère).
  * @returns {L.DivIcon}
  */
 export function arretDotIcon(types, size = 12, options = {}) {
-  const color = arretIconColor(arretTypeDominant(types));
+  const color = options.color || arretIconColor(arretTypeDominant(types));
+  const halo = options.compact ? "border shadow-sm" : "border-2 shadow";
   return L.divIcon({
     className: `vg-arret-dot${options.extraClassName ? " " + options.extraClassName : ""}`,
-    html: `<div style="width:${size}px;height:${size}px;background:${color};" class="rounded-full border-2 border-white shadow"></div>`,
+    html: `<div style="width:${size}px;height:${size}px;background:${color};" class="rounded-full ${halo} border-white"></div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     tooltipAnchor: [size / 2, 0],

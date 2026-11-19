@@ -100,7 +100,7 @@ $stmtIt->close();
 // Accès à pied depuis un arrêt (acces_falaise, type 'pied') : une entrée par accès,
 // sans fusion avec les itinéraires vélo. Lignes desservantes d'après `lignes_transport`.
 $stmtAp = $mysqli->prepare("
-  SELECT a.id, a.nom, a.commune, a.ter, a.tgv, a.bus, a.tram, a.teleph,
+  SELECT a.id, a.nom, a.commune, a.ter, a.tgv, a.bus, a.tram, a.metro, a.teleph,
     ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng, p.description,
     p.acces_id, p.km, p.dplus, p.dmoins, p.depart_slug, p.arrivee_slug, p.variante_formate
   FROM acces_falaise p
@@ -980,7 +980,7 @@ $stmtC->close();
         <!-- Accès à pied depuis un arrêt (acces_falaise, type 'pied') : un bloc par accès -->
         <section id="acces-pietons" class="flex flex-col gap-2 w-full">
           <?php
-          $typeLabels = ['ter' => 'TER', 'tgv' => 'TGV', 'bus' => 'Bus', 'tram' => 'Tram', 'telepherique' => 'Téléphérique'];
+          $typeLabels = ['ter' => 'TER', 'tgv' => 'TGV', 'bus' => 'Bus', 'tram' => 'Tram', 'metro' => 'Métro', 'telepherique' => 'Téléphérique'];
           $safeUrl = fn($u) => preg_match('#^https?://#i', (string) $u) ? $u : null;
           foreach ($accesPietons as $ap): ?>
             <div data-arret-id="<?= $ap['arret_id'] ?>"

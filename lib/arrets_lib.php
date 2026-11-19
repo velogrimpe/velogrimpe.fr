@@ -4,15 +4,15 @@
  */
 
 /** Fragment SELECT commun, avec extraction lat/lng depuis la géométrie `loc`. */
-const ARRET_SELECT_FIELDS = "id, nom, slug, commune, code_insee, cp, ter, tgv, bus, tram, teleph, deleted, description, ST_Y(loc) AS lat, ST_X(loc) AS lng";
+const ARRET_SELECT_FIELDS = "id, nom, slug, commune, code_insee, cp, ter, tgv, bus, tram, metro, teleph, deleted, description, ST_Y(loc) AS lat, ST_X(loc) AS lng";
 
 /**
  * Type dominant d'un arrêt pour le choix de l'icône, priorité
- * ter > tgv > tram > telepherique > bus (cf. doc Étape 2).
+ * ter > tgv > metro > tram > telepherique > bus (cf. doc Étape 2).
  */
 function arret_type_dominant(array $arret): string
 {
-  foreach (['ter', 'tgv', 'tram', 'teleph'] as $type) {
+  foreach (['ter', 'tgv', 'metro', 'tram', 'teleph'] as $type) {
     if (!empty($arret[$type])) {
       return $type === 'teleph' ? 'telepherique' : $type;
     }
@@ -20,11 +20,11 @@ function arret_type_dominant(array $arret): string
   return 'bus';
 }
 
-/** Liste des modalités desservies par l'arrêt (sous-ensemble de ter/tgv/bus/tram/telepherique). */
+/** Liste des modalités desservies par l'arrêt (sous-ensemble de ter/tgv/bus/tram/metro/telepherique). */
 function arret_types(array $arret): array
 {
   $types = [];
-  foreach (['ter', 'tgv', 'bus', 'tram', 'teleph'] as $type) {
+  foreach (['ter', 'tgv', 'bus', 'tram', 'metro', 'teleph'] as $type) {
     if (!empty($arret[$type])) {
       $types[] = $type === 'teleph' ? 'telepherique' : $type;
     }
@@ -70,6 +70,7 @@ function arret_row_to_array(array $row): array
     'tgv' => (bool) $row['tgv'],
     'bus' => (bool) $row['bus'],
     'tram' => (bool) $row['tram'],
+    'metro' => (bool) $row['metro'],
     'teleph' => (bool) $row['teleph'],
     'deleted' => (bool) $row['deleted'],
     'description' => $row['description'],

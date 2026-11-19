@@ -24,7 +24,7 @@ $resR = $mysqli->query("SELECT arret_id, ref FROM references_externes WHERE sour
 while ($r = $resR->fetch_assoc()) $gtfs_refs_par_arret[(int) $r["arret_id"]][] = $r["ref"];
 $arrets = [];
 $res = $mysqli->query(
-  "SELECT a.id, a.nom, a.ter, a.tgv, a.bus, a.tram, a.teleph, ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng
+  "SELECT a.id, a.nom, a.ter, a.tgv, a.bus, a.tram, a.metro, a.teleph, ST_Y(a.loc) AS lat, ST_X(a.loc) AS lng
    FROM arrets a
    WHERE a.deleted = 0 AND NOT EXISTS (SELECT 1 FROM arrets c WHERE c.parent_id = a.id AND c.deleted = 0)
    ORDER BY a.nom",

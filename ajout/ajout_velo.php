@@ -7,13 +7,13 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/map-bundle.php';
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 // Arrêts de départ possibles : tous types (gares, mais aussi cars qui prennent les vélos…)
-$result_arrets = $mysqli->query("SELECT id, nom, slug, commune, ter, tgv, bus, tram, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets WHERE deleted = 0 AND parent_id IS NULL ORDER BY nom");
+$result_arrets = $mysqli->query("SELECT id, nom, slug, commune, ter, tgv, bus, tram, metro, teleph, ST_Y(loc) AS lat, ST_X(loc) AS lng FROM arrets WHERE deleted = 0 AND parent_id IS NULL ORDER BY nom");
 $arrets = [];
 while ($row = $result_arrets->fetch_assoc()) {
   $commune = trim((string) $row['commune']);
   // La valeur affichée identifie l'arrêt : on ajoute la commune si le nom ne la contient pas déjà.
   $label = ($commune !== '' && mb_stripos($row['nom'], $commune) === false) ? $row['nom'] . ' (' . $commune . ')' : $row['nom'];
-  $types = array_keys(array_filter(['ter' => $row['ter'], 'tgv' => $row['tgv'], 'bus' => $row['bus'], 'tram' => $row['tram'], 'teleph' => $row['teleph']]));
+  $types = array_keys(array_filter(['ter' => $row['ter'], 'tgv' => $row['tgv'], 'bus' => $row['bus'], 'tram' => $row['tram'], 'metro' => $row['metro'], 'teleph' => $row['teleph']]));
   $arrets[$row['id']] = [
     'id' => (int) $row['id'],
     'nom' => $label,

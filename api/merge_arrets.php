@@ -6,8 +6,8 @@
  *
  * Deux orphelins → nouveau parent (nom et attributs de `cible_id`, position au barycentre). Un parent et un
  * orphelin → l'orphelin rejoint le parent. Deux parents → `cible_id` absorbe les enfants de `source_id`.
- * Accès aux falaises et trajets train passent au parent. Refus 409 : arrêt enfant ou supprimé, modes de transport
- * sans famille commune, accès identique (même falaise, type et variante) avec la liste en cause.
+ * Accès aux falaises et trajets train passent au parent. Refus 409 : arrêt enfant ou supprimé, accès identique (même falaise, type et variante) avec la liste en cause.
+ * Les modes de transport peuvent différer (ex. bus + tram) : le parent cumule ceux de ses enfants.
  * Réponse : { success, parent_id, acces_deplaces }.
  */
 header('Content-Type: application/json');

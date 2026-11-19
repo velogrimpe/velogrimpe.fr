@@ -43,9 +43,9 @@ $falaise_ids = is_array($input['falaise_ids'] ?? null) ? array_map('intval', $in
 // Appliqués aux falaises liées ; un accès déjà renseigné n'est jamais écrasé (champs vides seulement).
 $falaises_acces = is_array($input['falaises_acces'] ?? null) ? $input['falaises_acces'] : [];
 
-// Modalités desservies : sous-ensemble de ter/tgv/bus/tram/telepherique
+// Modalités desservies : sous-ensemble de ter/tgv/bus/tram/metro/telepherique
 // (colonne `teleph` en base), cf. docs/conception-bus.md Étape 2.
-const VG_ARRET_TYPE_COLUMNS = ['ter' => 'ter', 'tgv' => 'tgv', 'bus' => 'bus', 'tram' => 'tram', 'telepherique' => 'teleph'];
+const VG_ARRET_TYPE_COLUMNS = ['ter' => 'ter', 'tgv' => 'tgv', 'bus' => 'bus', 'tram' => 'tram', 'metro' => 'metro', 'telepherique' => 'teleph'];
 $typesInput = is_array($input['types'] ?? null) ? $input['types'] : [];
 $types = array_values(array_intersect($typesInput, array_keys(VG_ARRET_TYPE_COLUMNS)));
 
@@ -110,6 +110,7 @@ $ter = (int) in_array('ter', $types, true);
 $tgv = (int) in_array('tgv', $types, true);
 $bus = (int) in_array('bus', $types, true);
 $tram = (int) in_array('tram', $types, true);
+$metro = (int) in_array('metro', $types, true);
 $teleph = (int) in_array('telepherique', $types, true);
 
 $oldArret = [];
@@ -147,13 +148,13 @@ try {
     $stmt = $mysqli->prepare(
       "UPDATE arrets
        SET loc = ST_GeomFromText(?, 4326), nom = ?, slug = ?, description = ?,
-           ter = ?, tgv = ?, bus = ?, tram = ?, teleph = ?,
+           ter = ?, tgv = ?, bus = ?, tram = ?, metro = ?, teleph = ?,
            commune = ?, code_insee = ?, cp = ?,
            contrib = ?, contrib_mail = ?
        WHERE id = ?"
     );
     $stmt->bind_param(
-      "ssssiiiiisssssi",
+      "ssssiiiiiisssssi",
       $point_wkt,
       $nom,
       $slug,
@@ -162,6 +163,7 @@ try {
       $tgv,
       $bus,
       $tram,
+      $metro,
       $teleph,
       $commune,
       $code_insee,
@@ -174,11 +176,11 @@ try {
     $stmt->close();
   } else {
     $stmt = $mysqli->prepare(
-      "INSERT INTO arrets (loc, nom, slug, description, ter, tgv, bus, tram, teleph, commune, code_insee, cp, contrib, contrib_mail)
-       VALUES (ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO arrets (loc, nom, slug, description, ter, tgv, bus, tram, metro, teleph, commune, code_insee, cp, contrib, contrib_mail)
+       VALUES (ST_GeomFromText(?, 4326), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     $stmt->bind_param(
-      "ssssiiiiisssss",
+      "ssssiiiiiisssss",
       $point_wkt,
       $nom,
       $slug,
@@ -187,6 +189,7 @@ try {
       $tgv,
       $bus,
       $tram,
+      $metro,
       $teleph,
       $commune,
       $code_insee,

@@ -24,7 +24,7 @@ function carte_charger_arrets(mysqli $mysqli, bool $garesHorsTopo = true): array
   $rows = $mysqli->query("SELECT
     a.id AS arret_id, a.nom AS arret_nom,
     CONCAT(ST_Y(a.loc), ',', ST_X(a.loc)) AS arret_latlng,
-    a.ter, a.tgv, a.bus, a.tram, a.teleph,
+    a.ter, a.tgv, a.bus, a.tram, a.metro, a.teleph,
     GROUP_CONCAT(CONCAT(t.ville_id, '|', t.train_depart, '|', t.train_temps, '|', t.train_correspmin, '|', COALESCE(t.train_tgv, 0)) SEPARATOR '=|=') AS villes
     FROM arrets a
     LEFT JOIN train t ON t.arret_id = a.id
@@ -33,7 +33,7 @@ function carte_charger_arrets(mysqli $mysqli, bool $garesHorsTopo = true): array
   // Enfants actifs des parents (regroupement d'arrêts) : positions pour l'enveloppe affichée à fort zoom.
   $enfantsParParent = [];
   $parentDe = []; // enfant => parent
-  foreach ($mysqli->query("SELECT id, parent_id, nom, ter, tgv, bus, tram, teleph,
+  foreach ($mysqli->query("SELECT id, parent_id, nom, ter, tgv, bus, tram, metro, teleph,
       CONCAT(ST_Y(loc), ',', ST_X(loc)) AS latlng
       FROM arrets WHERE parent_id IS NOT NULL AND deleted = 0 ORDER BY id")->fetch_all(MYSQLI_ASSOC) as $e) {
     $parentDe[(int) $e['id']] = (int) $e['parent_id'];
@@ -59,7 +59,7 @@ function carte_charger_arrets(mysqli $mysqli, bool $garesHorsTopo = true): array
     $r['types'] = arret_types($r);
     $r['lignes'] = $lignesParArret[$r['arret_id']] ?? [];
     $r['enfants'] = $enfantsParParent[$r['arret_id']] ?? [];
-    unset($r['ter'], $r['tgv'], $r['bus'], $r['tram'], $r['teleph']);
+    unset($r['ter'], $r['tgv'], $r['bus'], $r['tram'], $r['metro'], $r['teleph']);
     return $r;
   }, $rows);
 }
