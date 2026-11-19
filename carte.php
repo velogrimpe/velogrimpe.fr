@@ -152,6 +152,22 @@ $highlight = $_GET['h'] ?? '';
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
+    /* Popup des points de gares (z6-z8) : même habillage que le tooltip des marqueurs (.vg-tip-default), sans flèche. */
+    .vg-gare-popup .maplibregl-popup-content {
+      background: white;
+      padding: 1px 3px;
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    .vg-gare-popup .maplibregl-popup-tip {
+      display: none;
+    }
+
     .vg-tip.dir-right {
       left: 100%;
       top: 50%;
@@ -512,7 +528,7 @@ $highlight = $_GET['h'] ?? '';
   // Sélecteur de couches (custom IControl)
   // ============================================================
   const OVERLAYS = [
-    { id: "tgv", label: "Lignes et Gares TGV", layers: ["tgv-line", "tgv-pt", "tgv-label"] },
+    { id: "tgv", label: "Lignes et Gares TGV", layers: ["tgv-halo", "tgv-line", "tgv-pt", "tgv-label"] },
     { id: "camping", label: "Campings", layers: ["camping"] },
     { id: "gite", label: "Gîtes", layers: ["gite"] },
     { id: "biodiv", label: "Aires de protections de la biodiversité (escalade réglementée ou interdite)", layers: ["biodiv-regulated", "biodiv-forbidden", "biodiv-label"] },
@@ -696,8 +712,8 @@ $highlight = $_GET['h'] ?? '';
     closePopup();
     if (selected !== null && selected.type === "falaise" && selected.filteredOut) {
       // hide previously-shown filtered-out selected falaise
-      selected.marker?.remove(); selected.labelMarker?.remove();
-      selected.marker = null; selected.labelMarker = null;
+      selected.marker?.remove();
+      selected.marker = null;
       selected.displayMode = "hidden";
     }
     selected = null;
@@ -788,14 +804,6 @@ $highlight = $_GET['h'] ?? '';
     el.appendChild(img);
     return el;
   }
-  function buildLabelEl(name) {
-    const el = document.createElement("div");
-    el.className = "vg-label";
-    el.innerHTML = `<div class="absolute top-0 left-1/2 text-center -translate-x-1/2 w-max max-w-[150px] text-primary font-bold ${halo} text-sm">${escapeHtml(name)}</div>`;
-    el.style.width = "0";
-    el.style.height = "0";
-    return el;
-  }
   function buildHighlightEl(name) {
     const el = document.createElement("div");
     el.className = "vg-label";
@@ -814,12 +822,8 @@ $highlight = $_GET['h'] ?? '';
         .addTo(map);
       falaise.marker = marker;
 
-      if (!falaise.highlighted) {
-        const labelMarker = new maplibregl.Marker({ element: buildLabelEl(falaise.falaise_nom), anchor: "bottom" })
-          .setLngLat(lngLat(falaise.falaise_latlng))
-          .addTo(map);
-        falaise.labelMarker = labelMarker;
-      } else {
+      // Nom : couches MapLibre « falaises-labels-* » (sauf falaises mises en avant, nommées par hmarker)
+      if (falaise.highlighted) {
         const hmarker = new maplibregl.Marker({ element: buildHighlightEl(falaise.falaise_nom), anchor: "bottom" })
           .setLngLat(lngLat(falaise.falaise_latlng))
           .addTo(map);
@@ -873,7 +877,7 @@ $highlight = $_GET['h'] ?? '';
     };
 
     if (falaise.displayMode === mode) return;
-    if (!falaise.marker || !falaise.labelMarker || falaise.displayMode === "hidden") {
+    if (!falaise.marker || falaise.displayMode === "hidden") {
       initMarker();
     }
     falaise.displayMode = mode;
@@ -884,12 +888,6 @@ $highlight = $_GET['h'] ?? '';
       falaise.marker.getElement().style.width = size + "px";
       falaise.marker.getElement().style.height = size + "px";
     };
-
-    if (mode === "normal+label") {
-      falaise.labelMarker?.addTo(map);
-    } else if (falaise.labelMarker) {
-      falaise.labelMarker.remove();
-    }
 
     switch (mode) {
       case "normal":
@@ -907,7 +905,6 @@ $highlight = $_GET['h'] ?? '';
         return;
       case "hidden":
         falaise.marker.remove();
-        falaise.labelMarker?.remove();
         // Garder les refs pour ré-init si besoin
         return;
     }
@@ -917,7 +914,6 @@ $highlight = $_GET['h'] ?? '';
     if (falaise.displayMode === mode) return;
     if (falaise.displayMode !== undefined && falaise.marker) {
       falaise.marker.remove();
-      falaise.labelMarker?.remove();
     }
     falaise.displayMode = mode;
     const size = 20;
@@ -927,12 +923,7 @@ $highlight = $_GET['h'] ?? '';
       const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
         .setLngLat(lngLat(falaise.falaise_latlng))
         .addTo(map);
-      const labelMarker = new maplibregl.Marker({ element: buildLabelEl(falaise.falaise_nom), anchor: "bottom" })
-        .setLngLat(lngLat(falaise.falaise_latlng))
-        .addTo(map);
-      labelMarker.getElement().style.opacity = "0.75";
       falaise.marker = marker;
-      falaise.labelMarker = labelMarker;
 
       const popupHtml = `<div class="flex flex-col gap-1">`
         + `<div class="text-slate-400"><span class="uppercase">hors topo</span> (aucun accès décrit)</div>`
@@ -957,12 +948,9 @@ $highlight = $_GET['h'] ?? '';
       case "normal":
       case "normal+label":
         falaise.marker.addTo(map);
-        if (mode === "normal+label") falaise.labelMarker?.addTo(map);
-        else falaise.labelMarker?.remove();
         return;
       case "hidden":
         falaise.marker?.remove();
-        falaise.labelMarker?.remove();
         return;
     }
   }
@@ -995,6 +983,40 @@ $highlight = $_GET['h'] ?? '';
     return el;
   }
 
+  // Sélection d'un arrêt du topo (clic sur son marqueur DOM ou sur son point MapLibre) : itinéraires vers ses falaises.
+  function selectArret(arret) {
+    teardown();
+    selected = arret;
+    info_update();
+    // Pas de recadrage au clic sur un arrêt : le zoom et le centre restent ceux de l'utilisateur
+
+    setTimeout(() => {
+      // Idem côté arret : plusieurs itinéraires peuvent desservir la même
+      // falaise — on ne tagge le tooltip falaise qu'au 1er passage.
+      const tagged = new Set();
+      arret.access.forEach((it, i) => {
+        const c = itinerairesColors[i % itinerairesColors.length];
+        if (falaises.find(f => f.falaise_id === it.falaise.falaise_id)?.filteredOut) return;
+        renderGpx(it, c);
+        if (tagged.has(it.falaise.falaise_id)) return;
+        tagged.add(it.falaise.falaise_id);
+        const falaise = falaises.find(f => f.falaise_id === it.falaise.falaise_id);
+        if (falaise && falaise.marker) {
+          attachTooltip(falaise.marker, escapeHtml(falaise.falaise_nom), {
+            direction: "right", permanent: true,
+            className: `vg-station-tooltip vg-color-${c}`,
+          });
+        }
+      });
+      // Accès à pied qui ont une trace GPX (sans trace : rien n'est dessiné)
+      arret.piedAcces.forEach((acces) => {
+        if (!acces.has_gpx) return;
+        if (falaises.find(f => f.falaise_id === acces.falaise_id)?.filteredOut) return;
+        renderGpx(acces, "pieton", piedGpxOpts(acces));
+      });
+    }, 760);
+  }
+
   function setArretMarker(arret, mode) {
     if (arret.displayMode === mode) return;
     if (arret.marker) arret.marker.remove();
@@ -1008,36 +1030,7 @@ $highlight = $_GET['h'] ?? '';
 
     el.addEventListener("click", (ev) => {
       ev.stopPropagation();
-      teardown();
-      selected = arret;
-      info_update();
-      // Pas de recadrage au clic sur un arrêt : le zoom et le centre restent ceux de l'utilisateur
-
-      setTimeout(() => {
-        // Idem côté arret : plusieurs itinéraires peuvent desservir la même
-        // falaise — on ne tagge le tooltip falaise qu'au 1er passage.
-        const tagged = new Set();
-        arret.access.forEach((it, i) => {
-          const c = itinerairesColors[i % itinerairesColors.length];
-          if (falaises.find(f => f.falaise_id === it.falaise.falaise_id)?.filteredOut) return;
-          renderGpx(it, c);
-          if (tagged.has(it.falaise.falaise_id)) return;
-          tagged.add(it.falaise.falaise_id);
-          const falaise = falaises.find(f => f.falaise_id === it.falaise.falaise_id);
-          if (falaise && falaise.marker) {
-            attachTooltip(falaise.marker, escapeHtml(falaise.falaise_nom), {
-              direction: "right", permanent: true,
-              className: `vg-station-tooltip vg-color-${c}`,
-            });
-          }
-        });
-        // Accès à pied qui ont une trace GPX (sans trace : rien n'est dessiné)
-        arret.piedAcces.forEach((acces) => {
-          if (!acces.has_gpx) return;
-          if (falaises.find(f => f.falaise_id === acces.falaise_id)?.filteredOut) return;
-          renderGpx(acces, "pieton", piedGpxOpts(acces));
-        });
-      }, 760);
+      selectArret(arret);
       attachTooltip(marker, escapeHtml(arret.arret_nom), { direction: "top", permanent: true });
     });
 
@@ -1081,6 +1074,90 @@ $highlight = $_GET['h'] ?? '';
         }
       }
     });
+    updateFalaiseLabels();
+  }
+  // Noms de falaises (couches MapLibre, collisions gérées) : topo ouvertes dès z8, topo fermées dès z11, hors topo dès z11.
+  // Faible densité tant que « fullZoom » n'est pas atteint (z12 / z12 / z14 = anciens seuils des labels DOM) ; à partir
+  // de là tous les noms sont affichés (chevauchements autorisés, comme les anciens labels DOM). Taille 10 px à z8
+  // → 14 px (taille d'origine) à z12.
+  const FALAISE_LABEL_LAYERS = [
+    { id: "falaises-labels-topo", kind: "topo", minzoom: 8, fullZoom: 12 },
+    { id: "falaises-labels-fermee", kind: "fermee", minzoom: 11, fullZoom: 12 },
+    { id: "falaises-labels-ht", kind: "ht", minzoom: 11, fullZoom: 14 },
+  ];
+  let falaiseLabelsSig = "";
+  function addFalaiseLabelLayers() {
+    map.addSource("falaises-labels", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    FALAISE_LABEL_LAYERS.forEach(({ id, kind, minzoom, fullZoom }) => map.addLayer({
+      id, type: "symbol", source: "falaises-labels", minzoom,
+      filter: ["==", ["get", "kind"], kind],
+      layout: {
+        "text-field": ["get", "nom"], "text-size": ["interpolate", ["linear"], ["zoom"], 8, 10, 12, 14],
+        "text-max-width": 10, "text-anchor": "top",
+        "text-allow-overlap": ["step", ["zoom"], false, fullZoom, true],
+        "text-ignore-placement": ["step", ["zoom"], false, fullZoom, true],
+        "text-padding": ["interpolate", ["linear"], ["zoom"], 8, 30, 12, 8], // très clairsemé à z8, plus dense ensuite
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      },
+      paint: { "text-color": "#2e8b57", "text-halo-color": "#fff", "text-halo-width": ["interpolate", ["linear"], ["zoom"], 8, 0.8, 12, 1.5], "text-opacity": kind === "ht" ? 0.75 : 1 },
+    }));
+  }
+  function updateFalaiseLabels() {
+    if (!map.getSource("falaises-labels")) return;
+    const features = [];
+    falaises.forEach((f) => {
+      if (!f.falaise_latlng || f.filteredOut || f.highlighted) return;
+      const ht = f.access.length === 0 && f.pieton.length === 0;
+      const kind = ht ? "ht" : f.falaise_fermee ? "fermee" : "topo";
+      features.push({ type: "Feature", properties: { nom: f.falaise_nom, kind, id: f.falaise_id }, geometry: { type: "Point", coordinates: lngLat(f.falaise_latlng) } });
+    });
+    const sig = features.map(f => f.properties.kind + f.properties.id).join();
+    if (sig === falaiseLabelsSig) return;
+    falaiseLabelsSig = sig;
+    map.getSource("falaises-labels").setData({ type: "FeatureCollection", features });
+  }
+  // Points des gares du topo (z6 → z8) : couche cercle MapLibre, minuscule avec mini halo à z6, taille pleine (12 px de
+  // diamètre, bord 2 px) à z8 où l'icône DOM prend le relais. Clic = sélection de l'arrêt, survol = nom.
+  let gareDotsPrets = false;
+  function addGareDotLayer() {
+    map.addSource("arrets-gares-dots", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({
+      id: "arrets-gares-dots", type: "circle", source: "arrets-gares-dots", minzoom: 6, maxzoom: 8,
+      paint: {
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, 1.5, 8, 4],
+        "circle-color": ["get", "color"],
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 6, 0.5, 8, 2],
+      },
+    });
+    const idOf = (e) => arrets.find(a => a.arret_id === e.features[0].properties.id);
+    map.on("click", "arrets-gares-dots", (e) => {
+      const arret = idOf(e);
+      if (!arret) return;
+      selectArret(arret);
+      openPopup(new maplibregl.Popup({ className: "vg-gare-popup", anchor: "bottom", offset: 10, maxWidth: "none", closeButton: false }).setHTML(escapeHtml(arret.arret_nom)), lngLat(arret.arret_latlng));
+      e.preventDefault?.();
+    });
+    const hover = new maplibregl.Popup({ className: "vg-gare-popup", anchor: "bottom", offset: 10, maxWidth: "none", closeButton: false, closeOnClick: false });
+    map.on("mousemove", "arrets-gares-dots", (e) => {
+      map.getCanvas().style.cursor = "pointer";
+      const arret = idOf(e);
+      if (arret && openedPopup === null) hover.setLngLat(lngLat(arret.arret_latlng)).setHTML(escapeHtml(arret.arret_nom)).addTo(map);
+    });
+    map.on("mouseleave", "arrets-gares-dots", () => { map.getCanvas().style.cursor = ""; hover.remove(); });
+  }
+  // Alimente la source une fois les types d'arrêts calculés (premier renderArrets).
+  function ensureGareDots() {
+    if (gareDotsPrets || !map.getSource("arrets-gares-dots")) return;
+    gareDotsPrets = true;
+    const features = arrets
+      .filter(a => a.type === "arret" && a.arret_latlng && arretIconMod.arretEstGare(a.types))
+      .map(a => ({
+        type: "Feature",
+        properties: { id: a.arret_id, color: arretIconMod.arretIconColor(arretIconMod.arretTypeDominant(a.types)) },
+        geometry: { type: "Point", coordinates: lngLat(a.arret_latlng) },
+      }));
+    map.getSource("arrets-gares-dots").setData({ type: "FeatureCollection", features });
   }
   function renderArrets() {
     if (!arretIconMod) return;
@@ -1099,10 +1176,11 @@ $highlight = $_GET['h'] ?? '';
       // MapLibre est ~1 niveau en dessous) : gares rien → point (z=7) → icône
       // (z=8) ; bus/tram/téléphérique rien → point doré (z=8) → icône (z=10).
       const mode = arretIconMod.arretEstGare(arret.types)
-        ? (zoom < 7 ? "hidden" : zoom < 8 ? "point" : "normal")
+        ? (zoom < 8 ? "hidden" : "normal")
         : (zoom < 8 ? "hidden" : zoom < 10 ? "point" : "normal");
       setArretMarker(arret, mode);
     });
+    ensureGareDots();
   }
 
   // Click sur la carte = teardown
@@ -1176,23 +1254,31 @@ $highlight = $_GET['h'] ?? '';
   function addOverlays() {
     // --- TER lines ---
     map.addSource("trainlines", { type: "vector", url: "pmtiles:///public/trains/ter.pmtiles" });
+    // Largeurs : mêmes règles que les lignes de bus (lignes-all), +1 px (z8 → z14 : 2→4 px, halo 3→7 px). Halo blanc dès z8.
+    const TRAIN_WIDTH = ["interpolate", ["linear"], ["zoom"], 6, 0.5, 8, 2, 14, 4];
+    const TRAIN_HALO_WIDTH = ["interpolate", ["linear"], ["zoom"], 8, 3, 14, 7];
+    map.addLayer({
+      id: "trainlines-halo", type: "line", source: "trainlines", "source-layer": "ter", minzoom: 8,
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": "#ffffff", "line-width": TRAIN_HALO_WIDTH, "line-opacity": 0.9 },
+    });
     map.addLayer({
       id: "trainlines", type: "line", source: "trainlines", "source-layer": "ter",
-      paint: {
-        "line-color": "#000",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 6, 0.5, 9, 1, 12, 1.5],
-      },
+      paint: { "line-color": "#000", "line-width": TRAIN_WIDTH },
     });
 
     // --- TGV (line + circle + label) ---
     map.addSource("tgv", { type: "vector", url: "pmtiles:///public/trains/tgv.pmtiles" });
     map.addLayer({
+      id: "tgv-halo", type: "line", source: "tgv", "source-layer": "tgv", minzoom: 8,
+      filter: ["==", ["geometry-type"], "LineString"],
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": "#ffffff", "line-width": TRAIN_HALO_WIDTH, "line-opacity": 0.9 },
+    });
+    map.addLayer({
       id: "tgv-line", type: "line", source: "tgv", "source-layer": "tgv",
       filter: ["==", ["geometry-type"], "LineString"],
-      paint: {
-        "line-color": "#c00",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 6, 0.5, 9, 1, 12, 1.5],
-      },
+      paint: { "line-color": "#c00", "line-width": TRAIN_WIDTH },
     });
     map.addLayer({
       id: "tgv-pt", type: "circle", source: "tgv", "source-layer": "tgv",
@@ -1283,6 +1369,8 @@ $highlight = $_GET['h'] ?? '';
     // --- Gares hors topo depuis PMTiles (même source que falaise.php).
     // Filtre : on exclut les noms des arrets "topo" (déjà rendues comme DOM
     // markers cliquables avec icône train). Ne reste que le complément.
+    // Arrêts non reliés au topo (parents / orphelins uniquement) : dès z12. Lignes de bus : dès z8, sans arrêts.
+    const STOPS_MIN_ZOOM = 12;
     const topoGareNames = arrets
       .filter(g => g.type === "arret" && g.arret_nom)
       .map(g => g.arret_nom);
@@ -1293,7 +1381,7 @@ $highlight = $_GET['h'] ?? '';
     // visuel égal MapLibre est ~1 niveau plus bas — voir comparaison
     // d'icônes falaises entre les deux captures). Label à zoom 11.
     map.addLayer({
-      id: "arrets-pm-circle", type: "circle", source: "arrets-pm", "source-layer": "gares", minzoom: 10,
+      id: "arrets-pm-circle", type: "circle", source: "arrets-pm", "source-layer": "gares", minzoom: STOPS_MIN_ZOOM,
       filter: horsTopoFilter,
       paint: {
         "circle-radius": 4,
@@ -1303,7 +1391,7 @@ $highlight = $_GET['h'] ?? '';
       },
     });
     map.addLayer({
-      id: "arrets-pm-label", type: "symbol", source: "arrets-pm", "source-layer": "gares", minzoom: 11,
+      id: "arrets-pm-label", type: "symbol", source: "arrets-pm", "source-layer": "gares", minzoom: STOPS_MIN_ZOOM,
       filter: horsTopoFilter,
       layout: {
         "text-field": ["get", "name"],
@@ -1319,24 +1407,38 @@ $highlight = $_GET['h'] ?? '';
     // Les parents regroupés ont leurs propres couches de noms (cf. plus bas) : parent à bas zoom, enfants à fort zoom.
     const labelFeatures = arrets
       .filter(a => a.type === "arret" && a.arret_latlng && !a.enfants?.length)
-      .map(a => ({ type: "Feature", properties: { nom: a.arret_nom, topo: true }, geometry: { type: "Point", coordinates: lngLat(a.arret_latlng) } }));
+      .map(a => ({ type: "Feature", properties: { nom: a.arret_nom, topo: true, gare: arretIconMod.arretEstGare(a.types) }, geometry: { type: "Point", coordinates: lngLat(a.arret_latlng) } }));
     map.addSource("arrets-labels", { type: "geojson", data: { type: "FeatureCollection", features: labelFeatures } });
+    // Gares / arrêts du topo nommés dès z12 ; arrêts hors topo dès z14 (sinon trop dense en ville).
+    // Les noms du topo sont placés en priorité (symbol-sort-key) et gardent une marge anti-collision.
+    // Les gares TER/TGV ont des couches à part, remontées en haut de pile (cf. moveLayer) : MapLibre place les symboles
+    // de la couche la plus haute en premier, donc les gares l'emportent sur les autres arrêts de transport.
+    // Noms de gares dès z8, à faible densité : forte marge anti-collision qui se resserre en zoomant (30 px à z8 → 8 px à z12).
+    // Taille des noms de gares du topo : 10 px à z8 → 12 px (taille d'origine) à z12.
+    const GARE_TEXT_SIZE = ["interpolate", ["linear"], ["zoom"], 8, 10, 12, 12];
+    // Halo des noms de gares : 1 px à z8 → 2 px (valeur d'origine) à z12.
+    const GARE_HALO_WIDTH = ["interpolate", ["linear"], ["zoom"], 8, 1, 12, 2];
+    const GARE_PADDING = ["interpolate", ["linear"], ["zoom"], 8, 30, 12, 8];
+    for (const [lid, topo, mz, gare] of [["arrets-labels", true, 12, false], ["arrets-labels-gares", true, 8, true], ["arrets-labels-hors", false, 14, false]])
     map.addLayer({
-      id: "arrets-labels", type: "symbol", source: "arrets-labels", minzoom: 14,
+      id: lid, type: "symbol", source: "arrets-labels", minzoom: mz,
+      filter: ["all", ["==", ["get", "topo"], topo], ["==", ["get", "gare"], gare]],
       layout: {
+        "symbol-sort-key": topo ? 0 : 1,
+        "text-padding": gare ? GARE_PADDING : 8,
+        "text-max-width": 7,
         "text-field": ["get", "nom"],
-        "text-size": 12,
+        "text-size": gare ? GARE_TEXT_SIZE : 12,
         // Sous l'icône 24 px des arrêts du topo, sous le petit cercle des autres.
-        "text-offset": ["case", ["get", "topo"], ["literal", [0, 1.3]], ["literal", [0, 0.8]]],
+        "text-offset": ["case", ["get", "topo"], ["literal", [0, 1]], ["literal", [0, 0.8]]],
         "text-anchor": "top",
         "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
       },
-      paint: { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": 2 },
+      paint: { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": gare ? GARE_HALO_WIDTH : 2 },
     });
     // Arrêts regroupés sous un parent (ex. les deux sens d'une station) : à bas zoom seul le parent est montré et nommé ;
-    // à partir de GROUPE_ZOOM les enfants apparaissent avec leur propre nom (les symboles MapLibre gèrent seuls les
-    // collisions entre noms) et une enveloppe (enveloppe convexe + buffer) ; le nom du parent s'efface alors.
-    const GROUPE_ZOOM = 14;
+    // à partir de GROUPE_ZOOM les enfants apparaissent (sans nom) avec une enveloppe (enveloppe convexe + buffer).
+    const GROUPE_ZOOM = 16;
     const TEXT_FONT = ["Open Sans Bold", "Arial Unicode MS Bold"];
     const parentsGroupes = arrets.filter(a => a.enfants?.length && a.arret_latlng);
     const enfantFeatures = [];
@@ -1351,7 +1453,7 @@ $highlight = $_GET['h'] ?? '';
       }));
       const ring = arretGroupesMod.enveloppe(pos);
       if (ring) enveloppeFeatures.push({ type: "Feature", properties: { id: p.arret_id }, geometry: { type: "Polygon", coordinates: [ring] } });
-      parentsLabelFeatures.push({ type: "Feature", properties: { nom: p.arret_nom, topo: p.type === "arret" }, geometry: { type: "Point", coordinates: lngLat(p.arret_latlng) } });
+      parentsLabelFeatures.push({ type: "Feature", properties: { nom: p.arret_nom, topo: p.type === "arret", gare: arretIconMod.arretEstGare(p.types) }, geometry: { type: "Point", coordinates: lngLat(p.arret_latlng) } });
       if (p.type !== "arret" && p.lignes.length && !arretIconMod.arretEstGare(p.types)) {
         parentsHorsTopoFeatures.push({ type: "Feature", properties: { id: p.arret_id, nom: p.arret_nom, color: "#000" }, geometry: { type: "Point", coordinates: lngLat(p.arret_latlng) } });
       }
@@ -1362,28 +1464,26 @@ $highlight = $_GET['h'] ?? '';
     map.addLayer({ id: "arrets-groupes-line", type: "line", source: "arrets-groupes", minzoom: GROUPE_ZOOM,
       paint: { "line-color": "#2563eb", "line-width": 1.5, "line-opacity": 0.7 } }, "arrets-pm-circle");
     map.addSource("arrets-parents", { type: "geojson", data: { type: "FeatureCollection", features: parentsHorsTopoFeatures } });
-    map.addLayer({ id: "arrets-parents", type: "circle", source: "arrets-parents", minzoom: 11, maxzoom: GROUPE_ZOOM,
+    map.addLayer({ id: "arrets-parents", type: "circle", source: "arrets-parents", minzoom: STOPS_MIN_ZOOM, maxzoom: GROUPE_ZOOM,
       paint: { "circle-radius": 4.5, "circle-color": ["get", "color"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
     map.addSource("arrets-enfants", { type: "geojson", data: { type: "FeatureCollection", features: enfantFeatures } });
     map.addLayer({ id: "arrets-enfants", type: "circle", source: "arrets-enfants", minzoom: GROUPE_ZOOM,
       paint: { "circle-radius": 3.5, "circle-color": ["get", "color"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
-    // Noms : le parent jusqu'à GROUPE_ZOOM (dès z12), puis chaque enfant. Collisions : défaut MapLibre (un nom qui en
-    // chevauche un autre est masqué), avec ancre variable pour laisser la place aux voisins.
+    // Noms : seul le parent est nommé (dès z12, y compris quand les enfants sont éclatés). Collisions : défaut MapLibre.
     map.addSource("arrets-parents-labels", { type: "geojson", data: { type: "FeatureCollection", features: parentsLabelFeatures } });
     const labelPaint = { "text-color": "#000", "text-halo-color": "#fff", "text-halo-width": 2 };
+    for (const [lid, gare] of [["arrets-parents-labels", false], ["arrets-parents-labels-gares", true]])
     map.addLayer({
-      id: "arrets-parents-labels", type: "symbol", source: "arrets-parents-labels", minzoom: 12, maxzoom: GROUPE_ZOOM,
-      layout: { "text-field": ["get", "nom"], "text-size": 12, "text-offset": [0, 0.8], "text-anchor": "top", "text-font": TEXT_FONT },
-      paint: labelPaint,
+      id: lid, type: "symbol", source: "arrets-parents-labels", minzoom: gare ? 8 : 12,
+      filter: ["==", ["get", "gare"], gare],
+      layout: { "symbol-sort-key": ["case", ["get", "topo"], 0, 1], "text-padding": gare ? GARE_PADDING : 8, "text-max-width": 7, "text-field": ["get", "nom"], "text-size": gare ? GARE_TEXT_SIZE : 12, "text-offset": ["case", ["get", "topo"], ["literal", [0, 1.15]], ["literal", [0, 0.8]]], "text-anchor": "top", "text-font": TEXT_FONT },
+      paint: gare ? { ...labelPaint, "text-halo-width": GARE_HALO_WIDTH } : labelPaint,
     });
-    map.addLayer({
-      id: "arrets-enfants-labels", type: "symbol", source: "arrets-enfants", minzoom: GROUPE_ZOOM,
-      layout: {
-        "text-field": ["get", "nom"], "text-size": 12, "text-font": TEXT_FONT,
-        "text-variable-anchor": ["right", "left", "top", "bottom"], "text-radial-offset": 0.8, "text-justify": "auto",
-      },
-      paint: labelPaint,
-    });
+    // Ordre de priorité des noms (du moins au plus prioritaire, chaque moveLayer remonte en haut de pile)
+    // (à rejouer quand « lignes-all-stops » est ajouté, sinon ses cercles passent devant les noms)
+    const remonterNoms = () => ["arrets-labels-hors", "arrets-parents-labels", "arrets-labels", "arrets-labels-gares", "arrets-parents-labels-gares", "arrets-pm-label"]
+      .forEach(id => map.moveLayer(id));
+    remonterNoms();
     bindStopClick("arrets-parents");
     bindStopClick("arrets-enfants");
     // Couleur des arrêts regroupés : celle de leur ligne (connue au chargement des lignes, cf. chargerLignes)
@@ -1394,9 +1494,9 @@ $highlight = $_GET['h'] ?? '';
       recolor("arrets-parents", parentsHorsTopoFeatures);
     }
 
-    // Toutes les lignes de transport à partir de z11 (tracé + arrêts hors topo cliquables).
-    // Chargement paresseux : une seule requête, au premier passage à z11.
-    const LIGNES_MIN_ZOOM = 11;
+    // Lignes de transport dès z8 (tracé seul, largeur interpolée jusqu'à z14) ; arrêts hors topo dès STOPS_MIN_ZOOM.
+    // Chargement paresseux : une seule requête, au premier passage à z8.
+    const LIGNES_MIN_ZOOM = 8;
     let lignesChargees = false;
     function chargerLignes() {
       if (lignesChargees || map.getZoom() < LIGNES_MIN_ZOOM) return;
@@ -1425,34 +1525,46 @@ $highlight = $_GET['h'] ?? '';
       const layout = { "line-cap": "round", "line-join": "round" };
       map.addSource("lignes-all", { type: "geojson", data: { type: "FeatureCollection", features: lineFeatures } });
       map.addLayer({ id: "lignes-all-halo", type: "line", source: "lignes-all", minzoom: LIGNES_MIN_ZOOM, layout,
-        paint: { "line-color": "#ffffff", "line-width": 6, "line-opacity": 0.9 } }, "arrets-pm-circle");
+        paint: { "line-color": "#ffffff", "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2, 14, 6], "line-opacity": 0.9 } }, "arrets-pm-circle");
       map.addLayer({ id: "lignes-all-line", type: "line", source: "lignes-all", minzoom: LIGNES_MIN_ZOOM, layout,
-        paint: { "line-color": ["get", "color"], "line-width": 3 } }, "arrets-pm-circle");
+        paint: { "line-color": ["get", "color"], "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 14, 3] } }, "arrets-pm-circle");
       // Labels : on ajoute les arrêts hors topo (hors gares TER/TGV, nommées par le PMTiles).
       stopFeatures.filter(f => !f.properties.gare).forEach((f) => {
-        labelFeatures.push({ type: "Feature", properties: { nom: f.properties.nom, topo: false }, geometry: f.geometry });
+        labelFeatures.push({ type: "Feature", properties: { nom: f.properties.nom, topo: false, gare: false }, geometry: f.geometry });
       });
       colorerGroupes();
       map.getSource("arrets-labels")?.setData({ type: "FeatureCollection", features: labelFeatures });
       map.addSource("lignes-all-stops", { type: "geojson", data: { type: "FeatureCollection", features: stopFeatures } });
-      map.addLayer({ id: "lignes-all-stops", type: "circle", source: "lignes-all-stops", minzoom: LIGNES_MIN_ZOOM,
+      map.addLayer({ id: "lignes-all-stops", type: "circle", source: "lignes-all-stops", minzoom: STOPS_MIN_ZOOM,
         paint: { "circle-radius": 3.5, "circle-color": ["get", "color"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
+      remonterNoms();
       // Clic sur le tracé : nom de la ligne. Le halo (plus large) sert de zone de clic.
       // Enregistré avant les arrêts : au croisement, la popup de l'arrêt l'emporte.
+      const hoverPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10, maxWidth: "300px" });
+      let ligneCliquee = false; // popup de clic ouvert : la bulle de survol reste éteinte jusqu'à la sortie de la ligne
       map.on("click", "lignes-all-halo", (e) => {
+        ligneCliquee = true;
+        hoverPopup.remove();
         const f = e.features[0];
         const titre = [f.properties.numero, f.properties.nom].filter(Boolean).join(" — ");
         if (!titre) return;
         openPopup(new maplibregl.Popup({ maxWidth: "300px" }).setHTML(escapeHtml(titre)), e.lngLat);
         e.preventDefault?.();
       });
-      map.on("mouseenter", "lignes-all-halo", () => { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", "lignes-all-halo", () => { map.getCanvas().style.cursor = ""; });
+      // Survol : nom de toutes les lignes sous le curseur (dédoublonnées), dans une bulle qui suit la souris.
+      map.on("mousemove", "lignes-all-halo", (e) => {
+        map.getCanvas().style.cursor = "pointer";
+        if (ligneCliquee) return;
+        const titres = [...new Set(e.features.map(f => [f.properties.numero, f.properties.nom].filter(Boolean).join(" — ")).filter(Boolean))];
+        if (!titres.length) { hoverPopup.remove(); return; }
+        hoverPopup.setLngLat(e.lngLat).setHTML(titres.map(escapeHtml).join("<br>")).addTo(map);
+      });
+      map.on("mouseleave", "lignes-all-halo", () => { map.getCanvas().style.cursor = ""; ligneCliquee = false; hoverPopup.remove(); });
       bindStopClick("lignes-all-stops");
       }).catch(() => { lignesChargees = false; }); // nouvel essai au prochain zoom
     }
     map.on("zoomend", chargerLignes);
-    chargerLignes(); // carte ouverte directement à z11+ (URL, recherche…)
+    chargerLignes(); // carte ouverte directement à z8+ (URL, recherche…)
     map.on("click", "arrets-pm-circle", (e) => {
       const f = e.features[0];
       openPopup(
@@ -1474,6 +1586,8 @@ $highlight = $_GET['h'] ?? '';
       import("/js/components/map/arrets-groupes.js"),
     ]);
     addOverlays();
+    addFalaiseLabelLayers();
+    addGareDotLayer();
     // Premier rendu des marqueurs DOM
     renderFalaises();
     renderArrets();
