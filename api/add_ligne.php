@@ -6,14 +6,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   die(json_encode(["error" => "Method not allowed"]));
 }
 
-// Réservé à l'admin (import GTFS / éditeur de lignes)
+// Ouvert à tous (formulaire public ajout/ajout_ligne.php) et utilisé aussi par l'import GTFS de l'admin : pas d'authentification.
 $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
-$headers = getallheaders();
-$authHeader = $headers['authorization'] ?? $headers['Authorization'] ?? null;
-if ($authHeader !== 'Bearer ' . $config["admin_token"]) {
-  http_response_code(401);
-  die(json_encode(["error" => "Non autorisé"]));
-}
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!is_array($input)) {
@@ -119,6 +113,7 @@ $geocodes = fetch_geoplateforme_reverse_geocode_many(
   array_map(fn($n) => [$n['lat'], $n['lng']], $nouveaux)
 );
 
+$mail_ligne = false;
 try {
   $mysqli->begin_transaction();
 
@@ -252,7 +247,7 @@ try {
     if ($n['stop_id'] !== null) {
       $gtfs_refs[] = ["arret_id" => $nouvel_id, "stop_id" => $n['stop_id'], "nom" => $n['nom']];
     }
-    logChanges("Admin", "", "insert", "arrets", $nouvel_id, null, ["nom" => $n['nom'], "lat" => $n['lat'], "lng" => $n['lng'], "Origine" => "Import GTFS (ligne #$ligne_id)"]);
+    logChanges("Contributeur", "", "insert", "arrets", $nouvel_id, null, ["nom" => $n['nom'], "lat" => $n['lat'], "lng" => $n['lng'], "Origine" => "Import GTFS (ligne #$ligne_id)"]);
   }
   $stmt->close();
   $arret_ids = array_values(array_unique(array_merge($arret_ids, $arrets_crees)));
@@ -326,7 +321,7 @@ try {
   $arrets_lies_apres = $arret_ids;
   sort($arrets_lies_apres);
   logChanges(
-    "Admin", "", $ligne_existait ? "update" : "insert", "lignes_transport", $ligne_id, null,
+    "Contributeur", "", $ligne_existait ? "update" : "insert", "lignes_transport", $ligne_id, null,
     ["nom" => $nom] + $fields
       + ($geojson !== null ? ["Géométrie" => "remplacée"] : [])
       + ["Arrêts liés" => implode(', ', $arrets_lies_apres)],
@@ -334,6 +329,7 @@ try {
   );
   $mysqli->commit();
   echo json_encode(["success" => true, "ligne_id" => $ligne_id, "arrets_crees" => $arrets_crees, "parents" => array_values(array_unique($parents_crees))]);
+  $mail_ligne = !$ligne_existait;
 } catch (ArretFusionException $e) {
   $mysqli->rollback();
   http_response_code($e->http);
@@ -347,4 +343,21 @@ try {
   }
   http_response_code(500);
   echo json_encode(["error" => "Erreur lors de l'enregistrement de la ligne"]);
+}
+
+// Notification admin à la création d'une ligne (hors transaction : un échec d'envoi ne doit rien annuler)
+if ($mail_ligne) {
+  try {
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/sendmail.php';
+    $h = fn($v) => htmlspecialchars((string) $v);
+    $html = "<html><body><h1>La ligne « " . $h($nom) . " » a été ajoutée</h1><ul>";
+    foreach ($fields as $k => $v) {
+      if ($v !== null) $html .= "<li><b>" . $h($k) . "</b> : " . $h($v) . "</li>";
+    }
+    $html .= "<li><b>Arrêts liés</b> : " . count($arret_ids) . " (dont " . count($arrets_crees) . " créé(s))</li></ul>";
+    $html .= "<p><a href='https://velogrimpe.fr/ajout/ajout_ligne.php?ligne_id=$ligne_id'>Modifier la ligne</a></p></body></html>";
+    sendMail(['to' => $config["admin_mail"], 'subject' => "🚌 Ligne '$nom' ajoutée", 'html' => $html]);
+  } catch (Throwable $e) {
+    error_log('[add_ligne] mail : ' . $e->getMessage());
+  }
 }

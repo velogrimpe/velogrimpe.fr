@@ -5,10 +5,8 @@ require_once $_SERVER["DOCUMENT_ROOT"] . "/lib/map-bundle.php";
 require_once $_SERVER["DOCUMENT_ROOT"] . "/lib/arrets_lib.php";
 $config = require $_SERVER["DOCUMENT_ROOT"] . "/../config.php";
 
-// Formulaire ouvert à tous (lignes BTT, Lot 7) ; seule la suppression exige le
-// jeton admin (Bearer, cf. api/delete_ligne.php) : le bouton n'apparaît que
-// si ?admin= est valide.
-$admin = hash_equals((string) $config["admin_token"], (string) ($_GET["admin"] ?? ""));
+// Formulaire ouvert à tous (lignes BTT, Lot 7), sans authentification. La suppression
+// d'une ligne se fait dans l'admin (admin/arrets_lignes.php).
 $ligne_id = (int) ($_GET["ligne_id"] ?? 0) ?: null;
 
 // Falaises (repères sur la carte : point vert puis icône, non cliquables pour le tracé)
@@ -48,7 +46,6 @@ $res = $mysqli->query("SELECT id, nom, numero FROM lignes_transport ORDER BY nom
 while ($row = $res->fetch_assoc()) {
   $lignes[] = ["id" => (int) $row["id"], "label" => trim(($row["numero"] ? $row["numero"] . " — " : "") . $row["nom"])];
 }
-$adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="velogrimpe">
@@ -83,7 +80,7 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
   <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/header.html"; ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4 prose-pre:my-0">
     <h1 class="text-4xl font-bold text-wrap text-center">
-      <?= $ligne_id ? "Modifier" : "Ajouter" ?> une ligne<?php if ($admin): ?><span class='text-red-900'> (version admin)</span><?php endif; ?>
+      <?= $ligne_id ? "Modifier" : "Ajouter" ?> une ligne
     </h1>
 
     <div id="saved-alert" role="alert" class="alert alert-success not-prose hidden">Ligne enregistrée.</div>
@@ -92,7 +89,7 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
       <label class="form-control not-prose" for="select-ligne">
         <b class="text-sm">Modifier une ligne existante</b>
         <select id="select-ligne" class="select select-primary select-sm w-full"
-          onchange="window.location.href = '/ajout/ajout_ligne.php?<?= $adminQuery ?>' + (this.value ? '<?= $admin ? "&" : "" ?>ligne_id=' + this.value : '')">
+          onchange="window.location.href = '/ajout/ajout_ligne.php' + (this.value ? '?ligne_id=' + this.value : '')">
           <option value="">Nouvelle ligne…</option>
           <?php foreach ($lignes as $l): ?>
             <option value="<?= $l["id"] ?>" <?= $l["id"] === $ligne_id ? "selected" : "" ?>>
@@ -223,9 +220,6 @@ $adminQuery = $admin ? "admin=" . urlencode($config["admin_token"]) : "";
 
       <div class="flex gap-2 not-prose">
         <button type="submit" class="btn btn-primary grow"><?= $ligne_id ? "Modifier" : "Ajouter" ?> la ligne</button>
-        <?php if ($ligne_id && $admin): ?>
-          <button type="button" id="btn-delete" class="btn btn-error btn-outline">Supprimer</button>
-        <?php endif; ?>
       </div>
     </form>
   </main>
