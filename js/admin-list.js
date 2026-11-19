@@ -52,7 +52,7 @@ const group = (key, label, options) => ({ key, label, options });
 
 const KINDS = {
   falaises: {
-    cols: ["Falaise", "Statut", "Zone", "Cotations", { t: "Accès", cls: "text-right" }, "Détails", { t: "", w: "8.5rem" }],
+    cols: ["Falaise", "Statut", "Zone", { t: "Accès", cls: "text-right" }, "Détails", { t: "", w: "8.5rem" }],
     search: (r) => `${r.nom} ${r.zone} ${r.id}`,
     filters: [
       group(
@@ -64,16 +64,20 @@ const KINDS = {
         ["avec", "Renseignés"],
         ["sans", "Sans détails"],
       ]),
+      group("fermee", "Fermeture :", [
+        ["oui", "Fermées"],
+        ["non", "Ouvertes"],
+      ]),
     ],
     value: {
+      fermee: (r) => (r.fermee ? "oui" : "non"),
       statut: (r) => (FALAISE_STATUT[r.public] ?? ["autre"])[0],
       details: (r) => (r.mtime ? "avec" : "sans"),
     },
     row: (r) => [
       falaiseCell(r),
-      statutFalaise(r),
+      statutFalaise(r) + (r.fermee ? " " + badge("badge-error", "Fermée") : ""),
       esc(r.zone) || dash,
-      r.cotmin || r.cotmax ? `${esc(r.cotmin)} – ${esc(r.cotmax)}` : dash,
       { v: r.nb_acces, cls: "text-right" },
       r.mtime
         ? `${badge("badge-success", "Renseignés")} <span class="opacity-60 text-xs">${dateFr(r.mtime)}</span>`
@@ -83,11 +87,11 @@ const KINDS = {
       toolbar(
         iconLink("eye", "Voir la falaise", url.falaise(r.id)) +
           iconLink("pencil", "Modifier la falaise", url.falaiseEdit(r.id)) +
-          iconLink("map-pin", r.mtime ? "Modifier les détails (secteurs, parkings…)" : "Ajouter les détails (secteurs, parkings…)", url.falaiseDetails(r.id)),
+          iconLink("mountain", r.mtime ? "Modifier les détails (secteurs, parkings…)" : "Ajouter les détails (secteurs, parkings…)", url.falaiseDetails(r.id)),
       ),
   },
   acces: {
-    cols: ["Arrêt", "Falaise", "Type", "Km / D+", "Statut", { t: "", w: "6rem" }],
+    cols: ["Arrêt", "Falaise", "Type", "Km / D+", "GPX", "Statut", { t: "", w: "6rem" }],
     search: (r) => `${r.arret} ${r.falaise} ${r.variante} ${r.contrib} ${r.id}`,
     filters: [
       group("statut", "Statut :", [
@@ -98,13 +102,18 @@ const KINDS = {
         ["velo", "Vélo"],
         ["pied", "À pied"],
       ]),
+      group("gpx", "GPX :", [
+        ["avec", "Avec GPX"],
+        ["sans", "Sans GPX"],
+      ]),
     ],
-    value: { statut: (r) => (r.public === 2 ? "verifier" : "valide"), type: (r) => r.type },
+    value: { statut: (r) => (r.public === 2 ? "verifier" : "valide"), type: (r) => r.type, gpx: (r) => (r.gpx ? "avec" : "sans") },
     row: (r) => [
       esc(r.arret) + (r.variante ? ` <span class="opacity-60 text-xs">(${esc(r.variante)})</span>` : ""),
       `<a class="font-semibold link link-hover" href="${url.falaise(r.falaise_id)}">${esc(r.falaise)}</a>`,
       r.type === "pied" ? badge("badge-info", "À pied") : badge("badge-primary", "Vélo"),
       r.km == null ? dash : `${r.km} km${r.dplus != null ? ` · ${r.dplus} m D+` : ""}`,
+      r.gpx ? badge("badge-success", "GPX") : dash,
       r.public === 2 ? badge("badge-warning", "À vérifier") : badge("badge-success", "Validé"),
     ],
     actions: (r) =>

@@ -5,7 +5,7 @@ $config = require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $token = $config["admin_token"];
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/paths.php';
 $rows = [];
-$res = $mysqli->query("SELECT f.falaise_id, f.falaise_nom, f.falaise_nomformate, f.falaise_public, f.falaise_zonename, f.falaise_cotmin, f.falaise_cotmax,
+$res = $mysqli->query("SELECT f.falaise_id, f.falaise_nom, f.falaise_nomformate, f.falaise_public, f.falaise_zonename, (f.falaise_fermee <> '') AS fermee,
     COALESCE(ac.n, 0) AS nb_acces
   FROM falaises f
   LEFT JOIN (SELECT falaise_id, COUNT(*) AS n FROM acces_falaise GROUP BY falaise_id) ac ON ac.falaise_id = f.falaise_id
@@ -17,7 +17,7 @@ while ($r = $res->fetch_assoc()) {
   $rows[] = [
     'mtime' => $mtime ?: null,
     'id' => (int) $r['falaise_id'], 'nom' => $r['falaise_nom'], 'public' => (int) $r['falaise_public'],
-    'zone' => (string) $r['falaise_zonename'], 'cotmin' => (string) $r['falaise_cotmin'], 'cotmax' => (string) $r['falaise_cotmax'],
+    'zone' => (string) $r['falaise_zonename'], 'fermee' => (bool) $r['fermee'],
     'nb_acces' => (int) $r['nb_acces'],
   ];
 }
