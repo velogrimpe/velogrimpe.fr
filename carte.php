@@ -78,8 +78,7 @@ $highlight = $_GET['h'] ?? '';
     }
 
     /* Ordre d'empilement : arrêts < marqueurs de falaises < labels < marqueur survolé */
-    .vg-arret-icon,
-    .vg-arret-dot {
+    .vg-arret-icon {
       z-index: 1;
     }
 
@@ -971,18 +970,6 @@ $highlight = $_GET['h'] ?? '';
     el.innerHTML = html;
     return el;
   }
-  // Point coloré des arrêts en zoom intermédiaire
-  function buildArretDotEl(types, size = 8) {
-    const el = document.createElement("div");
-    el.className = "vg-marker vg-arret-dot";
-    el.style.width = size + "px";
-    el.style.height = size + "px";
-    el.style.background = arretIconMod.arretIconColor(arretIconMod.arretTypeDominant(types));
-    el.style.borderRadius = "50%";
-    el.style.border = "2px solid #fff";
-    return el;
-  }
-
   // Sélection d'un arrêt du topo (clic sur son marqueur DOM ou sur son point MapLibre) : itinéraires vers ses falaises.
   function selectArret(arret) {
     teardown();
@@ -1020,7 +1007,7 @@ $highlight = $_GET['h'] ?? '';
   function setArretMarker(arret, mode) {
     if (arret.displayMode === mode) return;
     if (arret.marker) arret.marker.remove();
-    const el = mode === "point" ? buildArretDotEl(arret.types, 12) : buildArretEl(arret.types, 24);
+    const el = buildArretEl(arret.types, 24);
     const marker = new maplibregl.Marker({ element: el, anchor: "center" })
       .setLngLat(lngLat(arret.arret_latlng))
       .addTo(map);
@@ -1116,48 +1103,56 @@ $highlight = $_GET['h'] ?? '';
     falaiseLabelsSig = sig;
     map.getSource("falaises-labels").setData({ type: "FeatureCollection", features });
   }
-  // Points des gares du topo (z6 → z8) : couche cercle MapLibre, minuscule avec mini halo à z6, taille pleine (12 px de
-  // diamètre, bord 2 px) à z8 où l'icône DOM prend le relais. Clic = sélection de l'arrêt, survol = nom.
-  let gareDotsPrets = false;
-  function addGareDotLayer() {
-    map.addSource("arrets-gares-dots", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-    map.addLayer({
-      id: "arrets-gares-dots", type: "circle", source: "arrets-gares-dots", minzoom: 6, maxzoom: 8,
+  // Points des arrêts du topo : couches cercle MapLibre, minuscules avec mini halo au premier zoom, taille pleine (12 px de
+  // diamètre, bord 2 px) au dernier, où l'icône DOM prend le relais. Gares TER/TGV z6 → z8, autres modalités (bus, tram,
+  // téléphérique) z8 → z10. Clic = sélection de l'arrêt, survol = nom.
+  const ARRET_DOT_LAYERS = [
+    { id: "arrets-gares-dots", gare: true, z0: 6, z1: 8 },
+    { id: "arrets-bus-dots", gare: false, z0: 8, z1: 10 },
+  ];
+  let arretDotsPrets = false;
+  function addArretDotLayers() {
+    map.addSource("arrets-dots", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    ARRET_DOT_LAYERS.forEach(({ id, gare, z0, z1 }) => map.addLayer({
+      id, type: "circle", source: "arrets-dots", minzoom: z0, maxzoom: z1,
+      filter: ["==", ["get", "gare"], gare],
       paint: {
-        "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, 1.5, 8, 4],
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], z0, 1.5, z1, 4],
         "circle-color": ["get", "color"],
         "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 6, 0.5, 8, 2],
+        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], z0, 0.5, z1, 2],
       },
-    });
+    }));
+    const ids = ARRET_DOT_LAYERS.map(l => l.id);
     const idOf = (e) => arrets.find(a => a.arret_id === e.features[0].properties.id);
-    map.on("click", "arrets-gares-dots", (e) => {
+    const popup = (extra) => new maplibregl.Popup({ className: "vg-gare-popup", anchor: "bottom", offset: 10, maxWidth: "none", closeButton: false, ...extra });
+    map.on("click", ids, (e) => {
       const arret = idOf(e);
       if (!arret) return;
       selectArret(arret);
-      openPopup(new maplibregl.Popup({ className: "vg-gare-popup", anchor: "bottom", offset: 10, maxWidth: "none", closeButton: false }).setHTML(escapeHtml(arret.arret_nom)), lngLat(arret.arret_latlng));
+      openPopup(popup().setHTML(escapeHtml(arret.arret_nom)), lngLat(arret.arret_latlng));
       e.preventDefault?.();
     });
-    const hover = new maplibregl.Popup({ className: "vg-gare-popup", anchor: "bottom", offset: 10, maxWidth: "none", closeButton: false, closeOnClick: false });
-    map.on("mousemove", "arrets-gares-dots", (e) => {
+    const hover = popup({ closeOnClick: false });
+    map.on("mousemove", ids, (e) => {
       map.getCanvas().style.cursor = "pointer";
       const arret = idOf(e);
       if (arret && openedPopup === null) hover.setLngLat(lngLat(arret.arret_latlng)).setHTML(escapeHtml(arret.arret_nom)).addTo(map);
     });
-    map.on("mouseleave", "arrets-gares-dots", () => { map.getCanvas().style.cursor = ""; hover.remove(); });
+    map.on("mouseleave", ids, () => { map.getCanvas().style.cursor = ""; hover.remove(); });
   }
   // Alimente la source une fois les types d'arrêts calculés (premier renderArrets).
-  function ensureGareDots() {
-    if (gareDotsPrets || !map.getSource("arrets-gares-dots")) return;
-    gareDotsPrets = true;
+  function ensureArretDots() {
+    if (arretDotsPrets || !map.getSource("arrets-dots")) return;
+    arretDotsPrets = true;
     const features = arrets
-      .filter(a => a.type === "arret" && a.arret_latlng && arretIconMod.arretEstGare(a.types))
+      .filter(a => a.type === "arret" && a.arret_latlng)
       .map(a => ({
         type: "Feature",
-        properties: { id: a.arret_id, color: arretIconMod.arretIconColor(arretIconMod.arretTypeDominant(a.types)) },
+        properties: { id: a.arret_id, gare: arretIconMod.arretEstGare(a.types), color: arretIconMod.arretIconColor(arretIconMod.arretTypeDominant(a.types)) },
         geometry: { type: "Point", coordinates: lngLat(a.arret_latlng) },
       }));
-    map.getSource("arrets-gares-dots").setData({ type: "FeatureCollection", features });
+    map.getSource("arrets-dots").setData({ type: "FeatureCollection", features });
   }
   function renderArrets() {
     if (!arretIconMod) return;
@@ -1172,15 +1167,11 @@ $highlight = $_GET['h'] ?? '';
         return;
       }
       arret.type = "arret";
-      // Mêmes paliers que carte.php, décalés d'un niveau (à visuel équivalent
-      // MapLibre est ~1 niveau en dessous) : gares rien → point (z=7) → icône
-      // (z=8) ; bus/tram/téléphérique rien → point doré (z=8) → icône (z=10).
-      const mode = arretIconMod.arretEstGare(arret.types)
-        ? (zoom < 8 ? "hidden" : "normal")
-        : (zoom < 8 ? "hidden" : zoom < 10 ? "point" : "normal");
+      // Icône DOM dès z8 (gares) / z10 (bus, tram, téléphérique) ; avant : points MapLibre (cf. ARRET_DOT_LAYERS).
+      const mode = zoom < (arretIconMod.arretEstGare(arret.types) ? 8 : 10) ? "hidden" : "normal";
       setArretMarker(arret, mode);
     });
-    ensureGareDots();
+    ensureArretDots();
   }
 
   // Click sur la carte = teardown
@@ -1587,7 +1578,7 @@ $highlight = $_GET['h'] ?? '';
     ]);
     addOverlays();
     addFalaiseLabelLayers();
-    addGareDotLayer();
+    addArretDotLayers();
     // Premier rendu des marqueurs DOM
     renderFalaises();
     renderArrets();
