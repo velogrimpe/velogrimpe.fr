@@ -1378,14 +1378,14 @@ $highlight = $_GET['h'] ?? '';
     // visuel égal MapLibre est ~1 niveau plus bas — voir comparaison
     // d'icônes falaises entre les deux captures). Label à zoom 11.
     map.addLayer({
-      id: "arrets-pm-circle", type: "circle", source: "arrets-pm", "source-layer": "gares", minzoom: 10,
+      id: "arrets-pm-circle", type: "circle", source: "arrets-pm", "source-layer": "gares", minzoom: 9,
       filter: horsTopoFilter,
       paint: {
-        // Gares hors topo : petits dès z10, taille d'origine (rayon 4, bord 1) à z12. Noms toujours dès z12.
-        "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1.5, 12, 4],
+        // Gares hors topo : petits dès z9, taille d'origine (rayon 4, bord 1) à z12. Noms toujours dès z12.
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 2, 12, 4],
         "circle-color": "#000",
         "circle-stroke-color": "#fff",
-        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 10, 0.3, 12, 1],
+        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 9, 0.3, 12, 1],
       },
     });
     map.addLayer({
