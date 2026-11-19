@@ -21,6 +21,7 @@ import { initEditorBusStops } from "/js/components/map/editor-bus-stops.js";
 import { arretSuggestionIcon, arretPlaceholderIcon } from "/js/components/map/arret-icon.js";
 import { gpx_path } from "/js/components/utils/paths.js";
 import { trainlinesLayer, tgvLayer } from "/js/components/map/load-vector-tiles.js";
+import { showLignesGrises } from "/js/components/map/ligne-view.js";
 
 // Use global contribStorage (loaded via script tag)
 const { getContribInfo, saveContribInfo } = window.contribStorage || {};
@@ -246,6 +247,28 @@ export function initFalaiseDetailsEditor(containerId) {
       })
       .addTo(map);
   });
+
+  // Lignes de transport en fond (trait gris très fin), rechargées quand la vue sort de
+  // la zone déjà chargée.
+  let lignesGrises = null;
+  let lignesBounds = null;
+  const chargerLignesGrises = async () => {
+    if (lignesBounds?.contains(map.getBounds())) return;
+    const zone = map.getBounds().pad(1);
+    lignesBounds = zone;
+    try {
+      const bbox = [zone.getSouth(), zone.getWest(), zone.getNorth(), zone.getEast()].join(",");
+      const res = await fetch(`/api/fetch_lignes.php?bbox=${bbox}`);
+      if (!res.ok) throw new Error(String(res.status));
+      const { lignes } = await res.json();
+      lignesGrises?.remove();
+      lignesGrises = showLignesGrises(map, lignes ?? []);
+    } catch (e) {
+      lignesBounds = null; // nouvel essai au prochain déplacement
+    }
+  };
+  map.on("moveend", chargerLignesGrises);
+  chargerLignesGrises();
 
   // Table control
   const TableControl = L.Control.extend({
@@ -707,7 +730,11 @@ export function initFalaiseDetailsEditor(containerId) {
     featureMap[obj._element_id] = obj;
   });
 
+  // Pendant un tracé, les éléments affichés (marqueurs, traces) n'interceptent plus
+  // le clic (cf. .vg-drawing dans edit_details_falaise.php) : sinon un clic sur un
+  // point accroché n'atteint jamais la carte et Geoman n'ajoute aucun sommet.
   map.on("pm:globaldrawmodetoggled", ({ enabled }) => {
+    map.getContainer().classList.toggle("vg-drawing", !!enabled);
     if (!enabled) {
       currentMultiSecteur = null;
       awaitingMultiSecteurSelection = false;

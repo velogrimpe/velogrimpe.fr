@@ -1375,7 +1375,7 @@ $stmtC->close();
     import Approche from "/js/components/map/approche.js";
     import Parking from "/js/components/map/parking.js";
     import BusStop from "/js/components/map/bus-stop.js";
-    import { showLigne } from "/js/components/map/ligne-view.js";
+    import { showLignesFond } from "/js/components/map/ligne-view.js";
     import FalaiseVoisine from "/js/components/map/falaise-voisine.js";
     import { pied_tooltip_html } from "/js/components/utils/times.js";
     import Gare from "/js/components/map/gare.js";
@@ -1389,6 +1389,8 @@ $stmtC->close();
     ]); ?>;
     const itineraires = <?php echo json_encode($itineraires); ?>;
     const accesPietons = <?php echo json_encode($accesPietons); ?>;
+    // Lignes desservant chaque arrêt lié (infos de l'arrêt : numéro de ligne…)
+    const lignesDeArret = Object.fromEntries(accesPietons.map(a => [a.arret_id, a.lignes]));
 
     const center = falaise.falaise_latlng.split(",").map(parseFloat);
     const zoom = 13;
@@ -1483,23 +1485,13 @@ $stmtC->close();
         console.error("Erreur lors du chargement des données de falaise :", error);
       });
 
-    // Lignes BTT (table lignes_transport) de l'arrêt cliqué : tracé (couleur + halo)
-    // et tous les arrêts liés à la ligne. Effacé au clic ailleurs sur la carte.
-    let ligneGroups = [];
-    const clearLigne = () => { ligneGroups.forEach((g) => g.remove()); ligneGroups = []; };
-    const showLignes = async (arret) => {
-      clearLigne();
-      let lignes = [];
-      try {
-        const res = await fetch(`/api/fetch_lignes.php?arret_id=${arret.id}`);
-        if (res.ok) lignes = (await res.json()).lignes || [];
-      } catch (e) { return; }
-      clearLigne(); // un clic plus récent a pu répondre entre-temps
-      ligneGroups = lignes.map((l) => showLigne(map, l, { fit: false }));
-    };
-
-    // Clic ailleurs sur la carte : on efface la ligne affichée.
-    map.on("click", () => { clearLigne(); });
+    // Lignes de transport (table lignes_transport) desservant les arrêts liés à la falaise :
+    // tracé permanent, mêmes règles de mise en forme que la carte (couleur sur halo blanc,
+    // largeur selon le zoom) ; numéro et nom de la ligne au survol.
+    fetch(`/api/fetch_lignes.php?falaise_id=${falaise.falaise_id}`)
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("fetch_lignes")))
+      .then(data => showLignesFond(map, data.lignes || []))
+      .catch(error => console.error("Erreur chargement lignes :", error));
 
     // Arrêts liés à la falaise (acces_falaise, type 'pied'), toutes modalités : chacun
     // avec l'icône de son type (ter > tgv > tram > téléphérique > bus) et un
@@ -1513,16 +1505,11 @@ $stmtC->close();
           const feature = {
             type: "Feature",
             geometry: { type: "Point", coordinates: [arret.lng, arret.lat] },
-            properties: { type: "bus_stop", name: arret.nom, description: descHtml, types: arret.types, arret_id: arret.id },
+            properties: { type: "bus_stop", name: arret.nom, description: descHtml, types: arret.types, arret_id: arret.id, lignes: lignesDeArret[arret.id] || [] },
           };
           const obj = new BusStop(map, feature);
           obj._element_id = `bus_db_${arret.id}`;
           featureMap[obj._element_id] = obj;
-          // Au clic : tracé des lignes qui desservent l'arrêt.
-          obj.layer.on("click", (ev) => {
-            L.DomEvent.stopPropagation(ev);
-            showLignes(arret);
-          });
           added = true;
         });
         if (added) updateAssociations();

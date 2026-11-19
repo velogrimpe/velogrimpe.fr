@@ -260,3 +260,9 @@ Six exports GeoJSON sont disponibles, regénérés quotidiennement au cours de l
 - [lignes.geojson](https://velogrimpe.fr/open-data/lignes.geojson) : les lignes de bus / BTT (géométrie MultiLineString, numéro, opérateur, horaires, couleur) et les ids des arrêts qu'elles desservent (`arret_ids`).
 - [falaises-details.geojson](https://velogrimpe.fr/open-data/falaises-details.geojson) : les détails géométriques agrégés de toutes les falaises (secteurs, parkings, approches…).
 - [complet.geojson](https://velogrimpe.fr/open-data/complet.geojson) : les collections ci-dessus réunies en un seul fichier. Chaque entité porte une propriété `vg_type` (`falaise`, `itineraire_velo`, `arret`, `ligne` ou `detail`) pour pouvoir les re-filtrer.
+
+## Lignes de transport sur les cartes falaise
+
+- **Page falaise** : les lignes desservant un arrêt lié à la falaise (accès `pied`, enfants inclus) sont tracées en permanence (`fetch_lignes.php?falaise_id=`, `showLignesFond()` de `js/components/map/ligne-view.js`), avec les règles de la carte (couleur sur halo blanc, largeurs interpolées z8 → z14). Numéro et nom au survol du tracé ; le survol d'un arrêt liste ses lignes.
+- **Éditeur de détails falaise** : toutes les lignes de la zone affichée en trait gris très fin, non interactif (`fetch_lignes.php?bbox=sud,ouest,nord,est`, rechargé quand la vue sort de la zone chargée).
+- **Accrochage au tracé** : pendant un tracé Geoman, la classe `vg-drawing` rend marqueurs et traces transparents au clic, pour que le clic sur un point accroché ajoute bien un sommet à cet endroit.

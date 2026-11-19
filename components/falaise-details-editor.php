@@ -82,6 +82,14 @@ function render_falaise_details_editor(array $falaise, string $token, array $opt
       background-image: url('/images/map/pm/pm_bicycle.png');
     }
 
+    /* Pendant un tracé : marqueurs et traces laissent passer le clic jusqu'à la carte
+       (sinon le point accroché ne reçoit jamais de sommet). Les sommets du tracé en
+       cours (.marker-icon, Geoman) restent cliquables pour terminer la forme. */
+    .vg-drawing .leaflet-marker-icon:not(.marker-icon),
+    .vg-drawing .leaflet-overlay-pane .leaflet-interactive {
+      pointer-events: none !important;
+    }
+
     .vg-draw-bus-stop {
       background-image: url('/images/map/pm/pm_bus.png');
     }

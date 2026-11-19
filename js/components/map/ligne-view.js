@@ -82,3 +82,86 @@ export function showLigne(map, ligne, options = {}) {
   }
   return group;
 }
+
+/** Interpolation linéaire par morceaux d'une valeur selon le zoom, bornée aux extrémités. */
+function parZoom(zoom, [z0, v0], [z1, v1]) {
+  const t = Math.min(1, Math.max(0, (zoom - z0) / (z1 - z0)));
+  return v0 + (v1 - v0) * t;
+}
+
+/** Libellé « numéro — nom » d'une ligne (survol, infobulles). */
+export function ligneTitre(ligne) {
+  return [ligne?.numero, ligne?.nom].filter(Boolean).join(" — ");
+}
+
+/**
+ * Tracé permanent de lignes de transport, mêmes règles de mise en forme que la
+ * couche `lignes-all` de carte.php : couleur de la ligne sur halo blanc (90 %),
+ * largeurs interpolées de z8 à z14 (trait 1 → 3 px, halo 2 → 6 px). Au survol du
+ * tracé, bulle « numéro — nom ». Contrairement à `showLigne`, ni arrêts ni recadrage.
+ *
+ * @param {L.Map} map
+ * @param {Array} lignes Lignes avec `geometry` (MultiLineString), `couleur`, `numero`, `nom`.
+ * @returns {L.LayerGroup} À retirer avec `group.remove()` (l'écouteur de zoom suit).
+ */
+export function showLignesFond(map, lignes) {
+  const group = L.layerGroup();
+  const paires = [];
+  lignes.forEach((ligne) => {
+    const coords = ligne.geometry?.coordinates ?? [];
+    const latlngs = coords.map((line) => line.map(([lng, lat]) => [lat, lng]));
+    if (!latlngs.length) return;
+    const halo = L.polyline(latlngs, {
+      color: "#fff",
+      opacity: 0.9,
+      lineCap: "round",
+      lineJoin: "round",
+      className: "vg-ligne-fond-halo",
+    }).addTo(group);
+    const titre = ligneTitre(ligne);
+    if (titre) halo.bindTooltip(titre, { sticky: true, direction: "top" });
+    const trait = L.polyline(latlngs, {
+      color: ligneColor(ligne),
+      opacity: 1,
+      lineCap: "round",
+      lineJoin: "round",
+      interactive: false,
+      className: "vg-ligne-fond",
+    }).addTo(group);
+    paires.push({ halo, trait });
+  });
+  const ajuster = () => {
+    const z = map.getZoom();
+    paires.forEach(({ halo, trait }) => {
+      halo.setStyle({ weight: parZoom(z, [8, 2], [14, 6]) });
+      trait.setStyle({ weight: parZoom(z, [8, 1], [14, 3]) });
+    });
+  };
+  ajuster();
+  map.on("zoomend", ajuster);
+  group.on("remove", () => map.off("zoomend", ajuster));
+  group.addTo(map);
+  return group;
+}
+
+/**
+ * Lignes de transport en fond de l'éditeur : trait gris très fin, sans halo ni
+ * interaction (le tracé de l'éditeur ne doit pas être gêné), pour repérer où
+ * passent les lignes.
+ *
+ * @param {L.Map} map
+ * @param {Array} lignes Lignes avec `geometry`.
+ * @returns {L.LayerGroup}
+ */
+export function showLignesGrises(map, lignes) {
+  const group = L.layerGroup();
+  lignes.forEach((ligne) => {
+    const coords = ligne.geometry?.coordinates ?? [];
+    if (!coords.length) return;
+    L.polyline(
+      coords.map((line) => line.map(([lng, lat]) => [lat, lng])),
+      { color: "#6b7280", weight: 1, opacity: 0.8, interactive: false, className: "vg-ligne-grise" },
+    ).addTo(group);
+  });
+  return group.addTo(map);
+}

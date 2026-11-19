@@ -2,6 +2,9 @@ import { parseList } from "/js/components/utils/lists.js";
 import Element from "/js/components/map/element.js";
 import { arretDivIcon } from "/js/components/map/arret-icon.js";
 
+const escapeHtml = (v) =>
+  String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
 export default class BusStop extends Element {
   /**
    * Creates an instance of BusStop.
@@ -26,9 +29,15 @@ export default class BusStop extends Element {
     }
     const name = layer.properties?.name || "Arrêt de bus";
     const desc = layer.properties?.description || "";
+    const lignes = (layer.properties?.lignes || [])
+      .map((l) => [l.numero, l.nom].filter(Boolean).join(" — "))
+      .filter(Boolean);
     const html =
       `<div>` +
       `  <div class=\"font-bold\">${name}</div>` +
+      (lignes.length
+        ? `  <div class=\"text-sm\">${lignes.length > 1 ? "Lignes" : "Ligne"} : ${lignes.map(escapeHtml).join("<br>")}</div>`
+        : "") +
       `  ${desc ? `<div class=\"text-sm\">${desc}</div>` : ""}` +
       `</div>`;
     super(map, layer, "bus_stop", {
