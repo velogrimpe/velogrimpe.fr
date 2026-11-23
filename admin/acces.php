@@ -21,6 +21,9 @@ while ($r = $res->fetch_assoc()) {
     'public' => (int) $r['public'], 'contrib' => (string) $r['contrib'],
     // Trace GPX présente sur disque (public/gpx/, cf. velo_gpx_chemin)
     'gpx' => file_exists(velo_gpx_chemin((int) $r['acces_id'], (string) $r['depart_slug'], (string) $r['arrivee_slug'], (string) $r['variante_formate'])),
+    // URL de téléchargement de la trace (null sans GPX), cf. velo_gpx_url
+    'gpx_url' => file_exists(velo_gpx_chemin((int) $r['acces_id'], (string) $r['depart_slug'], (string) $r['arrivee_slug'], (string) $r['variante_formate']))
+      ? velo_gpx_url((int) $r['acces_id'], (string) $r['depart_slug'], (string) $r['arrivee_slug'], (string) $r['variante_formate']) : null,
   ];
 }
 admin_list_page([

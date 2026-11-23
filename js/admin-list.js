@@ -5,7 +5,7 @@
  * Un filtre est un groupe de boutons à choix unique : « Tous » ou UNE option (on ne décoche pas le reste).
  * Recherche et filtres sont synchronisés dans l'URL (?q=…&statut=verifier) : « Tous » n'écrit rien.
  */
-import { esc, norm, toolbar, iconLink } from "/js/admin-ui.js";
+import { esc, norm, toolbar, iconLink, iconBtn } from "/js/admin-ui.js";
 
 const { kind, rows, token } = JSON.parse(document.getElementById("page-data").textContent);
 const $ = (id) => document.getElementById(id);
@@ -91,7 +91,7 @@ const KINDS = {
       ),
   },
   acces: {
-    cols: ["Arrêt", "Falaise", "Type", "Km / D+", "GPX", "Statut", { t: "", w: "6rem" }],
+    cols: ["Arrêt", "Falaise", { t: "Type", cls: "text-center", w: "4rem" }, "Km / D+", { t: "GPX", cls: "text-center", w: "3rem" }, "Statut", { t: "", w: "8.5rem" }],
     search: (r) => `${r.arret} ${r.falaise} ${r.variante} ${r.contrib} ${r.id}`,
     filters: [
       group("statut", "Statut :", [
@@ -111,15 +111,21 @@ const KINDS = {
     row: (r) => [
       esc(r.arret) + (r.variante ? ` <span class="opacity-60 text-xs">(${esc(r.variante)})</span>` : ""),
       `<a class="font-semibold link link-hover" href="${url.falaise(r.falaise_id)}">${esc(r.falaise)}</a>`,
-      r.type === "pied" ? badge("badge-info", "À pied") : badge("badge-primary", "Vélo"),
+      {
+        v: `<svg class="w-4 h-5 fill-current inline-block align-middle" role="img" aria-label="${r.type === "pied" ? "À pied" : "À vélo"}"><title>${r.type === "pied" ? "À pied" : "À vélo"}</title><use href="#${r.type === "pied" ? "footprint" : "riding"}"></use></svg>`,
+        cls: "text-center",
+      },
       r.km == null ? dash : `${r.km} km${r.dplus != null ? ` · ${r.dplus} m D+` : ""}`,
-      r.gpx ? badge("badge-success", "GPX") : dash,
+      { v: r.gpx ? '<span class="opacity-60" title="GPX présent">✔︎</span>' : dash, cls: "text-center" },
       r.public === 2 ? badge("badge-warning", "À vérifier") : badge("badge-success", "Validé"),
     ],
     actions: (r) =>
       toolbar(
         iconLink("eye", "Voir la falaise", url.falaise(r.falaise_id)) +
-          iconLink("pencil", "Modifier l'accès", url.accesEdit(r)),
+          iconLink("pencil", "Modifier l'accès", url.accesEdit(r)) +
+          (r.gpx_url ? iconLink("download", "Télécharger le GPX", r.gpx_url, "btn-outline", "download") : "") +
+          iconBtn("file-upload", r.gpx ? "Remplacer le GPX" : "Ajouter un GPX", "btn-outline", `data-upload-gpx="${r.id}"`) +
+          iconBtn("trash", "Supprimer l'accès", "btn-error btn-outline", `data-delete-acces="${r.id}"`),
       ),
   },
   trains: {
@@ -231,3 +237,61 @@ $("filters").addEventListener("click", (e) => {
   render();
 });
 render();
+
+// Suppression définitive d'un accès (et de son GPX) après confirmation.
+$("tbody").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-delete-acces]");
+  if (!b) return;
+  const i = rows.findIndex((r) => r.id === Number(b.dataset.deleteAcces));
+  if (i < 0) return;
+  const r = rows[i];
+  const msg =
+    `⚠ Supprimer DÉFINITIVEMENT l'accès #${r.id} ?\n\n${r.arret}${r.variante ? ` (${r.variante})` : ""} → ${r.falaise} (${r.type === "pied" ? "à pied" : "vélo"})` +
+    (r.gpx ? "\n\n⚠ La trace GPX associée sera ELLE AUSSI supprimée définitivement (vous pouvez la télécharger avant)." : "") +
+    "\n\nCette action est irréversible.";
+  if (!confirm(msg)) return;
+  b.disabled = true;
+  try {
+    const res = await fetch("/api/delete_acces.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ acces_id: r.id }),
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.statusText);
+    rows.splice(i, 1);
+    haystack.splice(i, 1);
+    render();
+  } catch (err) {
+    b.disabled = false;
+    alert(`Suppression impossible : ${err.message}`);
+  }
+});
+
+// Remplacement (ou ajout) de la trace GPX : un seul <input type=file> caché, réutilisé pour toutes les lignes.
+const gpxInput = Object.assign(document.createElement("input"), { type: "file", accept: ".gpx,application/gpx+xml,text/xml", hidden: true });
+document.body.appendChild(gpxInput);
+let gpxCible = null;
+$("tbody").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-upload-gpx]");
+  if (!b) return;
+  gpxCible = rows.find((r) => r.id === Number(b.dataset.uploadGpx));
+  gpxInput.value = "";
+  gpxInput.click();
+});
+gpxInput.addEventListener("change", async () => {
+  const f = gpxInput.files[0];
+  const r = gpxCible;
+  if (!f || !r) return;
+  if (r.gpx && !confirm(`Remplacer la trace GPX de l'accès #${r.id} (${r.arret} → ${r.falaise}) par « ${f.name} » ?\n\nL'ancienne version est archivée (gpx-historique/). Distance et dénivelés ne sont pas recalculés.`)) return;
+  const body = new FormData();
+  body.append("acces_id", r.id);
+  body.append("gpx_file", f);
+  try {
+    const res = await fetch("/api/replace_acces_gpx.php", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.statusText);
+    // Recharge pour retrouver l'URL du GPX et son état (filtres et recherche sont conservés dans l'URL).
+    location.reload();
+  } catch (err) {
+    alert(`Envoi impossible : ${err.message}`);
+  }
+});
