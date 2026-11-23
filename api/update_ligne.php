@@ -3,7 +3,7 @@
  * Modifie les informations de base d'une ligne (admin) : nom, numéro, couleur, référence, opérateur, site de
  * l'opérateur, horaires. Contrairement à api/add_ligne.php (qui remplace aussi la géométrie et les arrêts liés),
  * seuls ces champs sont touchés ; un champ vide est remis à NULL (sauf le nom, obligatoire).
- * POST JSON { "ligne_id": int, "nom": string, "numero"?, "couleur"?, "ref"?, "operateur"?, "operateur_url"?, "horaire_url"? },
+ * POST JSON { "ligne_id": int, "nom": string, "numero"?, "couleur"?, "ref"?, "operateur"?, "operateur_url"?, "horaire_url"?, "gtfs_url"? },
  * en-tête `Authorization: Bearer <admin_token>`.
  * Réponse : { success, ligne }. 400 champ invalide (nom vide, URL non http(s), texte trop long), 404 introuvable.
  */
@@ -50,7 +50,7 @@ foreach (LIGNE_TEXT_FIELDS as $f) {
   $fields[$f] = $v !== '' ? $v : null;
 }
 
-$stmt = $mysqli->prepare("SELECT id, nom, numero, operateur, operateur_url, horaire_url, ref, couleur FROM lignes_transport WHERE id = ?");
+$stmt = $mysqli->prepare("SELECT id, nom, numero, operateur, operateur_url, horaire_url, gtfs_url, ref, couleur FROM lignes_transport WHERE id = ?");
 $stmt->bind_param("i", $ligne_id);
 $stmt->execute();
 $existe = $stmt->get_result()->fetch_assoc(); // ancien état, pour le log
@@ -61,11 +61,11 @@ if (!$existe) {
 }
 
 $stmt = $mysqli->prepare(
-  "UPDATE lignes_transport SET nom = ?, numero = ?, operateur = ?, operateur_url = ?, horaire_url = ?, ref = ?, couleur = ? WHERE id = ?"
+  "UPDATE lignes_transport SET nom = ?, numero = ?, operateur = ?, operateur_url = ?, horaire_url = ?, gtfs_url = ?, ref = ?, couleur = ? WHERE id = ?"
 );
 $stmt->bind_param(
-  "sssssssi",
-  $nom, $fields['numero'], $fields['operateur'], $fields['operateur_url'], $fields['horaire_url'], $fields['ref'], $fields['couleur'], $ligne_id
+  "ssssssssi",
+  $nom, $fields['numero'], $fields['operateur'], $fields['operateur_url'], $fields['horaire_url'], $fields['gtfs_url'], $fields['ref'], $fields['couleur'], $ligne_id
 );
 $stmt->execute();
 $stmt->close();

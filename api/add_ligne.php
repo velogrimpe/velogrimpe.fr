@@ -33,6 +33,10 @@ if ($nom === '') {
 $fields = [];
 foreach (LIGNE_TEXT_FIELDS as $f) {
   $v = trim($input[$f] ?? '');
+  if ($f === 'gtfs_url' && $v !== '' && !preg_match('#^https?://\S+$#i', $v)) {
+    http_response_code(400);
+    die(json_encode(["error" => "Champ « gtfs_url » : une URL http(s) est attendue"]));
+  }
   $fields[$f] = $v !== '' ? $v : null;
 }
 
@@ -150,7 +154,7 @@ try {
   $ligne_existait = $ligne_id !== null;
   $ancienne_ligne = [];
   if ($ligne_id !== null) {
-    $stmt = $mysqli->prepare("SELECT id, nom, numero, operateur, operateur_url, horaire_url, ref, couleur FROM lignes_transport WHERE id = ?");
+    $stmt = $mysqli->prepare("SELECT id, nom, numero, operateur, operateur_url, horaire_url, gtfs_url, ref, couleur FROM lignes_transport WHERE id = ?");
     $stmt->bind_param("i", $ligne_id);
     $stmt->execute();
     $exists = $stmt->get_result()->fetch_assoc();
@@ -163,24 +167,24 @@ try {
     $ancienne_ligne = $exists;
     $stmt = $mysqli->prepare(
       "UPDATE lignes_transport
-       SET nom = ?, numero = ?, operateur = ?, operateur_url = ?, horaire_url = ?, ref = ?, couleur = ?,
+       SET nom = ?, numero = ?, operateur = ?, operateur_url = ?, horaire_url = ?, gtfs_url = ?, ref = ?, couleur = ?,
            geometry = IF(? IS NULL, NULL, ST_GeomFromGeoJSON(?))
        WHERE id = ?"
     );
     $stmt->bind_param(
-      "sssssssssi",
+      "ssssssssssi",
       $nom, $fields['numero'], $fields['operateur'], $fields['operateur_url'],
-      $fields['horaire_url'], $fields['ref'], $fields['couleur'], $geojson, $geojson, $ligne_id
+      $fields['horaire_url'], $fields['gtfs_url'], $fields['ref'], $fields['couleur'], $geojson, $geojson, $ligne_id
     );
   } else {
     $stmt = $mysqli->prepare(
-      "INSERT INTO lignes_transport (nom, numero, operateur, operateur_url, horaire_url, ref, couleur, geometry)
-       VALUES (?, ?, ?, ?, ?, ?, ?, IF(? IS NULL, NULL, ST_GeomFromGeoJSON(?)))"
+      "INSERT INTO lignes_transport (nom, numero, operateur, operateur_url, horaire_url, gtfs_url, ref, couleur, geometry)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, IF(? IS NULL, NULL, ST_GeomFromGeoJSON(?)))"
     );
     $stmt->bind_param(
-      "sssssssss",
+      "ssssssssss",
       $nom, $fields['numero'], $fields['operateur'], $fields['operateur_url'],
-      $fields['horaire_url'], $fields['ref'], $fields['couleur'], $geojson, $geojson
+      $fields['horaire_url'], $fields['gtfs_url'], $fields['ref'], $fields['couleur'], $geojson, $geojson
     );
   }
   $stmt->execute();

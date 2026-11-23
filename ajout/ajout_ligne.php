@@ -177,6 +177,10 @@ while ($row = $res->fetch_assoc()) {
           <b class="text-sm">Horaires (URL)</b>
           <input class="input input-primary input-sm w-full" type="url" id="ligne_horaire_url" autocomplete="off">
         </label>
+        <label class="form-control" for="ligne_gtfs_url">
+          <b class="text-sm">Fichier GTFS (URL)</b>
+          <input class="input input-primary input-sm w-full" type="url" id="ligne_gtfs_url" autocomplete="off">
+        </label>
       </div>
 
       <div class="relative flex items-center">

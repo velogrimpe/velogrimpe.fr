@@ -706,7 +706,7 @@ $highlight = $_GET['h'] ?? '';
   // PANNEAU D'INFORMATION SUR LA FALAISE/ARRÊT SELECTIONNÉ (Vue.js)
   var info = L.control({ position: 'bottomright' });
   info.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'info w-[calc(100%-20px)]');
+    this._div = L.DomUtil.create('div', 'info w-[calc(100%-20px)] md:w-max md:max-w-[33.333vw]');
     this._div.id = 'vue-info-panel';
     L.DomEvent.disableClickPropagation(this._div);
     L.DomEvent.disableScrollPropagation(this._div);

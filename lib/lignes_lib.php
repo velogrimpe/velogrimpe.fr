@@ -2,7 +2,7 @@
 require_once __DIR__ . '/arrets_lib.php';
 // Helpers des lignes BTT (tables `lignes_transport` / `arrets_lignes_transport`).
 
-const LIGNE_TEXT_FIELDS = ['numero', 'operateur', 'operateur_url', 'horaire_url', 'ref', 'couleur'];
+const LIGNE_TEXT_FIELDS = ['numero', 'operateur', 'operateur_url', 'horaire_url', 'gtfs_url', 'ref', 'couleur'];
 
 /**
  * Normalise une ligne SQL en tableau JSON : champs texte vides → null,
@@ -31,7 +31,7 @@ function ligne_arret_ids(mysqli $mysqli, int $ligne_id): array
   return $ids;
 }
 
-const LIGNE_SELECT = "SELECT id, nom, numero, operateur, operateur_url, horaire_url, ref, couleur, ST_AsGeoJSON(geometry) AS geojson FROM lignes_transport";
+const LIGNE_SELECT = "SELECT id, nom, numero, operateur, operateur_url, horaire_url, gtfs_url, ref, couleur, ST_AsGeoJSON(geometry) AS geojson FROM lignes_transport";
 
 /** Arrêts liés à une ligne avec leurs coordonnées (rendu du halo sans catalogue d'arrêts) ; `parent_id` : parent de l'arrêt s'il est regroupé. @return array<int, array{id:int, nom:string, types:string[], lat:float, lng:float, parent_id:?int}> */
 function ligne_arrets(mysqli $mysqli, int $ligne_id): array

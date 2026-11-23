@@ -67,7 +67,7 @@ while ($row = $res->fetch_assoc()) {
 
 $lignes = [];
 $res = $mysqli->query(
-  "SELECT l.id, l.nom, l.numero, l.operateur, l.operateur_url, l.horaire_url, l.ref, l.couleur,
+  "SELECT l.id, l.nom, l.numero, l.operateur, l.operateur_url, l.horaire_url, l.gtfs_url, l.ref, l.couleur,
           (SELECT COUNT(*) FROM arrets_lignes_transport alt WHERE alt.ligne_id = l.id) AS nb_arrets
    FROM lignes_transport l ORDER BY l.nom",
 );
@@ -79,6 +79,7 @@ while ($row = $res->fetch_assoc()) {
     "operateur" => $row["operateur"],
     "operateur_url" => $row["operateur_url"],
     "horaire_url" => $row["horaire_url"],
+    "gtfs_url" => $row["gtfs_url"],
     "ref" => $row["ref"],
     "couleur" => $row["couleur"],
     "nb_arrets" => (int) $row["nb_arrets"],
@@ -283,6 +284,8 @@ $pageData = [
       </div>
       <label class="form-control"><b class="text-sm">Horaires (URL)</b>
         <input id="ligne-horaire_url" class="input input-sm input-primary w-full" type="url" autocomplete="off" /></label>
+      <label class="form-control"><b class="text-sm">Fichier GTFS (URL)</b>
+        <input id="ligne-gtfs_url" class="input input-sm input-primary w-full" type="url" autocomplete="off" /></label>
       <div id="ligne-error" class="alert alert-error text-sm hidden" role="alert"></div>
       <div class="modal-action mt-0">
         <button type="button" class="btn btn-sm" data-dialog-close>Annuler</button>

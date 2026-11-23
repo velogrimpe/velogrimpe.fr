@@ -395,7 +395,7 @@ const openArretDialog = setupEditDialog({
   },
 });
 
-const LIGNE_FIELDS = ["nom", "numero", "couleur", "ref", "operateur", "operateur_url", "horaire_url"];
+const LIGNE_FIELDS = ["nom", "numero", "couleur", "ref", "operateur", "operateur_url", "horaire_url", "gtfs_url"];
 let editedLigne = null;
 const openLigneDialog = setupEditDialog({
   dialog: "dlg-ligne",
