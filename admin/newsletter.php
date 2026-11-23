@@ -29,6 +29,7 @@ $token = $config["admin_token"];
     </script>
   </main>
   <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/admin-layout-close.php"; ?>
+  <script type="module" src="/js/admin-ui.js"></script>
   <?php vite_js('newsletter-admin'); ?>
 </body>
 
