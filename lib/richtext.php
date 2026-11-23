@@ -177,29 +177,24 @@ function rt_display(?string $value): string
 }
 
 /**
- * Retire un unique <p>…</p> englobant, pour un rendu inline
- * (ex. champ « Approche : … » sur la même ligne que le libellé).
- */
-function rt_unwrap_p(?string $html): string
-{
-    $html = trim((string) $html);
-    if (preg_match('#^<p>(.*)</p>$#is', $html, $m) && stripos($m[1], '<p') === false) {
-        return $m[1];
-    }
-    return $html;
-}
-
-/**
- * Rendu inline du champ « Approche » : déballe le <p> et met la 1re lettre
- * en minuscule (le libellé « Approche : » précède le texte).
+ * Rendu du champ « Approche » : le libellé « Approche : » est injecté dans le
+ * premier <p> (même ligne que le texte, 1re lettre en minuscule) ; si le champ
+ * ne commence pas par un paragraphe (ex. liste), le libellé a son propre <p>.
+ * Le résultat est sorti tel quel : l'appelant l'enveloppe dans `.vg-rt`
+ * (puces, paragraphes multiples).
  */
 function rt_matxt_display(?string $value): string
 {
-    $html = rt_unwrap_p(rt_display($value));
+    $html = trim(rt_display($value));
     if ($html === '') {
         return '';
     }
-    return mb_strtolower(mb_substr($html, 0, 1)) . mb_substr($html, 1);
+    if (preg_match('#^<ul\b#i', $html)) {
+        return '<p>Approche :</p>' . $html;
+    }
+    // Texte brut hérité (pas de <p>) : on l'enveloppe pour l'injection.
+    $inner = preg_match('#^<p>(.*)$#is', $html, $m) ? $m[1] : $html . '</p>';
+    return '<p>Approche : ' . mb_strtolower(mb_substr($inner, 0, 1)) . mb_substr($inner, 1);
 }
 
 /** true si la valeur ressemble déjà à du HTML riche (balises de l'allowlist). */

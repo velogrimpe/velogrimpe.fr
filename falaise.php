@@ -508,7 +508,7 @@ $stmtC->close();
       </div>
       <div class="flex flex-col items-center gap-4 w-full md:flex-row md:items-start">
         <!-- TABLEAU STATIQUE DESCRIPTION FALAISE -->
-        <div class="vg-a-primary flex flex-col gap-4 md:gap-10 w-full items-center md:my-auto max-w-150 mx-auto">
+        <div class="vg-a-primary flex flex-col gap-4 md:gap-10 w-full items-center md:my-auto max-w-175 mx-auto">
           <div class="flex flex-row gap-2 items-start justify-around w-full">
             <?php if ($falaise_nbvoies !== "inconnue"): ?>
               <div class="flex flex-col items-center justify-start gap-2">
@@ -580,9 +580,7 @@ $stmtC->close();
               <?php if (!empty($falaise_matxt)): ?>
                 <img src="/images/icons/hiking_color.png" alt=" Approche" class="h-12 w-12 mx-auto" />
                 <!-- <div class="font-bold  ">Approche</div> -->
-                <div class="">Approche :
-                  <?= rt_matxt_display($falaise_matxt) ?>
-                </div>
+                <div class="vg-rt"><?= rt_matxt_display($falaise_matxt) ?></div>
               <?php endif; ?>
               <?php if (!empty($falaise_gvtxt)): ?>
                 <img src="/images/icons/mountain_color.png" alt=" Grande voies" class="h-12 w-12 mx-auto" />
