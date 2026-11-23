@@ -50,7 +50,7 @@ $description = 'Conseils pratiques pour le vélogrimpe : comment organiser son d
 </head>
 
 <body class="min-h-screen">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <div class="hero min-h-100 bg-center" style="background-image: url(/images/mw/train-40.webp);">
     <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">

@@ -63,7 +63,7 @@ $falaisesVG = $mysqli->query("SELECT
 </head>
 
 <body>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <main class="">
     <div class="hero min-h-25 bg-bottom"
       style="background-image: url(/images/mw/078-groupe-5.webp); background-position-y: 200px;">

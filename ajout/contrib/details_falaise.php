@@ -66,7 +66,7 @@ if (!$falaise) {
 </head>
 
 <body>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <main class="py-4 px-2 md:px-8 flex flex-col gap-4">
     <div class="flex gap-2 justify-start items-center w-full max-w-md">
       <div id="vue-falaise-selector" class="w-full"

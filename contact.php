@@ -32,7 +32,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include "./components/header.html"; ?>
+  <?php include "./components/header.php"; ?>
   <main class="w-full grow max-w-(--breakpoint-xl) mx-auto flex flex-col gap-2 md:gap-4">
     <div class="hero min-h-60 bg-bottom" style="background-image: url(/images/mw/078-groupe-5.webp);">
       <div class="hero-overlay bg-slate-600/70"></div>

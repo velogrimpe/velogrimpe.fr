@@ -82,7 +82,7 @@ $admin = ($_GET['admin'] ?? false) == $config["admin_token"];
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4
               prose-li:mt-0 prose-li:mb-0 prose-ul:mt-0 prose-ul:mb-0">
     <h1 class="text-4xl font-bold text-wrap text-center"> Ajouter un itinéraire train<span class="admin text-red-900">

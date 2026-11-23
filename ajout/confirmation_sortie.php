@@ -56,7 +56,7 @@ if ($sortie['date_fin']) {
 </head>
 
 <body class="min-h-full">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <main class="pb-8 px-2 md:px-8 pt-4">
     <div class="max-w-4xl mx-auto">
       <!-- Success message -->

@@ -60,7 +60,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 </head>
 
 <body>
-  <?php include "../components/header.html"; ?>
+  <?php include "../components/header.php"; ?>
   <main class="pb-4">
     <div class="hero min-h-100 bg-bottom"
       style="background-image: url(/images/articles/2025-10-29-presentation-un-col-ou-un-pic/hero.webp);">

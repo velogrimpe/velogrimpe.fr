@@ -289,7 +289,7 @@ if (count($rows) > 0 || count($rowsPieton) > 0) {
 </head>
 
 <body class="min-h-screen">
-  <?php include "./components/header.html"; ?>
+  <?php include "./components/header.php"; ?>
   <div class="hero min-h-100 bg-center" style="background-image: url(/images/mw/005-train-2-10.webp);">
     <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">

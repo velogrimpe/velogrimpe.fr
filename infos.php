@@ -49,7 +49,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 </head>
 
 <body class="min-h-screen">
-  <?php include "./components/header.html"; ?>
+  <?php include "./components/header.php"; ?>
   <div class="hero min-h-100 bg-top" style="background-image: url(/images/mw/032-chaussons-10.webp);">
     <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">

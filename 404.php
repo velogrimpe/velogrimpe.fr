@@ -13,7 +13,7 @@
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include "./components/header.html"; ?>
+  <?php include "./components/header.php"; ?>
   <div class="flex-1 flex items-center justify-center p-4">
     <div class="text-center max-w-md">
       <h1 class="text-8xl font-bold text-primary">404</h1>

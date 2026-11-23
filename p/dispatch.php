@@ -102,7 +102,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 </head>
 
 <body class="flex flex-col min-h-screen">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <?php if ($has_banner): ?>
     <div class="hero min-h-100 bg-center" style="background-image: url(<?= htmlspecialchars($banner_img) ?>);">
       <div class="hero-overlay bg-slate-600/70"></div>

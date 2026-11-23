@@ -30,7 +30,7 @@ $gares = $mysqli->query("SELECT id AS gare_id, nom AS gare_nom FROM arrets WHERE
 </head>
 
 <body>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <main class="pb-8 px-2 md:px-8 pt-4">
     <div class="max-w-4xl mx-auto">
       <div class="mb-6">

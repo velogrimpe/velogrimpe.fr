@@ -108,7 +108,7 @@ while ($row = $res->fetch_assoc()) {
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/header.html"; ?>
+  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/header.php"; ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4 prose-pre:my-0">
     <h1 class="text-4xl font-bold text-wrap text-center">
       <?= $arret_id

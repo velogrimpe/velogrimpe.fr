@@ -318,7 +318,7 @@ $highlight = $_GET['h'] ?? '';
 </head>
 
 <body>
-  <?php include "./components/header.html"; ?>
+  <?php include "./components/header.php"; ?>
   <main class="">
     <div class="relative w-full h-[calc(100dvh-100px)]">
       <!-- Message de secours : derrière la carte, visible seulement si MapLibre ne s'affiche pas -->

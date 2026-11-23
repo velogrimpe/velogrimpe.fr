@@ -50,7 +50,7 @@ $description = 'Conseils pratiques pour le vélogrimpe : comment équiper son v�
 </head>
 
 <body class="min-h-screen">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <div class="hero min-h-100 bg-center" style="background-image: url(/images/mw/0026-velos-20.webp);">
     <div class="hero-overlay bg-slate-600/70"></div>
     <div class="hero-content text-center text-base-100">

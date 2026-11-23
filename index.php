@@ -44,7 +44,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/schema.php';
 </head>
 
 <body>
-  <?php include "./components/header.html"; ?>
+  <?php include "./components/header.php"; ?>
   <main class="pb-4">
     <!-- <div
       class="bg-base-100 --bg-[#e9f5ec] --border-solid --border-l-4 --border-l-primary p-6 text-center m-5 shadow-xs rounded-md">

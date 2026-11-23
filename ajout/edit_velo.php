@@ -95,7 +95,7 @@ if ($admin) {
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4">
     <h1 class="text-4xl font-bold text-wrap text-center"> Modifier un accès<span class="admin text-red-900">
         (version admin)</span>

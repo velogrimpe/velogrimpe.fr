@@ -44,7 +44,7 @@ $ret = sendMail($data);
 </head>
 
 <body class="min-h-screen flex flex-col">
-    <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+    <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
     <div class="grow flex justify-center items-center">
         <?php if ($ret): ?>
             <div class="max-w-(--breakpoint-lg) alert alert-success text-base-100" role="alert">

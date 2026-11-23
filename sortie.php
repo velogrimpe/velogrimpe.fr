@@ -121,7 +121,7 @@ $title = "Sortie Vélogrimpe du {$date_formatted} à " . htmlspecialchars($sorti
 </head>
 
 <body>
-  <?php include "./components/header.html"; ?>
+  <?php include "./components/header.php"; ?>
   <main class="pb-8 px-2 md:px-8 pt-4">
     <div class="max-w-4xl mx-auto">
       <!-- Vue App Container -->

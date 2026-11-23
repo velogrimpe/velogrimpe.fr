@@ -53,7 +53,7 @@ $gare_nom = $gare ? htmlspecialchars($gare['gare_nom']) : 'Arrêt';
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <div class="grow flex justify-center items-center p-4">
     <div class="card bg-base-100 shadow-xl max-w-md w-full">
       <div class="card-body items-center text-center">

@@ -400,7 +400,7 @@ $stmtC->close();
 </head>
 
 <body>
-  <?php include "./components/header.html"; ?>
+  <?php include "./components/header.php"; ?>
   <main class="max-w-(--breakpoint-lg) w-full mx-auto p-4 flex flex-col items-center gap-4 bg-base-100 my-2 rounded-xl">
     <section class="flex flex-col items-center gap-4 w-full">
       <div class="flex justify-between items-center w-full">

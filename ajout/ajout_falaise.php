@@ -154,7 +154,7 @@ if ($falaise_id) {
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/header.html"; ?>
+  <?php include $_SERVER["DOCUMENT_ROOT"] . "/components/header.php"; ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4
               prose-pre:my-0 prose-pre:text-center prose-img:my-0">
     <h1 class="text-4xl font-bold text-wrap text-center">

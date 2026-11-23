@@ -81,7 +81,7 @@ $nextUrl = "/ajout/confirmation_falaise.php?" . http_build_query([
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <main class="grow py-4 px-2 md:px-8 flex flex-col gap-4">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold"> Éditer les détails : <?= htmlspecialchars($falaise['falaise_nom']) ?>

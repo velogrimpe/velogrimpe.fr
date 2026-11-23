@@ -79,7 +79,7 @@ $meta_description = "Proposez ou rejoignez des sorties d'escalade en mobilité d
 </head>
 
 <body>
-  <?php include "./components/header.html"; ?>
+  <?php include "./components/header.php"; ?>
   <div class="drawer drawer-end" id="sortie-drawer-root">
     <input id="sortie-drawer" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content">

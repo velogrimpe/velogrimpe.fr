@@ -1,0 +1,292 @@
+<?php
+// Éditions du GRAVE (Grand Rassemblement À Vélo-Escalade) : une entrée par
+// édition, qui pointe vers la page « presentation » du dossier de pages CMS
+// `dir` (cf. table `pages`, slugs `<dir>/presentation`, `<dir>/programme`…).
+$grave_editions = [
+  ['label' => 'GRAVE Royans 2026', 'dir' => 'grand-rassemblement-velo-escalade-2026'],
+  ['label' => 'GRAVE Savoie/Ain 2027', 'dir' => 'grand-rassemblement-velo-escalade-savoie-ain-2027'],
+  ['label' => 'GRAVE Royans 2027', 'dir' => 'grand-rassemblement-velo-escalade-royan-2027'],
+];
+?>
+<style>
+  /* Critical CSS to prevent drawer flash before DaisyUI loads */
+  .drawer-side {
+    visibility: hidden;
+  }
+  .drawer-toggle:checked ~ .drawer-side {
+    visibility: visible;
+  }
+</style>
+<header>
+  <nav class="z-[10000]">
+    <div class="drawer z-[10000]">
+      <input id="my-drawer-3" type="checkbox" class="drawer-toggle" />
+      <div class="drawer-content flex flex-col">
+        <!-- Navbar -->
+        <div class="navbar bg-primary text-base-100 w-full shadow-lg py-0">
+          <div class="flex-none xl:hidden">
+            <label
+              for="my-drawer-3"
+              aria-label="open sidebar"
+              class="btn btn-square btn-ghost"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                class="inline-block h-6 w-6 stroke-current"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                ></path>
+              </svg>
+            </label>
+          </div>
+          <div class="flex-none px-2">
+            <a class="flex items-center gap-2 font-bold text-xl" href="/">
+              <span
+                class="w-8 h-8 xl:w-9 xl:h-9 shadow-xl bg-white p-0.75 rounded-full"
+              >
+                <img
+                  alt="Velogrimpe.fr"
+                  src="/images/logo_no_bg.png"
+                  class="h-full object-cover w-auto"
+                />
+              </span>
+              <span>Vélogrimpe.fr</span>
+            </a>
+          </div>
+          <div class="flex-1 hidden xl:flex justify-center">
+            <ul class="menu menu-horizontal text-lg">
+              <li>
+                <a class="text-base-100 font-bold" href="/carte.php">Carte</a>
+              </li>
+              <li class="dropdown dropdown-bottom">
+                <a class="text-base-100 font-bold" tabindex="0" role="button"
+                  >Falaises proches de...</a
+                >
+                <ul
+                  tabindex="0"
+                  class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-xl"
+                >
+                  <li>
+                    <a class="text-primary" href="/tableau.php?ville_id=13"
+                      >Annecy</a
+                    >
+                  </li>
+                  <li>
+                    <a class="text-primary" href="/tableau.php?ville_id=7"
+                      >Chambéry</a
+                    >
+                  </li>
+                  <li>
+                    <a class="text-primary" href="/tableau.php?ville_id=11"
+                      >Grenoble</a
+                    >
+                  </li>
+                  <li>
+                    <a class="text-primary" href="/tableau.php?ville_id=6"
+                      >Lyon</a
+                    >
+                  </li>
+                  <li>
+                    <a class="text-primary" href="/tableau.php?ville_id=15"
+                      >Marseille</a
+                    >
+                  </li>
+                  <li>
+                    <a class="text-primary" href="/tableau.php?ville_id=19"
+                      >Montpellier</a
+                    >
+                  </li>
+                  <li>
+                    <a class="text-primary" href="/tableau.php?ville_id=18"
+                      >Paris</a
+                    >
+                  </li>
+                  <li>
+                    <a class="text-primary" href="/tableau.php?ville_id=12"
+                      >Valence</a
+                    >
+                  </li>
+                </ul>
+              </li>
+              <li class="dropdown dropdown-bottom">
+                <a class="text-base-100 font-bold" tabindex="0" role="button"
+                  >Conseils pratiques</a
+                >
+                <ul
+                  tabindex="0"
+                  class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-xl"
+                >
+                  <li>
+                    <a
+                      class="text-primary"
+                      href="/conseils-pratiques/equipement-velo.php"
+                      >...sur le vélo</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="text-primary"
+                      href="/conseils-pratiques/se-deplacer-en-train.php"
+                      >...sur le train</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="text-primary"
+                      href="/conseils-pratiques/prendre-son-velo-dans-le-train.php"
+                      >...sur le combo train+vélo</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="text-primary"
+                      href="/conseils-pratiques/camping-escalade-materiel.php"
+                      >...sur le reste</a
+                    >
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="flex-none hidden xl:flex">
+            <ul class="menu menu-horizontal text-base items-center">
+              <li class="dropdown dropdown-bottom dropdown-end">
+                <div
+                  tabindex="0"
+                  role="button"
+                  class="btn btn-sm font-bold shadow-md mr-2"
+                >
+                  GRAVE
+                </div>
+                <ul
+                  tabindex="0"
+                  class="dropdown-content menu bg-base-100 rounded-box z-1 w-56 p-2 shadow-xl"
+                >
+                  <?php foreach ($grave_editions as $ed): ?>
+                  <li>
+                    <a
+                      class="text-primary"
+                      href="/p/<?= $ed['dir'] ?>/presentation"
+                      ><?= htmlspecialchars($ed['label']) ?></a
+                    >
+                  </li>
+                  <?php endforeach; ?>
+                </ul>
+              </li>
+              <li>
+                <a class="text-base-100 font-normal" href="/communaute.php"
+                  >Communauté</a
+                >
+              </li>
+              <li>
+                <a class="text-base-100 font-normal" href="/contribuer.php"
+                  >Contribuer</a
+                >
+              </li>
+              <li>
+                <a class="text-base-100 font-normal" href="/actualites"
+                  >Actus</a
+                >
+              </li>
+              <li>
+                <a class="text-base-100 font-normal" href="/infos.php"
+                  >Plus d'infos</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-side z-[10000]">
+        <label
+          for="my-drawer-3"
+          aria-label="close sidebar"
+          class="drawer-overlay"
+        ></label>
+        <ul class="menu bg-base-200 min-h-full w-80 p-4 pt-20 text-xl gap-2 flex-nowrap">
+          <?php if (isset($admin_active)): /* pages admin : volet admin intégré, navigation du site repliée */ ?>
+            <?= vg_admin_nav_items_html($vg_admin_token, $admin_active) ?>
+            <li class="menu-title mt-2">Site</li>
+            <li><details><summary class="text-primary font-bold">Navigation du site</summary><ul class="bg-base-100 rounded-t-none p-2">
+          <?php endif; ?>
+          <li><a class="text-primary font-bold" href="/carte.php">Carte</a></li>
+          <li>
+            <details>
+              <summary class="text-primary font-bold">
+                Falaises proches de...
+              </summary>
+              <ul class="bg-base-100 rounded-t-none p-2">
+                <li><a href="/tableau.php?ville_id=13">Annecy</a></li>
+                <li><a href="/tableau.php?ville_id=7">Chambéry</a></li>
+                <li><a href="/tableau.php?ville_id=11">Grenoble</a></li>
+                <li><a href="/tableau.php?ville_id=6">Lyon</a></li>
+                <li><a href="/tableau.php?ville_id=15">Marseille</a></li>
+                <li><a href="/tableau.php?ville_id=19">Montpellier</a></li>
+                <li><a href="/tableau.php?ville_id=18">Paris</a></li>
+                <li><a href="/tableau.php?ville_id=12">Valence</a></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary class="text-primary font-bold">
+                Conseils pratiques
+              </summary>
+              <ul class="bg-base-100 rounded-t-none p-2">
+                <li>
+                  <a href="/conseils-pratiques/equipement-velo.php"
+                    >...sur le vélo</a
+                  >
+                </li>
+                <li>
+                  <a href="/conseils-pratiques/se-deplacer-en-train.php"
+                    >...sur le train</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/conseils-pratiques/prendre-son-velo-dans-le-train.php"
+                    >...sur le combo train+vélo</a
+                  >
+                </li>
+                <li>
+                  <a href="/conseils-pratiques/camping-escalade-materiel.php"
+                    >...sur le reste</a
+                  >
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li class="mt-4"></li>
+          <li>
+            <details>
+              <summary class="text-secondary text-[1em] font-bold shadow-md">
+                GRAVE
+              </summary>
+              <ul class="bg-base-100 rounded-t-none p-2">
+                <?php foreach ($grave_editions as $ed): ?>
+                <li>
+                  <a href="/p/<?= $ed['dir'] ?>/presentation"
+                    ><?= htmlspecialchars($ed['label']) ?></a
+                  >
+                </li>
+                <?php endforeach; ?>
+              </ul>
+            </details>
+          </li>
+          <li><a href="/communaute.php">Communauté</a></li>
+          <li><a href="/contribuer.php">Contribuer</a></li>
+          <li><a href="/actualites">Actualités</a></li>
+          <li><a href="/infos.php">Plus d'infos</a></li>
+          <?php if (isset($admin_active)): ?></ul></details></li><?php endif; ?>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>

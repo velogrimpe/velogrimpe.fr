@@ -1,7 +1,7 @@
 <?php
 /**
  * Navigation latérale de l'admin (volet sur écran large, intégrée au tiroir du
- * site en mobile via components/header.html).
+ * site en mobile via components/header.php).
  *
  * Une seule définition des entrées : `vg_admin_nav_sections()` ; le rendu
  * (`vg_admin_nav_render()`) sert aussi bien au volet qu'au tiroir mobile.

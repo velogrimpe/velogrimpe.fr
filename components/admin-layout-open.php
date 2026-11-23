@@ -1,18 +1,18 @@
 <?php
 /**
  * Ouverture du layout admin : en-tête du site, volet latéral, puis ouverture de
- * la colonne de contenu. À utiliser À LA PLACE de l'include de header.html, et à
+ * la colonne de contenu. À utiliser À LA PLACE de l'include de header.php, et à
  * refermer avec admin-layout-close.php (à la place du footer).
  *
  * Variable attendue : `$admin_active` (clé d'entrée de components/admin-nav.php).
- * Elle est aussi lue par header.html pour intégrer la navigation admin dans le
+ * Elle est aussi lue par header.php pour intégrer la navigation admin dans le
  * tiroir mobile.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/components/admin-nav.php';
 $vg_admin_config = $vg_admin_config ?? require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 $vg_admin_token = (string) $vg_admin_config['admin_token'];
 $admin_active = $admin_active ?? '';
-include $_SERVER['DOCUMENT_ROOT'] . '/components/header.html';
+include $_SERVER['DOCUMENT_ROOT'] . '/components/header.php';
 ?>
 <link rel="stylesheet" href="/css/admin-ui.css" />
 <div class="vg-admin-shell flex grow min-h-0 w-full">

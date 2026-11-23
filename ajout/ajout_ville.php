@@ -39,7 +39,7 @@ if (!$admin) {
 </head>
 
 <body class="min-h-screen flex flex-col">
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <main class="w-full grow max-w-(--breakpoint-md) mx-auto prose p-4 prose-pre:my-0 prose-pre:text-center">
     <h1 class="text-4xl font-bold text-wrap text-center"> AJOUTER UNE VILLE (ADMIN) </h1>
     <form method="post" action="/api/add_ville.php" class="flex flex-col gap-4">

@@ -57,7 +57,7 @@ $logoUrl = "https://velogrimpe.fr/images/logo_velogrimpe.png";
 </head>
 
 <body>
-  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.html"; ?>
+  <?php include $_SERVER['DOCUMENT_ROOT'] . "/components/header.php"; ?>
   <main class="pb-4">
     <div class="hero min-h-100 bg-center" style="background-image: url(/images/mw/075-matos-5.webp);">
       <div class="hero-overlay bg-slate-600/70"></div>
