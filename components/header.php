@@ -162,7 +162,7 @@ $grave_editions = [
                   role="button"
                   class="btn btn-sm font-bold shadow-md mr-2"
                 >
-                  GRAVE
+                  Les GRAVEs
                 </div>
                 <ul
                   tabindex="0"
@@ -267,7 +267,7 @@ $grave_editions = [
           <li>
             <details>
               <summary class="text-secondary text-[1em] font-bold shadow-md">
-                GRAVE
+                Les GRAVEs
               </summary>
               <ul class="bg-base-100 rounded-t-none p-2">
                 <?php foreach ($grave_editions as $ed): ?>
